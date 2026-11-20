@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.zip
+data/
+backups/
+logs/
+config.json
+ema_pullback_config.json
+.env
+*.key
