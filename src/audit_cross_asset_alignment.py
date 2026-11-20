@@ -158,8 +158,11 @@ combined.to_csv(output_path, index=False)
 summary_df = pd.DataFrame(summary)
 summary_df["timestamps_common_to_all"] = len(common)
 summary_df["timestamps_not_common"] = [
+    len(timestamp_sets[symbol] - common)
+    for symbol in SYMBOLS
+]
+summary_df["timestamps_missing_from_asset"] = [
     len(union - timestamp_sets[symbol])
-    + len(timestamp_sets[symbol] - common)
     for symbol in SYMBOLS
 ]
 summary_df.to_csv(
