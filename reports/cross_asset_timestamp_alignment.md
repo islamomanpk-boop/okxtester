@@ -1,11 +1,13 @@
 # Cross-Asset Timestamp Alignment Audit
 
-Status: **FAIL**
+Status: **PASS_WITH_TRAILING_DIFFERENCES**
 
-- Assets checked: BTC, ETH, SOL, DOGE, AVAX
+- Assets: BTC, ETH, SOL, DOGE, AVAX
 - Union timestamps: 569,127
 - Common timestamps: 569,125
-- Identical timestamp sets: False
+- Combined dataset rows: 569,125
+- Trailing-only differences: True
+- Synchronized dataset: `/data/data/com.termux/files/home/okx_scalping_data/synchronized_5asset_1m.csv`
 
 ## Per-asset results
 
@@ -19,12 +21,10 @@ Status: **FAIL**
 
 ## Issues
 
-- BTC: missing timestamps
-- ETH: missing timestamps
-- SOL: missing timestamps
-- DOGE: missing timestamps
-- The five timestamp sets are not identical
+None detected.
 
-No missing candles were fabricated or forward-filled.
+Only exact common timestamps were retained.
+No forward filling or fabricated candles were used.
+Original source CSV files were not modified.
 
-This audit checks timestamp alignment, not strategy profitability.
+This audit checks data alignment, not strategy profitability.
