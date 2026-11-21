@@ -1,55 +1,34 @@
 # Performance Reporting Implementation Plan V1
 
-Status: Stage 4 validated; Stage 5 real-output validation remains
+Status: Stages 1-5 complete; reporting release validated on 2026-11-21
 Project: OKX Multi-Regime Price Action Strategy V1
 Branch: price-action-v1
 
 ## 1. Current verified project state
 
-The performance reporting requirements are documented in:
+The authoritative reporting requirements are documented in
+docs/performance_reporting_standard_v1.md.
 
-- docs/performance_reporting_standard_v1.md
+The project includes the portfolio backtester, exit-experiment runner,
+cost-sensitivity runner, reusable performance metrics/reporting modules,
+and their unit and integration tests.
 
-That standard was pushed and independently verified on GitHub.
-
-The project includes:
-
-- src/portfolio_backtester.py
-- src/run_exit_experiments.py
-- src/run_cost_sensitivity.py
-- src/performance_metrics.py
-- src/performance_reporting.py
-- Their corresponding unit and integration tests.
-
-The experiment runners use summary-only equity-curve storage. The backtester
-collects the daily, drawdown, and exposure statistics required by the shared
-report generator without retaining the full minute-by-minute equity curve.
-
-The reporting implementation preserves the existing backtester behavior
-and writes reports separately for each experiment or cost scenario.
+The runners use summary-only equity-curve storage. Required daily,
+drawdown, and exposure statistics are collected without retaining the full
+minute-by-minute equity curve. Real-data reports are generated locally;
+raw market/funding data and generated trade/report outputs are not
+committed.
 
 ## 2. Implementation objectives
 
-Implement a reusable and fully tested reporting system that provides:
+The reporting system provides trade-level and portfolio metrics,
+intraday maximum drawdown, daily UTC equity/returns, Sharpe, Sortino,
+CAGR, Calmar, recovery factor, concurrent positions, capital utilization,
+gross exposure, per-asset and per-direction breakdowns, asset-direction
+breakdowns, monthly UTC returns, exit-reason breakdowns, CSV outputs,
+and human-readable Markdown reports.
 
-- Trade-level performance metrics.
-- Portfolio return and risk metrics.
-- Intraday maximum drawdown in dollars and percent.
-- Daily UTC portfolio equity and returns.
-- Sharpe, Sortino, CAGR, Calmar, and recovery factor.
-- Maximum concurrent positions.
-- Average and maximum capital utilization.
-- Maximum gross exposure in quote currency and equity multiples.
-- Per-asset and per-direction breakdowns.
-- Asset-and-direction breakdowns.
-- Monthly UTC returns, including partial months.
-- Exit-reason breakdowns.
-- Human-readable Markdown reports and machine-readable CSV files.
-
-Summary-only mode must collect the required daily and exposure statistics
-without storing the complete minute-by-minute equity curve.
-
-Full equity-curve mode and summary-only mode must produce consistent
+Summary-only and full equity-curve modes are tested for consistent
 portfolio metrics.
 
 ## 3. Implementation stages
@@ -58,119 +37,127 @@ portfolio metrics.
 
 Status: Complete and validated.
 
-Created:
-- src/performance_metrics.py
-- src/test_performance_metrics.py
-
-Implemented trade statistics, portfolio metrics, daily returns, monthly
-returns, grouped trade statistics, and exit-reason summaries.
-
-Empty trade sets, zero denominators, unavailable ratios, breakeven trades,
-and insufficient daily observations are handled explicitly.
+Created performance metrics and tests covering trade statistics,
+portfolio metrics, daily/monthly returns, grouped statistics, and
+exit-reason summaries. Empty trade sets, zero denominators, unavailable
+ratios, breakeven trades, and insufficient daily observations are handled.
 
 ### Stage 2 - Backtester integration
 
 Status: Complete and validated on 2026-11-21.
 
-The backtester collects UTC daily equity marks, intraday drawdown in amount
-and percent, concurrent-position counts, and exposure/utilization statistics
-in both full and summary-only modes. The final daily mark is replaced with
-realized final equity after end-of-data closures.
-
-The integration test verifies matching daily, drawdown, and exposure
-statistics between full and summary-only modes.
+The backtester collects UTC daily equity marks, intraday drawdown,
+concurrent-position counts, and exposure/utilization statistics in both
+full and summary-only modes. Integration tests verify consistency.
 
 ### Stage 3 - Breakdown reporting
 
 Status: Complete and validated on 2026-11-21.
 
-Created:
-- src/performance_reporting.py
-- src/test_performance_reporting.py
-
-The report generator builds overall portfolio and trade metrics, per-asset,
-per-direction, and asset-and-direction breakdowns, daily returns, monthly
-UTC returns, and exit-reason summaries. It writes seven machine-readable
-CSV tables plus a human-readable Markdown report. The report includes run
-metadata and explicit end-of-data and exchange-liquidation limitations.
-
-The complete project test suite passed 183 tests in 3.829 seconds at the
-Stage 3 validation checkpoint.
+The shared report generator produces overall metrics, per-asset,
+per-direction, asset-direction, daily, monthly, and exit-reason reports.
+It writes seven detailed CSV tables and a Markdown report, including
+run metadata and end-of-data/exchange-liquidation limitations.
+The Stage 3 complete suite checkpoint passed 183 tests.
 
 ### Stage 4 - Experiment runner integration
 
 Status: Complete and validated on 2026-11-21.
 
-Both experiment runners call the shared reporting generator after each
-backtest:
+Both exit experiments and cost-sensitivity scenarios invoke the shared
+report generator. Outputs include summary/trade CSVs, seven detailed
+CSV tables, and Markdown reports. Metadata records experiment/scenario,
+UTC window, execution timeframe, per-side fees/slippage, funding,
+summary-only mode, risk fraction, leverage, and end-of-data closure.
+Cost-sensitivity reports disclose that cost-aware sizing can change
+fills, accepted entries, and outcomes.
 
-- Exit experiments produce the seven detailed CSV tables and Markdown
-  performance report alongside the existing summary and trade CSVs.
-- Each cost-sensitivity scenario produces the same detailed report set.
-- Metadata records experiment/scenario identifiers, UTC execution window,
-  1-minute timeframe, per-side fee and slippage assumptions, funding
-  treatment, summary-only storage, risk fraction, leverage, and forced
-  end-of-data closure policy.
-- Cost-sensitivity reports disclose that cost-aware sizing means fills,
-  accepted entries, and outcomes may change across scenarios.
-
-Integration tests verify that both runners invoke the shared reporter and
-preserve their respective cost assumptions.
-
-Validation on 2026-11-21: the user pulled commit 174681c and ran the complete
-test suite successfully: 185 tests passed in 5.157 seconds. This includes
-both runner/reporting integration tests and all reporting-generator tests.
-
-The runner integration tests use synthetic fixtures and verify invocation;
-their printed 1970 timestamps and zero-trade summaries are test data, not
-real market-run results.
+The complete suite passed 185 tests at an earlier Stage 4 checkpoint.
+The four-scenario implementation subsequently passed 188 tests.
 
 ### Stage 5 - Real-output validation and release
 
-Status: Pending.
+Status: Complete and validated on 2026-11-21.
 
-The automated implementation and full-suite test gate is passed. Before
-calling the reporting work fully released or starting the 66-experiment
-batch, perform controlled real-data smoke tests:
+#### Real-data exit smoke test
 
-1. Run one baseline exit experiment using the existing local market,
-   signal, and funding datasets.
-2. Confirm that its report directory contains the expected summary,
-   closed-trades, seven detailed CSV tables, and Markdown report.
-3. Inspect the generated report for plausible metadata, totals, date
-   boundaries, trade counts, and consistency with the runner summary.
-4. Run the cost-sensitivity scenarios and verify separate scenario
-   reports and preserved fee/slippage assumptions. The first real-data
-   run completed three stress scenarios, but omitted the exact baseline
-   cost pair (0.05% fee and 2 bps slippage).
-5. Add the exact baseline cost scenario and a unit test that protects the
-   baseline assumptions and unique scenario identifiers. Re-run the
-   complete four-scenario set and inspect its comparison output.
-6. Check that the pre-existing baseline report is not overwritten.
-7. Run git diff --check and confirm no raw market/funding data, secrets,
-   or temporary backups are staged.
-8. Record smoke-test outcomes and any corrections in this plan.
-9. Commit and push any approved fixes; independently verify the remote
-   branch and changed files.
+Experiment: fixed_stop_0_50pct__fixed_target_1_00pct
 
-The first real-data exit smoke test and three initial cost-sensitivity
-stress runs completed on 2026-11-21. The exit report totals reconcile
-with the runner summary and exit-reason counts. The report recorded
-maximum marked gross exposure of 1.0187x equity; this is a post-mark
+- Assets: BTC, ETH, SOL, DOGE, AVAX; execution: 1 minute.
+- Window: 2025-10-20T08:50:00+00:00 to 2026-11-19T14:14:00+00:00.
+- Candidates: 17,943; accepted entries/trades: 5,026.
+- Initial equity: $1,000; final equity: $40.850131.
+- Net PnL: -$959.149869; return: -95.914987%.
+- Maximum drawdown: 96.048263%.
+- Gross PnL: -$74.127200; fees: $886.391482; funding: +$1.368814.
+- Costs: 0.05% taker fee per side and 2 bps slippage per side.
+- Exit reasons: 3,299 stop, 9 stop-gap, 1,715 target, 2 target-gap,
+  and 1 end-of-data; total 5,026, matching trade count.
+- Summary, trades, seven detailed CSV tables, and Markdown reports
+  were generated; totals reconciled.
+
+Maximum marked gross exposure/equity was 1.018688x. This is a post-mark
 measurement and can exceed 1.0x as prices/equity move after allocation.
-It is not, by itself, proof that the allocator accepted excess exposure.
+It is not, by itself, proof of an entry-time allocation-cap breach.
 
-The initial cost-sensitivity set showed severe losses in all three
-scenarios, including the zero-fee scenario. Its missing exact baseline
-cost pair was identified and corrected in the runner; a focused test
-was added. Four-scenario real-data revalidation remains pending.
+#### Four-scenario real-data cost sensitivity
 
-Do not start the full 66-experiment batch until Stage 5 real-output
-validation is complete and the reporting release is committed and verified.
+All scenarios used 17,943 candidates, five assets, 1-minute execution,
+0.5% risk fraction, shared 1x gross-exposure allocation limit, and
+historical funding. Cost-aware sizing can change trade counts/outcomes.
+
+| Scenario | Fee per side | Slippage per side | Trades | Final equity | Net PnL | Return | Max drawdown |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Baseline | 0.05% | 2 bps | 5,976 | $24.241370 | -$975.758630 | -97.575863% | 97.626744% |
+| Zero fees | 0% | 2 bps | 5,982 | $604.414866 | -$395.585134 | -39.558513% | 55.495925% |
+| Zero slippage | 0.05% | 0 bps | 5,896 | $85.043505 | -$914.956495 | -91.495650% | 92.035546% |
+| Higher slippage | 0.05% | 5 bps | 6,035 | $3.009207 | -$996.990793 | -99.699079% | 99.704633% |
+
+All scenarios had profit factor below 1 and negative expectancy:
+
+- Baseline: PF 0.718956; expectancy -$0.163280/trade; win rate 40.56%.
+- Zero fees: PF 0.959038; expectancy -$0.066129/trade; win rate 40.47%.
+- Zero slippage: PF 0.803495; expectancy -$0.155183/trade; win rate 42.32%.
+- Higher slippage: PF 0.586007; expectancy -$0.165201/trade; win rate 37.96%.
+
+All four scenarios had negative net PnL, including zero fees. Costs
+materially worsened results, but costs alone do not explain the negative
+performance. These are research results, not evidence of a profitable
+or deployable strategy.
+
+All ten expected files were verified for each scenario: summary, trades,
+overall metrics, per-asset metrics, per-direction metrics,
+per-asset-direction metrics, daily returns, monthly returns,
+exit-reason breakdown, and Markdown report. A scenario comparison
+output was generated.
+
+Validation confirmed that exit-reason counts equal trade counts,
+trade-level net PnL reconciles with portfolio net PnL to rounding
+precision, and gross PnL minus fees plus funding reconciles with net
+PnL to rounding precision. Baseline per-asset and per-direction groups
+were negative.
+
+Maximum marked gross exposure/equity across the four scenarios was
+approximately 1.015x-1.020x. These post-mark measurements do not alone
+establish an entry-time allocation-cap breach.
+
+#### Test, repository, and output-safety gate
+
+The complete project test suite passed 188 tests on the four-scenario
+implementation. The user verified all 40 expected cost-sensitivity
+files and confirmed that the earlier 1.00% target exit smoke-test report
+remained present.
+
+Generated real-data reports and the temporary backtester backup remain
+local and untracked. Do not commit raw market/funding data, generated
+trade reports, or temporary backups without a separate explicit decision.
+
+Stage 5 reporting validation is complete. The full 66-experiment batch
+has not been run and is a separate next-stage decision.
 
 ## 4. Required output files
 
-For each experiment or cost scenario, generate:
+For each experiment or cost scenario:
 
 - Main summary CSV.
 - Closed-trades CSV.
@@ -183,37 +170,33 @@ For each experiment or cost scenario, generate:
 - Exit-reason breakdown CSV.
 - Human-readable Markdown report.
 
-For experiment batches, generate a comparison CSV.
+Experiment batches also generate a comparison CSV.
 
 ## 5. Project safety and data rules
 
-- Do not commit raw market data or raw funding data.
+- Do not commit raw market or raw funding data.
 - Do not commit API keys, credentials, or secrets.
 - Do not commit temporary backups.
 - Preserve existing reports and losing experiment results.
-- Do not overwrite the previously committed baseline report.
+- Do not overwrite previously generated baseline reports.
 - Keep implementation changes tested and documented.
+- Generated local real-data reports are not automatically part of
+  the source-code release.
 
 ## 6. Experiment execution gate
 
-Do not start the full 66-experiment batch until:
+The reporting implementation, tests, real-output smoke tests, and
+documentation release gate are complete and validated.
 
-- The reporting implementation is complete.
-- All relevant tests pass.
-- The complete project test suite passes.
-- Real-output smoke tests are reviewed.
-- The reporting changes are committed and pushed.
-- The remote branch and files are independently verified.
-
-After that gate, run cost sensitivity and the exit experiment batches
-sequentially, recording results and preserving all scenarios.
+The full 66-experiment batch is not included in this release. Before
+starting it, agree the execution order, resource/runtime constraints,
+output-retention approach, and review checkpoints. Run batches
+sequentially and preserve all scenarios. Backtest results are not a
+guarantee of future performance or authorization to deploy live trading.
 
 ## 7. Relationship to the reporting standard
 
-This document describes the implementation sequence.
-
-The authoritative metric definitions, calculation conventions,
-required breakdowns, output requirements, and interpretation rules
-remain in:
-
-docs/performance_reporting_standard_v1.md
+This document records the implementation sequence and validation.
+Authoritative metric definitions, calculation conventions, required
+breakdowns, output requirements, and interpretation rules remain in
+docs/performance_reporting_standard_v1.md.
