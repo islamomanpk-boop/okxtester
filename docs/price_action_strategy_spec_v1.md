@@ -352,3 +352,58 @@ Verify the commit and branch status after each save.
 - Treat SIDEWAYS range trading as a separate strategy family and report its
   results separately from trend-regime strategies.
 - Do not combine sideways and trend results when selecting configurations.
+
+---
+
+## 16. Research model separation and pure price-action priority
+
+Two models must be researched and reported independently.
+
+### Model A — Pure multi-timeframe price action (primary)
+
+- 1D: confirmed swing structure and HH/HL or LH/LL classification.
+- 4H: independently confirmed swing structure and classification.
+- 15M: objective price-action setup and signal generation.
+- 1M: primary execution timeframe.
+- 5M: secondary execution robustness comparison.
+
+Model A must not use EMA, RSI, ADX, or indicator-based directional
+filters. Its structure labels are generated from OHLC prices only.
+
+A swing high or low uses three candles on each side and becomes
+available only after the third right-side candle closes.
+
+Bullish structure requires both HH and HL. Bearish structure
+requires both LH and LL. Mixed, insufficient, or conflicting
+structure is NEUTRAL in the first baseline.
+
+A bullish BOS requires a completed close crossing above a previously
+confirmed swing high. A bearish BOS requires a completed close
+crossing below a previously confirmed swing low. No retroactive BOS
+is allowed if the level was crossed before its confirmation.
+
+Trend permission requires daily and 4H structure to agree:
+- BULLISH + BULLISH permits long trend setups.
+- BEARISH + BEARISH permits short trend setups.
+- Conflict or NEUTRAL permits no trend trade.
+
+Range trading is a separate experiment, not mixed into trend results.
+
+### Model B — Indicator-assisted benchmark
+
+Retain the existing verified indicator-assisted regime classifier
+and its original rules as a separate benchmark. Its EMA/ADX-based
+labels must not be used to construct Model A structure labels.
+
+### Execution comparison
+
+Use 1M execution as the primary baseline. Run 5M execution as a
+separate robustness comparison using the same 15M signals, test
+periods, fees, funding, sizing, and risk assumptions wherever
+the data permits a fair comparison.
+
+Do not compare results unless the execution assumptions are aligned
+and differences are documented.
+
+The detailed causal structure rules are documented in
+`docs/pure_price_action_structure_v1.md`.
