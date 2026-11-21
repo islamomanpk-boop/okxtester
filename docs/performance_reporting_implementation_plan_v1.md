@@ -1,6 +1,6 @@
 # Performance Reporting Implementation Plan V1
 
-Status: In progress - Stage 1 complete; Stage 2 next
+Status: In progress - Stages 1 and 2 validated; Stage 3 implementation awaiting validation
 Project: OKX Multi-Regime Price Action Strategy V1
 Branch: price-action-v1
 
@@ -80,6 +80,18 @@ are covered by tests.
 
 ### Stage 2 - Backtester integration
 
+Status: Complete and validated on 2026-11-21.
+
+The backtester now collects UTC daily equity marks, intraday drawdown in
+amount and percent, concurrent-position counts, and exposure/utilization
+statistics in both full and summary-only modes. The final daily mark is
+replaced with realized final equity after end-of-data closures.
+
+Validation: the complete project test suite passed, 175 tests in 3.823
+seconds. The new integration test verifies matching daily, drawdown, and
+exposure statistics between full and summary-only modes.
+
+
 Modify:
 
 - src/portfolio_backtester.py
@@ -100,6 +112,20 @@ Preserve the existing full and summary-only modes.
 Test that both modes return matching daily, drawdown, and exposure metrics.
 
 ### Stage 3 - Breakdown reporting
+
+Status: Implementation added; awaiting the complete test-suite run.
+
+Added:
+- src/performance_reporting.py
+- src/test_performance_reporting.py
+
+The report generator builds overall portfolio and trade metrics, per-asset,
+per-direction, and asset-and-direction breakdowns, daily returns, monthly
+UTC returns, and exit-reason summaries. It writes seven machine-readable
+CSV tables plus a human-readable Markdown report. The report includes run
+metadata and explicit end-of-data and exchange-liquidation limitations.
+Tests must pass before Stage 3 is marked complete.
+
 
 Generate:
 
