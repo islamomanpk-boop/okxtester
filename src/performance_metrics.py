@@ -183,10 +183,6 @@ def build_monthly_returns(daily_marks, initial_equity, start_ts=None, end_ts=Non
     previous_equity = initial
     for (year, month), (dt, ending_equity) in sorted(month_ends.items()):
         month_start = datetime(year, month, 1, tzinfo=timezone.utc)
-        if month == 12:
-            next_month = datetime(year + 1, 1, 1, tzinfo=timezone.utc)
-        else:
-            next_month = datetime(year, month + 1, 1, tzinfo=timezone.utc)
         last_day = monthrange(year, month)[1]
         final_minute = datetime(year, month, last_day, 23, 59, tzinfo=timezone.utc)
         partial = (
