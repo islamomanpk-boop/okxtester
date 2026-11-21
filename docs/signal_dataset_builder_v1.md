@@ -1,31 +1,57 @@
-# Price Action V1 — Signal Dataset Builder
+# Price Action V1 — Multi-Timeframe Signal Dataset Builder
 
 ## Purpose
 
-Build local 15-minute price-action signal datasets for BTC, ETH, SOL, DOGE,
-and AVAX, enriched with the most recently available 4-hour market regime.
+Build local 15-minute price-action datasets for BTC, ETH, SOL, DOGE,
+and AVAX. Attach causal daily and 4-hour price structure for Model A,
+while retaining the indicator-assisted regime separately for Model B.
 
 ## Inputs
 
 - `~/okx_adaptive_bot/data/indicators/{SYMBOL}_USDT_15m_indicators.csv`
+- `~/okx_adaptive_bot/data/indicators/{SYMBOL}_USDT_4h_indicators.csv`
+- `~/okx_adaptive_bot/data/indicators/{SYMBOL}_USDT_1d_indicators.csv`
 - `~/okx_adaptive_bot/reports/{SYMBOL}_regimes.csv`
 - `src/price_action_signals.py`
+- `src/price_action_structure.py`
 
-## Causal timing
+## Model A — Pure price action
 
-- 15m `ts` is the candle opening timestamp.
-- Price-action signals become available at `ts + 15 minutes`.
-- 4h regime reports provide `available_at`, which must equal `ts + 4 hours`.
-- Regime attachment uses backward `merge_asof` matching.
-- Exact-time matches are valid because both candles have closed at that instant.
-- A regime with an availability time later than the signal availability time is forbidden.
-- Rows before the first available 4h regime are marked `NO_REGIME_AVAILABLE`.
+Daily and 4-hour structure are calculated independently using OHLC only.
+Extra EMA, RSI, ADX, and other indicator columns are not passed to the
+structure detector.
+
+The structure detector uses three candles to the left and three to the
+right to confirm swing highs and lows. A pivot is available only after
+the third right-side candle closes.
+
+Structure availability:
+- Daily: candle open timestamp + 24 hours.
+- 4-hour: candle open timestamp + 4 hours.
+- 15-minute signal: candle open timestamp + 15 minutes.
+
+Both higher-timeframe structures are attached using backward as-of
+matching. Exact availability-time matches are allowed. Future matches
+are forbidden.
+
+`pa_direction_permission`:
+- `LONG_ONLY`: daily and 4-hour structures are both BULLISH.
+- `SHORT_ONLY`: daily and 4-hour structures are both BEARISH.
+- `NO_TREND`: structures conflict, are neutral, or are not yet available.
+
+Daily and 4-hour BOS events are retained separately. BOS is an event,
+not an entry signal.
+
+## Model B — Indicator-assisted regime
+
+The existing regime report is retained. Its output is available as
+`indicator_regime`. The legacy `regime` column remains as a compatibility
+alias. Model B labels do not determine Model A structure or permission.
 
 ## ATR14
 
-The 15m indicator CSV does not currently contain ATR14. The builder calculates
-it from 15m OHLC using the same Wilder-style exponentially weighted formula as
-`src/calculate_indicators.py`:
+The 15-minute indicator CSV does not currently contain ATR14. The builder
+calculates it from 15-minute OHLC using the existing Wilder-style formula:
 
 - alpha = 1/14
 - adjust = False
