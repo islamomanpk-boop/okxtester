@@ -6,6 +6,7 @@ import math
 from portfolio_engine import PortfolioConfig, allocate_candidates
 from trailing_exit import validate_trailing_settings, update_trailing_state
 from exit_experiment_config import resolve_exit_prices
+from compact_bar_series import TimestampBarLookup
 
 
 class PortfolioBacktestConfig:
@@ -52,15 +53,25 @@ def _validate_bars_by_asset(bars_by_asset):
     if not isinstance(bars_by_asset, dict) or not bars_by_asset:
         raise ValueError("bars_by_asset must be a non-empty dictionary")
 
-    timelines = {}
-    for asset, bars in bars_by_asset.items():
+    from array import array
+
+    reference = None
+
+    for asset_index, (asset, bars) in enumerate(bars_by_asset.items()):
         if not str(asset).strip() or not bars:
             raise ValueError("Every asset needs a name and execution candles")
 
-        timestamps = []
+        if asset_index == 0:
+            reference = (
+                bars.timestamps
+                if hasattr(bars, "timestamps")
+                else array("q")
+            )
+
         previous = None
 
-        for bar in bars:
+        # Validate this asset's own candle sequence first.
+        for index, bar in enumerate(bars):
             required = ("ts", "open", "high", "low", "close")
             if any(key not in bar for key in required):
                 raise ValueError(f"{asset} candle is missing required fields")
@@ -80,24 +91,29 @@ def _validate_bars_by_asset(bars_by_asset):
             if low > h or h < max(o, close) or low > min(o, close):
                 raise ValueError(f"{asset} has inconsistent OHLC values")
 
-            if previous is not None:
-                if ts - previous != 60_000:
-                    raise ValueError(
-                        f"{asset} candles must be strictly chronological "
-                        "and exactly one minute apart"
-                    )
+            if previous is not None and ts - previous != 60_000:
+                raise ValueError(
+                    f"{asset} candles must be strictly chronological "
+                    "and exactly one minute apart"
+                )
 
-            timestamps.append(ts)
+            if asset_index == 0 and not hasattr(bars, "timestamps"):
+                reference.append(ts)
+
             previous = ts
 
-        timelines[asset] = timestamps
+        # Only compare assets after their individual timelines are valid.
+        if asset_index > 0:
+            if len(bars) != len(reference):
+                raise ValueError(
+                    f"{asset} timestamps do not match the common portfolio timeline"
+                )
 
-    reference = next(iter(timelines.values()))
-    for asset, timestamps in timelines.items():
-        if timestamps != reference:
-            raise ValueError(
-                f"{asset} timestamps do not match the common portfolio timeline"
-            )
+            for index, bar in enumerate(bars):
+                if int(bar["ts"]) != reference[index]:
+                    raise ValueError(
+                        f"{asset} timestamps do not match the common portfolio timeline"
+                    )
 
     return reference
 
@@ -132,7 +148,7 @@ def _validate_funding(bars_by_asset, funding_by_asset):
 
 
 def _validate_candidates(candidates, bars_by_asset, timestamps):
-    scheduled = {ts: [] for ts in timestamps}
+    scheduled = {}
 
     common_required = (
         "asset", "side", "signal_available_at",
@@ -192,7 +208,7 @@ def _validate_candidates(candidates, bars_by_asset, timestamps):
             continue
 
         entry_ts = timestamps[index]
-        scheduled[entry_ts].append(dict(candidate))
+        scheduled.setdefault(entry_ts, []).append(dict(candidate))
 
     return scheduled
 
@@ -286,9 +302,7 @@ def run_portfolio_backtest(
 
     assets = list(bars_by_asset)
     bars_at = {
-        asset: {
-            int(bar["ts"]): bar for bar in bars_by_asset[asset]
-        }
+        asset: TimestampBarLookup(bars_by_asset[asset])
         for asset in assets
     }
 
