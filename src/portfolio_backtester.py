@@ -481,6 +481,19 @@ def run_portfolio_backtest(
                             })
                             continue
 
+                    # Entry slippage is already included in fill_entry.
+                    stop_for_sizing = float(allocator_candidate["stop_price"])
+                    stop_exit_fill = stop_for_sizing * (
+                        1 - int(c["side"]) * slippage
+                    )
+                    effective_risk_per_unit = (
+                        abs(fill_entry - stop_exit_fill)
+                        + fee_rate * (fill_entry + stop_exit_fill)
+                    )
+                    allocator_candidate["risk_per_unit"] = (
+                        effective_risk_per_unit
+                    )
+
                     allocator_candidates.append(allocator_candidate)
 
                 try:

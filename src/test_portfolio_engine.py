@@ -153,5 +153,31 @@ class PortfolioEngineTests(unittest.TestCase):
         self.assertEqual(len(result["accepted"]), 0)
 
 
+    def test_cost_adjusted_risk_controls_position_size(self):
+        item = candidate("BTC")
+        item["risk_per_unit"] = 1.25
+
+        result = allocate_candidates([item], 1000, config=self.config)
+        trade = result["accepted"][0]
+
+        self.assertAlmostEqual(trade["quantity"], 4.0)
+        self.assertAlmostEqual(trade["planned_cost_adjusted_risk"], 5.0)
+        self.assertAlmostEqual(trade["planned_stop_risk"], 4.0)
+
+    def test_zero_cost_adjusted_risk_is_rejected(self):
+        item = candidate("BTC")
+        item["risk_per_unit"] = 0
+
+        with self.assertRaisesRegex(ValueError, "risk_per_unit"):
+            allocate_candidates([item], 1000, config=self.config)
+
+    def test_infinite_cost_adjusted_risk_is_rejected(self):
+        item = candidate("BTC")
+        item["risk_per_unit"] = float("inf")
+
+        with self.assertRaisesRegex(ValueError, "risk_per_unit"):
+            allocate_candidates([item], 1000, config=self.config)
+
+
 if __name__ == "__main__":
     unittest.main()

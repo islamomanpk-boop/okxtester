@@ -154,5 +154,64 @@ class ExperimentPortfolioTests(unittest.TestCase):
         )
 
 
+    def test_cost_adjusted_risk_sizing_for_long_and_short(self):
+        exp = get_experiment(
+            "fixed_stop_0_50pct",
+            "fixed_target_0_75pct",
+        )
+
+        fee_rate = 0.0005
+        slippage_bps = 10
+        slippage = slippage_bps / 10000
+
+        bars = make_bars([
+            (100.0, 100.2, 99.8, 100.0),
+            (100.0, 100.2, 99.8, 100.0),
+            (100.0, 100.2, 99.8, 100.0),
+        ])
+
+        for side in (1, -1):
+            with self.subTest(side=side):
+                item = make_candidate(exp)
+                item["side"] = side
+
+                config = PortfolioBacktestConfig(
+                    initial_equity=1000,
+                    taker_fee_rate=fee_rate,
+                    slippage_bps=slippage_bps,
+                )
+
+                result = run_portfolio_backtest(
+                    candidates=[item],
+                    bars_by_asset={"BTC": bars},
+                    funding_by_asset={"BTC": []},
+                    config=config,
+                )
+
+                accepted = result["decisions"][0]["accepted"]
+                self.assertEqual(len(accepted), 1)
+                allocation = accepted[0]
+
+                entry = 100.0 * (1 + side * slippage)
+                stop = entry * (1 - side * 0.005)
+                stop_exit = stop * (1 - side * slippage)
+
+                risk_per_unit = (
+                    abs(entry - stop_exit)
+                    + fee_rate * (entry + stop_exit)
+                )
+                expected_quantity = 5.0 / risk_per_unit
+
+                self.assertAlmostEqual(
+                    allocation["quantity"], expected_quantity, places=8
+                )
+                self.assertAlmostEqual(
+                    allocation["risk_per_unit"], risk_per_unit, places=8
+                )
+                self.assertAlmostEqual(
+                    allocation["planned_cost_adjusted_risk"], 5.0, places=8
+                )
+
+
 if __name__ == "__main__":
     unittest.main()

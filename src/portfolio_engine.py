@@ -48,6 +48,11 @@ def _validate_candidate(candidate):
     if atr_distance <= 0:
         raise ValueError("ATR stop distance must be positive")
 
+    if "risk_per_unit" in candidate:
+        risk_per_unit = float(candidate["risk_per_unit"])
+        if not math.isfinite(risk_per_unit) or risk_per_unit <= 0:
+            raise ValueError("risk_per_unit must be finite and positive")
+
 
 def _validate_open_positions(open_positions):
     seen_assets = set()
@@ -145,7 +150,8 @@ def allocate_candidates(candidates, equity, open_positions=(), config=None):
         distance = abs(entry - stop)
 
         risk_budget = equity * config.risk_fraction
-        risk_quantity = risk_budget / distance
+        risk_per_unit = float(candidate.get("risk_per_unit", distance))
+        risk_quantity = risk_budget / risk_per_unit
         exposure_quantity = remaining_exposure / entry
         quantity = min(risk_quantity, exposure_quantity)
 
@@ -167,6 +173,8 @@ def allocate_candidates(candidates, equity, open_positions=(), config=None):
             "stop_price": stop,
             "risk_budget": risk_budget,
             "planned_stop_risk": planned_risk,
+            "planned_cost_adjusted_risk": quantity * risk_per_unit,
+            "risk_per_unit": risk_per_unit,
             "gross_exposure": notional,
             "signal_priority": int(candidate["signal_priority"]),
             "signal_available_at": int(candidate["signal_available_at"]),
