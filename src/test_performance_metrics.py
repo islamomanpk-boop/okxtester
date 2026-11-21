@@ -154,6 +154,11 @@ class DailyAndMonthlyTests(unittest.TestCase):
         self.assertTrue(rows[2]["partial_month"])
         self.assertEqual(rows[2]["net_pnl"], 200)
 
+    def test_final_minute_of_month_is_not_partial(self):
+        marks = [{"timestamp": "2026-02-28T23:59:00Z", "equity": 1050}]
+        rows = build_monthly_returns(marks, 1000)
+        self.assertFalse(rows[0]["partial_month"])
+
     def test_empty_monthly_marks(self):
         self.assertEqual(build_monthly_returns([], 1000), [])
 
@@ -244,8 +249,29 @@ class PortfolioMetricTests(unittest.TestCase):
             "daily_equity_marks": marks,
         })
         self.assertEqual(len(result["daily_returns"]), 2)
-        self.assertEqual(result["max_drawdown_amount"], 0)
+        self.assertIsNone(result["max_drawdown_amount"])
+        self.assertIsNone(result["max_drawdown_pct"])
+        self.assertIsNone(result["recovery_factor"])
+        self.assertIsNone(result["cagr_pct"])
         self.assertEqual(result["max_concurrent_positions"], 0)
+
+    def test_summary_only_uses_exact_period_boundaries_for_cagr(self):
+        result = summarize_portfolio_metrics({
+            "initial_equity": 1000,
+            "final_equity": 1100,
+            "equity_curve": [],
+            "daily_equity_marks": [
+                {"timestamp": "2026-01-01T23:59:00Z", "equity": 1050},
+                {"timestamp": "2026-01-02T23:59:00Z", "equity": 1100},
+            ],
+            "start_ts": "2026-01-01T12:00:00Z",
+            "end_ts": "2026-01-02T12:00:00Z",
+            "max_drawdown_amount": 25,
+            "max_drawdown_pct": 2.5,
+        })
+        self.assertIsNotNone(result["cagr_pct"])
+        self.assertEqual(result["max_drawdown_amount"], 25)
+        self.assertEqual(result["max_drawdown_pct"], 2.5)
 
 
 if __name__ == "__main__":
