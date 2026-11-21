@@ -155,11 +155,11 @@ Compare these methods separately:
 
 2. Signal-candle midpoint limit:
    Place a limit order at the midpoint of the completed signal candle.
-   Expire after four completed 15M candles if not filled.
+   Expire after three completed 15M candles (45 minutes) if not filled.
 
 3. Order-block midpoint limit:
    Place a limit order at the midpoint of the confirmed order-block zone.
-   Expire after four completed 15M candles if not filled.
+   Expire after three completed 15M candles (45 minutes) if not filled.
 
 A limit order is not filled merely because a 15M candle touches its price.
 Use 1M OHLCV data to determine whether the price was reached.
@@ -208,6 +208,26 @@ baseline. Any leverage experiments must be separately specified.
 
 Allow at most one open position per asset in the baseline.
 
+All assets share one portfolio equity balance and one gross exposure cap.
+Existing open positions consume exposure capacity before new positions
+are allocated. The total gross notional exposure must not exceed 1x
+current portfolio equity.
+
+Multiple assets may hold positions simultaneously, subject to the shared
+exposure cap and the one-position-per-asset rule.
+
+When simultaneous candidates exceed available exposure, rank them
+deterministically:
+1. Signal priority 3: confirmed support/resistance rejection or first
+   order-block retest.
+2. Signal priority 2: engulfing or pin bar at a confirmed S/R level.
+3. Signal priority 1: standalone engulfing or pin bar.
+Within a priority tier, prefer the smaller ATR-normalized stop distance.
+Use asset symbol alphabetically as the final tie-breaker.
+
+The ranking must use only information available at the decision time.
+Never rank candidates using their future returns.
+
 Record portfolio exposure and simultaneous positions.
 
 Do not increase risk after losses.
@@ -254,7 +274,8 @@ Stage 2:
 - Compare entry methods.
 
 Stage 3:
-- Compare stop-loss and take-profit combinations.
+- Compare all 16 combinations of four stop-loss models and four
+  take-profit models, with each combination evaluated separately.
 
 Stage 4:
 - Compare results by asset and market regime.
@@ -311,6 +332,23 @@ Verify the commit and branch status after each save.
 - Indicator inventory audit: passed.
 - Regime integrity audit: passed.
 - Price-action specification: initial draft.
-- Signal implementation: not started.
-- Execution engine: not started.
+- Price-action signal implementation: implemented and unit-tested; strategy integration pending.
+- Single-trade execution engine: implemented and unit-tested; portfolio integration pending.
 - Strategy performance: not established.
+
+
+## 15. Additional portfolio and experiment decisions
+
+- Test every stop-loss model against every take-profit model: 4 x 4 = 16
+  combinations.
+- Use a shared portfolio equity balance across BTC, ETH, SOL, DOGE and AVAX.
+- Permit simultaneous positions in different assets only while total gross
+  exposure remains at or below 1x current equity.
+- Permit no more than one open position per asset.
+- Expire unfilled midpoint limit orders after three completed 15M candles
+  (45 minutes).
+- Cancel a pending limit order if its setup becomes invalid before filling.
+- Use deterministic signal-priority ranking for simultaneous candidates.
+- Treat SIDEWAYS range trading as a separate strategy family and report its
+  results separately from trend-regime strategies.
+- Do not combine sideways and trend results when selecting configurations.
