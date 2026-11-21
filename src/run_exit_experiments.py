@@ -15,6 +15,7 @@ from portfolio_backtester import (
     PortfolioBacktestConfig,
     run_portfolio_backtest,
 )
+from performance_reporting import write_performance_reports
 from trade_candidate_engine import REQUIRED, build_candidates
 
 
@@ -261,6 +262,32 @@ def run_one_experiment(experiment, home=None):
         trade_fields,
     )
 
+    report_metadata = {
+        "experiment_id": experiment_id,
+        "stop_model": experiment.stop_model,
+        "target_model": experiment.target_model,
+        "target_value": experiment.target_value,
+        "trailing_mode": experiment.trailing_mode,
+        "assets": ",".join(ASSETS),
+        "execution_timeframe": "1m",
+        "execution_window_start_utc": summary["start_utc"],
+        "execution_window_end_utc": summary["end_utc"],
+        "taker_fee_rate_per_side": FEE_RATE,
+        "slippage_bps_per_side": SLIPPAGE_BPS,
+        "funding_data": "Historical asset-specific realized funding rates",
+        "funding_treatment": "Applied at funding timestamps; mark price when supplied, otherwise candle close proxy",
+        "equity_curve_storage": "summary-only",
+        "risk_fraction": 0.005,
+        "max_gross_leverage": 1.0,
+        "end_of_data_policy": "Open positions forcibly closed at final available candle",
+    }
+    performance_paths = write_performance_reports(
+        result,
+        output_dir,
+        experiment_id,
+        metadata=report_metadata,
+    )
+
     report = [
         f"# Exit experiment: {experiment_id}",
         "",
@@ -304,6 +331,9 @@ def run_one_experiment(experiment, home=None):
     for key, value in summary.items():
         print(f"{key}: {value}")
     print(f"\nReports saved in: {output_dir}")
+    print("Detailed performance files:")
+    for path in performance_paths.values():
+        print(path)
 
     return summary
 
