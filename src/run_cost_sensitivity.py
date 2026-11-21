@@ -8,6 +8,7 @@ from portfolio_backtester import (
     PortfolioBacktestConfig,
     run_portfolio_backtest,
 )
+from performance_reporting import write_performance_reports
 from run_exit_experiments import ASSETS, load_inputs
 
 
@@ -109,9 +110,46 @@ def run_scenario(scenario, bars, funding, candidates, experiment):
         trade_fields,
     )
 
+    report_metadata = {
+        "scenario_id": scenario_id,
+        "experiment_id": experiment.experiment_id,
+        "assets": ",".join(ASSETS),
+        "execution_timeframe": "1m",
+        "execution_window_start_utc": (
+            __import__("datetime").datetime.fromtimestamp(
+                bars[next(iter(bars))].timestamps[0] / 1000,
+                __import__("datetime").timezone.utc,
+            ).isoformat()
+        ),
+        "execution_window_end_utc": (
+            __import__("datetime").datetime.fromtimestamp(
+                bars[next(iter(bars))].timestamps[-1] / 1000,
+                __import__("datetime").timezone.utc,
+            ).isoformat()
+        ),
+        "taker_fee_rate_per_side": scenario["taker_fee_rate"],
+        "slippage_bps_per_side": scenario["slippage_bps"],
+        "funding_data": "Historical asset-specific realized funding rates",
+        "funding_treatment": "Applied at funding timestamps; mark price when supplied, otherwise candle close proxy",
+        "equity_curve_storage": "summary-only",
+        "risk_fraction": 0.005,
+        "max_gross_leverage": 1.0,
+        "cost_sensitivity_note": "Same signals, date window, exit rules, risk fraction, and portfolio constraints; cost-aware sizing means fills, accepted entries, and outcomes can change.",
+        "end_of_data_policy": "Open positions forcibly closed at final available candle",
+    }
+    performance_paths = write_performance_reports(
+        result,
+        output_dir,
+        scenario_id,
+        metadata=report_metadata,
+    )
+
     print(f"\n===== {scenario_id} COMPLETE =====")
     for key, value in summary.items():
         print(f"{key}: {value}")
+    print("Detailed performance files:")
+    for path in performance_paths.values():
+        print(path)
 
     return summary
 
