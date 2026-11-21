@@ -15,6 +15,11 @@ from run_exit_experiments import ASSETS, load_inputs
 
 COST_SCENARIOS = (
     {
+        "scenario_id": "baseline_fees_0_05pct_slippage_2bps",
+        "taker_fee_rate": 0.0005,
+        "slippage_bps": 2.0,
+    },
+    {
         "scenario_id": "zero_fees_slippage_2bps",
         "taker_fee_rate": 0.0,
         "slippage_bps": 2.0,
