@@ -279,7 +279,11 @@ def summarize_portfolio_metrics(result, daily_marks=None):
     if "max_drawdown_pct" in result:
         dd_pct = max(dd_pct or 0.0, _number(result["max_drawdown_pct"]))
     dd_fraction = dd_pct / 100.0 if dd_pct is not None else None
-    calmar = cagr / dd_fraction if cagr is not None and dd_fraction > 0 else None
+    calmar = (
+        cagr / dd_fraction
+        if cagr is not None and dd_fraction is not None and dd_fraction > 0
+        else None
+    )
 
     worst = min(daily, key=lambda row: row["daily_pnl"]) if daily else None
     worst_start_equity = (
