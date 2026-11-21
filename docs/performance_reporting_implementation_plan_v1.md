@@ -1,6 +1,6 @@
 # Performance Reporting Implementation Plan V1
 
-Status: In progress - Stages 1, 2, and 3 validated; Stage 4 implementation awaiting validation
+Status: Stage 4 validated; Stage 5 real-output validation remains
 Project: OKX Multi-Regime Price Action Strategy V1
 Branch: price-action-v1
 
@@ -12,25 +12,21 @@ The performance reporting requirements are documented in:
 
 That standard was pushed and independently verified on GitHub.
 
-Verified commit:
-- 4d390af
-- Document performance reporting and validation standard
-
-The existing project includes:
+The project includes:
 
 - src/portfolio_backtester.py
 - src/run_exit_experiments.py
 - src/run_cost_sensitivity.py
-- src/test_portfolio_backtester.py
-- Existing exit experiment configuration and trailing-exit modules.
-- A previously completed and committed baseline experiment.
+- src/performance_metrics.py
+- src/performance_reporting.py
+- Their corresponding unit and integration tests.
 
-The experiment runners currently use summary-only equity-curve storage.
-The backtester returns closed trades, decisions, total gross PnL,
-fees, funding PnL, final equity, return, and maximum drawdown percentage.
+The experiment runners use summary-only equity-curve storage. The backtester
+collects the daily, drawdown, and exposure statistics required by the shared
+report generator without retaining the full minute-by-minute equity curve.
 
-The reporting implementation must preserve existing backtester behavior
-and existing experiment results unless a tested correction is necessary.
+The reporting implementation preserves the existing backtester behavior
+and writes reports separately for each experiment or cost scenario.
 
 ## 2. Implementation objectives
 
@@ -60,62 +56,35 @@ portfolio metrics.
 
 ### Stage 1 - Reusable performance metrics
 
-Create:
+Status: Complete and validated.
 
+Created:
 - src/performance_metrics.py
 - src/test_performance_metrics.py
 
-Implement and test trade statistics, portfolio metrics, daily returns,
-monthly returns, grouped trade statistics, and exit-reason summaries.
+Implemented trade statistics, portfolio metrics, daily returns, monthly
+returns, grouped trade statistics, and exit-reason summaries.
 
-Handle empty trade sets, zero denominators, unavailable ratios,
-breakeven trades, and insufficient daily observations explicitly.
-
-Stage 1 implementation is complete and committed on branch `price-action-v1`.
-Validation on 2026-11-21: the complete project test suite passed, 174 tests
-in 3.468 seconds. The suite includes the new performance-metrics tests and
-all existing project tests. UTC month-end and partial-month boundaries,
-summary-only CAGR boundaries, and unavailable drawdown-dependent ratios
-are covered by tests.
+Empty trade sets, zero denominators, unavailable ratios, breakeven trades,
+and insufficient daily observations are handled explicitly.
 
 ### Stage 2 - Backtester integration
 
 Status: Complete and validated on 2026-11-21.
 
-The backtester now collects UTC daily equity marks, intraday drawdown in
-amount and percent, concurrent-position counts, and exposure/utilization
-statistics in both full and summary-only modes. The final daily mark is
-replaced with realized final equity after end-of-data closures.
+The backtester collects UTC daily equity marks, intraday drawdown in amount
+and percent, concurrent-position counts, and exposure/utilization statistics
+in both full and summary-only modes. The final daily mark is replaced with
+realized final equity after end-of-data closures.
 
-Validation: the complete project test suite passed, 175 tests in 3.823
-seconds. The new integration test verifies matching daily, drawdown, and
-exposure statistics between full and summary-only modes.
-
-
-Modify:
-
-- src/portfolio_backtester.py
-- src/test_portfolio_backtester.py
-
-Add lightweight collection of:
-
-- UTC daily equity marks.
-- Intraday maximum drawdown amount.
-- Maximum simultaneous open positions.
-- Average capital utilization.
-- Maximum capital utilization.
-- Maximum gross exposure.
-- Maximum gross exposure as a multiple of positive marked equity.
-
-Preserve the existing full and summary-only modes.
-
-Test that both modes return matching daily, drawdown, and exposure metrics.
+The integration test verifies matching daily, drawdown, and exposure
+statistics between full and summary-only modes.
 
 ### Stage 3 - Breakdown reporting
 
-Status: Implementation added; awaiting the complete test-suite run.
+Status: Complete and validated on 2026-11-21.
 
-Added:
+Created:
 - src/performance_reporting.py
 - src/test_performance_reporting.py
 
@@ -124,27 +93,17 @@ per-direction, and asset-and-direction breakdowns, daily returns, monthly
 UTC returns, and exit-reason summaries. It writes seven machine-readable
 CSV tables plus a human-readable Markdown report. The report includes run
 metadata and explicit end-of-data and exchange-liquidation limitations.
-Validation on 2026-11-21: the complete project test suite passed, 183 tests
-in 3.829 seconds. All eight report-generator tests passed.
 
-
-Generate:
-
-- Overall portfolio metrics.
-- Per-asset metrics.
-- LONG versus SHORT metrics.
-- Asset-and-direction metrics.
-- Monthly UTC returns.
-- Exit-reason breakdowns.
-
-Include losing assets and directions. Do not omit groups because their
-results are unfavorable.
+The complete project test suite passed 183 tests in 3.829 seconds at the
+Stage 3 validation checkpoint.
 
 ### Stage 4 - Experiment runner integration
 
-Status: Integration implemented; awaiting full-suite validation.
+Status: Complete and validated on 2026-11-21.
 
-Both runners now call the shared reporting generator after each backtest:
+Both experiment runners call the shared reporting generator after each
+backtest:
+
 - Exit experiments produce the seven detailed CSV tables and Markdown
   performance report alongside the existing summary and trade CSVs.
 - Each cost-sensitivity scenario produces the same detailed report set.
@@ -152,37 +111,46 @@ Both runners now call the shared reporting generator after each backtest:
   1-minute timeframe, per-side fee and slippage assumptions, funding
   treatment, summary-only storage, risk fraction, leverage, and forced
   end-of-data closure policy.
-- Cost sensitivity reports disclose that cost-aware sizing means fills,
+- Cost-sensitivity reports disclose that cost-aware sizing means fills,
   accepted entries, and outcomes may change across scenarios.
 
 Integration tests verify that both runners invoke the shared reporter and
 preserve their respective cost assumptions.
 
-Integrate the reporting system into:
+Validation on 2026-11-21: the user pulled commit 174681c and ran the complete
+test suite successfully: 185 tests passed in 5.157 seconds. This includes
+both runner/reporting integration tests and all reporting-generator tests.
 
-- src/run_exit_experiments.py
-- src/run_cost_sensitivity.py
+The runner integration tests use synthetic fixtures and verify invocation;
+their printed 1970 timestamps and zero-trade summaries are test data, not
+real market-run results.
 
-Each experiment or scenario must produce the reporting files specified
-in docs/performance_reporting_standard_v1.md.
+### Stage 5 - Real-output validation and release
 
-Comparison reports must preserve the cost assumptions and experiment IDs.
+Status: Pending.
 
-### Stage 5 - Validation and release
+The automated implementation and full-suite test gate is passed. Before
+calling the reporting work fully released or starting the 66-experiment
+batch, perform controlled real-data smoke tests:
 
-Before the reporting implementation is considered complete:
+1. Run one baseline exit experiment using the existing local market,
+   signal, and funding datasets.
+2. Confirm that its report directory contains the expected summary,
+   closed-trades, seven detailed CSV tables, and Markdown report.
+3. Inspect the generated report for plausible metadata, totals, date
+   boundaries, trade counts, and consistency with the runner summary.
+4. Run one cost-sensitivity scenario (or the complete small scenario set
+   if runtime is acceptable) and verify separate scenario reports and
+   preserved fee/slippage assumptions.
+5. Check that the pre-existing baseline report is not overwritten.
+6. Run git diff --check and confirm no raw market/funding data, secrets,
+   or temporary backups are staged.
+7. Record smoke-test outcomes and any corrections in this plan.
+8. Commit and push any approved fixes; independently verify the remote
+   branch and changed files.
 
-1. Add unit tests for all metric definitions and edge cases.
-2. Test daily and monthly UTC boundaries.
-3. Test empty and breakeven trade groups.
-4. Test undefined profit factor, payoff, Sharpe, Sortino, and Calmar.
-5. Test long and short breakdowns.
-6. Test full versus summary-only consistency.
-7. Run the complete unit test suite.
-8. Run git diff --check.
-9. Review generated reports for correctness and completeness.
-10. Commit and push all approved changes to price-action-v1.
-11. Independently verify the pushed commit and files on GitHub.
+Do not start the full 66-experiment batch until Stage 5 real-output
+validation is complete and the reporting release is committed and verified.
 
 ## 4. Required output files
 
@@ -190,10 +158,11 @@ For each experiment or cost scenario, generate:
 
 - Main summary CSV.
 - Closed-trades CSV.
-- Overall metrics CSV or report.
+- Overall metrics CSV.
 - Per-asset metrics CSV.
 - Per-direction metrics CSV.
 - Asset-and-direction metrics CSV.
+- Daily returns CSV.
 - Monthly returns CSV.
 - Exit-reason breakdown CSV.
 - Human-readable Markdown report.
@@ -216,6 +185,7 @@ Do not start the full 66-experiment batch until:
 - The reporting implementation is complete.
 - All relevant tests pass.
 - The complete project test suite passes.
+- Real-output smoke tests are reviewed.
 - The reporting changes are committed and pushed.
 - The remote branch and files are independently verified.
 
