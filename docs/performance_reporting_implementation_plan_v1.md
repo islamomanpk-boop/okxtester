@@ -204,8 +204,12 @@ docs/performance_reporting_standard_v1.md.
 
 ## 8. Stage 6 - Resumable 66-experiment batch runner
 
-Status: Implemented on 2026-11-21; local Termux test validation pending.
+Status: Implemented and validated on Termux on 2026-11-21.
 The full real-data batch has not been started.
+Local validation: all 193 unit tests passed; the dry run confirmed 66
+experiments split evenly into 22 baseline, 22 trailing-stop, and 22
+trailing-take-profit variants. The dry run did not load market data or
+execute any experiment.
 
 Added `src/run_exit_experiment_batch.py` and its unit tests.
 The existing single-experiment runner now exposes
