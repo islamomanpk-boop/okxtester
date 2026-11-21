@@ -295,7 +295,7 @@ class PortfolioBacktesterTests(unittest.TestCase):
         rows = [
             (100, 100.2, 99.8, 100),
             (100, 100.2, 89.8, 90),
-            (90, 90.2, 89.8, 95),
+            (90, 100.2, 89.8, 90.1),
         ]
         bars = {"BTC": make_bars(rows)}
         # Cross a UTC midnight so daily marks must be split by UTC date.
