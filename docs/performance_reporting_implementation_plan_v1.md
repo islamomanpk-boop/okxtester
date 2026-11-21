@@ -200,3 +200,66 @@ This document records the implementation sequence and validation.
 Authoritative metric definitions, calculation conventions, required
 breakdowns, output requirements, and interpretation rules remain in
 docs/performance_reporting_standard_v1.md.
+
+
+## 8. Stage 6 - Resumable 66-experiment batch runner
+
+Status: Implemented on 2026-11-21; local Termux test validation pending.
+The full real-data batch has not been started.
+
+Added `src/run_exit_experiment_batch.py` and its unit tests.
+The existing single-experiment runner now exposes
+`run_one_experiment_with_inputs`, allowing the batch runner to reuse
+one preloaded set of synchronized candles, funding events, and signal
+candidates across all experiments.
+
+### Batch design
+
+- Validates the exact 66-variant matrix: 22 baseline, 22 trailing-stop,
+  and 22 trailing-take-profit experiments.
+- Runs experiments sequentially; it does not launch parallel workers.
+- Loads shared market, funding, and candidate inputs once per batch run.
+- Writes each experiment's reports before moving to the next experiment.
+- Verifies all eleven expected artifacts and the matching one-row
+  summary before marking an experiment complete.
+- Writes an atomic batch manifest and comparison CSV after each
+  successful experiment.
+- Calls garbage collection between experiments to reduce retained
+  Python objects on memory-constrained Android devices.
+- Stops on the first experiment error while preserving completed outputs.
+- Resumes by skipping only experiments whose complete artifact set and
+  summary are verified. Partial or invalid outputs are rerun.
+- `--rerun-completed` explicitly forces completed experiments to run again.
+- `--dry-run` and `--list-experiments` inspect the matrix without
+  loading the real datasets.
+
+### Termux commands
+
+Inspect the matrix without running it:
+
+```bash
+cd ~/okxtester
+git pull origin price-action-v1
+PYTHONPATH=src python -m run_exit_experiment_batch --dry-run
+```
+
+Run or resume the full batch:
+
+```bash
+cd ~/okxtester
+PYTHONPATH=src python -m run_exit_experiment_batch
+```
+
+The runner writes local-only files under
+`~/okxtester/reports/exit_experiments/`:
+
+- `exit_experiment_batch_manifest.csv`
+- `exit_experiment_batch_comparison.csv`
+- Eleven artifacts per experiment, including the summary, trades,
+  seven detailed metric CSVs, and two Markdown reports.
+
+The batch runner implementation and tests are committed to the project
+branch. The user must run the local test suite after pulling these
+changes. No 66-experiment real-data run is authorized by this
+implementation commit; the real-data batch starts only after local
+tests and a dry-run are reviewed.
