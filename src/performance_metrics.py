@@ -6,6 +6,7 @@ Timestamps are Unix milliseconds or ISO-8601 strings.
 
 from collections import defaultdict
 from datetime import datetime, timezone
+from calendar import monthrange
 import math
 import statistics
 
@@ -186,13 +187,14 @@ def build_monthly_returns(daily_marks, initial_equity, start_ts=None, end_ts=Non
             next_month = datetime(year + 1, 1, 1, tzinfo=timezone.utc)
         else:
             next_month = datetime(year, month + 1, 1, tzinfo=timezone.utc)
-        month_end = next_month.timestamp() - 0.001
+        last_day = monthrange(year, month)[1]
+        final_minute = datetime(year, month, last_day, 23, 59, tzinfo=timezone.utc)
         partial = (
             (year, month) == (start.year, start.month)
             and start > month_start
         ) or (
             (year, month) == (end.year, end.month)
-            and end.timestamp() < month_end
+            and end < final_minute
         )
         pnl = ending_equity - previous_equity
         output.append({
@@ -254,26 +256,29 @@ def summarize_portfolio_metrics(result, daily_marks=None):
         if returns and downside > 0 else None
     )
 
-    if curve:
-        elapsed_days = (curve[-1][0] - curve[0][0]).total_seconds() / 86400.0
-    elif daily:
+    if result.get("start_ts") is not None and result.get("end_ts") is not None:
         elapsed_days = (
-            datetime.fromisoformat(daily[-1]["date_utc"]).replace(tzinfo=timezone.utc)
-            - datetime.fromisoformat(daily[0]["date_utc"]).replace(tzinfo=timezone.utc)
+            _timestamp(result["end_ts"]) - _timestamp(result["start_ts"])
         ).total_seconds() / 86400.0
+    elif curve:
+        elapsed_days = (curve[-1][0] - curve[0][0]).total_seconds() / 86400.0
     else:
+        # Daily marks do not preserve exact intraday test boundaries.
         elapsed_days = 0.0
     cagr = (
         (final / initial) ** (365.0 / elapsed_days) - 1.0
         if elapsed_days > 0 and final > 0 else None
     )
 
-    dd_amount, dd_pct = _drawdown_metrics(curve)
+    if curve:
+        dd_amount, dd_pct = _drawdown_metrics(curve)
+    else:
+        dd_amount = dd_pct = None
     if "max_drawdown_amount" in result:
-        dd_amount = max(dd_amount, _number(result["max_drawdown_amount"]))
+        dd_amount = max(dd_amount or 0.0, _number(result["max_drawdown_amount"]))
     if "max_drawdown_pct" in result:
-        dd_pct = max(dd_pct, _number(result["max_drawdown_pct"]))
-    dd_fraction = dd_pct / 100.0
+        dd_pct = max(dd_pct or 0.0, _number(result["max_drawdown_pct"]))
+    dd_fraction = dd_pct / 100.0 if dd_pct is not None else None
     calmar = cagr / dd_fraction if cagr is not None and dd_fraction > 0 else None
 
     worst = min(daily, key=lambda row: row["daily_pnl"]) if daily else None
@@ -305,7 +310,10 @@ def summarize_portfolio_metrics(result, daily_marks=None):
         "total_return_pct": (final / initial - 1.0) * 100.0,
         "max_drawdown_amount": dd_amount,
         "max_drawdown_pct": dd_pct,
-        "recovery_factor": (final - initial) / dd_amount if dd_amount > 0 else None,
+        "recovery_factor": (
+            (final - initial) / dd_amount
+            if dd_amount is not None and dd_amount > 0 else None
+        ),
         "sharpe_ratio": sharpe,
         "sortino_ratio": sortino,
         "cagr_pct": cagr * 100.0 if cagr is not None else None,
