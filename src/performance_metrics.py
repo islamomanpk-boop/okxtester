@@ -311,9 +311,12 @@ def summarize_portfolio_metrics(result, daily_marks=None):
         if equity > 0:
             max_gross_multiple = max(max_gross_multiple, utilization)
     average_utilization_pct = (
-        statistics.fmean(exposure_values) * 100.0
-        if exposure_values
-        else result.get("average_capital_utilization_pct")
+        _number(result["average_capital_utilization_pct"])
+        if result.get("average_capital_utilization_pct") is not None
+        else (
+            statistics.fmean(exposure_values) * 100.0
+            if exposure_values else None
+        )
     )
 
     return {
