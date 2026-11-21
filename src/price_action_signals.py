@@ -186,7 +186,7 @@ def detect_signals(candles):
                     if np.isfinite(atr[candidate]) else np.nan
                 )
                 if np.isfinite(tolerance) and tolerance > 0:
-                                _add_zone(
+                    _add_zone(
                         clusters["resistance"], h[candidate], tolerance
                     )
 
