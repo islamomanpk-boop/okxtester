@@ -17,12 +17,14 @@ class PortfolioBacktestConfig:
         max_gross_leverage=1.0,
         taker_fee_rate=None,
         slippage_bps=None,
+        record_equity_curve=True,
     ):
         self.initial_equity = float(initial_equity)
         self.risk_fraction = float(risk_fraction)
         self.max_gross_leverage = float(max_gross_leverage)
         self.taker_fee_rate = taker_fee_rate
         self.slippage_bps = slippage_bps
+        self.record_equity_curve = record_equity_curve
         self.validate()
 
     def validate(self):
@@ -47,6 +49,8 @@ class PortfolioBacktestConfig:
             raise ValueError("Slippage must be finite")
         if self.taker_fee_rate < 0 or self.slippage_bps < 0:
             raise ValueError("Taker fee and slippage cannot be negative")
+        if not isinstance(self.record_equity_curve, bool):
+            raise ValueError("record_equity_curve must be boolean")
 
 
 def _validate_bars_by_asset(bars_by_asset):
@@ -326,6 +330,8 @@ def run_portfolio_backtest(
     decisions = []
     equity_curve = []
     realized_pnl = 0.0
+    peak_equity = config.initial_equity
+    max_drawdown = 0.0
 
     def close_position(asset, position, exit_price, exit_time, reason):
         nonlocal realized_pnl
@@ -612,14 +618,24 @@ def run_portfolio_backtest(
             gross_exposure += position["quantity"] * close
 
         equity = config.initial_equity + realized_pnl + unrealized
-        equity_curve.append({
-            "timestamp": ts,
-            "equity": equity,
-            "realized_pnl": realized_pnl,
-            "unrealized_pnl": unrealized,
-            "gross_exposure": gross_exposure,
-            "open_positions": len(positions),
-        })
+
+        # The final candle is measured after end-of-data liquidation below.
+        # Avoid counting its pre-liquidation mark twice in summary-only mode.
+        if ts != timestamps[-1]:
+            peak_equity = max(peak_equity, equity)
+            if peak_equity > 0:
+                drawdown = (peak_equity - equity) / peak_equity
+                max_drawdown = max(max_drawdown, drawdown)
+
+        if config.record_equity_curve:
+            equity_curve.append({
+                "timestamp": ts,
+                "equity": equity,
+                "realized_pnl": realized_pnl,
+                "unrealized_pnl": unrealized,
+                "gross_exposure": gross_exposure,
+                "open_positions": len(positions),
+            })
 
     # 5. Close any remaining positions at the final available close.
     final_ts = timestamps[-1]
@@ -644,12 +660,18 @@ def run_portfolio_backtest(
             "open_positions": 0,
         }
 
-    peak = config.initial_equity
-    max_drawdown = 0.0
-    for point in equity_curve:
-        peak = max(peak, point["equity"])
-        if peak > 0:
-            drawdown = (peak - point["equity"]) / peak
+    if config.record_equity_curve:
+        peak = config.initial_equity
+        max_drawdown = 0.0
+        for point in equity_curve:
+            peak = max(peak, point["equity"])
+            if peak > 0:
+                drawdown = (peak - point["equity"]) / peak
+                max_drawdown = max(max_drawdown, drawdown)
+    else:
+        peak_equity = max(peak_equity, final_equity)
+        if peak_equity > 0:
+            drawdown = (peak_equity - final_equity) / peak_equity
             max_drawdown = max(max_drawdown, drawdown)
 
     total_gross_pnl = sum(t["gross_pnl"] for t in trades)

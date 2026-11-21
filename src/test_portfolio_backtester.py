@@ -42,11 +42,12 @@ def candidate(
     }
 
 
-def config(fee=0.0, slippage=0.0):
+def config(fee=0.0, slippage=0.0, record_equity_curve=True):
     return PortfolioBacktestConfig(
         initial_equity=1000,
         taker_fee_rate=fee,
         slippage_bps=slippage,
+        record_equity_curve=record_equity_curve,
     )
 
 
@@ -253,6 +254,41 @@ class PortfolioBacktesterTests(unittest.TestCase):
         )
         self.assertEqual(result["trades"][0]["exit_reason"], "end_of_data")
         self.assertEqual(result["equity_curve"][-1]["open_positions"], 0)
+
+    def test_summary_only_matches_full_equity_curve_metrics(self):
+        rows = [
+            (100, 100.2, 99.8, 100),
+            (100, 100.2, 98.8, 99),
+            (99, 99.2, 97.8, 98),
+            (98, 99.2, 97.8, 99),
+            (99, 99.2, 96.8, 97),
+        ]
+        bars = {"BTC": make_bars(rows)}
+        item = candidate(stop=90, target_pct=0.20)
+
+        full = run_portfolio_backtest(
+            bars, [item], {"BTC": []}, config()
+        )
+        summary = run_portfolio_backtest(
+            bars,
+            [item],
+            {"BTC": []},
+            config(record_equity_curve=False),
+        )
+
+        self.assertEqual(summary["equity_curve"], [])
+        self.assertEqual(summary["trades"], full["trades"])
+        self.assertAlmostEqual(
+            summary["final_equity"], full["final_equity"], places=10
+        )
+        self.assertAlmostEqual(
+            summary["return_pct"], full["return_pct"], places=10
+        )
+        self.assertAlmostEqual(
+            summary["max_drawdown_pct"],
+            full["max_drawdown_pct"],
+            places=10,
+        )
 
     def test_equity_curve_and_summary_are_returned(self):
         bars = {
