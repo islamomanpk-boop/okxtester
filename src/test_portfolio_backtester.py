@@ -4,6 +4,7 @@ from portfolio_backtester import (
     PortfolioBacktestConfig,
     run_portfolio_backtest,
 )
+from performance_metrics import summarize_portfolio_metrics
 
 
 BASE_TS = 1_000_000
@@ -288,6 +289,99 @@ class PortfolioBacktesterTests(unittest.TestCase):
             summary["max_drawdown_pct"],
             full["max_drawdown_pct"],
             places=10,
+        )
+
+    def test_summary_and_full_collect_daily_drawdown_and_exposure_metrics(self):
+        rows = [
+            (100, 100.2, 99.8, 100),
+            (100, 100.2, 89.8, 90),
+            (90, 90.2, 89.8, 95),
+        ]
+        bars = {"BTC": make_bars(rows)}
+        # Cross a UTC midnight so daily marks must be split by UTC date.
+        for index, bar in enumerate(bars["BTC"]):
+            bar["ts"] = 86_399_000 + index * 60_000
+        item = candidate(
+            available=86_459_000,
+            stop=80,
+            target_pct=0.50,
+        )
+
+        full = run_portfolio_backtest(
+            bars, [item], {"BTC": []}, config()
+        )
+        summary = run_portfolio_backtest(
+            bars,
+            [item],
+            {"BTC": []},
+            config(record_equity_curve=False),
+        )
+
+        self.assertEqual(summary["equity_curve"], [])
+        self.assertEqual(len(full["daily_equity_marks"]), 2)
+        self.assertEqual(
+            [row["timestamp"] for row in full["daily_equity_marks"]],
+            [86_399_000, 86_519_000],
+        )
+        self.assertEqual(
+            full["daily_equity_marks"],
+            summary["daily_equity_marks"],
+        )
+        self.assertAlmostEqual(
+            full["daily_equity_marks"][-1]["equity"],
+            full["final_equity"],
+        )
+        self.assertAlmostEqual(
+            full["max_drawdown_amount"],
+            summary["max_drawdown_amount"],
+            places=10,
+        )
+        self.assertAlmostEqual(
+            full["max_drawdown_pct"],
+            summary["max_drawdown_pct"],
+            places=10,
+        )
+        self.assertGreater(full["max_drawdown_amount"], 0)
+        self.assertEqual(full["max_concurrent_positions"], 1)
+        self.assertEqual(
+            full["max_concurrent_positions"],
+            summary["max_concurrent_positions"],
+        )
+        self.assertGreater(full["max_gross_exposure"], 0)
+        self.assertAlmostEqual(
+            full["max_gross_exposure"],
+            summary["max_gross_exposure"],
+        )
+        self.assertAlmostEqual(
+            full["average_capital_utilization_pct"],
+            summary["average_capital_utilization_pct"],
+        )
+        self.assertAlmostEqual(
+            full["max_capital_utilization_pct"],
+            summary["max_capital_utilization_pct"],
+        )
+        self.assertAlmostEqual(
+            full["max_gross_exposure_equity_multiple"],
+            summary["max_gross_exposure_equity_multiple"],
+        )
+
+        full_metrics = summarize_portfolio_metrics(full)
+        summary_metrics = summarize_portfolio_metrics(summary)
+        for key in (
+            "max_drawdown_amount",
+            "max_drawdown_pct",
+            "max_concurrent_positions",
+            "average_capital_utilization_pct",
+            "max_capital_utilization_pct",
+            "max_gross_exposure",
+            "max_gross_exposure_equity_multiple",
+        ):
+            self.assertAlmostEqual(
+                full_metrics[key], summary_metrics[key], places=10
+            )
+        self.assertEqual(
+            full_metrics["daily_returns"],
+            summary_metrics["daily_returns"],
         )
 
     def test_equity_curve_and_summary_are_returned(self):
