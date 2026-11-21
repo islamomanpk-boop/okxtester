@@ -33,28 +33,28 @@ class TestCostSensitivity(unittest.TestCase):
         report_writer.assert_called_once()
         metadata = report_writer.call_args.kwargs["metadata"]
         self.assertEqual(metadata["execution_timeframe"], "1m")
-        self.assertEqual(metadata["taker_fee_rate_per_side"], 0.0)
+        self.assertEqual(metadata["taker_fee_rate_per_side"], 0.0005)
         self.assertEqual(metadata["slippage_bps_per_side"], 2.0)
         self.assertIn("cost-aware sizing", metadata["cost_sensitivity_note"])
 
-    def test_three_distinct_cost_scenarios_exist(self):
-        self.assertEqual(len(COST_SCENARIOS), 3)
+    def test_four_distinct_cost_scenarios_exist(self):
+        self.assertEqual(len(COST_SCENARIOS), 4)
         self.assertEqual(
-            len({item["scenario_id"] for item in COST_SCENARIOS}), 3
+            len({item["scenario_id"] for item in COST_SCENARIOS}), 4
         )
 
     def test_zero_fee_scenario_keeps_two_bps_slippage(self):
-        scenario = COST_SCENARIOS[0]
+        scenario = next(item for item in COST_SCENARIOS if item["scenario_id"] == "zero_fees_slippage_2bps")
         self.assertEqual(scenario["taker_fee_rate"], 0.0)
         self.assertEqual(scenario["slippage_bps"], 2.0)
 
     def test_zero_slippage_scenario_keeps_baseline_fee(self):
-        scenario = COST_SCENARIOS[1]
+        scenario = next(item for item in COST_SCENARIOS if item["scenario_id"] == "fees_0_05pct_zero_slippage")
         self.assertEqual(scenario["taker_fee_rate"], 0.0005)
         self.assertEqual(scenario["slippage_bps"], 0.0)
 
     def test_high_slippage_scenario_keeps_baseline_fee(self):
-        scenario = COST_SCENARIOS[2]
+        scenario = next(item for item in COST_SCENARIOS if item["scenario_id"] == "fees_0_05pct_slippage_5bps")
         self.assertEqual(scenario["taker_fee_rate"], 0.0005)
         self.assertEqual(scenario["slippage_bps"], 5.0)
 
