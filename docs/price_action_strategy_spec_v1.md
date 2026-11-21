@@ -173,6 +173,7 @@ Test independently:
 - Fixed 0.50% from entry.
 - Fixed 0.75% from entry.
 - Fixed 1.00% from entry.
+- Exact signal-candle extreme: low for longs, high for shorts.
 - Signal-candle extreme plus a buffer of 0.10 times 15M ATR14.
 
 For longs, stops are below entry or the relevant signal low.
@@ -189,6 +190,14 @@ Test fixed price targets independently:
 - 1.00%
 - 1.50%
 - 2.00%
+
+For the two signal-candle stop models, also test risk-multiple targets:
+- 1R
+- 1.5R
+- 2R
+
+R is the absolute distance between actual entry and the selected stop.
+Long targets are above entry; short targets are below entry.
 
 Do not select the best target using the final test period.
 
@@ -274,8 +283,15 @@ Stage 2:
 - Compare entry methods.
 
 Stage 3:
-- Compare all 16 combinations of four stop-loss models and four
-  take-profit models, with each combination evaluated separately.
+- Test the original 16 combinations of four stop-loss models and four
+  fixed-percentage take-profit models.
+- Add three R-multiple targets for the exact signal-candle stop.
+- Add three R-multiple targets for the buffered signal-candle stop.
+- This produces 22 baseline configurations.
+- Test trailing stop-loss independently on all 22 configurations.
+- Test trailing take-profit independently on all 22 configurations.
+- Do not combine trailing stop-loss and trailing take-profit in this stage.
+- Total planned exit configurations: 66.
 
 Stage 4:
 - Compare results by asset and market regime.
@@ -339,8 +355,10 @@ Verify the commit and branch status after each save.
 
 ## 15. Additional portfolio and experiment decisions
 
-- Test every stop-loss model against every take-profit model: 4 x 4 = 16
-  combinations.
+- Preserve the original 16 stop/fixed-target combinations.
+- Add exact and buffered signal-candle stops with 1R, 1.5R and 2R targets.
+- Test 22 baseline configurations, 22 trailing-stop variants and 22
+  trailing-take-profit variants: 66 configurations total.
 - Use a shared portfolio equity balance across BTC, ETH, SOL, DOGE and AVAX.
 - Permit simultaneous positions in different assets only while total gross
   exposure remains at or below 1x current equity.
@@ -425,3 +443,56 @@ Zones confirmed on the current candle are not used to classify that
 same candle. Only zones already confirmed before the current candle
 are eligible. These flags support priority-2 classification when
 combined with a directionally matching engulfing candle or pin bar.
+
+## 17. Trailing exit experiments
+
+Trailing exits are separate experiments. Never enable trailing stop-loss
+and trailing take-profit together in this stage.
+
+### A. Trailing stop-loss
+
+- Keep the configuration's original stop and take-profit.
+- Activate trailing after price first reaches +1R in the favourable direction.
+- Trail the stop 1R behind the best favourable price reached since entry.
+- The trailing stop may move only in the direction that reduces risk; it
+  must never move farther away from the market.
+- For longs, trail below the highest favourable price.
+- For shorts, trail above the lowest favourable price.
+
+### B. Trailing take-profit
+
+- Keep the configuration's original stop-loss.
+- Use that configuration's original take-profit level as the activation
+  threshold.
+- When the threshold is first reached, replace the fixed take-profit with
+  a trailing exit.
+- Trail the exit 0.5R behind the best favourable price reached after
+  activation.
+- For longs, trail below the highest favourable price after activation.
+- For shorts, trail above the lowest favourable price after activation.
+
+### C. Causal 1M execution rules
+
+- Calculate initial R from actual entry and the selected initial stop.
+- Determine activation and favourable extremes using 1M OHLC data only.
+- Update trailing levels after a 1M candle has completed; a changed level
+  becomes active on the next eligible 1M candle.
+- Never use the completed candle's high/low to claim a trailing order was
+  active earlier inside that same candle.
+- Apply conservative gap and intrabar stop execution assumptions.
+- Record activation time, trailing level changes and final exit reason.
+
+Run each trailing method independently against all 22 baseline
+configurations. Do not combine both trailing methods until their
+individual effects have been measured.
+
+The resulting research groups are:
+- 22 baseline configurations.
+- 22 configurations with trailing stop-loss.
+- 22 configurations with trailing take-profit.
+- 66 configurations in total.
+
+Report all groups separately, including net performance after fees,
+slippage and funding. Do not select trailing rules using the untouched
+out-of-sample period.
+\n
