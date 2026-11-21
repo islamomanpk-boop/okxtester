@@ -4,6 +4,8 @@ from bisect import bisect_left
 import math
 
 from portfolio_engine import PortfolioConfig, allocate_candidates
+from trailing_exit import validate_trailing_settings, update_trailing_state
+from exit_experiment_config import resolve_exit_prices
 
 
 class PortfolioBacktestConfig:
@@ -132,13 +134,13 @@ def _validate_funding(bars_by_asset, funding_by_asset):
 def _validate_candidates(candidates, bars_by_asset, timestamps):
     scheduled = {ts: [] for ts in timestamps}
 
-    required = (
-        "asset", "side", "signal_available_at", "signal_priority",
-        "stop_price", "stop_distance_atr", "target_pct",
+    common_required = (
+        "asset", "side", "signal_available_at",
+        "signal_priority", "stop_distance_atr",
     )
 
     for candidate in candidates:
-        if any(key not in candidate for key in required):
+        if any(key not in candidate for key in common_required):
             raise ValueError("Signal candidate is missing required fields")
 
         asset = str(candidate["asset"])
@@ -148,14 +150,40 @@ def _validate_candidates(candidates, bars_by_asset, timestamps):
         if candidate["side"] not in (-1, 1):
             raise ValueError("Candidate side must be 1 or -1")
 
-        stop = float(candidate["stop_price"])
         atr_distance = float(candidate["stop_distance_atr"])
-        target_pct = float(candidate["target_pct"])
+        if not math.isfinite(atr_distance) or atr_distance <= 0:
+            raise ValueError("Candidate ATR distance must be finite and positive")
 
-        if not all(math.isfinite(v) for v in (stop, atr_distance, target_pct)):
-            raise ValueError("Candidate stop, ATR distance and target must be finite")
-        if stop <= 0 or atr_distance <= 0 or target_pct <= 0:
-            raise ValueError("Candidate stop, ATR distance and target must be positive")
+        experiment = candidate.get("exit_experiment")
+
+        if experiment is not None:
+            experiment_required = (
+                "signal_high", "signal_low", "signal_atr14",
+            )
+            if any(key not in candidate for key in experiment_required):
+                raise ValueError(
+                    "Experiment candidate is missing signal candle data"
+                )
+        else:
+            legacy_required = ("stop_price", "target_pct")
+            if any(key not in candidate for key in legacy_required):
+                raise ValueError(
+                    "Legacy candidate requires stop_price and target_pct"
+                )
+
+            stop = float(candidate["stop_price"])
+            target_pct = float(candidate["target_pct"])
+
+            if not all(math.isfinite(v) for v in (stop, target_pct)):
+                raise ValueError(
+                    "Candidate stop and target must be finite"
+                )
+            if stop <= 0 or target_pct <= 0:
+                raise ValueError(
+                    "Candidate stop and target must be positive"
+                )
+
+        validate_trailing_settings(candidate)
 
         available_at = int(candidate["signal_available_at"])
         index = bisect_left(timestamps, available_at)
@@ -168,43 +196,58 @@ def _validate_candidates(candidates, bars_by_asset, timestamps):
 
     return scheduled
 
-
 def _exit_fill(position, bar, slippage):
-    """Return conservative exit price and reason, or None if still open."""
+    """Check exits using levels active before this candle."""
     side = position["side"]
-    stop = position["stop_price"]
-    target = position["target_price"]
+    stop = float(position["stop_price"])
+    mode = position.get("trailing_mode", "none")
 
     o = float(bar["open"])
     h = float(bar["high"])
     low = float(bar["low"])
-
     raw_exit = None
     reason = None
 
     if side == 1:
         if o <= stop:
             raw_exit, reason = o, "stop_gap"
-        elif o >= target:
-            raw_exit, reason = target, "target_gap"
         elif low <= stop:
             raw_exit, reason = stop, "stop"
-        elif h >= target:
-            raw_exit, reason = target, "target"
+        elif mode == "trailing_take_profit":
+            if position.get("trailing_tp_active", False):
+                trail = float(position["trailing_tp_price"])
+                if o <= trail:
+                    raw_exit, reason = o, "trailing_take_profit_gap"
+                elif low <= trail:
+                    raw_exit, reason = trail, "trailing_take_profit"
+        else:
+            target = float(position["target_price"])
+            if o >= target:
+                raw_exit, reason = target, "target_gap"
+            elif h >= target:
+                raw_exit, reason = target, "target"
     else:
         if o >= stop:
             raw_exit, reason = o, "stop_gap"
-        elif o <= target:
-            raw_exit, reason = target, "target_gap"
         elif h >= stop:
             raw_exit, reason = stop, "stop"
-        elif low <= target:
-            raw_exit, reason = target, "target"
+        elif mode == "trailing_take_profit":
+            if position.get("trailing_tp_active", False):
+                trail = float(position["trailing_tp_price"])
+                if o >= trail:
+                    raw_exit, reason = o, "trailing_take_profit_gap"
+                elif h >= trail:
+                    raw_exit, reason = trail, "trailing_take_profit"
+        else:
+            target = float(position["target_price"])
+            if o <= target:
+                raw_exit, reason = target, "target_gap"
+            elif low <= target:
+                raw_exit, reason = target, "target"
 
     if raw_exit is None:
         return None
 
-    # Long exits sell; short exits buy. Slippage is adverse.
     exit_price = raw_exit * (1 - side * slippage)
     return exit_price, reason
 
@@ -347,6 +390,8 @@ def run_portfolio_backtest(
                 exit_price, reason = result
                 close_position(asset, position, exit_price, ts, reason)
                 del positions[asset]
+            else:
+                update_trailing_state(position, bar)
 
         # 3. Allocate candidates becoming eligible at this minute.
         batch = scheduled.get(ts, [])
@@ -358,7 +403,7 @@ def run_portfolio_backtest(
                 float(c["stop_distance_atr"]),
                 str(c["asset"]),
                 str(c.get("signal_type", "")),
-                float(c["stop_price"]),
+                float(c.get("stop_price", c.get("stop_reference_price", 0.0))),
             ))
 
             equity_at_open = (
@@ -378,6 +423,8 @@ def run_portfolio_backtest(
                 }
                 for asset, p in positions.items()
             ]
+
+            experiment_rejections = []
 
             if equity_at_open <= 0:
                 allocation = {
@@ -399,11 +446,28 @@ def run_portfolio_backtest(
                     fill_entry = raw_open * (
                         1 + int(c["side"]) * slippage
                     )
-                    allocator_candidates.append({
+                    allocator_candidate = {
                         **c,
                         "entry_price": fill_entry,
                         "signal_available_at": ts,
-                    })
+                    }
+
+                    experiment = c.get("exit_experiment")
+                    if experiment is not None:
+                        try:
+                            resolved = resolve_exit_prices(
+                                experiment, c, fill_entry
+                            )
+                            allocator_candidate.update(resolved)
+                            validate_trailing_settings(allocator_candidate)
+                        except (ValueError, TypeError, KeyError) as exc:
+                            experiment_rejections.append({
+                                "asset": c["asset"],
+                                "reason": "invalid_experiment_entry: " + str(exc),
+                            })
+                            continue
+
+                    allocator_candidates.append(allocator_candidate)
 
                 try:
                     allocation = allocate_candidates(
@@ -434,6 +498,8 @@ def run_portfolio_backtest(
                         "remaining_exposure": 0.0,
                     }
 
+            allocation["rejected"].extend(experiment_rejections)
+
             decisions.append({
                 "timestamp": ts,
                 "equity_at_decision": equity_at_open,
@@ -454,8 +520,13 @@ def run_portfolio_backtest(
                 side = int(c["side"])
                 entry_price = float(accepted["entry_price"])
                 stop_price = float(accepted["stop_price"])
-                target_pct = float(c["target_pct"])
-                target_price = entry_price * (1 + side * target_pct)
+                if "target_price" in c:
+                    target_price = float(c["target_price"])
+                else:
+                    target_pct = float(c["target_pct"])
+                    target_price = entry_price * (
+                        1 + side * target_pct
+                    )
 
                 if side == 1 and not stop_price < entry_price < target_price:
                     raise ValueError("Accepted long has invalid stop/target")
@@ -476,6 +547,17 @@ def run_portfolio_backtest(
                     "funding_pnl": 0.0,
                     "mark_price": float(bars_at[asset][ts]["open"]),
                     "signal_priority": int(c["signal_priority"]),
+                    "risk_distance": abs(entry_price - stop_price),
+                    "trailing_mode": c.get("trailing_mode", "none"),
+                    "trailing_activation_r": c.get("trailing_activation_r"),
+                    "trailing_distance_r": c.get("trailing_distance_r"),
+                    "trailing_activation_at_target": c.get(
+                        "trailing_activation_at_target", False
+                    ),
+                    "trailing_sl_active": False,
+                    "trailing_tp_active": False,
+                    "trailing_tp_price": None,
+                    "best_favorable_price": entry_price,
                 }
 
                 positions[asset] = position
@@ -490,6 +572,8 @@ def run_portfolio_backtest(
                     exit_price, reason = same_bar_result
                     close_position(asset, position, exit_price, ts, reason)
                     del positions[asset]
+                else:
+                    update_trailing_state(position, bars_at[asset][ts])
 
         # 4. Mark remaining positions at this minute's close.
         unrealized = 0.0
