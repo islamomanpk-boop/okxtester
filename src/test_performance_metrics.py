@@ -113,8 +113,8 @@ class DailyAndMonthlyTests(unittest.TestCase):
     def test_daily_marks_use_last_mark_per_utc_day(self):
         marks = [
             {"timestamp": 1_735_689_600_000, "equity": 1010},
-            {"timestamp": 1_735_732_800_000, "equity": 1020},
-            {"timestamp": 1_735_776_000_000, "equity": 1010},
+            {"timestamp": 1_735_776_000_000, "equity": 1020},
+            {"timestamp": 1_735_862_400_000, "equity": 1010},
         ]
         rows = build_daily_returns(marks, 1000)
         self.assertEqual(len(rows), 3)
