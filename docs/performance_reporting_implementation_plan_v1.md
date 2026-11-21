@@ -1,6 +1,6 @@
 # Performance Reporting Implementation Plan V1
 
-Status: In progress - Stages 1 and 2 validated; Stage 3 implementation awaiting validation
+Status: In progress - Stages 1, 2, and 3 validated; Stage 4 implementation awaiting validation
 Project: OKX Multi-Regime Price Action Strategy V1
 Branch: price-action-v1
 
@@ -124,7 +124,8 @@ per-direction, and asset-and-direction breakdowns, daily returns, monthly
 UTC returns, and exit-reason summaries. It writes seven machine-readable
 CSV tables plus a human-readable Markdown report. The report includes run
 metadata and explicit end-of-data and exchange-liquidation limitations.
-Tests must pass before Stage 3 is marked complete.
+Validation on 2026-11-21: the complete project test suite passed, 183 tests
+in 3.829 seconds. All eight report-generator tests passed.
 
 
 Generate:
@@ -140,6 +141,22 @@ Include losing assets and directions. Do not omit groups because their
 results are unfavorable.
 
 ### Stage 4 - Experiment runner integration
+
+Status: Integration implemented; awaiting full-suite validation.
+
+Both runners now call the shared reporting generator after each backtest:
+- Exit experiments produce the seven detailed CSV tables and Markdown
+  performance report alongside the existing summary and trade CSVs.
+- Each cost-sensitivity scenario produces the same detailed report set.
+- Metadata records experiment/scenario identifiers, UTC execution window,
+  1-minute timeframe, per-side fee and slippage assumptions, funding
+  treatment, summary-only storage, risk fraction, leverage, and forced
+  end-of-data closure policy.
+- Cost sensitivity reports disclose that cost-aware sizing means fills,
+  accepted entries, and outcomes may change across scenarios.
+
+Integration tests verify that both runners invoke the shared reporter and
+preserve their respective cost assumptions.
 
 Integrate the reporting system into:
 
