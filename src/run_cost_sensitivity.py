@@ -1,6 +1,7 @@
 """Run controlled fee and slippage sensitivity tests."""
 
 import csv
+from datetime import datetime, timezone
 from pathlib import Path
 
 from exit_experiment_config import build_baseline_experiments
@@ -116,15 +117,15 @@ def run_scenario(scenario, bars, funding, candidates, experiment):
         "assets": ",".join(ASSETS),
         "execution_timeframe": "1m",
         "execution_window_start_utc": (
-            __import__("datetime").datetime.fromtimestamp(
+            datetime.fromtimestamp(
                 bars[next(iter(bars))].timestamps[0] / 1000,
-                __import__("datetime").timezone.utc,
+                timezone.utc,
             ).isoformat()
         ),
         "execution_window_end_utc": (
-            __import__("datetime").datetime.fromtimestamp(
+            datetime.fromtimestamp(
                 bars[next(iter(bars))].timestamps[-1] / 1000,
-                __import__("datetime").timezone.utc,
+                timezone.utc,
             ).isoformat()
         ),
         "taker_fee_rate_per_side": scenario["taker_fee_rate"],
