@@ -1,6 +1,7 @@
 """Event-driven, shared-capital one-minute portfolio backtester."""
 
 from bisect import bisect_left
+from datetime import datetime, timezone
 import math
 
 from portfolio_engine import PortfolioConfig, allocate_candidates
@@ -332,6 +333,14 @@ def run_portfolio_backtest(
     realized_pnl = 0.0
     peak_equity = config.initial_equity
     max_drawdown = 0.0
+    max_drawdown_amount = 0.0
+    max_concurrent_positions = 0
+    max_gross_exposure = 0.0
+    max_capital_utilization = 0.0
+    max_gross_exposure_equity_multiple = 0.0
+    utilization_sum = 0.0
+    utilization_samples = 0
+    daily_marks_by_date = {}
 
     def close_position(asset, position, exit_price, exit_time, reason):
         nonlocal realized_pnl
@@ -619,13 +628,39 @@ def run_portfolio_backtest(
 
         equity = config.initial_equity + realized_pnl + unrealized
 
+        # Collect reporting statistics online in both storage modes.
+        # Exposure/utilization are sampled once per minute, including the
+        # final candle's pre-liquidation mark.
+        open_count = len(positions)
+        max_concurrent_positions = max(max_concurrent_positions, open_count)
+        max_gross_exposure = max(max_gross_exposure, gross_exposure)
+        utilization = gross_exposure / equity if equity > 0 else 0.0
+        utilization_sum += utilization
+        utilization_samples += 1
+        max_capital_utilization = max(max_capital_utilization, utilization)
+        if equity > 0:
+            max_gross_exposure_equity_multiple = max(
+                max_gross_exposure_equity_multiple, utilization
+            )
+
         # The final candle is measured after end-of-data liquidation below.
-        # Avoid counting its pre-liquidation mark twice in summary-only mode.
         if ts != timestamps[-1]:
             peak_equity = max(peak_equity, equity)
+            drawdown_amount = max(0.0, peak_equity - equity)
+            max_drawdown_amount = max(
+                max_drawdown_amount, drawdown_amount
+            )
             if peak_equity > 0:
-                drawdown = (peak_equity - equity) / peak_equity
+                drawdown = drawdown_amount / peak_equity
                 max_drawdown = max(max_drawdown, drawdown)
+
+        day_utc = datetime.fromtimestamp(
+            ts / 1000.0, tz=timezone.utc
+        ).date().isoformat()
+        daily_marks_by_date[day_utc] = {
+            "timestamp": ts,
+            "equity": equity,
+        }
 
         if config.record_equity_curve:
             equity_curve.append({
@@ -650,6 +685,15 @@ def run_portfolio_backtest(
 
     final_equity = config.initial_equity + realized_pnl
 
+    # Replace the final pre-liquidation daily mark with realized final equity.
+    final_day_utc = datetime.fromtimestamp(
+        final_ts / 1000.0, tz=timezone.utc
+    ).date().isoformat()
+    daily_marks_by_date[final_day_utc] = {
+        "timestamp": final_ts,
+        "equity": final_equity,
+    }
+
     if equity_curve:
         equity_curve[-1] = {
             "timestamp": final_ts,
@@ -660,19 +704,14 @@ def run_portfolio_backtest(
             "open_positions": 0,
         }
 
-    if config.record_equity_curve:
-        peak = config.initial_equity
-        max_drawdown = 0.0
-        for point in equity_curve:
-            peak = max(peak, point["equity"])
-            if peak > 0:
-                drawdown = (peak - point["equity"]) / peak
-                max_drawdown = max(max_drawdown, drawdown)
-    else:
-        peak_equity = max(peak_equity, final_equity)
-        if peak_equity > 0:
-            drawdown = (peak_equity - final_equity) / peak_equity
-            max_drawdown = max(max_drawdown, drawdown)
+    peak_equity = max(peak_equity, final_equity)
+    final_drawdown_amount = max(0.0, peak_equity - final_equity)
+    max_drawdown_amount = max(
+        max_drawdown_amount, final_drawdown_amount
+    )
+    if peak_equity > 0:
+        final_drawdown = final_drawdown_amount / peak_equity
+        max_drawdown = max(max_drawdown, final_drawdown)
 
     total_gross_pnl = sum(t["gross_pnl"] for t in trades)
     total_fees = sum(t["total_fees"] for t in trades)
@@ -686,6 +725,23 @@ def run_portfolio_backtest(
             (final_equity / config.initial_equity) - 1
         ) * 100,
         "max_drawdown_pct": max_drawdown * 100,
+        "max_drawdown_amount": max_drawdown_amount,
+        "start_ts": timestamps[0],
+        "end_ts": final_ts,
+        "daily_equity_marks": [
+            daily_marks_by_date[day]
+            for day in sorted(daily_marks_by_date)
+        ],
+        "max_concurrent_positions": max_concurrent_positions,
+        "average_capital_utilization_pct": (
+            utilization_sum / utilization_samples * 100.0
+            if utilization_samples else None
+        ),
+        "max_capital_utilization_pct": max_capital_utilization * 100.0,
+        "max_gross_exposure": max_gross_exposure,
+        "max_gross_exposure_equity_multiple": (
+            max_gross_exposure_equity_multiple
+        ),
         "trade_count": len(trades),
         "total_gross_pnl": total_gross_pnl,
         "total_fees": total_fees,
