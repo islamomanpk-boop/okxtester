@@ -139,15 +139,31 @@ batch, perform controlled real-data smoke tests:
    closed-trades, seven detailed CSV tables, and Markdown report.
 3. Inspect the generated report for plausible metadata, totals, date
    boundaries, trade counts, and consistency with the runner summary.
-4. Run one cost-sensitivity scenario (or the complete small scenario set
-   if runtime is acceptable) and verify separate scenario reports and
-   preserved fee/slippage assumptions.
-5. Check that the pre-existing baseline report is not overwritten.
-6. Run git diff --check and confirm no raw market/funding data, secrets,
+4. Run the cost-sensitivity scenarios and verify separate scenario
+   reports and preserved fee/slippage assumptions. The first real-data
+   run completed three stress scenarios, but omitted the exact baseline
+   cost pair (0.05% fee and 2 bps slippage).
+5. Add the exact baseline cost scenario and a unit test that protects the
+   baseline assumptions and unique scenario identifiers. Re-run the
+   complete four-scenario set and inspect its comparison output.
+6. Check that the pre-existing baseline report is not overwritten.
+7. Run git diff --check and confirm no raw market/funding data, secrets,
    or temporary backups are staged.
-7. Record smoke-test outcomes and any corrections in this plan.
-8. Commit and push any approved fixes; independently verify the remote
+8. Record smoke-test outcomes and any corrections in this plan.
+9. Commit and push any approved fixes; independently verify the remote
    branch and changed files.
+
+The first real-data exit smoke test and three initial cost-sensitivity
+stress runs completed on 2026-11-21. The exit report totals reconcile
+with the runner summary and exit-reason counts. The report recorded
+maximum marked gross exposure of 1.0187x equity; this is a post-mark
+measurement and can exceed 1.0x as prices/equity move after allocation.
+It is not, by itself, proof that the allocator accepted excess exposure.
+
+The initial cost-sensitivity set showed severe losses in all three
+scenarios, including the zero-fee scenario. Its missing exact baseline
+cost pair was identified and corrected in the runner; a focused test
+was added. Four-scenario real-data revalidation remains pending.
 
 Do not start the full 66-experiment batch until Stage 5 real-output
 validation is complete and the reporting release is committed and verified.
