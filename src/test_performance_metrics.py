@@ -142,7 +142,11 @@ class DailyAndMonthlyTests(unittest.TestCase):
             {"timestamp": "2026-02-28T23:59:00Z", "equity": 1000},
             {"timestamp": "2026-03-10T12:00:00Z", "equity": 1200},
         ]
-        rows = build_monthly_returns(marks, 1000)
+        rows = build_monthly_returns(
+            marks, 1000,
+            start_ts="2026-01-15T00:00:00Z",
+            end_ts="2026-03-10T12:00:00Z",
+        )
         self.assertEqual([row["month_utc"] for row in rows], [
             "2026-01", "2026-02", "2026-03"
         ])
