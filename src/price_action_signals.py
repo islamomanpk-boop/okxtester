@@ -14,6 +14,8 @@ SIGNAL_COLUMNS = [
     "bearish_pinbar",
     "support_rejection",
     "resistance_rejection",
+    "support_zone_touch",
+    "resistance_zone_touch",
     "bullish_ob_created",
     "bearish_ob_created",
     "bullish_ob_first_retest",
@@ -140,9 +142,9 @@ def detect_signals(candles):
 
     for i in range(n):
         # Evaluate zones formed by previously confirmed pivots.
-        for kind, signal_col in [
-            ("support", "support_rejection"),
-            ("resistance", "resistance_rejection"),
+        for kind, signal_col, touch_col in [
+            ("support", "support_rejection", "support_zone_touch"),
+            ("resistance", "resistance_rejection", "resistance_zone_touch"),
         ]:
             for zone in clusters[kind]:
                 if zone["count"] < 2:
@@ -152,6 +154,10 @@ def detect_signals(candles):
                 upper = zone["center"] + zone["tolerance"]
 
                 overlaps = l[i] <= upper and h[i] >= lower
+
+                # A touch is recorded independently of rejection.
+                if overlaps:
+                    df.at[i, touch_col] = True
 
                 if kind == "support" and overlaps and c[i] > upper:
                     df.at[i, signal_col] = True

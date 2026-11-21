@@ -407,3 +407,21 @@ and differences are documented.
 
 The detailed causal structure rules are documented in
 `docs/pure_price_action_structure_v1.md`.
+
+### Confirmed support/resistance touch flags
+
+The signal detector records two additional informational flags:
+
+- `support_zone_touch`: the completed candle overlaps an existing
+  support zone formed from at least two confirmed pivot lows.
+- `resistance_zone_touch`: the completed candle overlaps an existing
+  resistance zone formed from at least two confirmed pivot highs.
+
+A touch is not itself a trade signal. It is distinct from rejection:
+a rejection additionally requires the candle to close back outside
+the zone in the expected direction.
+
+Zones confirmed on the current candle are not used to classify that
+same candle. Only zones already confirmed before the current candle
+are eligible. These flags support priority-2 classification when
+combined with a directionally matching engulfing candle or pin bar.

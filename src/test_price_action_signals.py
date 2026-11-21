@@ -81,6 +81,35 @@ class TestPriceActionSignals(unittest.TestCase):
         self.assertTrue(result.loc[6, "pivot_low_confirmed"])
         self.assertTrue(result.loc[13, "pivot_low_confirmed"])
         self.assertTrue(result.loc[15, "support_rejection"])
+        self.assertTrue(result.loc[15, "support_zone_touch"])
+
+    def test_support_zone_touch_without_rejection(self):
+        d = make_data(20)
+        d.loc[3, "low"] = 90
+        d.loc[10, "low"] = 90
+
+        # Price enters the confirmed zone but closes inside it.
+        d.loc[15, ["open", "high", "low", "close"]] = [
+            92, 93, 89, 91
+        ]
+
+        result = detect_signals(d)
+        self.assertTrue(result.loc[15, "support_zone_touch"])
+        self.assertFalse(result.loc[15, "support_rejection"])
+
+    def test_resistance_zone_touch_without_rejection(self):
+        d = make_data(20)
+        d.loc[3, "high"] = 110
+        d.loc[10, "high"] = 110
+
+        # Price enters the confirmed zone but closes inside it.
+        d.loc[15, ["open", "high", "low", "close"]] = [
+            109, 111, 108, 109
+        ]
+
+        result = detect_signals(d)
+        self.assertTrue(result.loc[15, "resistance_zone_touch"])
+        self.assertFalse(result.loc[15, "resistance_rejection"])
 
     def test_bullish_order_block_and_first_retest(self):
         d = make_data(15)
