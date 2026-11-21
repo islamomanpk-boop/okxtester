@@ -292,9 +292,14 @@ def summarize_portfolio_metrics(result, daily_marks=None):
     )
 
     exposure_values = []
-    max_positions = 0
-    max_gross = 0.0
-    max_utilization = 0.0
+    max_positions = int(result.get("max_concurrent_positions", 0))
+    max_gross = _number(result.get("max_gross_exposure", 0.0))
+    max_utilization = (
+        _number(result.get("max_capital_utilization_pct", 0.0)) / 100.0
+    )
+    max_gross_multiple = _number(
+        result.get("max_gross_exposure_equity_multiple", 0.0)
+    )
     for _, equity, mark in curve:
         gross = _number(mark.get("gross_exposure", 0.0))
         positions = int(mark.get("open_positions", 0))
@@ -303,6 +308,13 @@ def summarize_portfolio_metrics(result, daily_marks=None):
         utilization = gross / equity if equity > 0 else 0.0
         exposure_values.append(utilization)
         max_utilization = max(max_utilization, utilization)
+        if equity > 0:
+            max_gross_multiple = max(max_gross_multiple, utilization)
+    average_utilization_pct = (
+        statistics.fmean(exposure_values) * 100.0
+        if exposure_values
+        else result.get("average_capital_utilization_pct")
+    )
 
     return {
         "initial_equity": initial,
@@ -324,20 +336,14 @@ def summarize_portfolio_metrics(result, daily_marks=None):
         "worst_daily_loss_pct": worst_pct,
         "worst_daily_loss_date_utc": worst["date_utc"] if worst else None,
         "max_concurrent_positions": max_positions,
-        "average_capital_utilization_pct": (
-            statistics.fmean(exposure_values) * 100.0 if exposure_values else None
+        "average_capital_utilization_pct": average_utilization_pct,
+        "max_capital_utilization_pct": (
+            max_utilization * 100.0
+            if exposure_values or "max_capital_utilization_pct" in result
+            else None
         ),
-        "max_capital_utilization_pct": max_utilization * 100.0 if exposure_values else None,
         "max_gross_exposure": max_gross,
-        "max_gross_exposure_equity_multiple": (
-            max(
-                (
-                    _number(mark.get("gross_exposure", 0.0)) / equity
-                    for _, equity, mark in curve if equity > 0
-                ),
-                default=0.0,
-            )
-        ),
+        "max_gross_exposure_equity_multiple": max_gross_multiple,
     }
 
 
