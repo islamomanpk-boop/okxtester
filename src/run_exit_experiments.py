@@ -171,6 +171,18 @@ def write_rows(path, rows, fallback_fields):
 
 
 def run_one_experiment(experiment, home=None):
+    """Load inputs and run one experiment (single-run CLI compatibility)."""
+    home = Path(home) if home else Path.home()
+    inputs = load_inputs(home)
+    return run_one_experiment_with_inputs(experiment, inputs, home=home)
+
+
+def run_one_experiment_with_inputs(experiment, inputs, home=None):
+    """Run one experiment using preloaded shared inputs.
+
+    The batch runner calls this helper so candles, funding, and candidates
+    are loaded only once for the complete experiment matrix.
+    """
     home = Path(home) if home else Path.home()
 
     (
@@ -179,7 +191,7 @@ def run_one_experiment(experiment, home=None):
         candidates,
         start_ts,
         end_ts,
-    ) = load_inputs(home)
+    ) = inputs
 
     experiment_candidates = []
     for candidate in candidates:
