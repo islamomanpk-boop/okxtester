@@ -1,6 +1,6 @@
 # Performance Reporting Implementation Plan V1
 
-Status: Approved implementation roadmap
+Status: In progress - Stage 1 complete; Stage 2 next
 Project: OKX Multi-Regime Price Action Strategy V1
 Branch: price-action-v1
 
@@ -70,6 +70,13 @@ monthly returns, grouped trade statistics, and exit-reason summaries.
 
 Handle empty trade sets, zero denominators, unavailable ratios,
 breakeven trades, and insufficient daily observations explicitly.
+
+Stage 1 implementation is complete and committed on branch `price-action-v1`.
+Validation on 2026-11-21: the complete project test suite passed, 174 tests
+in 3.468 seconds. The suite includes the new performance-metrics tests and
+all existing project tests. UTC month-end and partial-month boundaries,
+summary-only CAGR boundaries, and unavailable drawdown-dependent ratios
+are covered by tests.
 
 ### Stage 2 - Backtester integration
 
