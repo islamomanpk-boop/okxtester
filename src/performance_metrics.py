@@ -177,7 +177,7 @@ def build_monthly_returns(daily_marks, initial_equity, start_ts=None, end_ts=Non
     for dt, equity, _ in marks:
         month_ends[(dt.year, dt.month)] = (dt, equity)
 
-    start = _timestamp(start_ts) if start_ts is not None else marks[0][0]
+    start = _timestamp(start_ts) if start_ts is not None else None
     end = _timestamp(end_ts) if end_ts is not None else marks[-1][0]
     output = []
     previous_equity = initial
@@ -186,7 +186,8 @@ def build_monthly_returns(daily_marks, initial_equity, start_ts=None, end_ts=Non
         last_day = monthrange(year, month)[1]
         final_minute = datetime(year, month, last_day, 23, 59, tzinfo=timezone.utc)
         partial = (
-            (year, month) == (start.year, start.month)
+            start is not None
+            and (year, month) == (start.year, start.month)
             and start > month_start
         ) or (
             (year, month) == (end.year, end.month)
