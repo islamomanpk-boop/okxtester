@@ -67,9 +67,6 @@ class ExitExperimentBatchTests(unittest.TestCase):
                 "experiment_id": experiment.experiment_id,
                 "final_equity": 123.0,
             }
-            write_fake_experiment_outputs(
-                Path(folder).parent, experiment, summary
-            )
             # Build outputs in the exact directory passed to the reader.
             for filename in expected_artifact_names(experiment.experiment_id):
                 path = output_dir / filename
