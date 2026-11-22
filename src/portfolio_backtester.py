@@ -370,8 +370,28 @@ def run_portfolio_backtest(
             "entry_price": position["entry_price"],
             "exit_price": exit_price,
             "quantity": quantity,
+            "initial_stop_price": position["initial_stop_price"],
             "stop_price": position["stop_price"],
             "target_price": position["target_price"],
+            "trailing_mode": position.get("trailing_mode", "none"),
+            "trailing_sl_active": position.get("trailing_sl_active", False),
+            "trailing_sl_activation_time": position.get("trailing_sl_activation_time"),
+            "trailing_sl_activation_price": position.get("trailing_sl_activation_price"),
+            "trailing_sl_activation_level": position.get("trailing_sl_activation_level"),
+            "trailing_sl_activation_r": position.get("trailing_sl_activation_r"),
+            "trailing_sl_update_count": position.get("trailing_sl_update_count", 0),
+            "trailing_sl_last_update_time": position.get("trailing_sl_last_update_time"),
+            "trailing_tp_active": position.get("trailing_tp_active", False),
+            "trailing_tp_activation_time": position.get("trailing_tp_activation_time"),
+            "trailing_tp_activation_price": position.get("trailing_tp_activation_price"),
+            "trailing_tp_activation_level": position.get("trailing_tp_activation_level"),
+            "trailing_tp_activation_r": position.get("trailing_tp_activation_r"),
+            "trailing_tp_price": position.get("trailing_tp_price"),
+            "trailing_tp_update_count": position.get("trailing_tp_update_count", 0),
+            "trailing_tp_last_update_time": position.get("trailing_tp_last_update_time"),
+            "max_favorable_price": position.get("max_favorable_price", position["entry_price"]),
+            "max_favorable_time": position.get("max_favorable_time"),
+            "max_favorable_excursion_r": position.get("max_favorable_excursion_r", 0.0),
             "signal_priority": position["signal_priority"],
             "gross_pnl": gross_pnl,
             "funding_pnl": position["funding_pnl"],
@@ -420,7 +440,7 @@ def run_portfolio_backtest(
                 close_position(asset, position, exit_price, ts, reason)
                 del positions[asset]
             else:
-                update_trailing_state(position, bar)
+                update_trailing_state(position, bar, ts)
 
         # 3. Allocate candidates becoming eligible at this minute.
         batch = scheduled.get(ts, [])
@@ -582,6 +602,7 @@ def run_portfolio_backtest(
                     "side": side,
                     "quantity": quantity,
                     "entry_price": entry_price,
+                    "initial_stop_price": stop_price,
                     "stop_price": stop_price,
                     "target_price": target_price,
                     "entry_time": ts,
@@ -597,9 +618,24 @@ def run_portfolio_backtest(
                         "trailing_activation_at_target", False
                     ),
                     "trailing_sl_active": False,
+                    "trailing_sl_activation_time": None,
+                    "trailing_sl_activation_price": None,
+                    "trailing_sl_activation_level": None,
+                    "trailing_sl_activation_r": None,
+                    "trailing_sl_update_count": 0,
+                    "trailing_sl_last_update_time": None,
                     "trailing_tp_active": False,
+                    "trailing_tp_activation_time": None,
+                    "trailing_tp_activation_price": None,
+                    "trailing_tp_activation_level": None,
+                    "trailing_tp_activation_r": None,
                     "trailing_tp_price": None,
+                    "trailing_tp_update_count": 0,
+                    "trailing_tp_last_update_time": None,
                     "best_favorable_price": entry_price,
+                    "max_favorable_price": entry_price,
+                    "max_favorable_time": None,
+                    "max_favorable_excursion_r": 0.0,
                 }
 
                 positions[asset] = position
