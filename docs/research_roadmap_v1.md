@@ -161,3 +161,53 @@ The repository was previously reported to be approximately 873 KB, so storage pr
 - The current 5M role is execution comparison for 15M signals; a 5M signal-entry study requires a separately documented experiment.
 - No repository files should be deleted before a full inventory and dependency/reference audit.
 - No further broad 66-combination rerun should be launched without a specific diagnostic reason.
+
+
+## 8. Explicit post-signal, signal-candle, and execution-timeframe research
+
+These are required empirical research workstreams, not optional strategy variations. They remain research-only until separately authorized. Use the same completed 15M signal events when comparing execution timeframes; do not silently change the signal-generation timeframe.
+
+### Workstream D1 — Signal-candle anatomy and size
+
+For every eligible 15M signal, record:
+- Total high-low range, absolute body, body/range ratio, upper wick, lower wick, and close location within the candle.
+- Candle range and body normalized by prior 15M ATR and by recent rolling 15M range distributions, using only data available at signal close.
+- Signal direction and signal type, asset, and contemporaneously known 1D/4H environment.
+- Distribution and sample counts by asset, direction, signal type, and chronological subperiod.
+
+Compare subsequent paths across predeclared signal-candle size groups (for example, within-asset volatility-normalized quantiles). Measure whether larger/smaller candles are followed by continuation, pullback, retest, failure, or no meaningful movement. Do not assume large signal candles are stronger. Avoid full-sample future-informed cutoffs for any live-style classification; label retrospective descriptive bins clearly.
+
+### Workstream D2 — What happens after a completed 15M signal?
+
+Starting only after the signal candle has fully closed, map the subsequent price path at 1M resolution. For each signal, measure:
+- Immediate continuation versus pullback-first behaviour.
+- Whether price revisits the signal candle's open, midpoint, close, high/low, and relevant structural level.
+- Retest incidence, first-retouch time, depth/penetration, duration around the level, and reaction after the retest.
+- Whether the level holds, rejects, is cleanly crossed, or is repeatedly crossed; define these labels before calculation.
+- MFE, MAE, net directional movement, and time to favourable/adverse thresholds over 15M, 1H, 4H, 12H, and 24H where complete data exists.
+- Failure, reversal, continuation, and unresolved/no-touch outcomes, with explicit denominators.
+- Results by signal type, side, asset, signal-candle size, and causally available market regime.
+
+Use frozen signal-candle levels and exact timestamp continuity. A retest must occur after the signal is confirmed; do not count touches that happened before confirmation. Treat overlapping signal windows as dependent observations and report that limitation.
+
+### Workstream F1 — Execution timeframe comparison: 1M / 3M / 5M / 15M
+
+Use identical completed 15M signal events for all four execution-timeframe arms. Compare 1M, 3M, 5M, and 15M execution bars built from the same underlying 1M source. This is an execution-resolution comparison, not a 3M/5M/1M signal-generation study.
+
+Predefine comparable causal entry rules and record:
+- Earliest eligible execution-bar close/open and actual entry delay from 15M signal confirmation.
+- Entry price, entry distance from signal close and signal structure, and price movement while waiting.
+- Immediate/market entry versus explicitly defined pullback, signal-midpoint, structural retest, and confirmation entries as separate entry-method comparisons.
+- Entry opportunity, touch, fill, missed-entry, expiry, and partial-fill rates under stated assumptions.
+- Adverse selection after fills, post-fill MFE/MAE, and how execution resolution changes observed entry quality.
+- Results by asset, side, signal type, signal-candle size, and market regime.
+
+Use the same signal cohort and comparable order assumptions across timeframes. A 15M execution bar cannot act before it is complete; do not grant it intrabar information unavailable at the decision time. Distinguish OHLC touch-based fill approximations from verified fills. Initially report descriptive execution opportunity and price-path results without fees or strategy profitability; cost integration belongs to Workstream E and requires explicit authorization.
+
+### Research safeguards and sequencing
+
+1. Complete signal-candle anatomy and post-signal path/retest descriptions before choosing entry variants.
+2. Then compare execution resolutions on the same frozen 15M signal cohort.
+3. Report missing/incomplete horizons, exclusions, overlapping-event dependence, and exact denominators.
+4. Keep descriptive observations separate from fill assumptions and from net profitability.
+5. No strategy backtest or local file modification is authorized by adding these workstreams.
