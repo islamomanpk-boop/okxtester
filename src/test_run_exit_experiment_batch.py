@@ -19,7 +19,7 @@ from run_exit_experiment_batch import (
 
 def write_fake_experiment_outputs(home, experiment, summary):
     output_dir = (
-        Path(home) / "okxtester/reports/exit_experiments"
+        Path(home) / "okxtester/reports/exit_experiments_telemetry_v1"
     )
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -134,7 +134,7 @@ class ExitExperimentBatchTests(unittest.TestCase):
             self.assertEqual(len(load_calls), 1)
             self.assertEqual(run_calls, [])
 
-            output_dir = Path(folder) / "okxtester/reports/exit_experiments"
+            output_dir = Path(folder) / "okxtester/reports/exit_experiments_telemetry_v1"
             self.assertTrue((output_dir / MANIFEST_NAME).is_file())
             self.assertTrue((output_dir / COMPARISON_NAME).is_file())
             with (output_dir / COMPARISON_NAME).open(
