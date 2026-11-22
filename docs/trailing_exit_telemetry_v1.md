@@ -1,5 +1,9 @@
 # Trailing Exit Telemetry V1
 
+## Output isolation
+
+The telemetry-enabled batch runner writes to `reports/exit_experiments_telemetry_v1/`. It does not overwrite the original `reports/exit_experiments/` results or batch manifest.
+
 ## Purpose
 
 Record causal, trade-level evidence about trailing stop-loss and trailing take-profit behaviour. This is reporting instrumentation only: it does not change signal generation, entry timing, sizing, stop/target calculation, or exit-fill priority.
