@@ -37,9 +37,6 @@ def update_trailing_state(position, bar, timestamp=None):
     Record activation/update telemetry; new levels apply next candle.
     """
     mode = position.get("trailing_mode", "none")
-    if mode == "none":
-        return
-
     side = int(position["side"])
     entry = float(position["entry_price"])
     risk = float(position["risk_distance"])
@@ -60,6 +57,9 @@ def update_trailing_state(position, bar, timestamp=None):
     position["max_favorable_price"] = best
     if timestamp is not None and best != previous_best:
         position["max_favorable_time"] = int(timestamp)
+
+    if mode == "none":
+        return
 
     distance = float(position["trailing_distance_r"]) * risk
 
