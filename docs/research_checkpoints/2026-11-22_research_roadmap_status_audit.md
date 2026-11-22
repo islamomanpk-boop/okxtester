@@ -216,3 +216,24 @@ These items are **not completed**. The existing breakout/retest study covers onl
 5. Review all descriptive evidence before proposing any strategy experiment.
 
 All remain research-only. No strategy backtests, local data modifications, or profitability claims are authorized by this addendum.
+
+
+## Addendum — sideways rejection follow-up status
+
+A review of prior work confirms that preliminary sideways-boundary touch/rejection analysis and a 1M follow-up after strong rejection were performed. However, this does **not** constitute a completed, accepted comprehensive rejection study.
+
+The earlier preliminary episode analysis is on hold because:
+- The upper strong-rejection episode count used the lower-side variable (`ls`) instead of the upper-side variable (`us`).
+- Its episode helper did not enforce exact 15M timestamp continuity.
+
+Do not cite those episode counts as findings. Reconstruct and validate before reuse.
+
+Still required as a dedicated study:
+- Post-rejection path to channel interior, midpoint, opposite boundary, or failure through the rejected boundary.
+- Continuation versus pullback-first and retests of rejection candle / boundary.
+- Retest time, depth, hold/rejection/crossing and subsequent path.
+- First versus repeated boundary tests and spacing between tests.
+- Rejection candle anatomy/volatility-normalized size versus subsequent outcomes.
+- MFE/MAE, net movement and threshold timing at fixed horizons, with exact continuity and explicit denominators.
+
+This is separate from confirmed breakout/retest research and the general post-signal study. Status: **partially investigated; corrected comprehensive study outstanding**.
