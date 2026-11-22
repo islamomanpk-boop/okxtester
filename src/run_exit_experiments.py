@@ -248,7 +248,7 @@ def run_one_experiment_with_inputs(experiment, inputs, home=None):
         "slippage_bps_per_side": SLIPPAGE_BPS,
     }
 
-    output_dir = home / "okxtester/reports/exit_experiments"
+    output_dir = home / "okxtester/reports/exit_experiments_telemetry_v1"
     output_dir.mkdir(parents=True, exist_ok=True)
     experiment_id = experiment.experiment_id
 
@@ -299,6 +299,7 @@ def run_one_experiment_with_inputs(experiment, inputs, home=None):
         "funding_data": "Historical asset-specific realized funding rates",
         "funding_treatment": "Applied at funding timestamps; mark price when supplied, otherwise candle close proxy",
         "equity_curve_storage": "summary-only",
+        "trade_telemetry_version": "trailing_exit_telemetry_v1",
         "risk_fraction": 0.005,
         "max_gross_leverage": 1.0,
         "end_of_data_policy": "Open positions forcibly closed at final available candle",
