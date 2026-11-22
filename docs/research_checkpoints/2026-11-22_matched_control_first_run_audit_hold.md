@@ -27,3 +27,30 @@ The output is useful as a debugging run only. No conclusion that breakouts outpe
 - Then rerun the matched comparison read-only and audit the output before publishing empirical results.
 
 The original timing-corrected breakout study remains the accepted descriptive study; this first matched-control run is held pending correction.
+
+
+## Additional recovery from the original research conversation
+
+The exact full-sample channel thresholds recorded from the original feature calculation are:
+| Asset | P25 | P40 |
+|---|---:|---:|
+| BTC | 3.2422% | 3.9486% |
+| ETH | 4.2481% | 5.4819% |
+| SOL | 5.0673% | 6.1145% |
+| DOGE | 5.1657% | 6.2641% |
+| AVAX | 5.7061% | 6.9162% |
+
+The first matched-control script used different values for ETH, SOL, and AVAX (and rounded/altered some values), so those constants must be replaced with the recovered values.
+
+The original final breakout construction also required a previous valid sideways observation (previous_sideways) as well as the same frozen 4H snapshot and full-timeline crossing test. The matched-control script did not enforce previous_sideways on breakout candidates. This is another direct reason its event counts differ.
+
+The full exact final timing-corrected Python script was not recoverable from the accessible prior-conversation excerpt; only its methodology, conditions, exact thresholds, and accepted event counts were recovered. Do not pretend the reconstructed code is byte-identical. Before producing a replacement matched script, recover the precise previous-sideways mask, de-clustering rule, and feature indexing from the original final script or rebuild them transparently and verify exact counts against the accepted table.
+
+The accepted breakout counts to reproduce are:
+| Asset | Broad lower | Broad upper | Strict lower | Strict upper |
+|---|---:|---:|---:|---:|
+| BTC | 91 | 115 | 62 | 81 |
+| ETH | 87 | 77 | 51 | 51 |
+| SOL | 117 | 96 | 77 | 71 |
+| DOGE | 81 | 75 | 55 | 65 |
+| AVAX | 84 | 109 | 64 | 83 |
