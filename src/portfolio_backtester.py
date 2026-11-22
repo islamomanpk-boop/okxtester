@@ -651,7 +651,7 @@ def run_portfolio_backtest(
                     close_position(asset, position, exit_price, ts, reason)
                     del positions[asset]
                 else:
-                    update_trailing_state(position, bars_at[asset][ts])
+                    update_trailing_state(position, bars_at[asset][ts], ts)
 
         # 4. Mark remaining positions at this minute's close.
         unrealized = 0.0
