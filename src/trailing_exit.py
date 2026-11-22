@@ -46,10 +46,11 @@ def update_trailing_state(position, bar, timestamp=None):
     high = float(bar["high"])
     low = float(bar["low"])
 
+    previous_best = float(position["best_favorable_price"])
     if side == 1:
-        best = max(float(position["best_favorable_price"]), high)
+        best = max(previous_best, high)
     else:
-        best = min(float(position["best_favorable_price"]), low)
+        best = min(previous_best, low)
 
     position["best_favorable_price"] = best
     favorable_r = abs(best - entry) / risk
@@ -57,7 +58,7 @@ def update_trailing_state(position, bar, timestamp=None):
         float(position.get("max_favorable_excursion_r", 0.0)), favorable_r
     )
     position["max_favorable_price"] = best
-    if timestamp is not None:
+    if timestamp is not None and best != previous_best:
         position["max_favorable_time"] = int(timestamp)
 
     distance = float(position["trailing_distance_r"]) * risk
