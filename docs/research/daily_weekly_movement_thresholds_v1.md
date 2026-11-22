@@ -81,7 +81,7 @@ Each cell is count (percentage of 54 weekly periods).
 
 1. AVAX had the highest frequency of large daily and weekly high-low ranges in this sample: daily range ≥5% occurred on 53.44% of days; weekly range ≥10% occurred in 79.63% of weeks.
 2. BTC had the lowest frequency of large ranges: daily range ≥5% occurred on 16.03% of days; weekly range ≥10% occurred in 31.48% of weeks.
-3. DOGE had the highest daily frequency of absolute close-to-close moves ≥1% (68.70%). AVAX was next at 71.50%, which is actually higher; therefore AVAX led this measure, with DOGE second.
+3. AVAX had the highest daily frequency of absolute close-to-close moves ≥1% (71.50%), followed by DOGE (68.70%). AVAX also led the ≥2% daily threshold (50.13%).
 4. AVAX led daily absolute close-to-close moves ≥1% (71.50%) and ≥2% (50.13%). DOGE led weekly absolute close-to-close moves ≥2%, ≥3%, and ≥5%.
 5. SOL and AVAX tied for the highest frequency of weekly absolute close-to-close moves ≥10% (24.07%).
 6. The difference between range frequency and absolute close-to-close-return frequency is substantial. For example, AVAX had a weekly range ≥10% in 79.63% of weeks, but an absolute weekly close-to-close return ≥10% in only 24.07%. A large excursion within a period often does not translate into an equally large net close-to-close move.
