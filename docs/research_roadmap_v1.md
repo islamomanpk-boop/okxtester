@@ -211,3 +211,22 @@ Use the same signal cohort and comparable order assumptions across timeframes. A
 3. Report missing/incomplete horizons, exclusions, overlapping-event dependence, and exact denominators.
 4. Keep descriptive observations separate from fill assumptions and from net profitability.
 5. No strategy backtest or local file modification is authorized by adding these workstreams.
+
+
+## 9. Dedicated sideways-boundary rejection follow-up research
+
+This is a separate required study from breakout/retest analysis and from the general 15M signal study.
+
+For confirmed 15M rejection events at the frozen upper/lower boundary of a causally defined sideways channel, follow the subsequent path from the next eligible 1M candle. Measure:
+- Rejection event frequency by asset, side, strict/broad regime definition, and first/repeated boundary test.
+- Follow-through away from the boundary, return to the channel interior, midpoint, opposite boundary, and failure through the rejected boundary.
+- Immediate continuation versus pullback-first; retest of the rejection candle and boundary; time-to-retest, retest depth, hold/rejection/crossing, and subsequent movement.
+- MFE, MAE, net directional close movement, and time to predeclared favourable/adverse thresholds over 15M, 1H, 4H, 12H and 24H where complete data exists.
+- Rejection candle range, body, wick proportions, close location and volatility-normalized size, then compare subsequent paths across size groups.
+- First versus second/third boundary tests, spacing between tests, and whether prior tests change subsequent rejection behaviour.
+
+Use frozen context/boundary levels, completed-candle confirmation, next-eligible-minute timing, and exact timestamp continuity. Define rejection labels and denominators before calculation. Report incomplete windows and overlapping-event dependence.
+
+**Audit warning:** Earlier preliminary rejection-episode output contained an upper-side variable error (`ls` used instead of `us`) and did not enforce 15M continuity in its episode helper. Do not reuse those episode counts as accepted evidence. Reconstruct and validate the event masks and continuity before reporting results.
+
+This workstream is distinct from confirmed breakout/retest study, matched breakout controls, and the general all-signal post-signal study. It remains outstanding; no strategy backtest or local data modification is authorized.
