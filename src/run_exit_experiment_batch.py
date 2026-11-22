@@ -13,7 +13,7 @@ from run_exit_experiments import (
 )
 
 
-OUTPUT_RELATIVE = Path("okxtester/reports/exit_experiments")
+OUTPUT_RELATIVE = Path("okxtester/reports/exit_experiments_telemetry_v1")
 MANIFEST_NAME = "exit_experiment_batch_manifest.csv"
 COMPARISON_NAME = "exit_experiment_batch_comparison.csv"
 
