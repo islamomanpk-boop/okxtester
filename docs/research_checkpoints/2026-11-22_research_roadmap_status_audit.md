@@ -193,3 +193,26 @@ Execution timeframe, entry-method, cost/portfolio integration and strategy tests
 - The 20/20 breakout reproduction PASS validates event-count reconstruction only.
 - Descriptive movement, MFE/MAE, range touches and breakout excursions do not establish fills, net profitability or live-trading readiness.
 - No local data files were modified by this GitHub status audit.
+
+
+## Addendum — explicit signal, retest, and execution research requirements
+
+A subsequent user review identified three important topics that were not sufficiently explicit in the original status table. They are now formally added to `docs/research_roadmap_v1.md` and the checkpoint `2026-11-22_signal_retest_candle_size_execution_research_addendum.md`.
+
+### Newly explicit open work
+
+- **Execution resolution:** compare 1M / 3M / 5M / 15M execution using the same completed 15M signal cohort. This is not a separate signal-generation study on each timeframe.
+- **Post-signal behaviour and retests:** measure continuation versus pullback-first, retests of frozen signal/structure levels, time-to-retest, retest depth, hold/rejection/crossing, and subsequent path.
+- **Signal-candle anatomy and size:** measure range, body, wick proportions, close location, and volatility-normalized candle size; compare subsequent behaviour across size groups.
+
+These items are **not completed**. The existing breakout/retest study covers only a specific sideways-channel breakout event family and does not satisfy the general post-signal/retest study. Existing 1M execution architecture and the planned 5M robustness comparison do not constitute a completed 1M/3M/5M/15M empirical execution comparison.
+
+### Updated recommended sequence
+
+1. Complete matched breakout controls.
+2. Complete signal-candle anatomy and general post-signal path/retest research.
+3. Compare 1M / 3M / 5M / 15M execution using the same 15M signals.
+4. Continue remaining provenance, weekly-path, cross-asset dependence, time-of-day, and broader sideways-taxonomy work.
+5. Review all descriptive evidence before proposing any strategy experiment.
+
+All remain research-only. No strategy backtests, local data modifications, or profitability claims are authorized by this addendum.
