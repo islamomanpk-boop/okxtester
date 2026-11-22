@@ -69,6 +69,11 @@ class TrailingPortfolioTests(unittest.TestCase):
 
         self.assertEqual(trade["exit_reason"], "stop_gap")
         self.assertAlmostEqual(trade["exit_price"], 100.4)
+        self.assertTrue(trade["trailing_sl_active"])
+        self.assertEqual(trade["trailing_sl_activation_time"], BASE_TS + 60_000)
+        self.assertGreater(trade["trailing_sl_update_count"], 0)
+        self.assertAlmostEqual(trade["initial_stop_price"], 99.0)
+        self.assertGreater(trade["stop_price"], trade["initial_stop_price"])
 
     def test_short_trailing_stop_activates_on_next_candle(self):
         trade = self.run_trade([
@@ -83,6 +88,10 @@ class TrailingPortfolioTests(unittest.TestCase):
 
         self.assertEqual(trade["exit_reason"], "stop_gap")
         self.assertAlmostEqual(trade["exit_price"], 99.6)
+        self.assertTrue(trade["trailing_sl_active"])
+        self.assertEqual(trade["trailing_sl_activation_time"], BASE_TS + 60_000)
+        self.assertGreater(trade["trailing_sl_update_count"], 0)
+        self.assertLess(trade["stop_price"], trade["initial_stop_price"])
 
     def test_long_trailing_take_profit(self):
         trade = self.run_trade([
@@ -96,6 +105,10 @@ class TrailingPortfolioTests(unittest.TestCase):
 
         self.assertEqual(trade["exit_reason"], "trailing_take_profit")
         self.assertAlmostEqual(trade["exit_price"], 102.0)
+        self.assertTrue(trade["trailing_tp_active"])
+        self.assertEqual(trade["trailing_tp_activation_time"], BASE_TS + 60_000)
+        self.assertGreater(trade["trailing_tp_update_count"], 0)
+        self.assertGreater(trade["max_favorable_excursion_r"], 0)
 
     def test_short_trailing_take_profit(self):
         trade = self.run_trade([
@@ -111,6 +124,9 @@ class TrailingPortfolioTests(unittest.TestCase):
 
         self.assertEqual(trade["exit_reason"], "trailing_take_profit")
         self.assertAlmostEqual(trade["exit_price"], 98.0)
+        self.assertTrue(trade["trailing_tp_active"])
+        self.assertEqual(trade["trailing_tp_activation_time"], BASE_TS + 60_000)
+        self.assertGreater(trade["trailing_tp_update_count"], 0)
 
     def test_protective_stop_wins_on_trailing_tp_activation_candle(self):
         trade = self.run_trade([
