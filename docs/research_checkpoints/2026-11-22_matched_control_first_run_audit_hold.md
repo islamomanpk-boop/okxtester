@@ -12,41 +12,44 @@
 ## Audit findings requiring correction
 
 1. **Breakout event counts do not reproduce the accepted timing-corrected study.** The accepted broad-P40 counts are BTC 91 lower / 115 upper; ETH 87 / 77; SOL 117 / 96; DOGE 81 / 75; AVAX 84 / 109. The matched-control script instead reported BTC 84 / 102; ETH 74 / 66; SOL 103 / 86; DOGE 74 / 63; AVAX 74 / 96. Strict counts also differ. The candidate construction therefore is not yet a verified reproduction of the prior signal set.
-2. **Channel-width thresholds were hard-coded in the supplied script but their exact numeric values are not recorded in the accepted breakout-results document.** They must be recovered from the original calculation or recomputed using the identical quantile procedure before matching results can be trusted.
-3. **MAE convention is incorrect for observations with no adverse excursion.** The script can report positive MAE when every observed price excursion is favourable relative to the follow-up start. For consistency with the prior breakout study's adverse-excursion convention, MAE must be floored at zero (never positive): for upper direction, min(0, minimum(low / entry - 1) times 100); for lower direction, min(0, minimum(entry / high - 1) times 100).
-4. The current script uses its own reconstructed candidate-control episode logic and greedy matching. These choices need to be explicitly validated against the agreed plan before accepting the matched sample.
+2. **Channel-width thresholds were hard-coded in the supplied matched-control script and differed from the recovered original values.** Exact full-sample thresholds recovered from the original research are:
+   | Asset | P25 | P40 |
+   |---|---:|---:|
+   | BTC | 3.2422% | 3.9486% |
+   | ETH | 4.2481% | 5.4819% |
+   | SOL | 5.0673% | 6.1145% |
+   | DOGE | 5.1657% | 6.2641% |
+   | AVAX | 5.7061% | 6.9162% |
+   The first matched-control script used different P25 values for ETH (4.2423), SOL (5.0670), and AVAX (5.7036). BTC and DOGE P25 values and all P40 values matched the recovered table.
+3. **MAE convention is incorrect for observations with no adverse excursion.** The script can report positive MAE when every observed price excursion is favourable relative to the follow-up start. For the matched-control study, use a non-positive adverse-excursion convention: upper direction `min(0.0, min((low / entry - 1) * 100))`; lower direction `min(0.0, min((entry / high - 1) * 100)`.
+4. The candidate-control construction and matching choices need to be explicitly checked against the agreed plan. The current script uses greedy sorted-edge matching, not a globally optimal one-to-one assignment. This can be retained only if explicitly labelled as greedy matching.
 5. Strict and broad samples can overlap, and follow-up windows overlap. Any inferential intervals remain approximate and must not be interpreted as independent-event confidence intervals.
+6. The first matched-control script's timestamp lookup selected the next available common timestamp without proving it was exactly one minute after the signal's final 1M candle. Follow-up windows also need explicit 1-minute continuity validation through their final horizon candle.
+7. The script does not fully deliver the agreed outcome report: it omits most calculated threshold-hit and time-to-threshold results, mean/P75/P90 MFE and MAE, net movement summaries, and matching balance diagnostics (standardized differences before and after matching).
+8. The fixed feature scales, distance threshold, and calendar-time contribution need a transparent matching-quality review. Counts and median distance alone do not demonstrate covariate balance. These choices must not be silently relaxed to increase match count.
 
-## Current interpretation
-The output is useful as a debugging run only. No conclusion that breakouts outperform, underperform, or resemble controls is accepted. Do not combine these figures with the final timing-corrected breakout study, and do not use them to choose a strategy.
+## Correction: recovered original final breakout event construction
 
-## Required next steps
-- Recover or reproduce the exact original 48H channel quantiles and breakout-event construction.
-- Make the matched script reproduce the accepted breakout counts before matching.
-- Correct MAE to be non-positive and validate control follow-up calculations.
-- Then rerun the matched comparison read-only and audit the output before publishing empirical results.
+The user subsequently supplied the complete **final timing-corrected breakout and retest script**. A focused recovery of the earlier research conversation confirms that the accepted final script's event masks are:
 
-The original timing-corrected breakout study remains the accepted descriptive study; this first matched-control run is held pending correction.
+- `same_snapshot = joined["snapshot"].eq(joined["snapshot"].shift(1))`
+- Upper: `sideways & same_snapshot & (previous_close <= upper) & (current_close > upper)`
+- Lower: `sideways & same_snapshot & (previous_close >= lower) & (current_close < lower)`
 
+Important clarification: the accepted **final timing-corrected** script does **not** require `previous_sideways = sideways.shift(1)`. That condition appeared in an earlier construction, but was not part of the final accepted timing-corrected event mask. The earlier audit note claiming it was required by the accepted final script was incorrect and is superseded by this correction.
 
-## Additional recovery from the original research conversation
+The accepted final script also has **no explicit breakout de-clustering or cooldown**. It iterates every qualifying crossing in the signal mask. Overlapping breakout follow-up windows are allowed. Do not add de-clustering to the reproduction check; doing so would change the accepted event definition and likely change the counts.
 
-The exact full-sample channel thresholds recorded from the original feature calculation are:
-| Asset | P25 | P40 |
-|---|---:|---:|
-| BTC | 3.2422% | 3.9486% |
-| ETH | 4.2481% | 5.4819% |
-| SOL | 5.0673% | 6.1145% |
-| DOGE | 5.1657% | 6.2641% |
-| AVAX | 5.7061% | 6.9162% |
+The final timing convention is:
+- 15M labels represent candle closing times.
+- The final 1M candle inside the signal is timestamped at `signal_time - 1 minute`.
+- Follow-up begins at the next 1M candle open.
+- The first follow-up minute is included in the retest search.
 
-The first matched-control script used different values for ETH, SOL, and AVAX (and rounded/altered some values), so those constants must be replaced with the recovered values.
+The user's newly pasted final timing-corrected script matches the recovered final event-mask structure. It should be used as the reference for the accepted event definition, rather than the earlier preliminary variant.
 
-The original final breakout construction also required a previous valid sideways observation (previous_sideways) as well as the same frozen 4H snapshot and full-timeline crossing test. The matched-control script did not enforce previous_sideways on breakout candidates. This is another direct reason its event counts differ.
+## Accepted breakout counts to reproduce
 
-The full exact final timing-corrected Python script was not recoverable from the accessible prior-conversation excerpt; only its methodology, conditions, exact thresholds, and accepted event counts were recovered. Do not pretend the reconstructed code is byte-identical. Before producing a replacement matched script, recover the precise previous-sideways mask, de-clustering rule, and feature indexing from the original final script or rebuild them transparently and verify exact counts against the accepted table.
-
-The accepted breakout counts to reproduce are:
 | Asset | Broad lower | Broad upper | Strict lower | Strict upper |
 |---|---:|---:|---:|---:|
 | BTC | 91 | 115 | 62 | 81 |
@@ -55,23 +58,15 @@ The accepted breakout counts to reproduce are:
 | DOGE | 81 | 75 | 55 | 65 |
 | AVAX | 84 | 109 | 64 | 83 |
 
+## Current interpretation and hold
 
-## Full code audit of the pasted first-run matched-control script
+The first matched-control output is useful only as a debugging run. No conclusion that breakouts outperform, underperform, or resemble controls is accepted. Do not combine its figures with the final timing-corrected breakout study, and do not use them to choose a strategy.
 
-The user supplied the complete script used for the first matched-control run. It is the matched-control script under audit, not the original accepted timing-corrected breakout script. It remains on hold; do not use its output.
+The original breakout/retest study remains the accepted descriptive study. The first matched-control run remains NOT VALIDATED. Before any new matched-control run:
+- Reproduce all 20 accepted breakout counts using the final event-mask structure above and the exact recovered thresholds.
+- Preserve the original event definition: no added previous-sideways requirement and no de-clustering.
+- Correct MAE and enforce exact minute continuity for follow-up windows.
+- Validate the control eligibility, matching procedure, covariate balance, and full outcome report.
+- Keep the new calculation read-only.
 
-Additional confirmed code defects:
-
-1. Threshold constants differ from the accepted original values: ETH P25 must be 4.2481 (script: 4.2423); SOL P25 must be 5.0673 (script: 5.0670); AVAX P25 must be 5.7061 (script: 5.7036). BTC and DOGE values and all P40 values match the recovered table.
-2. Breakout masks do not require `same_snapshot`, although the accepted design uses the same frozen 4H context snapshot for the crossing. `continuous` alone is insufficient near a context refresh.
-3. Breakout masks do not require the previous 15M observation to have been valid sideways context (`previous_sideways`). This was a condition in the accepted original event construction.
-4. There is no explicit de-clustering of breakout episodes. A later recross can be counted again after price returns inside; the accepted event counts therefore cannot be assumed reproducible.
-5. MAE is `min(adverse_path)` and can be positive when every observed move is favourable. Apply the established adverse-excursion convention: `min(0.0, min(adverse_path))` for both directions.
-6. `position_map` chooses the next available common timestamp without verifying it is exactly one minute after the signal's final 1M candle. Add explicit timestamp continuity checks for follow-up windows, including the final horizon candle.
-7. The script does not fully deliver the agreed outcome report: it calculates target hits and time-to-0.50% but omits most of them from the printed summary; it omits mean/P75/P90 MFE and MAE, net movement summaries for each side, return-inside/ending-inside breakout outcomes, and matching balance diagnostics (standardized differences before/after matching).
-8. Matching is greedy sorted-edge matching, not a globally optimal one-to-one assignment. This can be retained only if explicitly labelled as greedy matching; it should not be described as an optimal nearest-neighbour assignment.
-9. The script's current event counts are built from its own masks and are not checked against the accepted timing-corrected breakout counts. A corrected script must first reproduce every accepted strict/broad, upper/lower count exactly before control matching and outcome analysis are allowed.
-
-The fixed scales, distance threshold, and calendar-time contribution also need a transparent matching-quality review. The current diagnostics report only median distance and counts; they do not demonstrate covariate balance. These choices must not be silently relaxed to increase match count.
-
-Status remains: first run is debugging-only; no empirical conclusion is accepted. No local data or files were modified by this code review.
+No empirical matched-control conclusion is accepted until these checks pass.
