@@ -6,7 +6,7 @@ Record causal, trade-level evidence about trailing stop-loss and trailing take-p
 
 ## Timestamp convention
 
-All telemetry timestamps are Unix epoch milliseconds, matching the existing `entry_time` and `exit_time` fields in trade CSV files. An activation/update timestamp identifies the completed 1-minute candle on which the condition was observed. The resulting trailing level is eligible beginning with the next 1-minute candle, preserving the existing causal execution rule.
+All telemetry timestamps are Unix epoch milliseconds, matching the existing `entry_time` and `exit_time` fields in trade CSV files. An activation/update timestamp stores that candle's opening-time timestamp (Unix milliseconds), but the condition is evaluated only after the full 1-minute candle has completed. The resulting trailing level is eligible beginning with the next 1-minute candle, preserving the existing causal execution rule.
 
 ## Trade CSV fields
 
