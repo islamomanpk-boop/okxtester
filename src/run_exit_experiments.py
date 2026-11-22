@@ -264,9 +264,19 @@ def run_one_experiment_with_inputs(experiment, inputs, home=None):
     ]
     trade_fields = [
         "experiment_id", "asset", "side", "entry_time", "exit_time",
-        "entry_price", "exit_price", "quantity", "stop_price",
-        "target_price", "signal_priority", "gross_pnl", "funding_pnl",
-        "entry_fee", "exit_fee", "total_fees", "net_pnl", "exit_reason",
+        "entry_price", "exit_price", "quantity", "initial_stop_price",
+        "stop_price", "target_price", "trailing_mode",
+        "trailing_sl_active", "trailing_sl_activation_time",
+        "trailing_sl_activation_price", "trailing_sl_activation_level",
+        "trailing_sl_activation_r", "trailing_sl_update_count",
+        "trailing_sl_last_update_time", "trailing_tp_active",
+        "trailing_tp_activation_time", "trailing_tp_activation_price",
+        "trailing_tp_activation_level", "trailing_tp_activation_r",
+        "trailing_tp_price", "trailing_tp_update_count",
+        "trailing_tp_last_update_time", "max_favorable_price",
+        "max_favorable_time", "max_favorable_excursion_r",
+        "signal_priority", "gross_pnl", "funding_pnl", "entry_fee",
+        "exit_fee", "total_fees", "net_pnl", "exit_reason",
     ]
     write_rows(
         output_dir / f"{experiment_id}_trades.csv",
