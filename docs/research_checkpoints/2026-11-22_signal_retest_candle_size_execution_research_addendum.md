@@ -56,3 +56,14 @@ Recommended sequence:
 4. Only later, and only with explicit authorization, consider cost-integrated strategy experiments.
 
 No strategy backtest, order simulation, local data write, or profitability claim is authorized by this checkpoint.
+
+
+## 5. Sideways rejection-specific follow-up
+
+This is a distinct research family, not covered by breakout-only retest work.
+
+Prior work did include preliminary boundary-touch/rejection analysis and 1M follow-up after strong rejection. It is not a fully accepted comprehensive study: an earlier upper-side episode count used `ls` instead of `us`, and the episode helper did not check exact 15M continuity. Those episode counts must not be reused.
+
+The corrected study must examine post-rejection continuation/pullback, channel interior/midpoint/opposite-boundary outcomes, rejection-candle and boundary retests, retest timing/depth/hold, first versus repeated tests, rejection candle anatomy/size, and fixed-horizon MFE/MAE/net movement. Use frozen levels, completed-signal timing, exact 1M/15M continuity, explicit denominators, and dependence caveats.
+
+Status: preliminary research exists; corrected comprehensive rejection follow-up remains open.
