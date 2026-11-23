@@ -176,3 +176,49 @@ Interpretation:
 
 Next step: inspect and summarize the 144-row bootstrap table, prioritizing the 7-day results for broad all-assets 15m/1h/4h/24h and asset-level 24h results. Treat all secondary comparisons as exploratory. Then record the secondary findings and decide whether to move to a separately specified execution-aware strategy test; do not optimize the detector or trade rules on this same historical sample.
 
+## Secondary bootstrap table review — 7-day blocks
+
+The user inspected the 7-day block-length rows:
+- 48 rows present (expected).
+- All 48 rows have 10,000 valid replicates.
+
+Broad all-assets upper-minus-lower mean differences (decimal returns converted here to percentage points; 1 decimal return unit = 100 percentage points):
+
+| Horizon | Difference (pp) | 95% percentile CI (pp) |
+|---:|---:|---:|
+| 15m | +0.0382 | [+0.0104, +0.0802] |
+| 1h | +0.0742 | [-0.0185, +0.1719] |
+| 4h | +0.1312 | [-0.0947, +0.3606] |
+| 24h | +0.3754 | [-0.4526, +1.1659] |
+
+The 15m interval is above zero; the other three include zero. However, 24h remains the predeclared primary horizon and its interval includes zero. The 15m result is a secondary comparison among multiple horizons and should be considered exploratory, with multiplicity risk; it is not independent confirmation or evidence of executable profitability.
+
+Broad per-asset 24h exploratory results:
+
+| Asset | Difference (pp) | 95% percentile CI (pp) |
+|---|---:|---:|
+| AVAX | -0.2101 | [-1.5570, +0.9073] |
+| BTC | +0.5915 | [-0.1467, +1.2553] |
+| DOGE | +0.6421 | [-0.5800, +1.9117] |
+| ETH | +0.5962 | [-0.8045, +1.9356] |
+| SOL | +0.3602 | [-0.6678, +1.5573] |
+
+All five per-asset 24h intervals include zero. AVAX's point estimate is negative; the other four are positive. This variation cautions against describing the pooled result as universal. These five comparisons are exploratory and subject to multiplicity.
+
+Strict all-assets results (nested sensitivity cohort; not an independent replication):
+
+| Horizon | Difference (pp) | 95% percentile CI (pp) |
+|---:|---:|---:|
+| 15m | +0.0306 | [-0.0011, +0.0630] |
+| 1h | +0.0814 | [-0.0377, +0.1792] |
+| 4h | +0.0962 | [-0.1631, +0.3481] |
+| 24h | +0.4915 | [-0.4653, +1.3996] |
+
+All strict intervals include zero, including 15m by a narrow margin. The strict cohort's qualitative point estimates are similar but it remains nested within broad and cannot be treated as independent corroboration.
+
+Interpretation update:
+- The only interval excluding zero among the displayed broad/strict aggregate horizons is broad 15m; this was secondary, not the predeclared primary estimand.
+- The predeclared broad all-asset 24h primary interval includes zero at 3-, 7-, and 14-day blocks.
+- Every broad per-asset 24h interval includes zero.
+- The evidence remains exploratory and descriptive. No edge, causality, or net profitability is established; no execution costs or trade construction are included.
+
