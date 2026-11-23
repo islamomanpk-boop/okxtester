@@ -316,3 +316,137 @@ After running:
 - Do not repeat completed audits without a concrete reason.
 - A completed descriptive study is not proof of causality, a tradable edge, profitability, or live readiness.
 - No strategy backtests or parameter sweeps until the descriptive gates are reviewed and the user explicitly authorizes the next stage.
+
+---
+
+## 14. Complete trade-lifecycle research — connect every stage
+
+**Purpose:** Study the complete opportunity-to-portfolio process as one causal chain, not as isolated signal, entry, or exit studies. This section is a research specification, not authorization to run a strategy backtest.
+
+### 14.1 Market condition and context
+
+- **[OPEN]** Identify the market condition using validated, causal phase definitions from Section 13.
+- **[OPEN]** Record phase maturity, strength, volatility, transition risk, and classification uncertainty using only information available at the decision time.
+- **[OPEN]** Record 1D/4H/1H/15M agreement or conflict and distinguish context from an actual entry signal.
+- **[OPEN]** Include ambiguous, mixed, and no-trade conditions rather than forcing every observation into a phase.
+
+### 14.2 Signal formation and qualification
+
+- **[OPEN]** Define each candidate signal precisely, including the completed candle/event, direction, structural reference, confirmation timestamp, and earliest eligible decision time.
+- **[OPEN]** Measure signal frequency, clustering, overlap, invalidation, failure, and no-signal periods by asset and phase.
+- **[OPEN]** Separate signal quality/path behaviour from whether an executable entry was available.
+- **[OPEN]** Prevent future information, retrospective pivots, or post-signal outcomes from changing signal qualification.
+
+### 14.3 Entry execution
+
+- **[OPEN]** Connect signal confirmation to the earliest eligible entry decision and actual/assumed execution time.
+- **[OPEN]** Compare predeclared immediate, pullback, limit, structural retest, breakout/retest, and confirmation methods where relevant.
+- **[OPEN]** Record entry price, delay, distance from signal/structure, movement while waiting, no-fill, expiry, missed opportunity, and partial-fill assumptions.
+- **[OPEN]** Preserve the same signal cohort when comparing execution resolutions or entry methods; report exclusions and denominators.
+- **[OPEN]** Distinguish observed OHLC touches from simulated fills and verified fills.
+
+### 14.4 Position management after entry
+
+- **[OPEN]** Define the initial position size, risk budget, leverage/exposure cap, and initial invalidation before entry.
+- **[OPEN]** Study whether stop levels, trailing levels, targets, or position size are allowed to change after entry, and specify exactly which information can trigger each change.
+- **[OPEN]** Research partial profit-taking, adding/reducing exposure, break-even movement, trailing, time-based management, and no-progress handling as separate predeclared policies.
+- **[OPEN]** Measure open risk, remaining risk, realized/unrealized P&L, exposure, holding time, and funding through the full position lifecycle.
+- **[OPEN]** Include adverse paths and management decisions, not only winning-trade examples.
+
+### 14.5 Exit execution
+
+- **[OPEN]** Connect each exit trigger to its first causally eligible order/action and the resulting assumed execution price.
+- **[OPEN]** Distinguish stop, target, trailing, structural invalidation, time exit, regime-change exit, emergency exit, and manual/operational exit reasons.
+- **[OPEN]** Define gap-through, intrabar stop/target ordering, partial fills, expiry, and slippage assumptions; report ambiguous OHLC sequences conservatively.
+- **[OPEN]** Measure gross and net exit effects separately, including fees, slippage, and funding where validated.
+
+### 14.6 Portfolio outcome and feedback
+
+- **[OPEN]** Aggregate simultaneous positions across assets using a common timestamped equity/exposure ledger.
+- **[OPEN]** Measure net returns, drawdown, tail losses, turnover, capital usage, concentration, correlated exposure, and simultaneous adverse moves.
+- **[OPEN]** Include rejected signals, missed entries, no-fills, open positions, forced exits, and overlapping positions in the correct denominators and accounting.
+- **[OPEN]** Evaluate daily/weekly loss limits, portfolio exposure limits, drawdown controls, and operational stop conditions as separate policies.
+- **[OPEN]** Check that portfolio constraints do not use future information and that per-asset results reconcile to portfolio totals.
+
+### 14.7 End-to-end lifecycle validation
+
+- **[OPEN]** Maintain an auditable event chain: market snapshot → phase label → signal → entry decision/order → fills → management events → exit decision/order → fills → funding/fees → portfolio ledger.
+- **[OPEN]** Require exact timestamps, stable identifiers, reproducible event ordering, and reconciliation of every position from opening to final closure.
+- **[OPEN]** Test edge cases: missing candles, exchange/data outages, duplicate events, simultaneous stop/target touches, partial fills, rejected orders, gaps, and position carry across funding timestamps.
+- **[OPEN]** Compare stage-level diagnostics with end-to-end results so that a promising signal or entry is not mistaken for a profitable complete system.
+- **[OPEN]** Report results by asset, direction, market phase/maturity, entry method, exit policy, and chronological period, with dependence and uncertainty limitations.
+
+**Lifecycle rule:** A complete trade is not evaluated from signal price alone. Its causal sequence, executable entry, position changes, exit execution, costs, funding, and portfolio interactions must all reconcile. No stage may borrow information from a later stage.
+
+## 15. Dedicated exit and position-management research
+
+**Purpose:** Understand how trades should be invalidated, managed, and closed under different market conditions. This workstream is downstream of validated signal and entry research. Its presence on the checklist does not authorize exit sweeps, strategy backtests, or parameter optimization.
+
+### 15.1 Initial stop-loss and invalidation research
+
+- **[OPEN]** Compare structural invalidation (swing/level failure), range-boundary invalidation, fixed-percentage, volatility-normalized, and other explicitly justified stop families.
+- **[OPEN]** Measure stop distance, initial risk per unit, stop placement relative to market structure, and how often price reaches the stop before a favourable objective.
+- **[OPEN]** Separate a true thesis invalidation from a risk-control stop; record whether a stop is structural, time-based, volatility-based, or operational.
+- **[OPEN]** Study stop behaviour by phase, phase maturity, asset, direction, entry method, and volatility state.
+- **[OPEN]** Avoid retrospective swing points and levels that were not confirmed and available at entry.
+
+### 15.2 Take-profit and target research
+
+- **[OPEN]** Compare economically motivated target families: fixed R-multiples, prior structure, range midpoint/opposite boundary, measured move, and trend-extension levels.
+- **[OPEN]** Measure target reach probability, time-to-target, favourable excursion given up, target-before-stop ordering, and unresolved outcomes.
+- **[OPEN]** Distinguish target touch from executable target fill; define limit-order queue/partial-fill assumptions where fills are simulated.
+- **[OPEN]** Compare fixed targets with policies that allow a runner, without selecting winners from broad uncorrected grids.
+
+### 15.3 Trailing-stop research
+
+- **[OPEN]** Study fixed-distance, volatility-normalized, confirmed-swing/structure-based, and phase-aware trailing families.
+- **[OPEN]** Record activation condition/time, initial and updated levels, update frequency, stop distance, and whether the stop ever becomes active.
+- **[OPEN]** Measure profit retained versus unrealized MFE surrendered, stop-out timing, re-entry/whipsaw exposure, and gap-through behaviour.
+- **[OPEN]** Do not infer trailing-stop activation or update history from summary trade exports when the underlying event telemetry is absent.
+
+### 15.4 Partial exits and position scaling
+
+- **[OPEN]** Compare full exit with predeclared partial-close schedules and runner policies.
+- **[OPEN]** Measure realized profit, remaining size/risk, average exit price, later runner contribution, fees/turnover, and opportunity cost.
+- **[OPEN]** Study scale-in, scale-out, and add/reduce policies separately; specify whether total initial risk can increase and enforce an explicit cap.
+- **[OPEN]** Avoid treating multiple partial fills from one position as independent trades.
+
+### 15.5 Time, progress, and thesis-based exits
+
+- **[OPEN]** Study maximum holding time, no-progress/stalled-trade exits, time-to-invalidation, and time-to-target.
+- **[OPEN]** Define measurable thesis invalidation: loss of supporting structure, failed continuation, failed retest, return into a failed breakout range, or other predeclared event.
+- **[OPEN]** Compare exit at first causal warning versus confirmed state change; quantify both avoided adverse movement and prematurely abandoned continuation.
+- **[OPEN]** Account for funding timestamps and holding-period effects when relevant.
+
+### 15.6 Phase-specific exit questions
+
+- **[OPEN] Bullish trend:** compare confirmed higher-low/structure trailing, volatility trailing, prior-high/extension targets, and exits after weakening or failed continuation.
+- **[OPEN] Bearish trend:** compare mirrored lower-high/structure trailing and downside targets, while testing rather than assuming symmetry.
+- **[OPEN] Quiet/compressed range:** examine midpoint and opposite-boundary targets, boundary-failure invalidation, and exits when compression resolves.
+- **[OPEN] Wide/orderly range:** examine boundary-to-interior/opposite-boundary objectives, early reversal warnings, and time spent without progress.
+- **[OPEN] Volatile/choppy range:** measure rapid stop/target crossings, whipsaw, shorter-horizon invalidation, and whether no-trade is preferable to tighter exits.
+- **[OPEN] Breakout/expansion:** compare continuation targets and trailing with exits on failed acceptance, failed retest, or return inside the prior range.
+- **[OPEN] Transition/shock/disorderly conditions:** study gap and fast-market risk, stale levels, delayed exits, conservative stop assumptions, and explicit emergency risk controls.
+
+### 15.7 Exit execution, costs, and measurement
+
+- **[OPEN]** Verify the applicable fee schedule and funding inputs before claiming realistic net exit results.
+- **[OPEN]** Estimate exit slippage by asset, volatility, order type, and time of day where data supports it; OHLCV alone cannot establish order-book liquidity or exact fills.
+- **[OPEN]** Model market/stop-market versus limit/stop-limit assumptions separately, including gaps, partial fills, unfilled orders, and order expiry.
+- **[OPEN]** Specify intrabar ordering when stop and target are both touched in one candle; use finer data where available and conservative ambiguity rules otherwise.
+- **[OPEN]** Report gross versus net P&L, fees, slippage, funding, holding time, turnover, MFE captured, MAE endured, drawdown, and tail outcomes.
+- **[OPEN]** Use non-positive MAE convention consistently and reconcile trade-level exits with the portfolio ledger.
+
+### 15.8 Exit study design and acceptance gates
+
+- **[OPEN]** Begin with descriptive path/threshold and time-to-event analysis before comparing complete exit policies.
+- **[OPEN]** Freeze the entry cohort and entry assumptions before comparing exits; do not let each exit arm select a different set of favourable entries.
+- **[OPEN]** Pre-register the exit hypothesis, baseline, variants, risk constraints, horizons, costs, ambiguity rules, and falsification criteria.
+- **[OPEN]** Account for overlapping trades, multiple comparisons, chronological stability, and asset/regime heterogeneity.
+- **[OPEN]** Separate descriptive stop/target reachability, assumed fill simulation, and net strategy profitability into distinct evidence levels.
+- **[OPEN]** Require code review, unit tests, event-level telemetry, exact event-count/continuity checks, and reproducible reports before accepting results.
+- **[LATER — NOT AUTHORIZED]** Exit-family comparisons and strategy-level exit experiments may begin only after the relevant signal/entry research gates are reviewed and the user explicitly authorizes the experiment.
+- **[LATER — NOT AUTHORIZED]** Parameter tuning, broad exit grids, and final OOS selection remain prohibited until the full hypothesis, development/validation/OOS, and realistic-cost protocol is approved.
+
+**Existing-results safeguard:** The historical 66-experiment exit batch and later telemetry/local exit reports are prior evidence to audit and interpret. They must not be overwritten, blindly resumed, or repeated. A negative batch is not a reason to search a larger parameter grid; first identify what the telemetry and cost accounting can and cannot establish.
+
