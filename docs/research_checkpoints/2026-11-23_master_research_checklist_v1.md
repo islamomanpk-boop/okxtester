@@ -228,6 +228,34 @@ No strategy backtest, exit sweep, parameter optimization, profitability claim, o
 - **[OPEN]** Measure false starts and transition reversals, including how often an apparent new phase quickly returns to the previous phase.
 - **[OPEN]** Compare detection using only information available at the time against retrospective final labels; report the delay/uncertainty cost of causal classification.
 
+### 13.7 Entry opportunity and execution research within every market phase
+
+**[OPEN — REQUIRED FOR EVERY PHASE]** Entry execution must not be studied only as one general timeframe comparison. Once each phase has a validated causal definition and eligible event/signal cohort, study entry opportunity and execution separately within that phase. Do not assume an entry method that works in one phase transfers to another.
+
+For each phase (bullish trend, bearish trend, quiet/compressed range, wide/orderly range, volatile/choppy range, disorderly high-volatility conditions, and each transition type), investigate:
+
+- **[OPEN]** Define the eligible setup and the exact moment it becomes knowable. Entries must occur only after all required signal candles close; record confirmation time and earliest eligible execution time.
+- **[OPEN]** Compare execution resolutions using the same underlying event cohort where possible: 1M, 3M, 5M, and 15M. Keep signal timeframe fixed when the question is execution resolution; a different signal timeframe is a separate study.
+- **[OPEN]** Compare entry methods where structurally relevant: immediate/market after confirmation, pullback, limit at a predeclared level, structural retest, breakout/retest, and post-retest confirmation. Do not force irrelevant methods into every phase.
+- **[OPEN]** Measure entry delay, entry price, distance from signal close and structural reference, price movement while waiting, maximum adverse/favourable movement before entry, and whether the opportunity was missed.
+- **[OPEN]** Measure touch, estimated fill, partial fill, expiry, cancellation, missed entry, and no-opportunity outcomes separately. State assumptions for order priority, intrabar ordering, gaps, and limit-price touches.
+- **[OPEN]** Measure post-entry adverse/favourable excursion, immediate adverse selection, continuation/pullback after entry, and whether price reaches the intended structural area before invalidation.
+- **[OPEN]** Test whether entry quality changes by phase maturity, phase strength, volatility state, signal-candle anatomy, asset, direction, time of day, and higher-timeframe context, using only information available at entry.
+- **[OPEN]** Include failed setups and no-fill opportunities in denominators; do not evaluate only the trades that would have filled.
+- **[OPEN]** Compare phase-specific entry behaviour with a common baseline and report sample size, uncertainty, chronological stability, overlap/dependence, and sensitivity to reasonable predeclared assumptions.
+- **[OPEN]** Separate descriptive price-path opportunity from simulated fills, then from fees/slippage/funding and net profitability. OHLC touch is not a verified fill; realistic cost and profitability work remains subject to the later execution/cost gate and explicit authorization.
+
+**Phase-specific questions to answer:**
+- **Uptrend:** How do immediate continuation entries compare with pullback-to-structure, higher-low retest, and breakout-retest entries? How deep and long are ordinary pullbacks before continuation or failure?
+- **Downtrend:** How do immediate entries compare with countertrend-rally, lower-high retest, and breakdown-retest entries? How often do sharp short-covering rallies invalidate an apparent continuation?
+- **Quiet/compressed range:** Are boundary-rejection or interior entries actually reachable? How long does price remain near a level, and how often does compression resolve before a limit entry fills?
+- **Wide/orderly range:** Compare entries near upper/lower boundaries, midpoint, and after confirmed rejection; measure travel to the interior/opposite boundary and invalidation.
+- **Volatile/choppy range:** Quantify whipsaw, adverse movement immediately after entry, repeated level crossings, and false confirmation; include no-trade/no-fill outcomes.
+- **Disorderly/high-volatility conditions:** Measure execution delay and adverse movement during fast candles and shocks; do not infer executable fills or liquidity from OHLCV alone.
+- **Transitions and breakouts:** Compare early transition attempts with entries after confirmation, acceptance outside a range, and retests; measure how much movement is missed by waiting for confirmation and how often early entries fail.
+
+**Sequencing:** First establish and validate phase definitions and phase-specific event cohorts. Then study signal/entry opportunity and post-signal paths. Next compare execution resolutions and entry methods on comparable cohorts. Only after those descriptive gates should cost-aware execution simulation or strategy profitability be considered, with separate explicit authorization.
+
 ### 13.6 Cross-phase and multi-timeframe questions
 
 - **[OPEN]** Build a phase-transition matrix with counts, duration distributions, and uncertainty by asset and chronological period.
