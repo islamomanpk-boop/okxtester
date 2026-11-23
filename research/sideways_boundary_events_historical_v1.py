@@ -146,11 +146,11 @@ def process_snapshot(
             if direction == "upper":
                 touched = high >= upper - 0.10 * width
                 rejection = touched and close < upper - 0.10 * width and close > lower
-                separated = close <= upper - 0.20 * width
+                separated = (not touched) and close <= upper - 0.20 * width
             else:
                 touched = low <= lower + 0.10 * width
                 rejection = touched and close > lower + 0.10 * width and close < upper
-                separated = close >= lower + 0.20 * width
+                separated = (not touched) and close >= lower + 0.20 * width
 
             current = active[direction]
             if current is None:
