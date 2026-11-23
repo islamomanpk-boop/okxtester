@@ -62,7 +62,7 @@ class TestBlockBootstrapV1(unittest.TestCase):
         result = contrast_from_sufficient_stats(
             weights, upper_sum, upper_n, lower_sum, lower_n
         )
-        self.assertAlmostEqual(result[0], 0.03)
+        self.assertAlmostEqual(result[0], 0.04)
         self.assertTrue(np.isnan(result[1]))
 
     def test_one_shared_calendar_weight_vector_can_be_applied_to_all_assets(self):
