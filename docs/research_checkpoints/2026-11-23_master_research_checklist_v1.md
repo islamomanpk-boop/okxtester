@@ -164,6 +164,83 @@ No strategy backtest, exit sweep, parameter optimization, profitability claim, o
 
 ---
 
+## 13. Full market-phase research — all phases, not sideways only
+
+**Purpose:** Build a complete descriptive understanding of every important market condition before designing regime-specific trading rules. The phase labels below are research categories, not claims that markets always fit neatly into one category. A market may be ambiguous, mixed across timeframes, or in transition.
+
+**Coverage rule for every phase:** Study BTC, ETH, SOL, DOGE, and AVAX individually and comparatively; use the relevant 1M, 15M, 1H, 4H, and 1D views without mixing information that was unavailable at the decision time. Report sample counts, missingness, chronological stability, uncertainty, and overlapping-event dependence. Define each event causally and preserve an explicit uncertain/no-classification state.
+
+### 13.1 Bullish trend / uptrend
+
+- **[OPEN]** Define trend structure using causally confirmed higher highs and higher lows; record swing confirmation delay and avoid future-confirmed pivots being treated as known earlier.
+- **[OPEN]** Measure trend direction, slope, directional efficiency, persistence, duration, speed, and distance travelled.
+- **[OPEN]** Separate early, developing, mature, accelerating, weakening, and exhausted uptrends using predeclared descriptive labels.
+- **[OPEN]** Measure impulse legs: size, duration, candle anatomy, volatility expansion, pauses, and continuation after each leg.
+- **[OPEN]** Measure pullbacks/corrections: depth in price and prior-leg percentage, duration, speed, retracement, number of countertrend candles, and recovery time.
+- **[OPEN]** Study higher-low formation, failed higher lows, support retests, breakout from prior highs, acceptance above highs, and failed upside breakouts.
+- **[OPEN]** Measure trend pauses, consolidations, flags/ranges, volatility contraction/expansion, and whether continuation or transition follows.
+- **[OPEN]** Study trend failure and reversal warning behaviour: loss of structure, lower highs, failed recovery, downside expansion, and time from first warning to confirmed state change.
+- **[OPEN]** Measure forward MFE/MAE, continuation-first versus pullback-first, threshold timing, and outcomes after pullback/retest events.
+- **[OPEN]** Compare strong versus weak trends, asset, timeframe, chronological period, and contemporaneously known higher-timeframe context.
+
+### 13.2 Bearish trend / downtrend
+
+- **[OPEN]** Mirror the uptrend structural study using causally confirmed lower lows and lower highs, with confirmation delay recorded.
+- **[OPEN]** Measure direction, slope, efficiency, persistence, duration, speed, downside legs, and volatility behaviour.
+- **[OPEN]** Separate early, developing, mature, accelerating, weakening, and exhausted downtrends.
+- **[OPEN]** Measure bearish impulse legs and countertrend rallies: size, duration, retracement, speed, and continuation after the rally.
+- **[OPEN]** Study lower-high formation, failed lower highs, resistance retests, breakdown from prior lows, acceptance below lows, and failed breakdowns.
+- **[OPEN]** Measure pauses, bear flags, consolidations, squeeze/compression, and downside continuation versus reversal.
+- **[OPEN]** Study trend failure and reversal: reclaim of structure, higher lows, failed downside continuation, upside expansion, and confirmation delay.
+- **[OPEN]** Measure forward MFE/MAE, continuation-first versus rally-first, threshold timing, and outcomes after retests.
+- **[OPEN]** Compare downside behaviour with bullish trends rather than assuming symmetry; split by asset, timeframe, and chronological period.
+
+### 13.3 Sideways / range conditions
+
+- **[PARTIAL]** Existing detector, boundary, rejection, breakout, and retest research is recorded in Sections 3–7; it does not yet constitute a complete range taxonomy.
+- **[OPEN]** Quiet/narrow/compressed range: compression depth, duration, volatility contraction, boundary stability, false moves, and eventual expansion.
+- **[OPEN]** Wide but orderly range: width, orderly swings, repeated boundary reactions, midpoint crossings, and mean-reversion path.
+- **[OPEN]** Volatile/choppy range: whipsaws, overlapping candles, unstable boundaries, repeated crossings, and absence of durable directional progress.
+- **[OPEN]** Range lifecycle: formation, maturation, expansion/contraction, boundary migration, weakening, termination, and transition to another state.
+- **[OPEN]** Range geometry: width, height, slope, symmetry/asymmetry, internal swing structure, time near each boundary, and time spent in the interior.
+- **[OPEN]** Range behaviour: first/repeated tests, rejection anatomy, midpoint reversion, failed breakout/breakdown, acceptance outside, retest, and post-break path.
+- **[OPEN]** Distinguish a genuine range from a temporary pause within an existing trend and from a volatile/noisy market.
+- **[OPEN]** Preserve the full boundary/rejection and breakout/failure studies in Sections 4–7; do not duplicate or replace their accepted definitions.
+
+### 13.4 Choppy / high-volatility / disorderly conditions
+
+- **[OPEN]** Define choppiness independently from quiet sideways and from orderly high-volatility trends; do not equate high ATR with choppiness.
+- **[OPEN]** Measure direction changes, overlapping candle ranges, wick/body structure, directional efficiency, whipsaw frequency, and repeated failed pushes.
+- **[OPEN]** Measure volatility level, volatility-of-volatility, sudden expansion/contraction, extreme candle clusters, and persistence of shocks.
+- **[OPEN]** Study rapid support/resistance crossings, unstable swing structure, false signals, and time required for direction to become clear.
+- **[OPEN]** Separate two-sided disorder from high-volatility directional movement; characterize both.
+- **[OPEN]** Measure forward path distributions, adverse/favourable excursions, reversals, and whether movement is persistent or quickly retraced.
+- **[OPEN]** Study spread/slippage only when reliable execution data becomes available; do not infer liquidity from candle volume alone.
+- **[OPEN]** Evaluate whether the state is best classified as uncertain/no-trade for research purposes, without assuming a trading rule.
+
+### 13.5 Transition, breakout, expansion, and volatility-shock conditions
+
+- **[OPEN]** Study transitions between every major pair of states: range-to-uptrend, range-to-downtrend, trend-to-range, trend-to-opposite-trend, orderly-to-choppy, and shock-to-normalization.
+- **[OPEN]** Measure transition onset, confirmation delay, duration, failed transitions, temporary flips, and label flicker.
+- **[OPEN]** Distinguish breakout attempt, close outside, sustained acceptance, retest, continuation, failed breakout, and return into the prior range.
+- **[OPEN]** Measure expansion magnitude, speed, duration, realized volatility change, follow-through, and post-expansion retracement.
+- **[OPEN]** Study volatility shocks separately from ordinary breakouts: shock size, clustering, cross-asset spread, persistence, and normalization time.
+- **[OPEN]** Measure false starts and transition reversals, including how often an apparent new phase quickly returns to the previous phase.
+- **[OPEN]** Compare detection using only information available at the time against retrospective final labels; report the delay/uncertainty cost of causal classification.
+
+### 13.6 Cross-phase and multi-timeframe questions
+
+- **[OPEN]** Build a phase-transition matrix with counts, duration distributions, and uncertainty by asset and chronological period.
+- **[OPEN]** Compare phase frequencies, duration, path characteristics, and transition behaviour across all five assets.
+- **[OPEN]** Measure how often 1D, 4H, 1H, and 15M classifications agree, conflict, or change at different times; do not assume a lower timeframe must follow a higher timeframe.
+- **[OPEN]** Study whether BTC phase changes lead, coincide with, or lag other assets; treat this as association, not causation.
+- **[OPEN]** Compare phase-specific return, range, volatility, MFE/MAE, pullback, breakout, and reversal distributions.
+- **[OPEN]** Test chronological stability and predeclared subperiods; disclose small samples and multiple comparisons.
+- **[OPEN]** Audit phase-label reproducibility, missing data, exact timestamp continuity, and causal availability.
+- **[OPEN]** Keep diagnostic indicators (ATR, ADX, efficiency, bandwidth, etc.) as candidate measurements, not automatic definitions or filters for pure price-action Model A.
+
+**Completion standard:** No phase is considered fully researched merely because a detector labels it. Each phase needs validated causal definitions, lifecycle and transition analysis, path/outcome descriptions, cross-asset and multi-timeframe comparisons, chronological robustness, and documented limitations. Strategy filters or entries remain unauthorized until the descriptive work is reviewed and separately approved.
+
 ## Recommended working order
 
 This is the practical sequence. A numbered item is not automatically authorized just because it appears here.
