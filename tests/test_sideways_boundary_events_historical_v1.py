@@ -47,10 +47,10 @@ class TestHistoricalBoundaryEventsV1(unittest.TestCase):
         self.assertEqual(upper[1]["test_start_ts_ms"], 3 * FIFTEEN_MIN_MS)
         self.assertEqual(audit["processed_eligible_bars"], 4)
 
-    def test_separation_candle_cannot_start_next_test(self):
+    def test_non_touch_separation_arms_next_test(self):
         data = bars([
             (0, 109.5, 108.0, 108.8),
-            (FIFTEEN_MIN_MS, 109.8, 107.0, 107.5),  # wick touch + separation close
+            (FIFTEEN_MIN_MS, 108.5, 106.0, 107.5),  # non-touch separation close
             (2 * FIFTEEN_MIN_MS, 109.6, 108.0, 109.2),
         ])
         tests, _ = process_snapshot(
