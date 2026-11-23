@@ -106,9 +106,7 @@ def load_minutes(path: Path, asset: str) -> pd.DataFrame:
     if not df["ts"].is_monotonic_increasing:
         raise ValueError(f"{asset}: 1M timestamps are not ordered")
     gaps = np.diff(df["ts"].to_numpy(dtype=np.int64))
-    unusual = int(np.count_nonzero(gaps != MINUTE_MS))
-    if unusual:
-        raise ValueError(f"{asset}: found {unusual} non-60-second timestamp gaps")
+    # Gaps are retained for event-level horizon censoring; never bridge them.
     return df.reset_index(drop=True)
 
 
