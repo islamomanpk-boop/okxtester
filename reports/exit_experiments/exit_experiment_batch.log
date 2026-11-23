@@ -1,0 +1,2547 @@
+Experiment matrix: 66
+Already complete and verified: 1
+Remaining to run: 65
+Output directory: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+
+Loading shared market, funding, and signal inputs once...
+Shared inputs loaded. Running 65 experiments sequentially.
+
+===== BATCH 1/65: fixed_stop_0_50pct__fixed_target_0_75pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_50pct__fixed_target_0_75pct
+stop_model: fixed_stop_0_50pct
+target_model: fixed_target_0_75pct
+target_value: 0.0075
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 5976
+rejected_entries: 11967
+trade_count: 5976
+initial_equity: 1000.0
+final_equity: 24.241370486428536
+net_pnl: -975.7586295135715
+return_pct: -97.57586295135715
+max_drawdown_pct: 97.62674367591835
+gross_pnl: -20.9999664296601
+fees: 955.9003360617273
+funding_pnl: 1.1416729778115373
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_50pct__fixed_target_0_75pct (2/66 total complete)
+
+===== BATCH 2/65: fixed_stop_0_50pct__fixed_target_1_50pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_50pct__fixed_target_1_50pct
+stop_model: fixed_stop_0_50pct
+target_model: fixed_target_1_50pct
+target_value: 0.015
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3897
+rejected_entries: 14046
+trade_count: 3897
+initial_equity: 1000.0
+final_equity: 116.946760144682
+net_pnl: -883.053239855318
+return_pct: -88.3053239855318
+max_drawdown_pct: 90.19175438936446
+gross_pnl: 61.25090391504583
+fees: 946.5633792956429
+funding_pnl: 2.2592355252760754
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_50pct__fixed_target_1_50pct (3/66 total complete)
+
+===== BATCH 3/65: fixed_stop_0_50pct__fixed_target_2_00pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_50pct__fixed_target_2_00pct
+stop_model: fixed_stop_0_50pct
+target_model: fixed_target_2_00pct
+target_value: 0.02
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3332
+rejected_entries: 14611
+trade_count: 3332
+initial_equity: 1000.0
+final_equity: 205.45201079378808
+net_pnl: -794.5479892062119
+return_pct: -79.4547989206212
+max_drawdown_pct: 81.70753619586279
+gross_pnl: 169.05717971234063
+fees: 966.0981730227303
+funding_pnl: 2.4930041041781834
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_50pct__fixed_target_2_00pct (4/66 total complete)
+
+===== BATCH 4/65: fixed_stop_0_75pct__fixed_target_0_75pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_75pct__fixed_target_0_75pct
+stop_model: fixed_stop_0_75pct
+target_model: fixed_target_0_75pct
+target_value: 0.0075
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 4677
+rejected_entries: 13266
+trade_count: 4677
+initial_equity: 1000.0
+final_equity: 89.64158976365059
+net_pnl: -910.3584102363494
+return_pct: -91.03584102363494
+max_drawdown_pct: 91.20445684458205
+gross_pnl: -37.26135426373208
+fees: 874.4171722866466
+funding_pnl: 1.320116314033035
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_75pct__fixed_target_0_75pct (5/66 total complete)
+
+===== BATCH 5/65: fixed_stop_0_75pct__fixed_target_1_00pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_75pct__fixed_target_1_00pct
+stop_model: fixed_stop_0_75pct
+target_model: fixed_target_1_00pct
+target_value: 0.01
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3909
+rejected_entries: 14034
+trade_count: 3909
+initial_equity: 1000.0
+final_equity: 147.20902910624295
+net_pnl: -852.790970893757
+return_pct: -85.27909708937571
+max_drawdown_pct: 86.51618318324574
+gross_pnl: -27.92852070562434
+fees: 826.2014649829334
+funding_pnl: 1.3390147948002584
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_75pct__fixed_target_1_00pct (6/66 total complete)
+
+===== BATCH 6/65: fixed_stop_0_75pct__fixed_target_1_50pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_75pct__fixed_target_1_50pct
+stop_model: fixed_stop_0_75pct
+target_model: fixed_target_1_50pct
+target_value: 0.015
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3000
+rejected_entries: 14943
+trade_count: 3000
+initial_equity: 1000.0
+final_equity: 287.67235049835904
+net_pnl: -712.327649501641
+return_pct: -71.2327649501641
+max_drawdown_pct: 76.48881145729128
+gross_pnl: 38.82833153287164
+fees: 752.9588846077081
+funding_pnl: 1.8029035731945386
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_75pct__fixed_target_1_50pct (7/66 total complete)
+
+===== BATCH 7/65: fixed_stop_0_75pct__fixed_target_2_00pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_75pct__fixed_target_2_00pct
+stop_model: fixed_stop_0_75pct
+target_model: fixed_target_2_00pct
+target_value: 0.02
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 2529
+rejected_entries: 15414
+trade_count: 2529
+initial_equity: 1000.0
+final_equity: 435.40639669894745
+net_pnl: -564.5936033010526
+return_pct: -56.459360330105255
+max_drawdown_pct: 63.36196247992062
+gross_pnl: 177.1457107747694
+fees: 743.7596614911018
+funding_pnl: 2.0203474152828953
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_75pct__fixed_target_2_00pct (8/66 total complete)
+
+===== BATCH 8/65: fixed_stop_1_00pct__fixed_target_0_75pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_1_00pct__fixed_target_0_75pct
+stop_model: fixed_stop_1_00pct
+target_model: fixed_target_0_75pct
+target_value: 0.0075
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 4300
+rejected_entries: 13643
+trade_count: 4300
+initial_equity: 1000.0
+final_equity: 181.4970331889491
+net_pnl: -818.5029668110509
+return_pct: -81.85029668110508
+max_drawdown_pct: 83.42114613363522
+gross_pnl: -43.38280598840201
+fees: 776.149180128156
+funding_pnl: 1.0290193055040526
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct_performance_report.md
+CHECKPOINT SAVED: fixed_stop_1_00pct__fixed_target_0_75pct (9/66 total complete)
+
+===== BATCH 9/65: fixed_stop_1_00pct__fixed_target_1_00pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_1_00pct__fixed_target_1_00pct
+stop_model: fixed_stop_1_00pct
+target_model: fixed_target_1_00pct
+target_value: 0.01
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3517
+rejected_entries: 14426
+trade_count: 3517
+initial_equity: 1000.0
+final_equity: 270.5142947743848
+net_pnl: -729.4857052256152
+return_pct: -72.94857052256151
+max_drawdown_pct: 76.21586989816952
+gross_pnl: -24.613291020855808
+fees: 706.1257606802246
+funding_pnl: 1.2533464754659838
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct_performance_report.md
+CHECKPOINT SAVED: fixed_stop_1_00pct__fixed_target_1_00pct (10/66 total complete)
+
+===== BATCH 10/65: fixed_stop_1_00pct__fixed_target_1_50pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_1_00pct__fixed_target_1_50pct
+stop_model: fixed_stop_1_00pct
+target_model: fixed_target_1_50pct
+target_value: 0.015
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 2653
+rejected_entries: 15290
+trade_count: 2653
+initial_equity: 1000.0
+final_equity: 486.95147382500966
+net_pnl: -513.0485261749903
+return_pct: -51.304852617499044
+max_drawdown_pct: 60.448703364024695
+gross_pnl: 165.54882155671973
+fees: 680.093805654542
+funding_pnl: 1.4964579228286217
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct_performance_report.md
+CHECKPOINT SAVED: fixed_stop_1_00pct__fixed_target_1_50pct (11/66 total complete)
+
+===== BATCH 11/65: fixed_stop_1_00pct__fixed_target_2_00pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_1_00pct__fixed_target_2_00pct
+stop_model: fixed_stop_1_00pct
+target_model: fixed_target_2_00pct
+target_value: 0.02
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 2180
+rejected_entries: 15763
+trade_count: 2180
+initial_equity: 1000.0
+final_equity: 641.5697061641595
+net_pnl: -358.43029383584053
+return_pct: -35.84302938358406
+max_drawdown_pct: 49.75748864035789
+gross_pnl: 245.44995240796987
+fees: 605.5367187255813
+funding_pnl: 1.656472481772545
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct_performance_report.md
+CHECKPOINT SAVED: fixed_stop_1_00pct__fixed_target_2_00pct (12/66 total complete)
+
+===== BATCH 12/65: signal_extreme_atr_buffer_0_10__fixed_target_0_75pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__fixed_target_0_75pct
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: fixed_target_0_75pct
+target_value: 0.0075
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 5864
+rejected_entries: 12079
+trade_count: 5864
+initial_equity: 1000.0
+final_equity: 16.404603309804315
+net_pnl: -983.5953966901957
+return_pct: -98.35953966901957
+max_drawdown_pct: 98.38879916941777
+gross_pnl: -144.04591318224973
+fees: 840.5010438960819
+funding_pnl: 0.9515603881346462
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__fixed_target_0_75pct (13/66 total complete)
+
+===== BATCH 13/65: signal_extreme_atr_buffer_0_10__fixed_target_1_00pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__fixed_target_1_00pct
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: fixed_target_1_00pct
+target_value: 0.01
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 4904
+rejected_entries: 13039
+trade_count: 4904
+initial_equity: 1000.0
+final_equity: 36.504041560012865
+net_pnl: -963.4959584399871
+return_pct: -96.34959584399871
+max_drawdown_pct: 96.4711084524442
+gross_pnl: -154.25012967445932
+fees: 810.2245771445571
+funding_pnl: 0.9787483790269003
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__fixed_target_1_00pct (14/66 total complete)
+
+===== BATCH 14/65: signal_extreme_atr_buffer_0_10__fixed_target_1_50pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__fixed_target_1_50pct
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: fixed_target_1_50pct
+target_value: 0.015
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3806
+rejected_entries: 14137
+trade_count: 3806
+initial_equity: 1000.0
+final_equity: 107.92834027524395
+net_pnl: -892.071659724756
+return_pct: -89.2071659724756
+max_drawdown_pct: 90.13120719853224
+gross_pnl: -74.21057960658233
+fees: 819.2714740983739
+funding_pnl: 1.41039398020034
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__fixed_target_1_50pct (15/66 total complete)
+
+===== BATCH 15/65: signal_extreme_atr_buffer_0_10__fixed_target_2_00pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__fixed_target_2_00pct
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: fixed_target_2_00pct
+target_value: 0.02
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3177
+rejected_entries: 14766
+trade_count: 3177
+initial_equity: 1000.0
+final_equity: 218.51616451868506
+net_pnl: -781.4838354813149
+return_pct: -78.14838354813149
+max_drawdown_pct: 80.56649901841342
+gross_pnl: 15.881446365206225
+fees: 799.3345255422716
+funding_pnl: 1.9692436957492425
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__fixed_target_2_00pct (16/66 total complete)
+
+===== BATCH 16/65: signal_extreme_exact__target_1R =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_exact__target_1R
+stop_model: signal_extreme_exact
+target_model: target_1R
+target_value: 1.0
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 7549
+rejected_entries: 10394
+trade_count: 7549
+initial_equity: 1000.0
+final_equity: 1.0876788756912674
+net_pnl: -998.9123211243087
+return_pct: -99.89123211243087
+max_drawdown_pct: 99.89283513058884
+gross_pnl: -232.86560013141275
+fees: 766.7278187287982
+funding_pnl: 0.6810977359037848
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R_performance_report.md
+CHECKPOINT SAVED: signal_extreme_exact__target_1R (17/66 total complete)
+
+===== BATCH 17/65: signal_extreme_exact__target_1_5R =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_exact__target_1_5R
+stop_model: signal_extreme_exact
+target_model: target_1_5R
+target_value: 1.5
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 6080
+rejected_entries: 11863
+trade_count: 6080
+initial_equity: 1000.0
+final_equity: 9.363114375484088
+net_pnl: -990.6368856245159
+return_pct: -99.06368856245159
+max_drawdown_pct: 99.08561318941936
+gross_pnl: -148.28976498256424
+fees: 843.0183880722287
+funding_pnl: 0.6712674302730841
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R_performance_report.md
+CHECKPOINT SAVED: signal_extreme_exact__target_1_5R (18/66 total complete)
+
+===== BATCH 18/65: signal_extreme_exact__target_2R =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_exact__target_2R
+stop_model: signal_extreme_exact
+target_model: target_2R
+target_value: 2.0
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 5053
+rejected_entries: 12890
+trade_count: 5053
+initial_equity: 1000.0
+final_equity: 31.221560580678556
+net_pnl: -968.7784394193214
+return_pct: -96.87784394193214
+max_drawdown_pct: 97.03002192277637
+gross_pnl: -36.04923052240732
+fees: 933.6641879403396
+funding_pnl: 0.9349790434251922
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R_performance_report.md
+CHECKPOINT SAVED: signal_extreme_exact__target_2R (19/66 total complete)
+
+===== BATCH 19/65: signal_extreme_atr_buffer_0_10__target_1R =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__target_1R
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: target_1R
+target_value: 1.0
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 6856
+rejected_entries: 11087
+trade_count: 6856
+initial_equity: 1000.0
+final_equity: 3.3540199664992087
+net_pnl: -996.6459800335008
+return_pct: -99.66459800335008
+max_drawdown_pct: 99.6694339904877
+gross_pnl: -234.28389853667088
+fees: 763.1732705017743
+funding_pnl: 0.8111890049466358
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__target_1R (20/66 total complete)
+
+===== BATCH 20/65: signal_extreme_atr_buffer_0_10__target_1_5R =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__target_1_5R
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: target_1_5R
+target_value: 1.5
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 5406
+rejected_entries: 12537
+trade_count: 5406
+initial_equity: 1000.0
+final_equity: 17.66167582072478
+net_pnl: -982.3383241792752
+return_pct: -98.23383241792753
+max_drawdown_pct: 98.27417702388055
+gross_pnl: -159.8342604673807
+fees: 823.1825685957508
+funding_pnl: 0.678504883858482
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__target_1_5R (21/66 total complete)
+
+===== BATCH 21/65: signal_extreme_atr_buffer_0_10__target_2R =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__target_2R
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: target_2R
+target_value: 2.0
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 4458
+rejected_entries: 13485
+trade_count: 4458
+initial_equity: 1000.0
+final_equity: 44.80811534235761
+net_pnl: -955.1918846576424
+return_pct: -95.51918846576424
+max_drawdown_pct: 95.86252989517895
+gross_pnl: -196.3263336435058
+fees: 759.6519538061231
+funding_pnl: 0.7864027919872585
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__target_2R (22/66 total complete)
+
+===== BATCH 22/65: fixed_stop_0_50pct__fixed_target_0_75pct__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_50pct__fixed_target_0_75pct__trailing_sl
+stop_model: fixed_stop_0_50pct
+target_model: fixed_target_0_75pct
+target_value: 0.0075
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 6644
+rejected_entries: 11299
+trade_count: 6644
+initial_equity: 1000.0
+final_equity: 13.399862766254046
+net_pnl: -986.600137233746
+return_pct: -98.66001372337459
+max_drawdown_pct: 98.66655998881167
+gross_pnl: -100.93574489939145
+fees: 886.4498917986342
+funding_pnl: 0.7854994642802359
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct__trailing_sl_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_50pct__fixed_target_0_75pct__trailing_sl (23/66 total complete)
+
+===== BATCH 23/65: fixed_stop_0_50pct__fixed_target_1_00pct__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_50pct__fixed_target_1_00pct__trailing_sl
+stop_model: fixed_stop_0_50pct
+target_model: fixed_target_1_00pct
+target_value: 0.01
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 6360
+rejected_entries: 11583
+trade_count: 6360
+initial_equity: 1000.0
+final_equity: 15.751705656062313
+net_pnl: -984.2482943439377
+return_pct: -98.42482943439377
+max_drawdown_pct: 98.43616924161273
+gross_pnl: -112.21083395429095
+fees: 872.8624360416335
+funding_pnl: 0.8249756519935917
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_00pct__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_00pct__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_00pct__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_00pct__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_00pct__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_00pct__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_00pct__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_00pct__trailing_sl_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_50pct__fixed_target_1_00pct__trailing_sl (24/66 total complete)
+
+===== BATCH 24/65: fixed_stop_0_50pct__fixed_target_1_50pct__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_50pct__fixed_target_1_50pct__trailing_sl
+stop_model: fixed_stop_0_50pct
+target_model: fixed_target_1_50pct
+target_value: 0.015
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 6098
+rejected_entries: 11845
+trade_count: 6098
+initial_equity: 1000.0
+final_equity: 17.427586633714213
+net_pnl: -982.5724133662858
+return_pct: -98.25724133662858
+max_drawdown_pct: 98.27927535948753
+gross_pnl: -102.2770528003349
+fees: 881.3252016162452
+funding_pnl: 1.0298410502895468
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct__trailing_sl_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_50pct__fixed_target_1_50pct__trailing_sl (25/66 total complete)
+
+===== BATCH 25/65: fixed_stop_0_50pct__fixed_target_2_00pct__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_50pct__fixed_target_2_00pct__trailing_sl
+stop_model: fixed_stop_0_50pct
+target_model: fixed_target_2_00pct
+target_value: 0.02
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 6016
+rejected_entries: 11927
+trade_count: 6016
+initial_equity: 1000.0
+final_equity: 18.905175743167433
+net_pnl: -981.0948242568326
+return_pct: -98.10948242568325
+max_drawdown_pct: 98.14633839945782
+gross_pnl: -114.76816078127236
+fees: 867.3419358672526
+funding_pnl: 1.0152723916876032
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct__trailing_sl_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_50pct__fixed_target_2_00pct__trailing_sl (26/66 total complete)
+
+===== BATCH 26/65: fixed_stop_0_75pct__fixed_target_0_75pct__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_75pct__fixed_target_0_75pct__trailing_sl
+stop_model: fixed_stop_0_75pct
+target_model: fixed_target_0_75pct
+target_value: 0.0075
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 4677
+rejected_entries: 13266
+trade_count: 4677
+initial_equity: 1000.0
+final_equity: 89.64158976365059
+net_pnl: -910.3584102363494
+return_pct: -91.03584102363494
+max_drawdown_pct: 91.20445684458205
+gross_pnl: -37.26135426373208
+fees: 874.4171722866466
+funding_pnl: 1.320116314033035
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct__trailing_sl_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_75pct__fixed_target_0_75pct__trailing_sl (27/66 total complete)
+
+===== BATCH 27/65: fixed_stop_0_75pct__fixed_target_1_00pct__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_75pct__fixed_target_1_00pct__trailing_sl
+stop_model: fixed_stop_0_75pct
+target_model: fixed_target_1_00pct
+target_value: 0.01
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 4299
+rejected_entries: 13644
+trade_count: 4299
+initial_equity: 1000.0
+final_equity: 119.1007860214603
+net_pnl: -880.8992139785397
+return_pct: -88.08992139785397
+max_drawdown_pct: 88.67651300209991
+gross_pnl: 8.596580132337373
+fees: 890.6763939110342
+funding_pnl: 1.1805998001602944
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct__trailing_sl_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_75pct__fixed_target_1_00pct__trailing_sl (28/66 total complete)
+
+===== BATCH 28/65: fixed_stop_0_75pct__fixed_target_1_50pct__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_75pct__fixed_target_1_50pct__trailing_sl
+stop_model: fixed_stop_0_75pct
+target_model: fixed_target_1_50pct
+target_value: 0.015
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3968
+rejected_entries: 13975
+trade_count: 3968
+initial_equity: 1000.0
+final_equity: 140.25384132793965
+net_pnl: -859.7461586720603
+return_pct: -85.97461586720603
+max_drawdown_pct: 87.1511108021425
+gross_pnl: 43.461250820126914
+fees: 904.513413645004
+funding_pnl: 1.3060041528124404
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct__trailing_sl_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_75pct__fixed_target_1_50pct__trailing_sl (29/66 total complete)
+
+===== BATCH 29/65: fixed_stop_0_75pct__fixed_target_2_00pct__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_75pct__fixed_target_2_00pct__trailing_sl
+stop_model: fixed_stop_0_75pct
+target_model: fixed_target_2_00pct
+target_value: 0.02
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3810
+rejected_entries: 14133
+trade_count: 3810
+initial_equity: 1000.0
+final_equity: 146.7023039481753
+net_pnl: -853.2976960518247
+return_pct: -85.32976960518248
+max_drawdown_pct: 86.52029415303811
+gross_pnl: 37.81100638631459
+fees: 892.4522122673256
+funding_pnl: 1.3435098291841112
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct__trailing_sl_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_75pct__fixed_target_2_00pct__trailing_sl (30/66 total complete)
+
+===== BATCH 30/65: fixed_stop_1_00pct__fixed_target_0_75pct__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_1_00pct__fixed_target_0_75pct__trailing_sl
+stop_model: fixed_stop_1_00pct
+target_model: fixed_target_0_75pct
+target_value: 0.0075
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 4300
+rejected_entries: 13643
+trade_count: 4300
+initial_equity: 1000.0
+final_equity: 181.4970331889491
+net_pnl: -818.5029668110509
+return_pct: -81.85029668110508
+max_drawdown_pct: 83.42114613363522
+gross_pnl: -43.38280598840201
+fees: 776.149180128156
+funding_pnl: 1.0290193055040526
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct__trailing_sl_performance_report.md
+CHECKPOINT SAVED: fixed_stop_1_00pct__fixed_target_0_75pct__trailing_sl (31/66 total complete)
+
+===== BATCH 31/65: fixed_stop_1_00pct__fixed_target_1_00pct__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_1_00pct__fixed_target_1_00pct__trailing_sl
+stop_model: fixed_stop_1_00pct
+target_model: fixed_target_1_00pct
+target_value: 0.01
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3517
+rejected_entries: 14426
+trade_count: 3517
+initial_equity: 1000.0
+final_equity: 270.5142947743848
+net_pnl: -729.4857052256152
+return_pct: -72.94857052256151
+max_drawdown_pct: 76.21586989816952
+gross_pnl: -24.613291020855808
+fees: 706.1257606802246
+funding_pnl: 1.2533464754659838
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct__trailing_sl_performance_report.md
+CHECKPOINT SAVED: fixed_stop_1_00pct__fixed_target_1_00pct__trailing_sl (32/66 total complete)
+
+===== BATCH 32/65: fixed_stop_1_00pct__fixed_target_1_50pct__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_1_00pct__fixed_target_1_50pct__trailing_sl
+stop_model: fixed_stop_1_00pct
+target_model: fixed_target_1_50pct
+target_value: 0.015
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3120
+rejected_entries: 14823
+trade_count: 3120
+initial_equity: 1000.0
+final_equity: 338.1536562559676
+net_pnl: -661.8463437440324
+return_pct: -66.18463437440325
+max_drawdown_pct: 71.75197867959963
+gross_pnl: 52.22432306695795
+fees: 715.4154111950382
+funding_pnl: 1.3447443840478708
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct__trailing_sl_performance_report.md
+CHECKPOINT SAVED: fixed_stop_1_00pct__fixed_target_1_50pct__trailing_sl (33/66 total complete)
+
+===== BATCH 33/65: fixed_stop_1_00pct__fixed_target_2_00pct__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_1_00pct__fixed_target_2_00pct__trailing_sl
+stop_model: fixed_stop_1_00pct
+target_model: fixed_target_2_00pct
+target_value: 0.02
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 2906
+rejected_entries: 15037
+trade_count: 2906
+initial_equity: 1000.0
+final_equity: 398.88014248016793
+net_pnl: -601.1198575198321
+return_pct: -60.1119857519832
+max_drawdown_pct: 66.56629762447828
+gross_pnl: 106.94586884367138
+fees: 709.0977485524124
+funding_pnl: 1.0320221889088814
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct__trailing_sl_performance_report.md
+CHECKPOINT SAVED: fixed_stop_1_00pct__fixed_target_2_00pct__trailing_sl (34/66 total complete)
+
+===== BATCH 34/65: signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_sl
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: fixed_target_0_75pct
+target_value: 0.0075
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 7082
+rejected_entries: 10861
+trade_count: 7082
+initial_equity: 1000.0
+final_equity: 4.059205931056681
+net_pnl: -995.9407940689433
+return_pct: -99.59407940689434
+max_drawdown_pct: 99.59874449068182
+gross_pnl: -184.06021861022822
+fees: 812.5955968385284
+funding_pnl: 0.7150213798146047
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_sl_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_sl (35/66 total complete)
+
+===== BATCH 35/65: signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_sl
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: fixed_target_1_00pct
+target_value: 0.01
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 6667
+rejected_entries: 11276
+trade_count: 6667
+initial_equity: 1000.0
+final_equity: 5.865927687099884
+net_pnl: -994.1340723129001
+return_pct: -99.41340723129001
+max_drawdown_pct: 99.42202246929473
+gross_pnl: -181.03600520063688
+fees: 813.9064728390917
+funding_pnl: 0.8084057268344611
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_sl_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_sl (36/66 total complete)
+
+===== BATCH 36/65: signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_sl
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: fixed_target_1_50pct
+target_value: 0.015
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 6324
+rejected_entries: 11619
+trade_count: 6324
+initial_equity: 1000.0
+final_equity: 8.412746278672785
+net_pnl: -991.5872537213272
+return_pct: -99.15872537213272
+max_drawdown_pct: 99.1740519878499
+gross_pnl: -112.15743475763645
+fees: 880.1650293983759
+funding_pnl: 0.7352104346891368
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_sl_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_sl (37/66 total complete)
+
+===== BATCH 37/65: signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_sl
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: fixed_target_2_00pct
+target_value: 0.02
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 6265
+rejected_entries: 11678
+trade_count: 6265
+initial_equity: 1000.0
+final_equity: 8.405680783594107
+net_pnl: -991.5943192164059
+return_pct: -99.15943192164059
+max_drawdown_pct: 99.17016443398224
+gross_pnl: -97.78815625473736
+fees: 894.4474237065654
+funding_pnl: 0.641260744897991
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_sl_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_sl (38/66 total complete)
+
+===== BATCH 38/65: signal_extreme_exact__target_1R__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_exact__target_1R__trailing_sl
+stop_model: signal_extreme_exact
+target_model: target_1R
+target_value: 1.0
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 7549
+rejected_entries: 10394
+trade_count: 7549
+initial_equity: 1000.0
+final_equity: 1.0876788756912674
+net_pnl: -998.9123211243087
+return_pct: -99.89123211243087
+max_drawdown_pct: 99.89283513058884
+gross_pnl: -232.86560013141275
+fees: 766.7278187287982
+funding_pnl: 0.6810977359037848
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R__trailing_sl_performance_report.md
+CHECKPOINT SAVED: signal_extreme_exact__target_1R__trailing_sl (39/66 total complete)
+
+===== BATCH 39/65: signal_extreme_exact__target_1_5R__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_exact__target_1_5R__trailing_sl
+stop_model: signal_extreme_exact
+target_model: target_1_5R
+target_value: 1.5
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 7047
+rejected_entries: 10896
+trade_count: 7047
+initial_equity: 1000.0
+final_equity: 2.575632177202692
+net_pnl: -997.4243678227973
+return_pct: -99.74243678227973
+max_drawdown_pct: 99.7472141693711
+gross_pnl: -173.24425332847258
+fees: 825.0160150632604
+funding_pnl: 0.8359005689343748
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R__trailing_sl_performance_report.md
+CHECKPOINT SAVED: signal_extreme_exact__target_1_5R__trailing_sl (40/66 total complete)
+
+===== BATCH 40/65: signal_extreme_exact__target_2R__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_exact__target_2R__trailing_sl
+stop_model: signal_extreme_exact
+target_model: target_2R
+target_value: 2.0
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 6872
+rejected_entries: 11071
+trade_count: 6872
+initial_equity: 1000.0
+final_equity: 3.094682983474172
+net_pnl: -996.9053170165258
+return_pct: -99.69053170165259
+max_drawdown_pct: 99.69687359998875
+gross_pnl: -111.09513223740582
+fees: 886.5197257116884
+funding_pnl: 0.7095409325687307
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R__trailing_sl_performance_report.md
+CHECKPOINT SAVED: signal_extreme_exact__target_2R__trailing_sl (41/66 total complete)
+
+===== BATCH 41/65: signal_extreme_atr_buffer_0_10__target_1R__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__target_1R__trailing_sl
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: target_1R
+target_value: 1.0
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 6856
+rejected_entries: 11087
+trade_count: 6856
+initial_equity: 1000.0
+final_equity: 3.3540199664992087
+net_pnl: -996.6459800335008
+return_pct: -99.66459800335008
+max_drawdown_pct: 99.6694339904877
+gross_pnl: -234.28389853667088
+fees: 763.1732705017743
+funding_pnl: 0.8111890049466358
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R__trailing_sl_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__target_1R__trailing_sl (42/66 total complete)
+
+===== BATCH 42/65: signal_extreme_atr_buffer_0_10__target_1_5R__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__target_1_5R__trailing_sl
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: target_1_5R
+target_value: 1.5
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 6417
+rejected_entries: 11526
+trade_count: 6417
+initial_equity: 1000.0
+final_equity: 6.907341736800731
+net_pnl: -993.0926582631993
+return_pct: -99.30926582631993
+max_drawdown_pct: 99.3210220062688
+gross_pnl: -141.0516585396797
+fees: 852.889136909591
+funding_pnl: 0.8481371860742869
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R__trailing_sl_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__target_1_5R__trailing_sl (43/66 total complete)
+
+===== BATCH 43/65: signal_extreme_atr_buffer_0_10__target_2R__trailing_sl =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__target_2R__trailing_sl
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: target_2R
+target_value: 2.0
+trailing_mode: trailing_stop_loss
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 6206
+rejected_entries: 11737
+trade_count: 6206
+initial_equity: 1000.0
+final_equity: 7.889284539481764
+net_pnl: -992.1107154605182
+return_pct: -99.21107154605183
+max_drawdown_pct: 99.22175300185239
+gross_pnl: -135.0439425911427
+fees: 857.8867714668521
+funding_pnl: 0.8199985974753993
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R__trailing_sl_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R__trailing_sl_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R__trailing_sl_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R__trailing_sl_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R__trailing_sl_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R__trailing_sl_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R__trailing_sl_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R__trailing_sl_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__target_2R__trailing_sl (44/66 total complete)
+
+===== BATCH 44/65: fixed_stop_0_50pct__fixed_target_0_75pct__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_50pct__fixed_target_0_75pct__trailing_tp
+stop_model: fixed_stop_0_50pct
+target_model: fixed_target_0_75pct
+target_value: 0.0075
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 5731
+rejected_entries: 12212
+trade_count: 5731
+initial_equity: 1000.0
+final_equity: 25.201898866369675
+net_pnl: -974.7981011336303
+return_pct: -97.47981011336303
+max_drawdown_pct: 97.55950627513414
+gross_pnl: -21.228103316760535
+fees: 954.837833218644
+funding_pnl: 1.2678354017715987
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_0_75pct__trailing_tp_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_50pct__fixed_target_0_75pct__trailing_tp (45/66 total complete)
+
+===== BATCH 45/65: fixed_stop_0_50pct__fixed_target_1_00pct__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_50pct__fixed_target_1_00pct__trailing_tp
+stop_model: fixed_stop_0_50pct
+target_model: fixed_target_1_00pct
+target_value: 0.01
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 4897
+rejected_entries: 13046
+trade_count: 4897
+initial_equity: 1000.0
+final_equity: 37.58889185907708
+net_pnl: -962.4111081409229
+return_pct: -96.2411108140923
+max_drawdown_pct: 96.40527827909793
+gross_pnl: -68.28249241646132
+fees: 895.2401759827826
+funding_pnl: 1.1115602583205635
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_00pct__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_00pct__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_00pct__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_00pct__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_00pct__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_00pct__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_00pct__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_00pct__trailing_tp_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_50pct__fixed_target_1_00pct__trailing_tp (46/66 total complete)
+
+===== BATCH 46/65: fixed_stop_0_50pct__fixed_target_1_50pct__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_50pct__fixed_target_1_50pct__trailing_tp
+stop_model: fixed_stop_0_50pct
+target_model: fixed_target_1_50pct
+target_value: 0.015
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3884
+rejected_entries: 14059
+trade_count: 3884
+initial_equity: 1000.0
+final_equity: 116.57443845742387
+net_pnl: -883.4255615425761
+return_pct: -88.34255615425761
+max_drawdown_pct: 89.67468766000617
+gross_pnl: 35.39418435604785
+fees: 920.7541511142391
+funding_pnl: 1.9344052156160567
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_1_50pct__trailing_tp_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_50pct__fixed_target_1_50pct__trailing_tp (47/66 total complete)
+
+===== BATCH 47/65: fixed_stop_0_50pct__fixed_target_2_00pct__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_50pct__fixed_target_2_00pct__trailing_tp
+stop_model: fixed_stop_0_50pct
+target_model: fixed_target_2_00pct
+target_value: 0.02
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3307
+rejected_entries: 14636
+trade_count: 3307
+initial_equity: 1000.0
+final_equity: 184.9681905749162
+net_pnl: -815.0318094250838
+return_pct: -81.50318094250838
+max_drawdown_pct: 83.62766414460528
+gross_pnl: 92.21970512644242
+fees: 909.5033505029405
+funding_pnl: 2.2518359514156403
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_50pct__fixed_target_2_00pct__trailing_tp_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_50pct__fixed_target_2_00pct__trailing_tp (48/66 total complete)
+
+===== BATCH 48/65: fixed_stop_0_75pct__fixed_target_0_75pct__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_75pct__fixed_target_0_75pct__trailing_tp
+stop_model: fixed_stop_0_75pct
+target_model: fixed_target_0_75pct
+target_value: 0.0075
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 4328
+rejected_entries: 13615
+trade_count: 4328
+initial_equity: 1000.0
+final_equity: 104.88901341600467
+net_pnl: -895.1109865839953
+return_pct: -89.51109865839953
+max_drawdown_pct: 89.87055559246103
+gross_pnl: -3.2401562842315577
+fees: 893.1618616666885
+funding_pnl: 1.291031366922207
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_0_75pct__trailing_tp_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_75pct__fixed_target_0_75pct__trailing_tp (49/66 total complete)
+
+===== BATCH 49/65: fixed_stop_0_75pct__fixed_target_1_00pct__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_75pct__fixed_target_1_00pct__trailing_tp
+stop_model: fixed_stop_0_75pct
+target_model: fixed_target_1_00pct
+target_value: 0.01
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3718
+rejected_entries: 14225
+trade_count: 3718
+initial_equity: 1000.0
+final_equity: 143.41334348957753
+net_pnl: -856.5866565104225
+return_pct: -85.65866565104226
+max_drawdown_pct: 87.06542152030646
+gross_pnl: -66.97504677065963
+fees: 791.1188165487689
+funding_pnl: 1.5072068090038004
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_00pct__trailing_tp_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_75pct__fixed_target_1_00pct__trailing_tp (50/66 total complete)
+
+===== BATCH 50/65: fixed_stop_0_75pct__fixed_target_1_50pct__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_75pct__fixed_target_1_50pct__trailing_tp
+stop_model: fixed_stop_0_75pct
+target_model: fixed_target_1_50pct
+target_value: 0.015
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 2932
+rejected_entries: 15011
+trade_count: 2932
+initial_equity: 1000.0
+final_equity: 285.69150466668395
+net_pnl: -714.308495333316
+return_pct: -71.43084953333161
+max_drawdown_pct: 76.03776064649229
+gross_pnl: 44.94242980615695
+fees: 760.9036313233435
+funding_pnl: 1.6527061838691246
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_1_50pct__trailing_tp_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_75pct__fixed_target_1_50pct__trailing_tp (51/66 total complete)
+
+===== BATCH 51/65: fixed_stop_0_75pct__fixed_target_2_00pct__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_75pct__fixed_target_2_00pct__trailing_tp
+stop_model: fixed_stop_0_75pct
+target_model: fixed_target_2_00pct
+target_value: 0.02
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 2479
+rejected_entries: 15464
+trade_count: 2479
+initial_equity: 1000.0
+final_equity: 422.4682137649926
+net_pnl: -577.5317862350074
+return_pct: -57.75317862350073
+max_drawdown_pct: 64.3052931892625
+gross_pnl: 140.77199347870678
+fees: 719.9703453637707
+funding_pnl: 1.6665656500540533
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_0_75pct__fixed_target_2_00pct__trailing_tp_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_75pct__fixed_target_2_00pct__trailing_tp (52/66 total complete)
+
+===== BATCH 52/65: fixed_stop_1_00pct__fixed_target_0_75pct__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_1_00pct__fixed_target_0_75pct__trailing_tp
+stop_model: fixed_stop_1_00pct
+target_model: fixed_target_0_75pct
+target_value: 0.0075
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3802
+rejected_entries: 14141
+trade_count: 3802
+initial_equity: 1000.0
+final_equity: 204.6190607276543
+net_pnl: -795.3809392723457
+return_pct: -79.53809392723457
+max_drawdown_pct: 81.66851612614047
+gross_pnl: -22.982559960397467
+fees: 773.8313494187917
+funding_pnl: 1.4329701068442593
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_0_75pct__trailing_tp_performance_report.md
+CHECKPOINT SAVED: fixed_stop_1_00pct__fixed_target_0_75pct__trailing_tp (53/66 total complete)
+
+===== BATCH 53/65: fixed_stop_1_00pct__fixed_target_1_00pct__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_1_00pct__fixed_target_1_00pct__trailing_tp
+stop_model: fixed_stop_1_00pct
+target_model: fixed_target_1_00pct
+target_value: 0.01
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3232
+rejected_entries: 14711
+trade_count: 3232
+initial_equity: 1000.0
+final_equity: 269.7535370688079
+net_pnl: -730.2464629311921
+return_pct: -73.0246462931192
+max_drawdown_pct: 76.53858406684171
+gross_pnl: -47.59023513736091
+fees: 683.9125890418079
+funding_pnl: 1.2563612479774882
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_00pct__trailing_tp_performance_report.md
+CHECKPOINT SAVED: fixed_stop_1_00pct__fixed_target_1_00pct__trailing_tp (54/66 total complete)
+
+===== BATCH 54/65: fixed_stop_1_00pct__fixed_target_1_50pct__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_1_00pct__fixed_target_1_50pct__trailing_tp
+stop_model: fixed_stop_1_00pct
+target_model: fixed_target_1_50pct
+target_value: 0.015
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 2529
+rejected_entries: 15414
+trade_count: 2529
+initial_equity: 1000.0
+final_equity: 465.14312633109387
+net_pnl: -534.8568736689061
+return_pct: -53.48568736689061
+max_drawdown_pct: 60.23015749108453
+gross_pnl: 91.04611951731917
+fees: 627.3208522409005
+funding_pnl: 1.4178590546773326
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_1_50pct__trailing_tp_performance_report.md
+CHECKPOINT SAVED: fixed_stop_1_00pct__fixed_target_1_50pct__trailing_tp (55/66 total complete)
+
+===== BATCH 55/65: fixed_stop_1_00pct__fixed_target_2_00pct__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_1_00pct__fixed_target_2_00pct__trailing_tp
+stop_model: fixed_stop_1_00pct
+target_model: fixed_target_2_00pct
+target_value: 0.02
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 2124
+rejected_entries: 15819
+trade_count: 2124
+initial_equity: 1000.0
+final_equity: 656.6460896734343
+net_pnl: -343.3539103265657
+return_pct: -34.335391032656574
+max_drawdown_pct: 47.72225392845948
+gross_pnl: 256.348117603046
+fees: 601.413451459182
+funding_pnl: 1.7114235295702815
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/fixed_stop_1_00pct__fixed_target_2_00pct__trailing_tp_performance_report.md
+CHECKPOINT SAVED: fixed_stop_1_00pct__fixed_target_2_00pct__trailing_tp (56/66 total complete)
+
+===== BATCH 56/65: signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_tp
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: fixed_target_0_75pct
+target_value: 0.0075
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 5675
+rejected_entries: 12268
+trade_count: 5675
+initial_equity: 1000.0
+final_equity: 14.384839321308277
+net_pnl: -985.6151606786917
+return_pct: -98.56151606786916
+max_drawdown_pct: 98.59257102194951
+gross_pnl: -155.7128020944679
+fees: 830.777676042561
+funding_pnl: 0.8753174583400317
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_tp_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__fixed_target_0_75pct__trailing_tp (57/66 total complete)
+
+===== BATCH 57/65: signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_tp
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: fixed_target_1_00pct
+target_value: 0.01
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 4864
+rejected_entries: 13079
+trade_count: 4864
+initial_equity: 1000.0
+final_equity: 29.745326687144825
+net_pnl: -970.2546733128552
+return_pct: -97.02546733128553
+max_drawdown_pct: 97.08882015958164
+gross_pnl: -150.467289232682
+fees: 820.6074157354606
+funding_pnl: 0.8200316552913685
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_tp_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__fixed_target_1_00pct__trailing_tp (58/66 total complete)
+
+===== BATCH 58/65: signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_tp
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: fixed_target_1_50pct
+target_value: 0.015
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3789
+rejected_entries: 14154
+trade_count: 3789
+initial_equity: 1000.0
+final_equity: 103.49459152599877
+net_pnl: -896.5054084740012
+return_pct: -89.65054084740012
+max_drawdown_pct: 90.27927857115498
+gross_pnl: -95.35741621775816
+fees: 802.4544817008585
+funding_pnl: 1.3064894446205073
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_tp_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__fixed_target_1_50pct__trailing_tp (59/66 total complete)
+
+===== BATCH 59/65: signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_tp
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: fixed_target_2_00pct
+target_value: 0.02
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 3147
+rejected_entries: 14796
+trade_count: 3147
+initial_equity: 1000.0
+final_equity: 214.47364439047965
+net_pnl: -785.5263556095204
+return_pct: -78.55263556095203
+max_drawdown_pct: 80.62490047077303
+gross_pnl: 16.7612179285415
+fees: 804.264766784167
+funding_pnl: 1.9771932461005428
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_tp_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__fixed_target_2_00pct__trailing_tp (60/66 total complete)
+
+===== BATCH 60/65: signal_extreme_exact__target_1R__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_exact__target_1R__trailing_tp
+stop_model: signal_extreme_exact
+target_model: target_1R
+target_value: 1.0
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 7424
+rejected_entries: 10519
+trade_count: 7424
+initial_equity: 1000.0
+final_equity: 1.2195780845964919
+net_pnl: -998.7804219154035
+return_pct: -99.87804219154035
+max_drawdown_pct: 99.87971365770902
+gross_pnl: -228.31806664152515
+fees: 771.132787893712
+funding_pnl: 0.6704326198346441
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1R__trailing_tp_performance_report.md
+CHECKPOINT SAVED: signal_extreme_exact__target_1R__trailing_tp (61/66 total complete)
+
+===== BATCH 61/65: signal_extreme_exact__target_1_5R__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_exact__target_1_5R__trailing_tp
+stop_model: signal_extreme_exact
+target_model: target_1_5R
+target_value: 1.5
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 6125
+rejected_entries: 11818
+trade_count: 6125
+initial_equity: 1000.0
+final_equity: 8.0282793589015
+net_pnl: -991.9717206410985
+return_pct: -99.19717206410985
+max_drawdown_pct: 99.21728831713267
+gross_pnl: -170.17896577275684
+fees: 822.4208813401812
+funding_pnl: 0.6281264718419013
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_1_5R__trailing_tp_performance_report.md
+CHECKPOINT SAVED: signal_extreme_exact__target_1_5R__trailing_tp (62/66 total complete)
+
+===== BATCH 62/65: signal_extreme_exact__target_2R__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_exact__target_2R__trailing_tp
+stop_model: signal_extreme_exact
+target_model: target_2R
+target_value: 2.0
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 5127
+rejected_entries: 12816
+trade_count: 5127
+initial_equity: 1000.0
+final_equity: 24.81556176206152
+net_pnl: -975.1844382379385
+return_pct: -97.51844382379385
+max_drawdown_pct: 97.62598933266736
+gross_pnl: -101.2601857591278
+fees: 874.6684596798192
+funding_pnl: 0.7442072010127987
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_exact__target_2R__trailing_tp_performance_report.md
+CHECKPOINT SAVED: signal_extreme_exact__target_2R__trailing_tp (63/66 total complete)
+
+===== BATCH 63/65: signal_extreme_atr_buffer_0_10__target_1R__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__target_1R__trailing_tp
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: target_1R
+target_value: 1.0
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 6786
+rejected_entries: 11157
+trade_count: 6786
+initial_equity: 1000.0
+final_equity: 3.3363125754657403
+net_pnl: -996.6636874245343
+return_pct: -99.66636874245343
+max_drawdown_pct: 99.67042555806552
+gross_pnl: -206.33802451037445
+fees: 791.1995970677604
+funding_pnl: 0.8739341535979691
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1R__trailing_tp_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__target_1R__trailing_tp (64/66 total complete)
+
+===== BATCH 64/65: signal_extreme_atr_buffer_0_10__target_1_5R__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__target_1_5R__trailing_tp
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: target_1_5R
+target_value: 1.5
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 5457
+rejected_entries: 12486
+trade_count: 5457
+initial_equity: 1000.0
+final_equity: 16.129694949711393
+net_pnl: -983.8703050502886
+return_pct: -98.38703050502886
+max_drawdown_pct: 98.43092872208719
+gross_pnl: -198.10664539359794
+fees: 786.4085216260705
+funding_pnl: 0.6448619693830184
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_1_5R__trailing_tp_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__target_1_5R__trailing_tp (65/66 total complete)
+
+===== BATCH 65/65: signal_extreme_atr_buffer_0_10__target_2R__trailing_tp =====
+
+EXPERIMENT COMPLETE
+experiment_id: signal_extreme_atr_buffer_0_10__target_2R__trailing_tp
+stop_model: signal_extreme_atr_buffer_0_10
+target_model: target_2R
+target_value: 2.0
+trailing_mode: trailing_take_profit
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 4529
+rejected_entries: 13414
+trade_count: 4529
+initial_equity: 1000.0
+final_equity: 40.26016205005817
+net_pnl: -959.7398379499418
+return_pct: -95.97398379499418
+max_drawdown_pct: 96.1561494891337
+gross_pnl: -175.2214316223674
+fees: 785.1523226674116
+funding_pnl: 0.6339163398375781
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R__trailing_tp_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R__trailing_tp_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R__trailing_tp_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R__trailing_tp_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R__trailing_tp_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R__trailing_tp_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R__trailing_tp_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments/signal_extreme_atr_buffer_0_10__target_2R__trailing_tp_performance_report.md
+CHECKPOINT SAVED: signal_extreme_atr_buffer_0_10__target_2R__trailing_tp (66/66 total complete)
+
+===== 66-EXPERIMENT BATCH COMPLETE =====
+Completed summaries: 66
+Comparison: /data/data/com.termux/files/home/okxtester/reports/exit_experiments/exit_experiment_batch_comparison.csv
+Manifest: /data/data/com.termux/files/home/okxtester/reports/exit_experiments/exit_experiment_batch_manifest.csv

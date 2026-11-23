@@ -1,0 +1,24 @@
+{
+  "method": "synchronous moving UTC calendar-day block bootstrap",
+  "input": "reports/sideways_rejection_forward_outcomes_v1/event_level_outcomes.csv",
+  "calendar_first_day": "2025-10-26 00:00:00+00:00",
+  "calendar_last_day": "2026-11-18 00:00:00+00:00",
+  "calendar_days_including_empty": 389,
+  "days_with_events": 232,
+  "empty_calendar_days": 157,
+  "cohort_counts": {
+    "broad": 1154,
+    "strict": 838
+  },
+  "block_lengths_days": [
+    3,
+    7,
+    14
+  ],
+  "replicates": 10000,
+  "seed": 20261123,
+  "primary_estimand": "broad / ALL assets / 24h / mean(upper)-mean(lower)",
+  "units": "decimal return; multiply by 100 for percentage points",
+  "strict_is_nested_sensitivity_not_independent_replication": true,
+  "interpretation": "descriptive uncertainty only; not a trading-edge or profitability test"
+}

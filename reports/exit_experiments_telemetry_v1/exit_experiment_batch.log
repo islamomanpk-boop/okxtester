@@ -1,0 +1,87 @@
+Experiment matrix: 66
+Already complete and verified: 0
+Remaining to run: 66
+Output directory: /data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1
+
+Loading shared market, funding, and signal inputs once...
+Shared inputs loaded. Running 66 experiments sequentially.
+
+===== BATCH 1/66: fixed_stop_0_50pct__fixed_target_0_75pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_50pct__fixed_target_0_75pct
+stop_model: fixed_stop_0_50pct
+target_model: fixed_target_0_75pct
+target_value: 0.0075
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 5976
+rejected_entries: 11967
+trade_count: 5976
+initial_equity: 1000.0
+final_equity: 24.241370486428536
+net_pnl: -975.7586295135715
+return_pct: -97.57586295135715
+max_drawdown_pct: 97.62674367591835
+gross_pnl: -20.9999664296601
+fees: 955.9003360617273
+funding_pnl: 1.1416729778115373
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1/fixed_stop_0_50pct__fixed_target_0_75pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1/fixed_stop_0_50pct__fixed_target_0_75pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1/fixed_stop_0_50pct__fixed_target_0_75pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1/fixed_stop_0_50pct__fixed_target_0_75pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1/fixed_stop_0_50pct__fixed_target_0_75pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1/fixed_stop_0_50pct__fixed_target_0_75pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1/fixed_stop_0_50pct__fixed_target_0_75pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1/fixed_stop_0_50pct__fixed_target_0_75pct_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_50pct__fixed_target_0_75pct (1/66 total complete)
+
+===== BATCH 2/66: fixed_stop_0_50pct__fixed_target_1_00pct =====
+
+EXPERIMENT COMPLETE
+experiment_id: fixed_stop_0_50pct__fixed_target_1_00pct
+stop_model: fixed_stop_0_50pct
+target_model: fixed_target_1_00pct
+target_value: 0.01
+trailing_mode: none
+assets: BTC,ETH,SOL,DOGE,AVAX
+start_utc: 2025-10-20T08:50:00+00:00
+end_utc: 2026-11-19T14:14:00+00:00
+execution_minutes: 569125
+candidate_count: 17943
+accepted_entries: 5026
+rejected_entries: 12917
+trade_count: 5026
+initial_equity: 1000.0
+final_equity: 40.85013101917434
+net_pnl: -959.1498689808257
+return_pct: -95.91498689808256
+max_drawdown_pct: 96.04826363345651
+gross_pnl: -74.1272002613242
+fees: 886.3914824438267
+funding_pnl: 1.3688137243257597
+taker_fee_rate_per_side: 0.0005
+slippage_bps_per_side: 2.0
+
+Reports saved in: /data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1
+Detailed performance files:
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1/fixed_stop_0_50pct__fixed_target_1_00pct_overall_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1/fixed_stop_0_50pct__fixed_target_1_00pct_per_asset_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1/fixed_stop_0_50pct__fixed_target_1_00pct_per_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1/fixed_stop_0_50pct__fixed_target_1_00pct_per_asset_direction_metrics.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1/fixed_stop_0_50pct__fixed_target_1_00pct_daily_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1/fixed_stop_0_50pct__fixed_target_1_00pct_monthly_returns.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1/fixed_stop_0_50pct__fixed_target_1_00pct_exit_reason_breakdown.csv
+/data/data/com.termux/files/home/okxtester/reports/exit_experiments_telemetry_v1/fixed_stop_0_50pct__fixed_target_1_00pct_performance_report.md
+CHECKPOINT SAVED: fixed_stop_0_50pct__fixed_target_1_00pct (2/66 total complete)
+
+===== BATCH 3/66: fixed_stop_0_50pct__fixed_target_1_50pct =====
