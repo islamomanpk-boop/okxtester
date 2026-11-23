@@ -7,6 +7,7 @@ import pandas as pd
 from research.sideways_boundary_events_historical_v1 import (
     FIFTEEN_MIN_MS,
     process_snapshot,
+    summarize,
 )
 
 
@@ -75,6 +76,26 @@ class TestHistoricalBoundaryEventsV1(unittest.TestCase):
         self.assertEqual(upper[0]["closure_reason"], "15m_gap")
         self.assertEqual(audit["15m_gaps_within_snapshot"], 1)
         self.assertEqual(audit["continuity_segments"], 2)
+
+    def test_snapshot_distribution_includes_zero_test_snapshots(self):
+        inventory = pd.DataFrame([
+            {"asset": "TST", "definition": "strict", "direction": "upper",
+             "snapshot_available_at_ts_ms": 0},
+            {"asset": "TST", "definition": "strict", "direction": "upper",
+             "snapshot_available_at_ts_ms": 4 * FIFTEEN_MIN_MS},
+        ])
+        tests = pd.DataFrame([{
+            "asset": "TST", "definition": "strict", "direction": "upper",
+            "snapshot_available_at_ts_ms": 0, "test_rank": 1,
+            "first_strong_rejection_ts_ms": 0,
+        }])
+        _, distribution = summarize(tests, inventory)
+        counts = dict(zip(
+            distribution["snapshots_with_test_count"],
+            distribution["snapshot_count"],
+        ))
+        self.assertEqual(counts["1"], 1)
+        self.assertEqual(counts["0"], 1)
 
     def test_lower_rejection_is_recorded_once(self):
         data = bars([
