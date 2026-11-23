@@ -58,7 +58,7 @@ class TestBlockBootstrapV1(unittest.TestCase):
         upper_sum = np.array([0.04, 0.02])
         upper_n = np.array([2.0, 1.0])
         lower_sum = np.array([0.00, -0.02])
-        lower_n = np.array([1.0, 0.0])
+        lower_n = np.array([0.0, 1.0])
         result = contrast_from_sufficient_stats(
             weights, upper_sum, upper_n, lower_sum, lower_n
         )
