@@ -58,10 +58,16 @@ class TestHistoricalSidewaysDetectorV1(unittest.TestCase):
         ))
 
     def test_mean_overlap_skips_missing_pairs(self):
-        highs = np.array([10.0, 10.0] * 6)
-        lows = np.array([0.0, 10.0] * 6)
-        # Alternating full range and zero-width candles: all pairs missing
-        # because each pair includes one zero-width candle.
+        highs = np.full(12, 10.0)
+        lows = np.zeros(12)
+        highs[0] = 1.0
+        lows[0] = 1.0
+        # The first adjacent pair is missing; the remaining ten are identical.
+        self.assertEqual(mean_adjacent_overlap(highs, lows), 1.0)
+
+    def test_mean_overlap_is_missing_when_all_pairs_are_missing(self):
+        highs = np.ones(12)
+        lows = np.ones(12)
         self.assertTrue(np.isnan(mean_adjacent_overlap(highs, lows)))
 
     def test_mean_overlap_all_equal_positive_ranges_is_one(self):
