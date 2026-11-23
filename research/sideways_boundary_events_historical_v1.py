@@ -212,39 +212,48 @@ def process_snapshot(
     }
 
 
-def summarize(tests: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+def summarize(
+    tests: pd.DataFrame, snapshot_inventory: pd.DataFrame
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     summary_rows = []
-    snapshot_rows = []
-    if tests.empty:
-        return pd.DataFrame(), pd.DataFrame()
     work = tests.copy()
-    work["has_rejection"] = work["first_strong_rejection_ts_ms"].notna()
-    work["rank_bucket"] = work["test_rank"].map(
-        lambda x: str(int(x)) if int(x) <= 3 else "4+"
-    )
-    groups = ["asset", "definition", "direction", "rank_bucket"]
-    for keys, group in work.groupby(groups, dropna=False):
-        n = len(group)
-        rejected = int(group["has_rejection"].sum())
-        summary_rows.append({
-            "asset": keys[0], "definition": keys[1], "direction": keys[2],
-            "test_rank": keys[3], "tests": n, "tests_with_rejection": rejected,
-            "rejection_incidence": rejected / n if n else np.nan,
-        })
-    snap_groups = ["asset", "definition", "direction", "snapshot_available_at_ts_ms"]
-    per_snapshot = work.groupby(snap_groups).size().rename("tests").reset_index()
-    for keys, group in per_snapshot.groupby(["asset", "definition", "direction"]):
-        for bucket, mask in [
-            ("1", group["tests"] == 1), ("2", group["tests"] == 2),
-            ("3", group["tests"] == 3), ("4+", group["tests"] >= 4),
-            ("0", group["tests"] == 0),
-        ]:
-            snapshot_rows.append({
+    if not work.empty:
+        work["has_rejection"] = work["first_strong_rejection_ts_ms"].notna()
+        work["rank_bucket"] = work["test_rank"].map(
+            lambda x: str(int(x)) if int(x) <= 3 else "4+"
+        )
+        groups = ["asset", "definition", "direction", "rank_bucket"]
+        for keys, group in work.groupby(groups, dropna=False):
+            n = len(group)
+            rejected = int(group["has_rejection"].sum())
+            summary_rows.append({
                 "asset": keys[0], "definition": keys[1], "direction": keys[2],
-                "snapshots_with_test_count": bucket, "snapshot_count": int(mask.sum()),
+                "test_rank": keys[3], "tests": n, "tests_with_rejection": rejected,
+                "rejection_incidence": rejected / n if n else np.nan,
             })
-    return pd.DataFrame(summary_rows), pd.DataFrame(snapshot_rows)
 
+    # Start from every qualifying snapshot/direction, then add its test count.
+    # This preserves snapshots with zero tests instead of silently omitting them.
+    snap_groups = ["asset", "definition", "direction", "snapshot_available_at_ts_ms"]
+    inventory = snapshot_inventory[snap_groups].drop_duplicates().copy()
+    if work.empty:
+        inventory["tests"] = 0
+    else:
+        per_snapshot = work.groupby(snap_groups).size().rename("tests").reset_index()
+        inventory = inventory.merge(per_snapshot, on=snap_groups, how="left")
+        inventory["tests"] = inventory["tests"].fillna(0).astype(int)
+
+    inventory["test_count_bucket"] = inventory["tests"].map(
+        lambda n: str(int(n)) if int(n) <= 3 else "4+"
+    )
+    snapshot_dist = (
+        inventory.groupby(
+            ["asset", "definition", "direction", "test_count_bucket"],
+            dropna=False,
+        ).size().rename("snapshot_count").reset_index()
+        .rename(columns={"test_count_bucket": "snapshots_with_test_count"})
+    )
+    return pd.DataFrame(summary_rows), snapshot_dist
 
 def run(data_dir: Path, feature_dir: Path, output_dir: Path) -> None:
     if output_dir.exists() and any(output_dir.iterdir()):
@@ -253,6 +262,7 @@ def run(data_dir: Path, feature_dir: Path, output_dir: Path) -> None:
         )
     output_dir.mkdir(parents=True, exist_ok=True)
     all_tests = []
+    snapshot_inventory = []
     audits = []
     for asset in ASSETS:
         bars = load_15m(data_dir / f"{asset}_USDT_15m.csv", asset)
@@ -270,6 +280,14 @@ def run(data_dir: Path, feature_dir: Path, output_dir: Path) -> None:
                 if not context_passes(feature, definition):
                     continue
                 cohort_snapshots += 1
+                available = int(feature["available_at_ts_ms"])
+                for direction in ("upper", "lower"):
+                    snapshot_inventory.append({
+                        "asset": asset,
+                        "definition": definition,
+                        "direction": direction,
+                        "snapshot_available_at_ts_ms": available,
+                    })
                 available = int(feature["available_at_ts_ms"])
                 next_available = (
                     int(features.iloc[i + 1]["available_at_ts_ms"])
@@ -312,7 +330,8 @@ def run(data_dir: Path, feature_dir: Path, output_dir: Path) -> None:
             "test_start_close", "first_strong_rejection_ts_ms", "rejection_open",
             "rejection_high", "rejection_low", "rejection_close", "closure_reason",
         ])
-    summary, snapshot_dist = summarize(tests)
+    inventory_df = pd.DataFrame(snapshot_inventory)
+    summary, snapshot_dist = summarize(tests, inventory_df)
     tests.to_csv(output_dir / "boundary_tests_historical_v1.csv", index=False)
     summary.to_csv(output_dir / "rejection_incidence_by_rank_v1.csv", index=False)
     snapshot_dist.to_csv(output_dir / "snapshot_test_count_distribution_v1.csv", index=False)
