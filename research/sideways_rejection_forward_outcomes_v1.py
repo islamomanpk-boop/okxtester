@@ -324,7 +324,7 @@ def run(event_path: Path, minute_dir: Path, output_dir: Path) -> None:
         missing = int((~outcomes["entry_minute_exists"]).sum())
         raise ValueError(f"{missing} events lack the exact confirmation minute")
     aggregates = build_aggregate(outcomes)
-    output_dir.mkdir(parents=True, exist_ok=False)
+    output_dir.mkdir(parents=True, exist_ok=True)
     outcomes.to_csv(output_dir / "event_level_outcomes.csv", index=False)
     aggregates.to_csv(output_dir / "aggregate_summary.csv", index=False)
     audits.to_csv(output_dir / "data_validation.csv", index=False)
