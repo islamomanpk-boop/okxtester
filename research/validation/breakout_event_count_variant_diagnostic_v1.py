@@ -84,8 +84,13 @@ def main():
         raise ValueError(
             f"Common timestamp count changed: {len(common)}; expected 569125. Stop."
         )
-    if len(common) > 1 and not np.all(np.diff(common.asi8) == 60_000_000_000):
-        raise ValueError("Common 1M index is not exactly continuous. Stop.")
+    common_deltas = common.to_series().diff().dropna()
+    if not common_deltas.eq(pd.Timedelta(minutes=1)).all():
+        bad = common_deltas[~common_deltas.eq(pd.Timedelta(minutes=1))]
+        raise ValueError(
+            "Common 1M index is not exactly continuous. First irregular intervals:\n"
+            + bad.head(10).to_string()
+        )
 
     print("READ-ONLY BREAKOUT REPRODUCTION DIAGNOSTIC")
     print("Common 1M timestamps:", len(common))
