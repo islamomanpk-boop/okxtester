@@ -122,7 +122,10 @@ def load_market_data() -> tuple[dict[str, pd.DataFrame], pd.DatetimeIndex]:
     if len(common) < 10000:
         raise ValueError(f"Common minute intersection unexpectedly small: {len(common)}")
     expected_step = pd.Timedelta(minutes=1)
-    gaps = np.flatnonzero(np.diff(common.asi8) != expected_step.value)
+    # Pandas 3 may retain a millisecond-resolution DatetimeIndex after unit="ms".
+    # Normalize integer timestamps to nanoseconds before comparing with Timedelta.value.
+    common_ns = common.as_unit("ns").asi8
+    gaps = np.flatnonzero(np.diff(common_ns) != expected_step.value)
     if len(gaps):
         raise ValueError(
             f"Common minute index has {len(gaps)} gaps; first gap "
