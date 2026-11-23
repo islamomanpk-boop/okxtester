@@ -4,21 +4,23 @@
 **Branch:** `price-action-v1`  
 **Purpose:** Record the agreed division of work between ChatGPT, the user's Android/Termux environment, the VPS, and GitHub. These rules govern operations; they do not change the research roadmap or authorize new experiments.
 
-## 1. Roles and access
+## 1. Agreed division of work
 
-- ChatGPT plans the work, reviews the research roadmap/checklist, writes and reviews scripts, explains commands, interprets outputs, and prepares research checkpoints.
-- The user runs commands from Android Termux and shares their output. ChatGPT does not have direct interactive SSH control of the user's VPS in this chat and must not imply otherwise.
-- The VPS is used for suitable lightweight or long-running tasks when its resources permit.
-- Termux/on-device execution is preferred for tasks that exceed the VPS's available memory or CPU capacity, provided the phone can safely handle them.
+- ChatGPT takes responsibility for planning, research prioritization, code writing/review, analysis, GitHub inspection and updates, documentation, and deciding the next safe step wherever the available tools allow it.
+- The user does not need to manage routine planning, research organization, or code design. ChatGPT should do that work rather than repeatedly asking the user to make technical decisions.
+- The user will use Android Termux to run computationally heavy jobs when needed. This includes large multi-asset pandas/numpy workloads, bootstrap/resampling, and memory-intensive statistical analysis.
+- Keep the small 1 GB VPS for suitable lightweight tasks only when they are actually needed. Do not default to running heavy research on it.
+- ChatGPT cannot directly operate the user's interactive Termux/SSH session from this chat. When a VPS command is necessary, ChatGPT must prepare one copy-paste-ready command at a time; the user runs it and shares the output.
 - GitHub is the durable record for source code, methods, reports, decisions, and checkpoints.
 
-## 2. Command delivery and execution
+## 2. Execution and communication
 
-- Give the user one copy-paste-ready command at a time, with a short explanation of what it does and whether it changes anything.
-- Prefer read-only inspection before any modification.
-- Before a potentially heavy job, assess expected RAM, CPU, disk, runtime, and output size; choose VPS or Termux accordingly.
+- Prefer ChatGPT-side GitHub/tool actions for work that can be completed safely through available integrations. Do not ask the user to perform actions that ChatGPT can complete and verify itself.
+- Ask the user to run a command only when it requires access to their local Termux/phone or VPS shell, or when the needed capability is unavailable to ChatGPT.
+- Give one copy-paste-ready command at a time, with a short explanation of purpose, expected resource use, and whether it changes anything.
+- Before any computationally heavy task, estimate memory, CPU, disk, runtime, and output size, then direct it to Termux rather than the 1 GB VPS when appropriate.
+- Never claim a command or GitHub update succeeded until its result has been returned or independently verified.
 - Do not ask the user to share passwords, private SSH keys, exchange API secrets, or other credentials.
-- Never claim a command succeeded until the user provides its output or a tool independently verifies the result.
 - If output indicates an error, stop and diagnose before proceeding.
 
 ## 3. Safety and change control
@@ -44,22 +46,25 @@ This is a dated snapshot, not a guarantee of current system state.
 
 ## 5. Workload placement
 
-**Usually suitable for the VPS (subject to a fresh resource check):**
-- Git fetch/status/commit operations and small source-code checks.
-- Lightweight scripts, small metadata checks, and modest downloads.
-- Long-running jobs only when their memory and disk requirements are known and monitored.
+**ChatGPT should handle directly where supported:**
+- Research planning, roadmap/checklist review, source-code drafting and review, GitHub repository inspection, GitHub file creation/updates, documentation, and result interpretation.
+- Small calculations and reasoning that do not require the user's machine or external execution.
 
-**Usually better suited to Termux/on-device execution or another adequately sized compute environment:**
+**Use the user's Termux environment for heavy computation:**
 - Large pandas/numpy workloads over multiple assets and timeframes.
 - Large bootstrap/resampling jobs and memory-intensive statistical analyses.
-- Jobs likely to exceed the VPS's available RAM or cause swapping/OOM termination.
+- Any job likely to exceed the VPS's available RAM or cause swapping/OOM termination.
 
-Do not assume Termux has unlimited capacity: estimate the phone's available resources too. If neither environment is suitable, redesign the computation in chunks or use a larger approved compute environment.
+**Use the VPS only for suitable lightweight tasks when necessary:**
+- Small Git operations, lightweight scripts, modest downloads, and basic server checks.
+- Do not run heavy research on this 1 vCPU / 1 GB VPS by default.
+
+Do not assume the phone has unlimited capacity either: estimate available phone resources and split/chunk computations if needed. If neither environment is suitable, redesign the computation in chunks or use a larger approved compute environment.
 
 ## 6. Research governance remains controlling
 
 - Before any research task or experiment, inspect the current GitHub master checklist and detailed roadmap and confirm its priority.
-- The research roadmap, not convenience or VPS availability, determines what work is authorized.
+- The research roadmap, not convenience or compute availability, determines what work is authorized.
 - No new strategy backtests, exit sweeps, parameter optimization, or live-trading activity without explicit user approval and satisfaction of the relevant research gates.
 - Preserve existing untracked reports and historical results; inspect before changing anything.
 - Record material methods, decisions, results, failures, and next steps in dated GitHub checkpoints.
@@ -72,4 +77,4 @@ The next proposed action is read-only inspection of the largest files under `/va
 
 ---
 
-**Status:** Agreed operating rules; informational and procedural only. No VPS configuration or research data was changed by recording this document.
+**Status:** Updated operating rules; informational and procedural only. No VPS configuration or research data was changed by recording this document.
