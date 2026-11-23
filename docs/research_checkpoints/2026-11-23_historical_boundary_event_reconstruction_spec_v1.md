@@ -39,8 +39,8 @@ Let `W = upper - lower`; require finite positive W.
 - First strong upper rejection in a test: upper touch AND `close < upper - 0.10*W` AND `close > lower`.
 - First strong lower rejection in a test: lower touch AND `close > lower + 0.10*W` AND `close < upper`.
 - At most one first strong rejection is recorded per test.
-- After an upper test, separation is confirmed by a completed 15M candle with `close <= upper - 0.20*W`.
-- After a lower test, separation is confirmed by a completed 15M candle with `close >= lower + 0.20*W`.
+- After an upper test, separation is confirmed only by a completed **non-touch** 15M candle with `close <= upper - 0.20*W`.
+- After a lower test, separation is confirmed only by a completed **non-touch** 15M candle with `close >= lower + 0.20*W`.
 - The separation candle arms the next test; it cannot also start that next test. A subsequent touch starts it.
 
 Process upper and lower independently. Test ranks begin at one within each 4H snapshot/direction. A 15M timestamp gap ends the active test/segment and resets rank; never bridge it. A new 4H snapshot always resets test state and numbering.
