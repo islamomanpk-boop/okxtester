@@ -1,0 +1,2 @@
+scenario_id,experiment_id,taker_fee_rate_per_side,slippage_bps_per_side,candidate_count,accepted_entries,rejected_entries,trade_count,initial_equity,final_equity,net_pnl,return_pct,max_drawdown_pct,gross_pnl,fees,funding_pnl
+baseline_fees_0_05pct_slippage_2bps,fixed_stop_0_50pct__fixed_target_0_75pct,0.0005,2.0,17943,5976,11967,5976,1000.0,24.241370486428536,-975.7586295135715,-97.57586295135715,97.62674367591835,-20.9999664296601,955.9003360617273,1.1416729778115373

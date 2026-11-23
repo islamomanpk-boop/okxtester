@@ -1,0 +1,11 @@
+asset,definition,source_15m_rows,feature_rows,global_15m_gaps,qualifying_snapshots,snapshots_with_suppressed_first_bar,eligible_15m_bars_processed,15m_gaps_inside_processed_snapshots,note
+BTC,strict,37941,2358,0,401,401,6015,0,Strict/broad cohorts overlap; descriptive counts only.
+BTC,broad,37941,2358,0,601,601,9015,0,Strict/broad cohorts overlap; descriptive counts only.
+ETH,strict,37941,2358,0,415,415,6225,0,Strict/broad cohorts overlap; descriptive counts only.
+ETH,broad,37941,2358,0,620,620,9300,0,Strict/broad cohorts overlap; descriptive counts only.
+SOL,strict,37941,2358,0,409,409,6135,0,Strict/broad cohorts overlap; descriptive counts only.
+SOL,broad,37941,2358,0,607,607,9105,0,Strict/broad cohorts overlap; descriptive counts only.
+DOGE,strict,37941,2358,0,407,407,6105,0,Strict/broad cohorts overlap; descriptive counts only.
+DOGE,broad,37941,2358,0,606,606,9083,0,Strict/broad cohorts overlap; descriptive counts only.
+AVAX,strict,37941,2358,0,430,430,6450,0,Strict/broad cohorts overlap; descriptive counts only.
+AVAX,broad,37941,2358,0,624,624,9353,0,Strict/broad cohorts overlap; descriptive counts only.
