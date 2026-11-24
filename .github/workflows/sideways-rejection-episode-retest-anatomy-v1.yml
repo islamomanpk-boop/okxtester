@@ -46,7 +46,7 @@ jobs:
             tests/test_sideways_rejection_forward_outcomes_v1.py \
             tests/test_sideways_rejection_episode_retest_anatomy_v1.py \
             tests/test_sideways_rejection_early_path_sequence_followthrough_v1.py \
-            tests/test_sideways_rejection_sequence_block_bootstrap_v1.py
+            tests/test_sideways_rejection_sequence_block_bootstrap_v1.py \\\n            research/sideways_rejection_pre_event_matched_controls_v1.py \\\n            tests/test_sideways_rejection_pre_event_matched_controls_v1.py
 
       - name: Run existing rejection forward-outcome tests
         run: |
@@ -74,6 +74,13 @@ jobs:
           python -m unittest discover \
             -s tests \
             -p 'test_sideways_rejection_sequence_block_bootstrap_v1.py' \
+            -v
+
+      - name: Run pre-event matched-control synthetic tests
+        run: |
+          python -m unittest discover \
+            -s tests \
+            -p 'test_sideways_rejection_pre_event_matched_controls_v1.py' \
             -v
 
       - name: Verify all frozen source inputs exist
@@ -109,13 +116,25 @@ jobs:
             --replicates 10000 \
             --seed 20261124
 
+      - name: Run pre-event matched-control sensitivity study
+        run: |
+          python research/sideways_rejection_pre_event_matched_controls_v1.py \
+            --anatomy "$RUNNER_TEMP/sideways_rejection_episode_retest_anatomy_v1/event_anatomy_v1.csv" \
+            --sequence "$RUNNER_TEMP/sideways_rejection_early_path_sequence_followthrough_v1/event_sequence_v1.csv" \
+            --outcomes "$RUNNER_TEMP/sideways_rejection_early_path_sequence_followthrough_v1/event_followthrough_v1.csv" \
+            --feature-dir reports/sideways_detector_original_v1 \
+            --minute-dir data/market_1m \
+            --output "$RUNNER_TEMP/sideways_rejection_pre_event_matched_controls_v1" \
+            --replicates 10000 \
+            --seed 20261124
+
       - name: Permanently archive Phase 3 research outputs in Git
         run: |
           archive="reports/sideways_phase3_research_archive_v1"
-          mkdir -p "$archive/episode_retest_anatomy_v1" "$archive/early_path_followthrough_v1" "$archive/sequence_block_bootstrap_v1"
+          mkdir -p "$archive/episode_retest_anatomy_v1" "$archive/early_path_followthrough_v1" "$archive/sequence_block_bootstrap_v1" "$archive/pre_event_matched_controls_v1"
           cp -R "$RUNNER_TEMP/sideways_rejection_episode_retest_anatomy_v1/." "$archive/episode_retest_anatomy_v1/"
           cp -R "$RUNNER_TEMP/sideways_rejection_early_path_sequence_followthrough_v1/." "$archive/early_path_followthrough_v1/"
-          cp -R "$RUNNER_TEMP/sideways_rejection_sequence_block_bootstrap_v1/." "$archive/sequence_block_bootstrap_v1/"
+          cp -R "$RUNNER_TEMP/sideways_rejection_sequence_block_bootstrap_v1/." "$archive/sequence_block_bootstrap_v1/"\n          cp -R "$RUNNER_TEMP/sideways_rejection_pre_event_matched_controls_v1/." "$archive/pre_event_matched_controls_v1/"
           cat > "$archive/README.md" <<'EOF'
           # Phase 3 sideways-regime research archive V1
 
@@ -125,7 +144,7 @@ jobs:
 
           - `episode_retest_anatomy_v1/`: event anatomy, forward path outcomes, validation, summaries, metadata.
           - `early_path_followthrough_v1/`: sequence labels, post-landmark outcomes, validation, summaries, metadata.
-          - `sequence_block_bootstrap_v1/`: calendar moving-block bootstrap contrasts and run metadata.
+          - `sequence_block_bootstrap_v1/`: calendar moving-block bootstrap contrasts and run metadata.\n          - `pre_event_matched_controls_v1/`: matched pairs, pre-event covariate balance, and post-landmark outcome contrasts.
 
           The bootstrap contrasts are descriptive observational comparisons, not causal estimates
           or proof of a profitable trading strategy. The run metadata files record the study
@@ -140,6 +159,14 @@ jobs:
             git commit -m "Archive Phase 3 sideways research outputs V1"
             git push origin HEAD:price-action-v1
           fi
+
+      - name: Upload pre-event matched-control outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: sideways-rejection-pre-event-matched-controls-v1
+          path: ${{ runner.temp }}/sideways_rejection_pre_event_matched_controls_v1/
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Upload calendar block bootstrap outputs
         uses: actions/upload-artifact@v4
