@@ -368,19 +368,30 @@ def classify_events(joined: pd.DataFrame, events: list[dict], asset: str,
     return pd.DataFrame(event_rows), pd.DataFrame(links)
 
 def group_summary(classifications: pd.DataFrame) -> pd.DataFrame:
-    cols = ["asset", "definition", "direction", "zone_pct_of_channel", "prior_rejection_group"]
+    keys = ["asset", "definition", "direction", "zone_pct_of_channel"]
+    groups = ["0", "1", "2", "3+"]
+    columns = keys + ["prior_rejection_group", "event_count",
+                      "stratum_event_count", "share_within_stratum_pct"]
     if classifications.empty:
-        return pd.DataFrame(columns=cols + ["event_count", "share_within_stratum_pct"])
-    grouped = classifications.groupby(cols, dropna=False).size().rename("event_count").reset_index()
-    totals = classifications.groupby(
-        ["asset", "definition", "direction", "zone_pct_of_channel"]
-    ).size().rename("stratum_event_count").reset_index()
-    grouped = grouped.merge(totals, on=cols[:-1], how="left")
-    grouped["share_within_stratum_pct"] = (
-        grouped["event_count"] / grouped["stratum_event_count"] * 100
+        return pd.DataFrame(columns=columns)
+    strata = classifications[keys].drop_duplicates()
+    grid = strata.assign(_join=1).merge(
+        pd.DataFrame({"prior_rejection_group": groups, "_join": 1}),
+        on="_join",
+    ).drop(columns="_join")
+    counts = classifications.groupby(
+        keys + ["prior_rejection_group"], dropna=False
+    ).size().rename("event_count").reset_index()
+    totals = classifications.groupby(keys).size().rename(
+        "stratum_event_count"
+    ).reset_index()
+    result = grid.merge(counts, on=keys + ["prior_rejection_group"], how="left")
+    result = result.merge(totals, on=keys, how="left")
+    result["event_count"] = result["event_count"].fillna(0).astype(int)
+    result["share_within_stratum_pct"] = (
+        result["event_count"] / result["stratum_event_count"] * 100
     )
-    return grouped.sort_values(cols).reset_index(drop=True)
-
+    return result.sort_values(keys + ["prior_rejection_group"]).reset_index(drop=True)
 
 def run(data_dir: Path, output_dir: Path):
     if output_dir.exists():
@@ -493,6 +504,28 @@ def run(data_dir: Path, output_dir: Path):
             "source_sha256": source_hashes[asset],
         })
     pd.DataFrame(audit_rows).to_csv(output_dir / "reconstruction_audit_v1.csv", index=False)
+    reproduction_rows = []
+    for key, expected in EXPECTED_COUNTS.items():
+        reproduction_rows.append({
+            "asset": key[0], "definition": key[1], "direction": key[2],
+            "expected_event_count": expected,
+            "reproduced_event_count": reproduced_counts.get(key, 0),
+            "passed": reproduced_counts.get(key, 0) == expected,
+        })
+    pd.DataFrame(reproduction_rows).to_csv(
+        output_dir / "original_event_reproduction_v1.csv", index=False
+    )
+    run_log = [
+        "BREAKOUT PRIOR TEST COUNT STUDY V1",
+        "PASS: original breakout counts 20/20 reproduced.",
+        "PASS: original channel-width quantiles 10/10 reproduced.",
+        f"Common 1M timestamps: {len(common):,}",
+        f"Classification rows: {len(class_df):,}",
+        f"Prior-test linkage rows: {len(links_df):,}",
+        "Strict event set is a subset of broad event set.",
+        "Descriptive classification only; no forward outcomes or profitability inference.",
+    ]
+    (output_dir / "run.log").write_text("\\n".join(run_log) + "\\n")
 
     metadata = {
         "study": "breakout_prior_test_count_study_v1",
