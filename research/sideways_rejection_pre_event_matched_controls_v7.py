@@ -107,7 +107,7 @@ def run(anatomy_path:Path, sequence_path:Path, feature_dir:Path, minute_dir:Path
     cov = build_covariates(anatomy_path, sequence_path, feature_dir, minute_dir)
     pairs = pd.read_csv(pairs_path)
     anatomy = pd.read_csv(anatomy_path)
-    strata, balance, summary = audit_pairs(pairs, anatomy)
+    strata, balance, summary = audit_pairs(pairs, cov)
     # Confirm all paired IDs are in the frozen eligible cohort for their definition/class.
     eligible = set(cov.event_id.astype(str))
     used = set(pairs.separation_event_id.astype(str)) | set(pairs.retest_event_id.astype(str))
