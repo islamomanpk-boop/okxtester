@@ -36,9 +36,16 @@ jobs:
             research/sideways_rejection_forward_outcomes_v1.py \
             tests/test_sideways_rejection_forward_outcomes_v1.py
 
-      - name: Run focused unit tests
+      - name: Run existing rejection forward-outcome tests
         run: |
           python -m unittest discover \
             -s tests \
             -p 'test_sideways_rejection_forward_outcomes_v1.py' \
+            -v
+
+      - name: Run new episode/retest anatomy synthetic tests
+        run: |
+          python -m unittest discover \
+            -s tests \
+            -p 'test_sideways_rejection_episode_retest_anatomy_v1.py' \
             -v
