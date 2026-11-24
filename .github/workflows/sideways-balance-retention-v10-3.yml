@@ -1,0 +1,58 @@
+name: Phase 3 V10.3 Balance Retention Frontier
+on:
+  workflow_dispatch:
+  push:
+    branches: [price-action-v1]
+    paths:
+      - .github/workflows/sideways-balance-retention-v10-3.yml
+      - research/sideways_rejection_pre_event_matched_controls_v10_3.py
+      - tests/test_sideways_rejection_pre_event_matched_controls_v10_3.py
+permissions:
+  contents: write
+concurrency:
+  group: sideways-balance-retention-v10-3
+  cancel-in-progress: false
+jobs:
+  audit-v10-3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: price-action-v1}
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - name: Compile and test V10.3
+        run: |
+          python -m py_compile research/sideways_rejection_pre_event_matched_controls_v10_3.py tests/test_sideways_rejection_pre_event_matched_controls_v10_3.py
+          python -m unittest discover -s tests -p 'test_sideways_rejection_pre_event_matched_controls_v10_3.py' -v
+      - name: Verify archived source inputs
+        run: |
+          test -f reports/sideways_phase3_research_archive_v1/covariate_redundancy_balance_audit_v10_2/matched_balance_by_stratum_v10_2.csv
+          test -f reports/sideways_phase3_research_archive_v1/pre_event_matched_controls_v6/optimal_matched_pairs_v6.csv
+          test -f reports/sideways_phase3_research_archive_v1/matched_cohort_feasibility_audit_v9/matching_feasibility_summary_v9.csv
+      - name: Run outcome-blind V10.3 audit
+        run: |
+          python research/sideways_rejection_pre_event_matched_controls_v10_3.py \
+            --balance reports/sideways_phase3_research_archive_v1/covariate_redundancy_balance_audit_v10_2/matched_balance_by_stratum_v10_2.csv \
+            --pairs reports/sideways_phase3_research_archive_v1/pre_event_matched_controls_v6/optimal_matched_pairs_v6.csv \
+            --feasibility reports/sideways_phase3_research_archive_v1/matched_cohort_feasibility_audit_v9/matching_feasibility_summary_v9.csv \
+            --output "$RUNNER_TEMP/sideways_balance_retention_v10_3"
+      - name: Permanently archive V10.3
+        run: |
+          archive=reports/sideways_phase3_research_archive_v1/balance_retention_frontier_v10_3
+          mkdir -p "$archive"
+          cp -R "$RUNNER_TEMP/sideways_balance_retention_v10_3/." "$archive/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$archive"
+          if git diff --cached --quiet; then echo "No archive changes"; else
+            git commit -m "Archive Phase 3 V10.3 balance retention frontier"
+            git push origin HEAD:price-action-v1
+          fi
+      - name: Upload secondary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sideways-balance-retention-v10-3
+          path: ${{ runner.temp }}/sideways_balance_retention_v10_3/
+          if-no-files-found: error
+          retention-days: 14
