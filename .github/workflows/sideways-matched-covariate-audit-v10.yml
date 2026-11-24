@@ -1,0 +1,70 @@
+name: Phase 3 V6 Covariate Structure and Bottleneck Attribution V10
+on:
+  workflow_dispatch:
+  push:
+    branches: [price-action-v1]
+    paths:
+      - .github/workflows/sideways-matched-covariate-audit-v10.yml
+      - research/sideways_rejection_pre_event_matched_controls_v10.py
+      - tests/test_sideways_rejection_pre_event_matched_controls_v10.py
+permissions:
+  contents: write
+concurrency:
+  group: sideways-matched-covariate-audit-v10
+  cancel-in-progress: false
+jobs:
+  audit-v10:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: price-action-v1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip numpy pandas scipy
+      - name: Compile and test V10
+        run: |
+          python -m py_compile research/sideways_rejection_pre_event_matched_controls_v4.py research/sideways_rejection_pre_event_matched_controls_v10.py tests/test_sideways_rejection_pre_event_matched_controls_v10.py
+          python -m unittest discover -s tests -p 'test_sideways_rejection_pre_event_matched_controls_v10.py' -v
+      - name: Verify frozen Phase 3 inputs and V6/V9 archives
+        run: |
+          test -f reports/sideways_phase3_research_archive_v1/episode_retest_anatomy_v1/event_anatomy_v1.csv
+          test -f reports/sideways_phase3_research_archive_v1/early_path_followthrough_v1/event_sequence_v1.csv
+          test -f reports/sideways_phase3_research_archive_v1/pre_event_matched_controls_v6/optimal_matched_pairs_v6.csv
+          test -f reports/sideways_phase3_research_archive_v1/matched_cohort_feasibility_audit_v9/matching_feasibility_by_stratum_v9.csv
+          for asset in BTC ETH SOL DOGE AVAX; do
+            test -f "reports/sideways_detector_original_v1/${asset}_features_original_v1.csv"
+            test -f "data/market_1m/${asset}_USDT_USDT_1m.csv"
+          done
+      - name: Run outcome-blind V10 audit
+        run: |
+          python research/sideways_rejection_pre_event_matched_controls_v10.py \
+            --anatomy reports/sideways_phase3_research_archive_v1/episode_retest_anatomy_v1/event_anatomy_v1.csv \
+            --sequence reports/sideways_phase3_research_archive_v1/early_path_followthrough_v1/event_sequence_v1.csv \
+            --feature-dir reports/sideways_detector_original_v1 \
+            --minute-dir data/market_1m \
+            --pairs reports/sideways_phase3_research_archive_v1/pre_event_matched_controls_v6/optimal_matched_pairs_v6.csv \
+            --feasibility reports/sideways_phase3_research_archive_v1/matched_cohort_feasibility_audit_v9/matching_feasibility_by_stratum_v9.csv \
+            --output "$RUNNER_TEMP/sideways_matched_covariate_audit_v10"
+      - name: Permanently archive V10 results
+        run: |
+          archive=reports/sideways_phase3_research_archive_v1/matched_cohort_covariate_audit_v10
+          mkdir -p "$archive"
+          cp -R "$RUNNER_TEMP/sideways_matched_covariate_audit_v10/." "$archive/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$archive"
+          if git diff --cached --quiet; then echo "No V10 archive changes."; else
+            git commit -m "Archive Phase 3 matched cohort covariate audit V10"
+            git push origin HEAD:price-action-v1
+          fi
+      - name: Upload secondary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sideways-matched-cohort-covariate-audit-v10
+          path: ${{ runner.temp }}/sideways_matched_covariate_audit_v10/
+          if-no-files-found: error
+          retention-days: 14
