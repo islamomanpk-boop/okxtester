@@ -4,7 +4,7 @@
   "frozen_constraints": {
     "overall_rms_robust_sd_max": 2.0,
     "maximum_single_covariate_robust_sd": 1.5,
-    "target_covariate": "range_channel_width",
+    "target_covariate": "signed_close_boundary_distance_width",
     "target_calipers_robust_sd": [
       0.25,
       0.5,
