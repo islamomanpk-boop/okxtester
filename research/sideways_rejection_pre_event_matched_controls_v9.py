@@ -96,7 +96,6 @@ def audit_feasibility(frame: pd.DataFrame, archived_pairs: pd.DataFrame):
 def run(anatomy,sequence,feature_dir,minute_dir,pairs_path,output):
     if output.exists() and any(output.iterdir()):
         raise FileExistsError(f"Refusing non-empty output directory: {output}")
-    from research.sideways_rejection_pre_event_matched_controls_v4 import build_covariates
     eligible=build_covariates(anatomy,sequence,feature_dir,minute_dir)
     pairs=pd.read_csv(pairs_path)
     strata,summary=audit_feasibility(eligible,pairs)
