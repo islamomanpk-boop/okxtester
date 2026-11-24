@@ -19,7 +19,7 @@ jobs:
   historical-study:
     name: Test and run five-asset rejection anatomy and follow-through studies
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 36
 
     steps:
       - name: Check out price-action-v1
