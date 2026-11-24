@@ -6,10 +6,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 import numpy as np
 import pandas as pd
-from sideways_rejection_episode_retest_anatomy_v1 import (
-    ASSETS, MINUTE_MS, validate_event_ledger, load_features, load_minutes,
-    resolve_feature_snapshot, first_touch,
-)
+try:
+    from .sideways_rejection_episode_retest_anatomy_v1 import (
+        ASSETS, MINUTE_MS, validate_event_ledger, load_features, load_minutes,
+        resolve_feature_snapshot, first_touch,
+    )
+except ImportError:
+    from sideways_rejection_episode_retest_anatomy_v1 import (
+        ASSETS, MINUTE_MS, validate_event_ledger, load_features, load_minutes,
+        resolve_feature_snapshot, first_touch,
+    )
 
 HORIZONS = {"1h": 60, "4h": 240, "24h": 1440}
 CLASS_BARS = 15
