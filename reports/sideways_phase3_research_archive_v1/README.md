@@ -7,9 +7,13 @@ source datasets already stored in this repository.
 - `episode_retest_anatomy_v1/`: event anatomy, forward path outcomes, validation, summaries, metadata.
 - `early_path_followthrough_v1/`: sequence labels, post-landmark outcomes, validation, summaries, metadata.
 - `sequence_block_bootstrap_v1/`: calendar moving-block bootstrap contrasts and run metadata.
-- `pre_event_matched_controls_v1/`: initial 1:1 matched sensitivity; retained for audit, but covariate balance was insufficient for a conclusive comparison.
-- `pre_event_matched_controls_v2/`: stricter 1:1 matched sensitivity with both overall-distance and per-covariate calipers.
+- `pre_event_matched_controls_v1/`: initial 1:1 exact-asset/direction/month matching; retained for audit, but residual covariate imbalance was too large for a conclusive comparison.
+- `pre_event_matched_controls_v2/`: very tight per-covariate caliper; retained for audit, but it yielded only one broad pair and no strict pairs.
+- `pre_event_matched_controls_v3/`: exact-asset/direction/month matching with a looser per-covariate caliper; retained for audit because pair counts remained small.
+- `pre_event_matched_controls_v4/`: 1:1 matching by exact asset and direction, with a 30-day maximum time gap and pre-event covariate calipers. This yielded 71 broad and 45 strict pairs. Some residual standardized mean differences remain, especially the signed close-to-boundary distance, so interpret as sensitivity evidence rather than a fully balanced causal comparison.
 
-The bootstrap contrasts are descriptive observational comparisons, not causal estimates
-or proof of a profitable trading strategy. The run metadata files record the study
-limitations and resampling settings.
+The sequence-class contrasts are observational associations, not causal estimates
+or proof of a profitable trading strategy. Bootstrap intervals are not adjusted for
+multiple comparisons, and overlapping events may remain dependent. Broad and strict
+cohorts are nested, not independent. Review each run's metadata and covariate-balance
+tables before interpreting outcome contrasts.
