@@ -1,0 +1,8 @@
+BREAKOUT PRIOR TEST COUNT STUDY V1
+PASS: original breakout counts 20/20 reproduced.
+PASS: original channel-width quantiles 10/10 reproduced.
+Common 1M timestamps: 569,125
+Classification rows: 4,776
+Prior-test linkage rows: 4,534
+Strict event set is a subset of broad event set.
+Descriptive classification only; no forward outcomes or profitability inference.

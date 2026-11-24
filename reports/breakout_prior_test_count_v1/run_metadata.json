@@ -1,0 +1,40 @@
+{
+  "study": "breakout_prior_test_count_study_v1",
+  "specification": "docs/research_checkpoints/2026-11-24_breakout_prior_test_count_study_spec_v1.md",
+  "original_source": "research/archive/final_timing_corrected_breakout_and_retest_recovered_original_2026-11-22.py",
+  "original_source_git_blob_sha": "95d2975947c449f3813d80ee7b12008db14f071f",
+  "assets": [
+    "BTC",
+    "ETH",
+    "SOL",
+    "DOGE",
+    "AVAX"
+  ],
+  "common_1m_timestamps": 569125,
+  "common_1m_gaps": 0,
+  "timestamp_convention": "15M and 4H bars label=right, closed=left; labels are close times",
+  "zones_pct_of_channel": [
+    5.0,
+    10.0,
+    15.0
+  ],
+  "separation_pct_of_channel": 20.0,
+  "expected_counts_reproduced": 20,
+  "expected_quantiles_reproduced": 10,
+  "classification_rows": 4776,
+  "prior_test_link_rows": 4534,
+  "strict_events_are_subset_of_broad": true,
+  "limitations": [
+    "Descriptive classification only; no forward outcomes or strategy inference.",
+    "Strict/broad and zone variants overlap and are not independent samples.",
+    "Full-sample width quantiles are retrospective.",
+    "Volume is excluded because source units are unverified."
+  ],
+  "source_sha256": {
+    "BTC": "3afab3d60387c87fc4b96f54911538fea6bbb7682b2e18001537bc4359da6633",
+    "ETH": "8a2924bcb23bd5963cd1c46b8871475ff7ff4a3c8d8bed6325dbd406ec0552d2",
+    "SOL": "8ed0a2efade22a11aa50f4511cdab3d32f438759f7acd7819ccbe41ab92ac0b3",
+    "DOGE": "eabf087b1a782d316fa1560b10fc4ee7adfc0adb426ef3d1158dc18c248c40f4",
+    "AVAX": "44ac7db951247a374aecba845336517b82b2655489920d62ec70f9b02fccdfd5"
+  }
+}
