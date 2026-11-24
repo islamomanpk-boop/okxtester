@@ -1,4 +1,5 @@
 name: Phase 3 Outcome-Blind Matched-Control Caliper Sensitivity V5
+# Re-run automatically when the V5 research module or tests change.
 
 on:
   workflow_dispatch:
