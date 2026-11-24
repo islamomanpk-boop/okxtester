@@ -1,0 +1,14 @@
+{
+  "study": "Phase 3 V10.3 balance-versus-retention frontier",
+  "inputs": "Archived V10.2 stratum-level SMDs, frozen V6 matched pairs, V9 independent maximum-cardinality feasibility summary",
+  "purpose": "Describe the trade-off between retained matched pairs and observed covariate balance across existing frozen configurations",
+  "thresholds": "Absolute SMD 0.10 and 0.20 are descriptive reporting thresholds, not automatic acceptance criteria",
+  "interpretation": "No configuration selected or approved; no matching rules changed; no outcomes loaded or compared",
+  "limitations": [
+    "SMD summaries are descriptive and do not prove exchangeability",
+    "asset-direction strata and covariate cells are not independent observations",
+    "small strata can yield unstable estimates",
+    "broad and strict definitions are nested",
+    "unmeasured confounding remains possible"
+  ]
+}
