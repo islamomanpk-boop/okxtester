@@ -1,0 +1,11 @@
+definition,asset,matched_pairs
+broad,BTC,16
+broad,ETH,14
+broad,SOL,15
+broad,DOGE,14
+broad,AVAX,12
+strict,BTC,11
+strict,ETH,12
+strict,SOL,6
+strict,DOGE,8
+strict,AVAX,8

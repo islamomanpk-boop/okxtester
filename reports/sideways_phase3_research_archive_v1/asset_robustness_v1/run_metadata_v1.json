@@ -1,0 +1,22 @@
+{
+  "study": "Phase 3 Matched-Pair Asset Heterogeneity and Leave-One-Asset-Out V1",
+  "input_matching": "V4 exact-asset/direction 1:1 matched pairs with 30-day time-gap limit",
+  "contrast": "paired outcome difference: SEPARATION_FIRST minus RETEST_FIRST",
+  "scopes": "all assets, each asset alone, and leave-one-asset-out",
+  "bootstrap": "paired differences resampled in UTC calendar-day moving blocks",
+  "block_lengths_days": [
+    3,
+    7,
+    14
+  ],
+  "replicates_per_scope_contrast": 10000,
+  "seed": 20261124,
+  "minimum_pairs_for_bootstrap": 5,
+  "limitations": [
+    "small asset-specific samples may have no bootstrap interval",
+    "leave-one-asset-out estimates remain observational and are not independent",
+    "broad and strict cohorts are nested",
+    "many asset/scope/horizon/metric comparisons are exploratory; no multiple-testing correction",
+    "does not remove residual covariate imbalance or unmeasured confounding"
+  ]
+}
