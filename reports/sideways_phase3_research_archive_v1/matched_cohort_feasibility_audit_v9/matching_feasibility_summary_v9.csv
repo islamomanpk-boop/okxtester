@@ -1,0 +1,9 @@
+definition,target_caliper_robust_sd,eligible_separation_n,eligible_retest_n,archived_v6_pairs,independent_maximum_feasible_pairs,archived_minus_independent_maximum,candidate_edges_total,isolated_separation_total,isolated_retest_total,strata_with_zero_candidate_edges,strata_with_archived_count_below_feasible
+broad,0.25,350,584,21,23,-2,25,327,559,1,4
+broad,0.5,350,584,36,36,0,48,314,537,1,4
+broad,0.75,350,584,48,51,-3,74,296,517,0,4
+broad,1.0,350,584,58,60,-2,92,284,505,0,4
+strict,0.25,260,420,11,14,-3,14,246,406,3,4
+strict,0.5,260,420,21,26,-5,29,234,391,0,4
+strict,0.75,260,420,29,33,-4,43,225,380,0,5
+strict,1.0,260,420,34,40,-6,54,217,371,0,5

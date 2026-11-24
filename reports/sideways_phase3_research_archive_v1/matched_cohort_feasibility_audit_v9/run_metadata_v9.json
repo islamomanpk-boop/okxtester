@@ -1,0 +1,24 @@
+{
+  "study": "Phase 3 V6 matching feasibility and constraint bottleneck audit V9",
+  "method": "Independent sparse bipartite maximum-cardinality matching within exact asset x direction strata",
+  "frozen_constraints": {
+    "overall_rms_robust_sd_max": 2.0,
+    "maximum_single_covariate_robust_sd": 1.5,
+    "target_covariate": "range_channel_width",
+    "target_calipers_robust_sd": [
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "maximum_confirmation_time_gap_days": 30.0
+  },
+  "constraint_diagnostics": "Each edge count removes one constraint at a time while retaining the other three; these counts are diagnostic and not additive.",
+  "limitations": [
+    "feasibility is conditional on V6 eligible events, covariates, scaling, and constraints",
+    "maximum pair count does not imply good covariate balance or exchangeability",
+    "relaxed-edge counts do not recommend changing constraints",
+    "broad and strict cohorts are nested",
+    "no outcomes are loaded or compared; no trading inference is made"
+  ]
+}
