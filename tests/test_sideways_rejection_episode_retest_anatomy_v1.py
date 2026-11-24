@@ -93,8 +93,11 @@ class TestRejectionAnatomyV1(unittest.TestCase):
             snapshot_available_at_ts_ms=-3600000, snapshot_next_available_at_ts_ms=3600000,
         )
         _, result = event_measurements(event, pd.Series({"upper":110., "lower":100.}), minute)
-        self.assertEqual(result["rows"][0]["observed_bars"], 15)
-        self.assertEqual(result["rows"][0]["status"], "complete")
+        expected = {"15m": 15, "1h": 60, "4h": 240, "24h": 1440}
+        self.assertEqual({row["horizon"]: row["expected_bars"] for row in result["rows"]}, expected)
+        self.assertTrue(all(row["status"] == "complete" for row in result["rows"]))
+        self.assertEqual([row["observed_bars"] for row in result["rows"]], [15, 60, 240, 1440])
+        self.assertEqual(result["rows"][0]["confirmation_minute_open"], 109.5)
 
 
     def test_first_touch_returns_none_when_no_retest(self):
