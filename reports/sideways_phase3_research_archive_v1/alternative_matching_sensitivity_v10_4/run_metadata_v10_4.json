@@ -1,0 +1,13 @@
+{
+  "study": "Phase 3 V10.4 alternative matching constraint sensitivity",
+  "baseline": "V6 frozen max RMS distance 2.0, max component 1.5, max time gap 30 days; exact asset-direction strata; target calipers unchanged",
+  "alternatives": "One-at-a-time and combined relaxations of maximum component distance and maximum confirmation-time gap",
+  "method": "Same V6 maximum-cardinality bipartite assignment and minimum total RMS distance objective for each candidate-edge design",
+  "interpretation": "Outcome-blind design sensitivity only; larger pair counts do not establish balance, exchangeability, or preferred design",
+  "limitations": [
+    "relaxing edge constraints changes the eligible match graph",
+    "SMDs are descriptive, not causal guarantees",
+    "no outcomes loaded or compared",
+    "no strategy or profitability conclusions"
+  ]
+}
