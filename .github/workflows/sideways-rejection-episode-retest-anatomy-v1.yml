@@ -2,6 +2,11 @@ name: Sideways Rejection Episode and Retest Anatomy V1 - Historical Study
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - price-action-v1
+    paths:
+      - .github/workflows/sideways-rejection-episode-retest-anatomy-v1.yml
 
 permissions:
   contents: read
