@@ -1,5 +1,7 @@
 """Synthetic unit tests for sideways rejection episode/retest anatomy V1."""
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 
 import numpy as np
@@ -7,8 +9,81 @@ import pandas as pd
 
 from research.sideways_rejection_episode_retest_anatomy_v1 import (
     MINUTE_MS, candle_anatomy, first_level_revisit, first_touch,
-    event_measurements,
+    event_measurements, resolve_feature_snapshot, validate_event_ledger,
 )
+
+
+
+class TestEventLedgerAndSnapshotIntegrityV1(unittest.TestCase):
+    @staticmethod
+    def ledger_frame():
+        broad = []
+        for i in range(1154):
+            ts = 900_000 * (i + 1)
+            broad.append({
+                "asset": ["BTC", "ETH", "SOL", "DOGE", "AVAX"][i % 5],
+                "definition": "broad",
+                "direction": "upper" if i % 2 == 0 else "lower",
+                "snapshot_index": i,
+                "segment_id": 1,
+                "test_rank": 1,
+                "test_start_ts_ms": ts,
+                "test_end_ts_ms": ts,
+                "first_strong_rejection_ts_ms": ts,
+                "snapshot_available_at_ts_ms": 0,
+                "snapshot_next_available_at_ts_ms": 2_000_000_000,
+                "rejection_open": 100.0,
+                "rejection_high": 101.0,
+                "rejection_low": 99.0,
+                "rejection_close": 100.0,
+            })
+        strict = [dict(row, definition="strict") for row in broad[:838]]
+        return pd.DataFrame(broad + strict)
+
+    def test_strict_cohort_is_nested_and_counts_reconcile(self):
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "events.csv"
+            self.ledger_frame().to_csv(path, index=False)
+            validated = validate_event_ledger(path)
+        self.assertEqual(int((validated.definition == "broad").sum()), 1154)
+        self.assertEqual(int((validated.definition == "strict").sum()), 838)
+
+    def test_duplicate_event_identity_is_rejected(self):
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "events.csv"
+            frame = self.ledger_frame()
+            frame = pd.concat([frame, frame.iloc[[0]]], ignore_index=True)
+            frame.to_csv(path, index=False)
+            with self.assertRaisesRegex(ValueError, "Duplicate event identity"):
+                validate_event_ledger(path)
+
+    def test_strict_event_outside_broad_cohort_is_rejected(self):
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "events.csv"
+            frame = self.ledger_frame()
+            strict_index = frame.index[frame.definition == "strict"][0]
+            frame.loc[strict_index, "snapshot_index"] = 99999
+            frame.to_csv(path, index=False)
+            with self.assertRaisesRegex(ValueError, "not a subset"):
+                validate_event_ledger(path)
+
+    def test_exact_snapshot_row_and_availability_interval_are_verified(self):
+        features = pd.DataFrame({
+            "available_at_ts_ms": [0, 14_400_000, 28_800_000],
+            "upper": [110.0, 111.0, 112.0],
+            "lower": [100.0, 101.0, 102.0],
+        })
+        event = SimpleNamespace(
+            asset="BTC", event_id="snapshot-ok", snapshot_index=1,
+            snapshot_available_at_ts_ms=14_400_000,
+            snapshot_next_available_at_ts_ms=28_800_000,
+            first_strong_rejection_ts_ms=15_300_000,
+        )
+        resolved = resolve_feature_snapshot(event, features)
+        self.assertEqual(float(resolved.upper), 111.0)
+        event.snapshot_next_available_at_ts_ms = 30_000_000
+        with self.assertRaisesRegex(ValueError, "availability mismatch"):
+            resolve_feature_snapshot(event, features)
 
 
 class TestRejectionAnatomyV1(unittest.TestCase):
