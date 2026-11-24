@@ -42,9 +42,11 @@ jobs:
             research/sideways_rejection_forward_outcomes_v1.py \
             research/sideways_rejection_episode_retest_anatomy_v1.py \
             research/sideways_rejection_early_path_sequence_followthrough_v1.py \
+            research/sideways_rejection_sequence_block_bootstrap_v1.py \
             tests/test_sideways_rejection_forward_outcomes_v1.py \
             tests/test_sideways_rejection_episode_retest_anatomy_v1.py \
-            tests/test_sideways_rejection_early_path_sequence_followthrough_v1.py
+            tests/test_sideways_rejection_early_path_sequence_followthrough_v1.py \
+            tests/test_sideways_rejection_sequence_block_bootstrap_v1.py
 
       - name: Run existing rejection forward-outcome tests
         run: |
@@ -65,6 +67,13 @@ jobs:
           python -m unittest discover \
             -s tests \
             -p 'test_sideways_rejection_early_path_sequence_followthrough_v1.py' \
+            -v
+
+      - name: Run calendar moving-block bootstrap synthetic tests
+        run: |
+          python -m unittest discover \
+            -s tests \
+            -p 'test_sideways_rejection_sequence_block_bootstrap_v1.py' \
             -v
 
       - name: Verify all frozen source inputs exist
@@ -90,6 +99,23 @@ jobs:
             --feature-dir reports/sideways_detector_original_v1 \
             --minute-dir data/market_1m \
             --output "$RUNNER_TEMP/sideways_rejection_early_path_sequence_followthrough_v1"
+
+      - name: Run reproducible sequence calendar block bootstrap
+        run: |
+          python research/sideways_rejection_sequence_block_bootstrap_v1.py \
+            --sequence "$RUNNER_TEMP/sideways_rejection_early_path_sequence_followthrough_v1/event_sequence_v1.csv" \
+            --outcomes "$RUNNER_TEMP/sideways_rejection_early_path_sequence_followthrough_v1/event_followthrough_v1.csv" \
+            --output "$RUNNER_TEMP/sideways_rejection_sequence_block_bootstrap_v1" \
+            --replicates 10000 \
+            --seed 20261124
+
+      - name: Upload calendar block bootstrap outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: sideways-rejection-sequence-block-bootstrap-v1
+          path: ${{ runner.temp }}/sideways_rejection_sequence_block_bootstrap_v1/
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Upload episode/retest anatomy outputs
         uses: actions/upload-artifact@v4
