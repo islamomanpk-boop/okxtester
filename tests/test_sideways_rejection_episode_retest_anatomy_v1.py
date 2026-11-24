@@ -153,5 +153,48 @@ class TestRejectionAnatomyV1(unittest.TestCase):
 
 
 
+    def test_separation_first_then_retest_is_ordered_correctly(self):
+        minute = pd.DataFrame({
+            "ts": np.arange(1440, dtype=np.int64) * MINUTE_MS,
+            "open": np.full(1440, 108.5),
+            "high": np.full(1440, 108.8),
+            "low": np.full(1440, 107.0),
+            "close": np.full(1440, 107.5),
+        })
+        minute.loc[1, ["open", "high", "low", "close"]] = [109.2, 109.5, 108.2, 108.5]
+        event = SimpleNamespace(
+            event_id="separation-first", asset="BTC", definition="broad", direction="upper",
+            snapshot_index=0, segment_id=1, test_rank=1, test_start_ts_ms=0,
+            first_strong_rejection_ts_ms=-900000, confirmation_ts_ms=0,
+            rejection_open=109., rejection_high=110., rejection_low=107., rejection_close=108.,
+            snapshot_available_at_ts_ms=-3600000, snapshot_next_available_at_ts_ms=3600000,
+        )
+        _, result = event_measurements(event, pd.Series({"upper":110., "lower":100.}), minute)
+        row = result["rows"][0]
+        self.assertEqual(row["first_inward_separation_elapsed_min"], 0)
+        self.assertEqual(row["first_boundary_retest_elapsed_min"], 1)
+        self.assertEqual(row["retest_vs_separation_order"], "separation_first")
+
+    def test_preconfirmation_bar_is_never_counted(self):
+        minute = pd.DataFrame({
+            "ts": np.arange(-1, 1440, dtype=np.int64) * MINUTE_MS,
+            "open": np.full(1441, 108.6), "high": np.full(1441, 108.8),
+            "low": np.full(1441, 108.4), "close": np.full(1441, 108.7),
+        })
+        minute.loc[0, ["open", "high", "low", "close"]] = [109., 200., 1., 108.]
+        event = SimpleNamespace(
+            event_id="no-lookahead", asset="BTC", definition="broad", direction="upper",
+            snapshot_index=0, segment_id=1, test_rank=1, test_start_ts_ms=0,
+            first_strong_rejection_ts_ms=-840000, confirmation_ts_ms=60000,
+            rejection_open=109., rejection_high=110., rejection_low=107., rejection_close=108.,
+            snapshot_available_at_ts_ms=-3600000, snapshot_next_available_at_ts_ms=3600000,
+        )
+        _, result = event_measurements(event, pd.Series({"upper":110., "lower":100.}), minute)
+        row = result["rows"][0]
+        self.assertTrue(np.isnan(row["first_boundary_retest_ts_ms"]))
+        self.assertEqual(row["confirmation_minute_open"], 108.6)
+
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
