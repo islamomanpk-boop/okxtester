@@ -216,7 +216,7 @@ def _test_record(asset, definition, direction, zone_frac, snapshot, segment_id,
 
 
 def classify_events(joined: pd.DataFrame, events: list[dict], asset: str,
-                    definition: str, zone_frac: float):
+                    definition: str, zone_frac: float, width_limit: float):
     """Causal event-time state machine; signal candle is classified before processing."""
     event_by_time = {}
     for event in events:
@@ -245,7 +245,11 @@ def classify_events(joined: pd.DataFrame, events: list[dict], asset: str,
                 if pd.notna(t["first_rejection_time"])
                 and t["first_rejection_time"] < time
             ]
-            contact_tests = [t for t in prior if t not in rejection_tests]
+            contact_tests = [
+                t for t in prior
+                if pd.isna(t["first_rejection_time"])
+                or not (t["first_rejection_time"] < time)
+            ]
             n_rej = len(rejection_tests)
             group = "3+" if n_rej >= 3 else str(n_rej)
             event_row = {
@@ -281,10 +285,7 @@ def classify_events(joined: pd.DataFrame, events: list[dict], asset: str,
             pd.notna(snapshot) and np.isfinite(row["upper"])
             and np.isfinite(row["lower"]) and row["upper"] > row["lower"]
             and bool(
-                (row["channel_width"] <= (
-                    EXPECTED_QUANTILES[asset][0] if definition == "STRICT_P25"
-                    else EXPECTED_QUANTILES[asset][1]
-                ))
+                (row["channel_width"] <= width_limit)
                 and (row["efficiency"] <= EFFICIENCY_MAX)
                 and (row["overlap"] >= OVERLAP_MIN)
             )
@@ -430,7 +431,8 @@ def run(data_dir: Path, output_dir: Path):
         asset_events = [e for e in all_events if e["asset"] == asset]
         for definition in ("STRICT_P25", "BROAD_P40"):
             for zone in ZONE_FRACS:
-                c, l = classify_events(joined, asset_events, asset, definition, zone)
+                limit = all_quantiles[asset]["P25" if definition == "STRICT_P25" else "P40"]
+                c, l = classify_events(joined, asset_events, asset, definition, zone, limit)
                 if not c.empty:
                     classifications.append(c)
                 if not l.empty:
