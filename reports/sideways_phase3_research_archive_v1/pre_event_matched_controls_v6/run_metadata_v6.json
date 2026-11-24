@@ -1,0 +1,27 @@
+{
+  "study": "Phase 3 outcome-blind optimal matching sensitivity V6",
+  "method": "maximum-cardinality 1:1 bipartite assignment, then minimum total robust RMS distance",
+  "solver": "scipy.optimize.linear_sum_assignment with explicit unmatched dummy columns",
+  "strata": "exact asset and direction; month labels audit-only, not a matching stratum",
+  "target_covariate": "signed_close_boundary_distance_width",
+  "target_calipers_robust_sd": [
+    0.25,
+    0.5,
+    0.75,
+    1.0
+  ],
+  "other_constraints": {
+    "overall_rms_robust_sd": 2.0,
+    "maximum_component_robust_sd": 1.5,
+    "maximum_time_gap_days": 30.0
+  },
+  "outcome_blind": true,
+  "outcomes_loaded": false,
+  "limitations": [
+    "optimality applies only to the specified eligible edge set and objective",
+    "standardized mean differences do not prove exchangeability",
+    "unmeasured confounding and overlapping-event dependence remain",
+    "broad and strict cohorts are nested",
+    "no outcome comparison or trading inference is made"
+  ]
+}
