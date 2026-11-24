@@ -60,13 +60,18 @@ def audit_pairs(pairs: pd.DataFrame, anatomy: pd.DataFrame) -> tuple[pd.DataFram
         for asset, ix in merged.groupby("asset").groups.items():
             positions = np.asarray(list(ix), dtype=int)
             for ii, pos in enumerate(positions):
-                s0 = min(merged.loc[pos,"separation_start_ts_ms"], merged.loc[pos,"retest_start_ts_ms"])
-                e0 = max(merged.loc[pos,"separation_end_ts_ms"], merged.loc[pos,"retest_end_ts_ms"])
+                own_windows = [
+                    (merged.loc[pos,"separation_start_ts_ms"], merged.loc[pos,"separation_end_ts_ms"]),
+                    (merged.loc[pos,"retest_start_ts_ms"], merged.loc[pos,"retest_end_ts_ms"])
+                ]
                 for other in positions:
                     if other == pos: continue
-                    s1 = min(merged.loc[other,"separation_start_ts_ms"], merged.loc[other,"retest_start_ts_ms"])
-                    e1 = max(merged.loc[other,"separation_end_ts_ms"], merged.loc[other,"retest_end_ts_ms"])
-                    if max(s0,s1) <= min(e0,e1):
+                    other_windows = [
+                        (merged.loc[other,"separation_start_ts_ms"], merged.loc[other,"separation_end_ts_ms"]),
+                        (merged.loc[other,"retest_start_ts_ms"], merged.loc[other,"retest_end_ts_ms"])
+                    ]
+                    if any(max(s0,s1) <= min(e0,e1)
+                           for s0,e0 in own_windows for s1,e1 in other_windows):
                         overlap_counts[pos] += 1
         merged["overlapping_other_pairs_same_asset"] = overlap_counts
         # Fine-grained coverage and balance by asset x boundary direction.
