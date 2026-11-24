@@ -1,0 +1,3 @@
+definition,eligible_separation_first,eligible_retest_first,matched_pairs,unmatched_separation_first,unmatched_retest_first,max_distance_rms_robust_sd
+broad,350,584,286,64,298,3.0
+strict,260,420,208,52,212,3.0
