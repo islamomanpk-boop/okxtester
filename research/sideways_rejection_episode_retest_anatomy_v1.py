@@ -279,10 +279,14 @@ def build_summaries(paths: pd.DataFrame) -> pd.DataFrame:
                         row[f"{col}_observed_denominator"] = len(complete)
                         row[f"{col}_observed_fraction"] = len(values) / len(complete) if len(complete) else np.nan
                     for flag in ["retest_close_inward", "same_bar_retest_separation_ambiguous"]:
-                        numerator = int(complete[flag].fillna(False).astype(bool).sum())
+                        if flag == "retest_close_inward":
+                            eligible = complete[complete.first_boundary_retest_ts_ms.notna()]
+                        else:
+                            eligible = complete
+                        numerator = int(eligible[flag].fillna(False).astype(bool).sum())
                         row[f"{flag}_numerator"] = numerator
-                        row[f"{flag}_denominator"] = len(complete)
-                        row[f"{flag}_fraction"] = numerator / len(complete) if len(complete) else np.nan
+                        row[f"{flag}_denominator"] = len(eligible)
+                        row[f"{flag}_fraction"] = numerator / len(eligible) if len(eligible) else np.nan
                     for name in ["high", "low", "open", "close"]:
                         col = f"rejection_{name}_revisit_ts_ms"
                         numerator = int(complete[col].notna().sum())
