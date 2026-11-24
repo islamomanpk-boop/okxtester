@@ -5,6 +5,7 @@ import argparse, csv, json
 from collections import defaultdict
 from pathlib import Path
 import math
+from statistics import median
 
 def read_csv(path):
     with path.open(newline="", encoding="utf-8-sig") as f:
@@ -43,14 +44,14 @@ def summarize(balance_rows, pair_rows, feasibility_rows):
         if key not in pair_counts or key not in feasible: raise ValueError(f"Missing pair/feasibility row for {key}")
         n=len(vals); mean=sum(vals)/n
         strata_keys=[k for k in strata if k[:2]==key]
-        bad10=sum(any(v>.10 for v in strata[k].values() for v in vlist) for k in strata_keys)
+        bad10=sum(any(x>.10 for values in strata[k].values() for x in values) for k in strata_keys)
         # Each stratum-covariate cell is one balance diagnostic; thresholds are descriptive only.
         frontier.append({
           "definition":definition,"target_caliper_robust_sd":caliper,
           "matched_pairs":pair_counts[key],"independent_maximum_feasible_pairs":feasible[key],
           "pair_retention_vs_feasible":pair_counts[key]/feasible[key] if feasible[key] else "",
           "asset_direction_strata":len(strata_keys),"covariate_stratum_cells":n,
-          "mean_abs_smd":mean,"median_abs_smd":sorted(vals)[(n-1)//2],
+          "mean_abs_smd":mean,"median_abs_smd":median(vals),
           "max_abs_smd":max(vals),"cells_abs_smd_gt_0_10":sum(x>.10 for x in vals),
           "cells_abs_smd_gt_0_20":sum(x>.20 for x in vals),
           "cells_abs_smd_le_0_10":sum(x<=.10 for x in vals),
