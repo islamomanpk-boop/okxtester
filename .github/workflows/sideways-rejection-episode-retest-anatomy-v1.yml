@@ -1,4 +1,4 @@
-name: Sideways Rejection Episode and Retest Anatomy V1 - Historical Study
+name: Sideways Rejection Episode, Retest, and Early-Path Historical Studies V1
 
 on:
   workflow_dispatch:
@@ -17,9 +17,9 @@ concurrency:
 
 jobs:
   historical-study:
-    name: Validate, test, and run five-asset descriptive study
+    name: Test and run five-asset rejection anatomy and follow-through studies
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: Check out price-action-v1
@@ -36,13 +36,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip numpy pandas
 
-      - name: Compile research module and tests
+      - name: Compile research modules and tests
         run: |
           python -m py_compile \
             research/sideways_rejection_forward_outcomes_v1.py \
-            tests/test_sideways_rejection_forward_outcomes_v1.py \
             research/sideways_rejection_episode_retest_anatomy_v1.py \
-            tests/test_sideways_rejection_episode_retest_anatomy_v1.py
+            research/sideways_rejection_early_path_sequence_followthrough_v1.py \
+            tests/test_sideways_rejection_forward_outcomes_v1.py \
+            tests/test_sideways_rejection_episode_retest_anatomy_v1.py \
+            tests/test_sideways_rejection_early_path_sequence_followthrough_v1.py
 
       - name: Run existing rejection forward-outcome tests
         run: |
@@ -58,6 +60,13 @@ jobs:
             -p 'test_sideways_rejection_episode_retest_anatomy_v1.py' \
             -v
 
+      - name: Run early-path sequence follow-through tests
+        run: |
+          python -m unittest discover \
+            -s tests \
+            -p 'test_sideways_rejection_early_path_sequence_followthrough_v1.py' \
+            -v
+
       - name: Verify all frozen source inputs exist
         run: |
           test -f reports/sideways_boundary_events_historical_v1/boundary_tests_historical_v1.csv
@@ -66,7 +75,7 @@ jobs:
             test -f "data/market_1m/${asset}_USDT_USDT_1m.csv"
           done
 
-      - name: Run five-asset historical anatomy study to fresh temporary output
+      - name: Run five-asset episode/retest anatomy study
         run: |
           python research/sideways_rejection_episode_retest_anatomy_v1.py \
             --events reports/sideways_boundary_events_historical_v1/boundary_tests_historical_v1.csv \
@@ -74,10 +83,26 @@ jobs:
             --minute-dir data/market_1m \
             --output "$RUNNER_TEMP/sideways_rejection_episode_retest_anatomy_v1"
 
-      - name: Upload historical study outputs
+      - name: Run five-asset early-path sequence and post-landmark study
+        run: |
+          python research/sideways_rejection_early_path_sequence_followthrough_v1.py \
+            --events reports/sideways_boundary_events_historical_v1/boundary_tests_historical_v1.csv \
+            --feature-dir reports/sideways_detector_original_v1 \
+            --minute-dir data/market_1m \
+            --output "$RUNNER_TEMP/sideways_rejection_early_path_sequence_followthrough_v1"
+
+      - name: Upload episode/retest anatomy outputs
         uses: actions/upload-artifact@v4
         with:
           name: sideways-rejection-episode-retest-anatomy-v1
           path: ${{ runner.temp }}/sideways_rejection_episode_retest_anatomy_v1/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload early-path sequence follow-through outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: sideways-rejection-early-path-sequence-followthrough-v1
+          path: ${{ runner.temp }}/sideways_rejection_early_path_sequence_followthrough_v1/
           if-no-files-found: error
           retention-days: 14
