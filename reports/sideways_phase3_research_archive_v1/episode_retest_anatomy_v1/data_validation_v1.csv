@@ -1,0 +1,6 @@
+asset,minute_rows,feature_rows,broad_events,strict_events,non_60s_minute_gaps,exact_confirmation_minutes,snapshot_join_mismatches,zero_range_rejection_candles,15m_complete_events,15m_censored_events,1h_complete_events,1h_censored_events,4h_complete_events,4h_censored_events,24h_complete_events,24h_censored_events
+BTC,569125,2358,220,161,0,381,0,0,381,0,381,0,381,0,380,1
+ETH,569125,2358,217,155,0,372,0,0,372,0,372,0,372,0,370,2
+SOL,569126,2358,242,173,0,415,0,0,415,0,415,0,415,0,415,0
+DOGE,569126,2358,216,158,0,374,0,0,374,0,374,0,374,0,372,2
+AVAX,569127,2358,259,191,0,450,0,0,450,0,450,0,450,0,445,5

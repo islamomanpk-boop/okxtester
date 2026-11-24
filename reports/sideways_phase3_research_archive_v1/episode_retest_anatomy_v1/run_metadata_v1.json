@@ -1,0 +1,31 @@
+{
+  "study": "Sideways Rejection Episode and Retest Anatomy V1",
+  "execution_timestamp_utc": "2026-11-24T15:39:51.579853+00:00",
+  "implementation_sha256": "695f2fa1783ce2fd7b9654bc84a560a1c18579912c47bbbfb092be580d33e102",
+  "source_event_ledger_rows": 2452,
+  "eligible_rejection_events": 1992,
+  "horizon_rows": 7968,
+  "cohort_counts": {
+    "broad": 1154,
+    "strict": 838
+  },
+  "horizons_minutes": {
+    "15m": 15,
+    "1h": 60,
+    "4h": 240,
+    "24h": 1440
+  },
+  "confirmation_delay_ms": 900000,
+  "boundary_touch_band_fraction": 0.1,
+  "inward_separation_fraction": 0.2,
+  "source_events": "reports/sideways_boundary_events_historical_v1/boundary_tests_historical_v1.csv",
+  "feature_directory": "reports/sideways_detector_original_v1",
+  "minute_directory": "data/market_1m",
+  "limitations": [
+    "Descriptive selected-event cohort only",
+    "OHLC cannot establish intrabar order or executable fills",
+    "Strict cohort is nested within broad",
+    "Overlapping events are not independent",
+    "Incomplete horizons are censored, never gap-bridged"
+  ]
+}

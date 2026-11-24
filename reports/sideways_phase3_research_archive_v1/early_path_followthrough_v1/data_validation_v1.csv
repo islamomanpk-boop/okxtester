@@ -1,0 +1,6 @@
+asset,minute_rows,feature_rows,source_events,classification_complete,classification_incomplete,non_60s_minute_gaps,1h_complete,4h_complete,24h_complete,1h_incomplete_or_unclassified,4h_incomplete_or_unclassified,24h_incomplete_or_unclassified
+BTC,569125,2358,381,381,0,0,381,381,380,0,0,1
+ETH,569125,2358,372,372,0,0,372,372,370,0,0,2
+SOL,569126,2358,415,415,0,0,415,415,415,0,0,0
+DOGE,569126,2358,374,374,0,0,374,374,372,0,0,2
+AVAX,569127,2358,450,450,0,0,450,450,445,0,0,5

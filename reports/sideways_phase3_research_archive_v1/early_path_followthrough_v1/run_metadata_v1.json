@@ -1,0 +1,29 @@
+{
+  "study": "Sideways Rejection Early-Path Sequence and Conditional Follow-Through V1",
+  "execution_timestamp_utc": "2026-11-24T15:39:54.685173+00:00",
+  "implementation_sha256": "aed2f36f02bf2ec43abe7b6a20c75e7322ad03cfcea81a5d949e6f0fc3ded647",
+  "eligible_events": 1992,
+  "event_horizon_rows": 5976,
+  "cohort_counts": {
+    "broad": 1154,
+    "strict": 838
+  },
+  "classification_bars": 15,
+  "classification_window_minutes": 15,
+  "outcome_landmark_delay_minutes": 15,
+  "boundary_touch_band_fraction": 0.1,
+  "inward_separation_fraction": 0.2,
+  "horizons_minutes": {
+    "1h": 60,
+    "4h": 240,
+    "24h": 1440
+  },
+  "limitations": [
+    "descriptive selected-event cohort",
+    "strict nested within broad",
+    "overlapping events are not independent",
+    "minute OHLC cannot establish intrabar order or fills",
+    "sequence class is post-confirmation state, not randomized treatment",
+    "future outcomes begin strictly after the classification window"
+  ]
+}

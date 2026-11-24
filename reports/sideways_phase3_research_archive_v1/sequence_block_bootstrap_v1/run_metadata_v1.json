@@ -1,0 +1,35 @@
+{
+  "study": "Sideways Rejection Sequence Calendar Moving-Block Bootstrap V1",
+  "seed": 20261124,
+  "replicates_per_contrast": 10000,
+  "block_lengths_days": [
+    3,
+    7,
+    14
+  ],
+  "contrast": "mean(SEPARATION_FIRST) minus mean(RETEST_FIRST)",
+  "resampling_unit": "shared UTC calendar-day blocks across all five assets in each cohort",
+  "cohorts": [
+    "broad",
+    "strict"
+  ],
+  "strict_is_nested_within_broad": true,
+  "horizons": [
+    "1h",
+    "4h",
+    "24h"
+  ],
+  "metrics": [
+    "final_close_direction_adjusted_midpoint_width",
+    "max_inward_excursion_width",
+    "max_outward_penetration_width"
+  ],
+  "inclusion": "complete follow-through rows for the two named sequence classes only",
+  "limitations": [
+    "descriptive observational contrast, not causal or a trading strategy",
+    "overlapping events may remain dependent within blocks",
+    "percentile intervals do not correct for multiple comparisons",
+    "broad and strict cohorts are nested, not independent",
+    "block bootstrap does not remove selection or regime confounding"
+  ]
+}
