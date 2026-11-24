@@ -97,5 +97,58 @@ class TestRejectionAnatomyV1(unittest.TestCase):
         self.assertEqual(result["rows"][0]["status"], "complete")
 
 
+    def test_first_touch_returns_none_when_no_retest(self):
+        highs = np.array([108.0, 108.5, 108.7])
+        lows = np.array([106.0, 106.5, 106.7])
+        self.assertIsNone(first_touch(np.arange(3), highs, lows, 109.0, "upper"))
+
+    def test_same_minute_can_contain_multiple_rejection_levels(self):
+        highs = np.array([111.0, 109.0])
+        lows = np.array([99.0, 101.0])
+        self.assertEqual(first_level_revisit(highs, lows, 110.0), 0)
+        self.assertEqual(first_level_revisit(highs, lows, 100.0), 0)
+        self.assertEqual(first_level_revisit(highs, lows, 105.0), 0)
+
+    def test_missing_minute_censors_horizon_instead_of_bridging(self):
+        minute = pd.DataFrame({
+            "ts": np.delete(np.arange(1440, dtype=np.int64) * MINUTE_MS, 5),
+            "open": np.full(1439, 109.5), "high": np.full(1439, 109.8),
+            "low": np.full(1439, 108.5), "close": np.full(1439, 109.),
+        })
+        event = SimpleNamespace(
+            event_id="gap", asset="BTC", definition="broad", direction="upper",
+            snapshot_index=0, segment_id=1, test_rank=1, test_start_ts_ms=0,
+            first_strong_rejection_ts_ms=-900000, confirmation_ts_ms=0,
+            rejection_open=109., rejection_high=110., rejection_low=107., rejection_close=108.,
+            snapshot_available_at_ts_ms=-3600000, snapshot_next_available_at_ts_ms=3600000,
+        )
+        _, result = event_measurements(event, pd.Series({"upper":110., "lower":100.}), minute)
+        first = result["rows"][0]
+        self.assertEqual(first["status"], "incomplete")
+        self.assertEqual(first["censor_reason"], "missing_or_irregular_minute")
+        self.assertTrue(np.isnan(first["horizon_close"]))
+
+    def test_truncated_history_is_censored(self):
+        minute = pd.DataFrame({
+            "ts": np.arange(10, dtype=np.int64) * MINUTE_MS,
+            "open": np.full(10, 109.5), "high": np.full(10, 109.8),
+            "low": np.full(10, 108.5), "close": np.full(10, 109.),
+        })
+        event = SimpleNamespace(
+            event_id="tail", asset="BTC", definition="broad", direction="upper",
+            snapshot_index=0, segment_id=1, test_rank=1, test_start_ts_ms=0,
+            first_strong_rejection_ts_ms=-900000, confirmation_ts_ms=0,
+            rejection_open=109., rejection_high=110., rejection_low=107., rejection_close=108.,
+            snapshot_available_at_ts_ms=-3600000, snapshot_next_available_at_ts_ms=3600000,
+        )
+        _, result = event_measurements(event, pd.Series({"upper":110., "lower":100.}), minute)
+        first = result["rows"][0]
+        self.assertEqual(first["status"], "incomplete")
+        self.assertEqual(first["censor_reason"], "insufficient_future_data")
+        self.assertEqual(first["observed_bars"], 10)
+        self.assertTrue(np.isnan(first["horizon_close"]))
+
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
