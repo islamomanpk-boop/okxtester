@@ -149,6 +149,8 @@ def event_measurements(event, feature: pd.Series, minutes: pd.DataFrame) -> tupl
         "direction": direction, "snapshot_index": int(event.snapshot_index),
         "segment_id": int(event.segment_id), "test_rank": int(event.test_rank),
         "test_start_ts_ms": int(event.test_start_ts_ms),
+        "test_end_ts_ms": int(event.test_end_ts_ms),
+        "closure_reason": event.closure_reason,
         "first_strong_rejection_ts_ms": int(event.first_strong_rejection_ts_ms),
         "confirmation_ts_ms": confirmation, "upper": upper, "lower": lower,
         "rejection_open": ro, "rejection_high": rh, "rejection_low": rl, "rejection_close": rc,
@@ -168,7 +170,13 @@ def event_measurements(event, feature: pd.Series, minutes: pd.DataFrame) -> tupl
             status, censor = "incomplete", "missing_or_irregular_minute"
         row = {
             "event_id": event.event_id, "asset": event.asset, "definition": event.definition,
-            "direction": direction, "test_rank": int(event.test_rank), "confirmation_ts_ms": confirmation, "horizon": horizon,
+            "direction": direction, "snapshot_index": int(event.snapshot_index),
+            "segment_id": int(event.segment_id), "test_rank": int(event.test_rank),
+            "test_start_ts_ms": int(event.test_start_ts_ms),
+            "test_end_ts_ms": int(event.test_end_ts_ms),
+            "first_strong_rejection_ts_ms": int(event.first_strong_rejection_ts_ms),
+            "confirmation_ts_ms": confirmation, "upper": upper, "lower": lower,
+            "channel_width": width, "horizon": horizon,
             "expected_bars": count, "observed_bars": len(observed_ts),
             "horizon_end_ts_ms": int(confirmation + (count - 1) * MINUTE_MS),
             "confirmation_minute_open": float(minutes.iloc[start].open),
