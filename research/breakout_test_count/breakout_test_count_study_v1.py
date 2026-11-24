@@ -411,6 +411,7 @@ def run(data_dir: Path, output_dir: Path):
             "complete_15m_bars": len(bars15), "complete_4h_bars": len(bars4),
             "joined_15m_rows": len(joined),
             "joined_15m_gaps": int((joined.index.to_series().diff().dropna() != FIFTEEN_MIN).sum()),
+            "snapshot_changes": int(joined["snapshot"].ne(joined["snapshot"].shift(1)).sum() - 1),
         }
         events, quantiles, counts = original_events(asset, joined, data[asset])
         all_events.extend(events)
@@ -492,11 +493,12 @@ def run(data_dir: Path, output_dir: Path):
     links_df.to_csv(output_dir / "breakout_prior_test_links_v1.csv", index=False)
     summary_df.to_csv(output_dir / "breakout_prior_test_group_counts_v1.csv", index=False)
 
+    common_1m_gaps = int((common.to_series().diff().dropna() != pd.Timedelta(minutes=1)).sum())
     audit_rows = []
     for asset in ASSETS:
         audit_rows.append({
             "asset": asset, "source_1m_rows": source_rows[asset],
-            "common_1m_rows": len(common), **bars_audit[asset],
+            "common_1m_rows": len(common), "common_1m_gaps": common_1m_gaps, **bars_audit[asset],
             "original_P25": all_quantiles[asset]["P25"],
             "original_P40": all_quantiles[asset]["P40"],
             "original_counts_reproduced": True,
@@ -525,13 +527,13 @@ def run(data_dir: Path, output_dir: Path):
         "Strict event set is a subset of broad event set.",
         "Descriptive classification only; no forward outcomes or profitability inference.",
     ]
-    (output_dir / "run.log").write_text("\\n".join(run_log) + "\\n")
+    (output_dir / "run.log").write_text("\n".join(run_log) + "\n")
 
     metadata = {
         "study": "breakout_prior_test_count_study_v1",
         "specification": "docs/research_checkpoints/2026-11-24_breakout_prior_test_count_study_spec_v1.md",
         "original_source": SOURCE_REL, "original_source_git_blob_sha": SOURCE_BLOB_SHA,
-        "assets": ASSETS, "common_1m_timestamps": len(common),
+        "assets": ASSETS, "common_1m_timestamps": len(common), "common_1m_gaps": common_1m_gaps,
         "timestamp_convention": "15M and 4H bars label=right, closed=left; labels are close times",
         "zones_pct_of_channel": [z * 100 for z in ZONE_FRACS],
         "separation_pct_of_channel": SEPARATION_FRAC * 100,
