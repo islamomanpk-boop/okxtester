@@ -7,6 +7,8 @@ from research.sideways_boundary_interaction_taxonomy.sideways_boundary_interacti
     classify_side,
     classify_candle,
     strong_rejection_reference,
+    penetration_distribution,
+    compare_class_tables,
 )
 
 
@@ -112,6 +114,62 @@ class TestCandleAndReferenceFlags(unittest.TestCase):
             classify_side("MIDDLE", 105, 106, 104, 105, U, L, 0.10)
         with self.assertRaises(ValueError):
             classify_side("UPPER", 105, 106, 104, 105, L, U, 0.10)
+
+
+class TestReportingHelpers(unittest.TestCase):
+    def test_penetration_summary_excludes_zero_depth_from_distribution(self):
+        import pandas as pd
+        result = penetration_distribution(
+            pd.DataFrame({"penetration_depth_w": [0.0, 0.01, 0.03]})
+        )
+        self.assertEqual(result["observations"], 3)
+        self.assertEqual(result["zero_penetration_observations"], 1)
+        self.assertEqual(result["penetration_observations"], 2)
+        self.assertAlmostEqual(result["median_positive_depth_w"], 0.02)
+        self.assertAlmostEqual(result["maximum_positive_depth_w"], 0.03)
+
+    def test_penetration_summary_handles_no_penetrations(self):
+        import pandas as pd
+        result = penetration_distribution(
+            pd.DataFrame({"penetration_depth_w": [0.0, 0.0]})
+        )
+        self.assertEqual(result["penetration_observations"], 0)
+        self.assertTrue(pd.isna(result["median_positive_depth_w"]))
+
+    def test_side_comparison_keeps_denominators_and_difference(self):
+        import pandas as pd
+        counts = pd.DataFrame([
+            {"asset": "BTC", "definition": "STRICT_P25", "side": "UPPER",
+             "approach_band_pct": 10, "interaction_class": "APPROACH_ONLY",
+             "count": 20, "denominator": 100, "proportion": 0.20},
+            {"asset": "BTC", "definition": "STRICT_P25", "side": "LOWER",
+             "approach_band_pct": 10, "interaction_class": "APPROACH_ONLY",
+             "count": 30, "denominator": 120, "proportion": 0.25},
+        ])
+        result = compare_class_tables(
+            counts, "UPPER", "LOWER", "upper", "lower",
+            ["asset", "definition", "approach_band_pct", "interaction_class"], "side",
+        )
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result.iloc[0]["upper_denominator"], 100)
+        self.assertEqual(result.iloc[0]["lower_denominator"], 120)
+        self.assertAlmostEqual(result.iloc[0]["lower_minus_upper_proportion"], 0.05)
+
+    def test_cohort_comparison_uses_named_selector(self):
+        import pandas as pd
+        counts = pd.DataFrame([
+            {"asset": "BTC", "definition": "STRICT_P25", "side": "UPPER",
+             "approach_band_pct": 10, "interaction_class": "NO_APPROACH",
+             "count": 40, "denominator": 100, "proportion": 0.40},
+            {"asset": "BTC", "definition": "BROAD_P40", "side": "UPPER",
+             "approach_band_pct": 10, "interaction_class": "NO_APPROACH",
+             "count": 30, "denominator": 120, "proportion": 0.25},
+        ])
+        result = compare_class_tables(
+            counts, "STRICT_P25", "BROAD_P40", "strict", "broad",
+            ["asset", "side", "approach_band_pct", "interaction_class"], "definition",
+        )
+        self.assertAlmostEqual(result.iloc[0]["broad_minus_strict_proportion"], -0.15)
 
 
 if __name__ == "__main__":
