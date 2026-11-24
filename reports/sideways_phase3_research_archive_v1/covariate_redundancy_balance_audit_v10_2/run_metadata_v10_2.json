@@ -1,0 +1,15 @@
+{
+  "study": "Phase 3 V10.2 covariate redundancy and matched-balance attribution",
+  "inputs": "Frozen eligible pre-event covariates, archived V6 matched pairs, archived V10.1 within-sequence correlation pairs",
+  "balance_reference": "Eligible class-specific sample SD pooled within exact definition x asset x direction, consistent with V8 reference convention",
+  "redundancy": "Summarizes repeated within-sequence absolute Pearson correlations >=0.80 and >=0.90; no variable is removed",
+  "interpretation": "Outcome-blind descriptive audit only; no matching rules changed, no cohort approved, no outcomes loaded or compared",
+  "limitations": [
+    "correlation does not establish redundancy or causal irrelevance",
+    "small groups produce unstable correlation and SMD estimates",
+    "pairwise correlation summaries may overlap across definitions",
+    "SMDs are descriptive and do not prove exchangeability",
+    "broad and strict definitions are nested",
+    "unmeasured confounding remains possible"
+  ]
+}

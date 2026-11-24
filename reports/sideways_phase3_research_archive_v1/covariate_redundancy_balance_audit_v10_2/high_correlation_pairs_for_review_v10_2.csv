@@ -1,0 +1,7 @@
+definition,covariate_a,covariate_b,group_observations,median_abs_correlation,max_abs_correlation,groups_ge_0_80,groups_ge_0_90
+broad,body_range_ratio,lower_wick_range_ratio,20,0.6339532598462156,0.9378778394536296,5,2
+broad,body_range_ratio,upper_wick_range_ratio,20,0.5787997723817021,0.8936141905599622,3,0
+broad,pre_60m_realized_vol,pre_240m_realized_vol,20,0.7775629254907261,0.9154231230466179,5,1
+strict,body_range_ratio,lower_wick_range_ratio,20,0.5644985662840587,0.9370357697179393,6,2
+strict,body_range_ratio,upper_wick_range_ratio,20,0.5946479621801878,0.8793048565999037,3,0
+strict,pre_60m_realized_vol,pre_240m_realized_vol,20,0.8058186737275487,0.8913809614155066,12,0
