@@ -1,0 +1,87 @@
+{
+  "assets": [
+    "BTC",
+    "ETH",
+    "SOL",
+    "DOGE",
+    "AVAX"
+  ],
+  "bands": [
+    0.05,
+    0.1,
+    0.15
+  ],
+  "chronological_period": "UTC calendar quarters",
+  "comparison_policy": "upper/lower and strict/broad comparisons are descriptive; strict and broad cohorts overlap",
+  "definitions": [
+    "STRICT_P25",
+    "BROAD_P40"
+  ],
+  "dual_boundary_definition": "both sides have non-NO_APPROACH class under widest 15% band; counted once per candle",
+  "expected_observation_rows_from_snapshot_audit": 153540,
+  "final_snapshot_tail_policy": "exclude entire final 4H interval from primary summaries",
+  "final_truncated_snapshot_excluded": true,
+  "first_bar_policy": "suppress first observed 15M candle at/after each snapshot availability",
+  "limitations": [
+    "Consecutive candle rows are not independent episodes.",
+    "No predictive, causal, strategy, execution, or profitability inference.",
+    "STRICT_P25 and BROAD_P40 cohorts overlap and must not be pooled as independent.",
+    "Exact boundary contact uses exact parsed-price equality; no epsilon."
+  ],
+  "observation_rows": 153540,
+  "penetration_summary_policy": "distribution statistics use strictly positive penetration depths only; zero counts reported separately",
+  "primary_band": 0.1,
+  "snapshot_audit_rows": 23580,
+  "snapshot_exclusion_note": "nonqualifying-context and final-tail exclusion counts are reason flags and can overlap",
+  "source_files": [
+    {
+      "15m_rows": 37941,
+      "15m_sha256": "0721a4a25a61f1917be4f9952514096c641fbec64e7ae0d50c7cf1c3ebfe9658",
+      "asset": "BTC",
+      "feature_rows": 2358,
+      "first_15m_ts_ms": 1760950800000,
+      "last_15m_ts_ms": 1795096800000,
+      "last_snapshot_available_at_ts_ms": 1795089600000
+    },
+    {
+      "15m_rows": 37941,
+      "15m_sha256": "7195e45315c360e9f1fdd37746125968359bce8632a0bfe51628f104792fdc04",
+      "asset": "ETH",
+      "feature_rows": 2358,
+      "first_15m_ts_ms": 1760950800000,
+      "last_15m_ts_ms": 1795096800000,
+      "last_snapshot_available_at_ts_ms": 1795089600000
+    },
+    {
+      "15m_rows": 37941,
+      "15m_sha256": "5b34cbb006497ecd7ebe0cfa67b25b4230cb769d6362d278991171a8f6da2d33",
+      "asset": "SOL",
+      "feature_rows": 2358,
+      "first_15m_ts_ms": 1760950800000,
+      "last_15m_ts_ms": 1795096800000,
+      "last_snapshot_available_at_ts_ms": 1795089600000
+    },
+    {
+      "15m_rows": 37941,
+      "15m_sha256": "3418c81fa16b531eee5de90d8b0ff6a5543db54357cb5572358ff31ab6627b5f",
+      "asset": "DOGE",
+      "feature_rows": 2358,
+      "first_15m_ts_ms": 1760950800000,
+      "last_15m_ts_ms": 1795096800000,
+      "last_snapshot_available_at_ts_ms": 1795089600000
+    },
+    {
+      "15m_rows": 37941,
+      "15m_sha256": "75ef1a545686217a6d4ca55385690095c6e2a494438b7f4e38352d5ca35de493",
+      "asset": "AVAX",
+      "feature_rows": 2358,
+      "first_15m_ts_ms": 1760950800000,
+      "last_15m_ts_ms": 1795096800000,
+      "last_snapshot_available_at_ts_ms": 1795089600000
+    }
+  ],
+  "status": "DESCRIPTIVE_CANDLE_LEVEL_RESEARCH",
+  "study": "Sideways Boundary Interaction and Penetration Taxonomy V1",
+  "timestamp_policy": "strict continuous 15M cadence; no gaps bridged",
+  "volume_policy": "volume retained only in source validation; no volume-based inference"
+}
