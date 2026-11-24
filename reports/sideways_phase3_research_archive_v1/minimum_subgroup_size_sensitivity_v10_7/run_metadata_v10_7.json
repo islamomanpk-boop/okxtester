@@ -1,0 +1,15 @@
+{
+  "study": "Phase 3 V10.7 minimum subgroup-size sensitivity",
+  "input": "asset_direction_covariate_balance_v10_5.csv",
+  "minimum_pair_thresholds": [
+    3,
+    5,
+    8,
+    10
+  ],
+  "imbalance_threshold_abs_smd": 0.1,
+  "design_rows": 192,
+  "detail_rows": 2688,
+  "outcome_data_loaded": false,
+  "interpretation": "Outcome-blind diagnostic only; no cohort accepted for outcome comparison."
+}\n
