@@ -1,6 +1,7 @@
 import unittest
 import pandas as pd
 from research.sideways_rejection_pre_event_matched_controls_v7 import audit_pairs
+from research.sideways_rejection_pre_event_matched_controls_v4 import COVARIATES
 
 class V7AuditTests(unittest.TestCase):
     def fixture(self):
@@ -10,6 +11,9 @@ class V7AuditTests(unittest.TestCase):
             {"event_id":"a2","asset":"BTC","direction":"upper","definition":"broad","test_start_ts_ms":50000,"confirmation_ts_ms":120000,"x":1.1},
             {"event_id":"b2","asset":"BTC","direction":"upper","definition":"broad","test_start_ts_ms":110000,"confirmation_ts_ms":180000,"x":1.3},
         ])
+        for i, row in anatomy.iterrows():
+            for c in COVARIATES:
+                anatomy.loc[i, c] = float(i) + (0.1 if c.endswith("pct") else 0.0)
         pairs = pd.DataFrame([
             {"definition":"broad","target_caliper_robust_sd":0.25,"pair_id":"p1","separation_event_id":"a1","retest_event_id":"b1","asset":"BTC","direction":"upper","match_time_gap_days":0.1,"match_distance_rms_robust_sd":0.2,"target_abs_difference_robust_sd":0.1},
             {"definition":"broad","target_caliper_robust_sd":0.25,"pair_id":"p2","separation_event_id":"a2","retest_event_id":"b2","asset":"BTC","direction":"upper","match_time_gap_days":0.2,"match_distance_rms_robust_sd":0.3,"target_abs_difference_robust_sd":0.2},
