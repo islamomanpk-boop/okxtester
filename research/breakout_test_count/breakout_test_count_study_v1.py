@@ -217,29 +217,52 @@ def _test_record(asset, definition, direction, zone_frac, snapshot, segment_id,
 
 def classify_events(joined: pd.DataFrame, events: list[dict], asset: str,
                     definition: str, zone_frac: float, width_limit: float):
-    """Causal event-time state machine; signal candle is classified before processing."""
+    """Causal event-time state machine; resets occur before classifying a new segment."""
     event_by_time = {}
     for event in events:
         if event["definition"] == definition:
             event_by_time.setdefault(event["signal_time"], []).append(event)
 
-    records = {"UPPER": [], "LOWER": []}
     links = []
     event_rows = []
     active_snapshot = None
     previous_time = None
     segment_id = -1
-    states = {
-        d: {"active": None, "tests": []}
-        for d in ("UPPER", "LOWER")
-    }
+    states = {d: {"active": None, "tests": []} for d in ("UPPER", "LOWER")}
 
-    for i, (time, row) in enumerate(joined.iterrows()):
-        # A breakout is classified using state accumulated strictly before this bar.
+    for time, row in joined.iterrows():
+        snapshot = row["snapshot"]
+        valid_context = (
+            pd.notna(snapshot) and np.isfinite(row["upper"])
+            and np.isfinite(row["lower"]) and row["upper"] > row["lower"]
+            and row["channel_width"] <= width_limit
+            and row["efficiency"] <= EFFICIENCY_MAX
+            and row["overlap"] >= OVERLAP_MIN
+        )
+        gap = previous_time is not None and time - previous_time != FIFTEEN_MIN
+        snapshot_change = active_snapshot is not None and snapshot != active_snapshot
+
+        # Reset before classifying the current bar, so no earlier segment can leak in.
+        if gap or snapshot_change or not valid_context:
+            states = {d: {"active": None, "tests": []} for d in ("UPPER", "LOWER")}
+            if valid_context:
+                segment_id += 1
+        elif valid_context and active_snapshot is None:
+            segment_id += 1
+
+        if not valid_context:
+            active_snapshot = None
+            previous_time = time
+            continue
+
+        # The breakout row itself is deliberately not processed until AFTER its
+        # prior-test classification. All timestamps in state are therefore earlier.
         for event in event_by_time.get(time, []):
-            d = event["direction"]
-            tests = states[d]["tests"]
-            prior = [dict(t) for t in tests if t["test_start_time"] < time]
+            direction = event["direction"]
+            prior = [
+                dict(t) for t in states[direction]["tests"]
+                if t["test_start_time"] < time
+            ]
             rejection_tests = [
                 t for t in prior
                 if pd.notna(t["first_rejection_time"])
@@ -252,27 +275,30 @@ def classify_events(joined: pd.DataFrame, events: list[dict], asset: str,
             ]
             n_rej = len(rejection_tests)
             group = "3+" if n_rej >= 3 else str(n_rej)
-            event_row = {
+            event_rows.append({
                 **event,
                 "zone_pct_of_channel": zone_frac * 100,
                 "prior_touch_test_count": len(prior),
                 "prior_confirmed_rejection_count": n_rej,
                 "prior_contact_only_test_count": len(contact_tests),
                 "prior_rejection_group": group,
-            }
-            event_rows.append(event_row)
+                "prior_segment_id": segment_id,
+            })
             for test in prior:
+                is_rejection = (
+                    pd.notna(test["first_rejection_time"])
+                    and test["first_rejection_time"] < time
+                )
                 links.append({
                     "asset": asset, "definition": definition,
-                    "direction": d, "signal_time": time,
+                    "direction": direction, "signal_time": time,
                     "zone_pct_of_channel": zone_frac * 100,
                     "test_start_time": test["test_start_time"],
                     "first_rejection_time": test["first_rejection_time"],
                     "test_end_time": test["test_end_time"],
                     "closure_reason": test["closure_reason"],
                     "test_status_at_breakout": (
-                        "confirmed_rejection" if pd.notna(test["first_rejection_time"])
-                        and test["first_rejection_time"] < time else "contact_only"
+                        "confirmed_rejection" if is_rejection else "contact_only"
                     ),
                     "upper": test["upper"], "lower": test["lower"],
                     "channel_width_price": test["channel_width_price"],
@@ -280,37 +306,11 @@ def classify_events(joined: pd.DataFrame, events: list[dict], asset: str,
                     "separation_width_price": test["separation_width_price"],
                 })
 
-        snapshot = row["snapshot"]
-        valid_context = (
-            pd.notna(snapshot) and np.isfinite(row["upper"])
-            and np.isfinite(row["lower"]) and row["upper"] > row["lower"]
-            and bool(
-                (row["channel_width"] <= width_limit)
-                and (row["efficiency"] <= EFFICIENCY_MAX)
-                and (row["overlap"] >= OVERLAP_MIN)
-            )
-        )
-        gap = previous_time is not None and time - previous_time != FIFTEEN_MIN
-        snapshot_change = active_snapshot is not None and snapshot != active_snapshot
-        if gap or snapshot_change or not valid_context:
-            for d in states:
-                states[d] = {"active": None, "tests": []}
-            if valid_context:
-                segment_id += 1
-        elif valid_context and (active_snapshot is None or previous_time is None):
-            segment_id += 1
-
-        if not valid_context:
-            active_snapshot = None
-            previous_time = time
-            continue
-
         upper = float(row["upper"])
         lower = float(row["lower"])
         width = upper - lower
         if not np.isfinite(width) or width <= 0:
-            for d in states:
-                states[d] = {"active": None, "tests": []}
+            states = {d: {"active": None, "tests": []} for d in ("UPPER", "LOWER")}
             active_snapshot = None
             previous_time = time
             continue
@@ -320,12 +320,24 @@ def classify_events(joined: pd.DataFrame, events: list[dict], asset: str,
             active = state["active"]
             if direction == "UPPER":
                 touch = float(row["high"]) >= upper - zone_frac * width
-                rejection = touch and float(row["close"]) < upper - zone_frac * width and float(row["close"]) > lower
-                separated = (not touch) and float(row["close"]) <= upper - SEPARATION_FRAC * width
+                rejection = (
+                    touch and float(row["close"]) < upper - zone_frac * width
+                    and float(row["close"]) > lower
+                )
+                separated = (
+                    (not touch)
+                    and float(row["close"]) <= upper - SEPARATION_FRAC * width
+                )
             else:
                 touch = float(row["low"]) <= lower + zone_frac * width
-                rejection = touch and float(row["close"]) > lower + zone_frac * width and float(row["close"]) < upper
-                separated = (not touch) and float(row["close"]) >= lower + SEPARATION_FRAC * width
+                rejection = (
+                    touch and float(row["close"]) > lower + zone_frac * width
+                    and float(row["close"]) < upper
+                )
+                separated = (
+                    (not touch)
+                    and float(row["close"]) >= lower + SEPARATION_FRAC * width
+                )
 
             if active is None:
                 if touch:
@@ -338,6 +350,9 @@ def classify_events(joined: pd.DataFrame, events: list[dict], asset: str,
                     active["test_start_close"] = float(row["close"])
                     state["tests"].append(active)
                     state["active"] = active
+                    if rejection:
+                        active["first_rejection_time"] = time
+                        active["rejection_close"] = float(row["close"])
             else:
                 if rejection and pd.isna(active["first_rejection_time"]):
                     active["first_rejection_time"] = time
@@ -351,7 +366,6 @@ def classify_events(joined: pd.DataFrame, events: list[dict], asset: str,
         previous_time = time
 
     return pd.DataFrame(event_rows), pd.DataFrame(links)
-
 
 def group_summary(classifications: pd.DataFrame) -> pd.DataFrame:
     cols = ["asset", "definition", "direction", "zone_pct_of_channel", "prior_rejection_group"]
