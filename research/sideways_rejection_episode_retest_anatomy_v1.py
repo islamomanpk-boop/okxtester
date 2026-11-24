@@ -90,6 +90,10 @@ def validate_event_ledger(path: Path) -> pd.DataFrame:
         raise ValueError("Rejection candle open is not 15-minute aligned")
     if (df.confirmation_ts_ms % MINUTE_MS != 0).any():
         raise ValueError("Confirmation timestamp is not minute aligned")
+    if (df.snapshot_index < 0).any() or (df.segment_id < 1).any() or (df.test_rank < 1).any():
+        raise ValueError("Invalid snapshot, segment, or test-rank index")
+    if (df.first_strong_rejection_ts_ms < df.test_start_ts_ms).any() or (df.first_strong_rejection_ts_ms > df.test_end_ts_ms).any():
+        raise ValueError("Strong rejection timestamp falls outside its boundary-test interval")
     broad_keys = set(map(tuple, df.loc[df.definition == "broad", [c for c in EVENT_KEY if c != "definition"]].to_numpy()))
     strict_keys = set(map(tuple, df.loc[df.definition == "strict", [c for c in EVENT_KEY if c != "definition"]].to_numpy()))
     if not strict_keys.issubset(broad_keys):
@@ -190,7 +194,7 @@ def event_measurements(event, feature: pd.Series, minutes: pd.DataFrame) -> tupl
             def elapsed(ix):
                 return float((ts[ix] - confirmation) / MINUTE_MS) if ix is not None else np.nan
             outward = max(0.0, (np.max(hi) - upper) / width) if direction == "upper" else max(0.0, (lower - np.min(lo)) / width)
-            inward = (upper - np.min(lo)) / width if direction == "upper" else (np.max(hi) - lower) / width
+            inward = max(0.0, (upper - np.min(lo)) / width) if direction == "upper" else max(0.0, (np.max(hi) - lower) / width)
             row.update({
                 "first_boundary_retest_ts_ms": stamp(zone_ix), "first_boundary_retest_elapsed_min": elapsed(zone_ix),
                 "first_boundary_retest_open": float(op[zone_ix]) if zone_ix is not None else np.nan,
@@ -331,6 +335,7 @@ def run(events_path: Path, feature_dir: Path, minute_dir: Path, output_dir: Path
             "non_60s_minute_gaps": int((np.diff(minutes.ts.to_numpy(dtype=np.int64)) != MINUTE_MS).sum()),
             "exact_confirmation_minutes": len(asset_rows),
             "snapshot_join_mismatches": 0,
+            "zero_range_rejection_candles": int(sum(bool(x["zero_range_candle"]) for x in anatomy if x["asset"] == asset)),
         })
     a_df, p_df = pd.DataFrame(anatomy), pd.DataFrame(path_rows)
     if len(a_df) != 1992 or len(p_df) != 1992 * len(HORIZONS):
@@ -361,7 +366,8 @@ def run(events_path: Path, feature_dir: Path, minute_dir: Path, output_dir: Path
         "study": "Sideways Rejection Episode and Retest Anatomy V1",
         "execution_timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "implementation_sha256": implementation_sha256,
-        "events": len(a_df), "horizon_rows": len(p_df),
+        "source_event_ledger_rows": int(sum(1 for _ in open(events_path, encoding="utf-8")) - 1),
+        "eligible_rejection_events": len(a_df), "horizon_rows": len(p_df),
         "cohort_counts": {k: int((a_df.definition == k).sum()) for k in ["broad", "strict"]},
         "horizons_minutes": HORIZONS, "confirmation_delay_ms": CONFIRMATION_DELAY_MS,
         "boundary_touch_band_fraction": .10, "inward_separation_fraction": .20,
