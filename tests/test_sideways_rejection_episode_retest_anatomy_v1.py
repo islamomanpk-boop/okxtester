@@ -44,10 +44,23 @@ class TestRejectionAnatomyV1(unittest.TestCase):
         self.assertEqual(first_touch(np.arange(4), highs, lows, 106., "lower"), 1)
 
     def test_boundary_penetration_is_strict_not_equality(self):
-        highs = np.array([110., 110.01])
-        lows = np.array([108., 108.])
-        self.assertFalse(bool(np.any(highs[:1] > 110.)))
-        self.assertTrue(bool(np.any(highs[1:] > 110.)))
+        minute = pd.DataFrame({
+            "ts": np.arange(1440, dtype=np.int64) * MINUTE_MS,
+            "open": np.full(1440, 109.5), "high": np.full(1440, 110.0),
+            "low": np.full(1440, 108.5), "close": np.full(1440, 109.0),
+        })
+        minute.loc[1, "high"] = 110.01
+        event = SimpleNamespace(
+            event_id="strict-penetration", asset="BTC", definition="broad", direction="upper",
+            snapshot_index=0, segment_id=1, test_rank=1, test_start_ts_ms=0,
+            first_strong_rejection_ts_ms=-900000, confirmation_ts_ms=0,
+            rejection_open=109., rejection_high=110., rejection_low=107., rejection_close=108.,
+            snapshot_available_at_ts_ms=-3600000, snapshot_next_available_at_ts_ms=3600000,
+        )
+        _, result = event_measurements(event, pd.Series({"upper":110., "lower":100.}), minute)
+        row = result["rows"][0]
+        self.assertEqual(row["first_penetration_elapsed_min"], 1)
+        self.assertAlmostEqual(row["first_penetration_depth_width"], .001)
 
     def test_rejection_level_revisit_includes_containment(self):
         highs = np.array([106., 108., 109.])
