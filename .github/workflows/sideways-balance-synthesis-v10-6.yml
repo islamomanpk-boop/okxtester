@@ -46,6 +46,7 @@ jobs:
           git add "$archive"
           if git diff --cached --quiet; then echo "No archive changes"; else
             git commit -m "Archive Phase 3 V10.6 stable-stratum balance synthesis"
+            git pull --rebase origin price-action-v1
             git push origin HEAD:price-action-v1
           fi
       - name: Upload secondary artifact
