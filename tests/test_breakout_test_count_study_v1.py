@@ -4,7 +4,10 @@ import unittest
 
 import pandas as pd
 
-from research.breakout_test_count.breakout_test_count_study_v1 import classify_events
+from research.breakout_test_count.breakout_test_count_study_v1 import (
+    classify_events,
+    group_summary,
+)
 
 STEP = pd.Timedelta(minutes=15)
 
@@ -129,6 +132,20 @@ class TestBreakoutPriorTestCountV1(unittest.TestCase):
             list(links["test_start_time"]),
             [frame.index[0], frame.index[2]],
         )
+
+
+
+    def test_group_summary_includes_zero_count_categories(self):
+        sample = pd.DataFrame([{
+            "asset": "BTC",
+            "definition": "STRICT_P25",
+            "direction": "UPPER",
+            "zone_pct_of_channel": 10.0,
+            "prior_rejection_group": "1",
+        }])
+        summary = group_summary(sample)
+        counts = dict(zip(summary["prior_rejection_group"], summary["event_count"]))
+        self.assertEqual(counts, {"0": 0, "1": 1, "2": 0, "3+": 0})
 
 
 if __name__ == "__main__":
