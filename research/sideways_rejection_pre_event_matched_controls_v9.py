@@ -9,10 +9,10 @@ from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import maximum_bipartite_matching
 try:
     from research.sideways_rejection_pre_event_matched_controls_v4 import COVARIATES, CLASSES, build_covariates, robust_scale
-    from research.sideways_rejection_pre_event_matched_controls_v5 import CALIPERS
+    from research.sideways_rejection_pre_event_matched_controls_v5 import CALIPERS, TARGET
 except ModuleNotFoundError:
     from sideways_rejection_pre_event_matched_controls_v4 import COVARIATES, CLASSES, build_covariates, robust_scale
-    from sideways_rejection_pre_event_matched_controls_v5 import CALIPERS
+    from sideways_rejection_pre_event_matched_controls_v5 import CALIPERS, TARGET
 
 MAX_DISTANCE = 2.0
 MAX_COMPONENT = 1.5
@@ -34,7 +34,7 @@ def audit_feasibility(frame: pd.DataFrame, archived_pairs: pd.DataFrame):
         z=(data[list(COVARIATES)].to_numpy(dtype=float)-med)/scale
         if not np.isfinite(z).all(): raise ValueError("non-finite robust-scaled covariates")
         ts=pd.to_numeric(data.confirmation_ts_ms,errors="raise").to_numpy(dtype=np.int64)
-        target_ix=list(COVARIATES).index("range_channel_width")
+        target_ix=list(COVARIATES).index(TARGET)
         for caliper in CALIPERS:
             archived=archived_pairs[(archived_pairs.definition==definition)&
                 np.isclose(pd.to_numeric(archived_pairs.target_caliper_robust_sd),caliper)]
@@ -105,7 +105,7 @@ def run(anatomy,sequence,feature_dir,minute_dir,pairs_path,output):
     metadata={"study":"Phase 3 V6 matching feasibility and constraint bottleneck audit V9",
       "method":"Independent sparse bipartite maximum-cardinality matching within exact asset x direction strata",
       "frozen_constraints":{"overall_rms_robust_sd_max":MAX_DISTANCE,"maximum_single_covariate_robust_sd":MAX_COMPONENT,
-        "target_covariate":"range_channel_width","target_calipers_robust_sd":list(CALIPERS),
+        "target_covariate":TARGET,"target_calipers_robust_sd":list(CALIPERS),
         "maximum_confirmation_time_gap_days":MAX_TIME_GAP_DAYS},
       "constraint_diagnostics":"Each edge count removes one constraint at a time while retaining the other three; these counts are diagnostic and not additive.",
       "limitations":["feasibility is conditional on V6 eligible events, covariates, scaling, and constraints",
