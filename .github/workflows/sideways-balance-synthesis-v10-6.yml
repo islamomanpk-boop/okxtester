@@ -1,0 +1,57 @@
+name: Phase 3 V10.6 Stable-Stratum Balance Synthesis
+on:
+  workflow_dispatch:
+  push:
+    branches: [price-action-v1]
+    paths:
+      - .github/workflows/sideways-balance-synthesis-v10-6.yml
+      - research/sideways_rejection_pre_event_matched_controls_v10_6.py
+      - tests/test_sideways_rejection_pre_event_matched_controls_v10_6.py
+permissions:
+  contents: write
+concurrency:
+  group: sideways-balance-synthesis-v10-6
+  cancel-in-progress: false
+jobs:
+  audit-v10-6:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: price-action-v1}
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip pandas
+      - name: Compile and test
+        run: |
+          python -m py_compile research/sideways_rejection_pre_event_matched_controls_v10_6.py tests/test_sideways_rejection_pre_event_matched_controls_v10_6.py
+          python -m unittest discover -s tests -p 'test_sideways_rejection_pre_event_matched_controls_v10_6.py' -v
+      - name: Verify V10.5 frozen archive
+        run: |
+          test -s reports/sideways_phase3_research_archive_v1/asset_direction_balance_attribution_v10_5/asset_direction_covariate_balance_v10_5.csv
+          test -s reports/sideways_phase3_research_archive_v1/asset_direction_balance_attribution_v10_5/run_metadata_v10_5.json
+      - name: Synthesize stable-stratum balance
+        run: |
+          python research/sideways_rejection_pre_event_matched_controls_v10_6.py \
+            --input reports/sideways_phase3_research_archive_v1/asset_direction_balance_attribution_v10_5/asset_direction_covariate_balance_v10_5.csv \
+            --output "$RUNNER_TEMP/sideways_balance_synthesis_v10_6"
+      - name: Permanently archive
+        run: |
+          archive=reports/sideways_phase3_research_archive_v1/stable_stratum_balance_synthesis_v10_6
+          mkdir -p "$archive"
+          cp -R "$RUNNER_TEMP/sideways_balance_synthesis_v10_6/." "$archive/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$archive"
+          if git diff --cached --quiet; then echo "No archive changes"; else
+            git commit -m "Archive Phase 3 V10.6 stable-stratum balance synthesis"
+            git push origin HEAD:price-action-v1
+          fi
+      - name: Upload secondary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sideways-balance-synthesis-v10-6
+          path: ${{ runner.temp }}/sideways_balance_synthesis_v10_6/
+          if-no-files-found: error
+          retention-days: 14
