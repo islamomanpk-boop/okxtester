@@ -1,0 +1,9 @@
+definition,target_caliper_robust_sd,matched_pairs,assets_represented,asset_direction_strata,covariate_strata_abs_smd_gt_0_10,covariate_strata_abs_smd_gt_0_20,median_central_range_overlap_ratio,median_matched_endpoints_inside_shared_central_range_fraction,strata_with_fewer_than_two_pairs
+broad,0.25,21,5,10,95,80,0.7816044469517917,1.0,4
+broad,0.5,36,5,10,82,65,0.7816044469517917,1.0,1
+broad,0.75,48,5,10,86,57,0.7816044469517917,0.9,0
+broad,1.0,58,5,10,88,67,0.7816044469517917,0.9,0
+strict,0.25,11,5,7,70,60,0.766777076532939,1.0,4
+strict,0.5,21,5,9,86,74,0.7689993764513848,1.0,2
+strict,0.75,29,5,10,94,75,0.770118585341763,1.0,1
+strict,1.0,34,5,10,91,75,0.770118585341763,0.9,0

@@ -1,0 +1,19 @@
+{
+  "study": "Phase 3 V6 matched cohort common-support and reference-balance audit V8",
+  "inputs": "Archived outcome-blind V6 pairs and independently rebuilt frozen eligible pre-event covariates",
+  "reference_scale": "Within definition x asset x direction, pooled sample SD of the two full eligible sequence classes before matching",
+  "distribution_support": "Intersection of each class's 5th-95th percentile interval divided by the union interval; descriptive range-overlap diagnostic, not a density-overlap estimator",
+  "matched_support": "Fraction of matched endpoints inside the shared central 90% interval",
+  "thresholds": {
+    "abs_smd_0_10": "reported diagnostic only; not an automatic acceptance threshold",
+    "abs_smd_0_20": "reported diagnostic only; not an automatic rejection threshold"
+  },
+  "limitations": [
+    "central-range overlap is not full distributional equivalence",
+    "small asset-direction matched samples remain unstable",
+    "reference SD standardizes differences but does not prove exchangeability",
+    "broad and strict cohorts are nested",
+    "unmeasured confounding remains possible",
+    "no outcomes are loaded or compared; no trading inference is made"
+  ]
+}
