@@ -47,6 +47,8 @@ def candle_anatomy(open_: float, high: float, low: float, close: float, upper: f
 
 
 def first_touch(ts: np.ndarray, highs: np.ndarray, lows: np.ndarray, level: float, direction: str, inclusive: bool = True):
+    if direction not in {"upper", "lower"}:
+        raise ValueError("Unknown boundary direction")
     mask = highs >= level if direction == "upper" else lows <= level
     ix = np.flatnonzero(mask)
     return int(ix[0]) if len(ix) else None
@@ -156,6 +158,8 @@ def event_measurements(event, feature: pd.Series, minutes: pd.DataFrame) -> tupl
             "event_id": event.event_id, "asset": event.asset, "definition": event.definition,
             "direction": direction, "test_rank": int(event.test_rank), "confirmation_ts_ms": confirmation, "horizon": horizon,
             "expected_bars": count, "observed_bars": len(observed_ts),
+            "horizon_end_ts_ms": int(confirmation + (count - 1) * MINUTE_MS),
+            "confirmation_minute_open": float(minutes.iloc[start].open),
             "status": status, "censor_reason": censor,
         }
         if status == "complete":
@@ -177,7 +181,7 @@ def event_measurements(event, feature: pd.Series, minutes: pd.DataFrame) -> tupl
                 return int(ts[ix]) if ix is not None else np.nan
             def elapsed(ix):
                 return float((ts[ix] - confirmation) / MINUTE_MS) if ix is not None else np.nan
-            outward = (np.max(hi) - upper) / width if direction == "upper" else (lower - np.min(lo)) / width
+            outward = max(0.0, (np.max(hi) - upper) / width) if direction == "upper" else max(0.0, (lower - np.min(lo)) / width)
             inward = (upper - np.min(lo)) / width if direction == "upper" else (np.max(hi) - lower) / width
             row.update({
                 "first_boundary_retest_ts_ms": stamp(zone_ix), "first_boundary_retest_elapsed_min": elapsed(zone_ix),
@@ -260,6 +264,21 @@ def build_summaries(paths: pd.DataFrame) -> pd.DataFrame:
                         values = complete[col].dropna()
                         row[f"{col}_observed_n"] = len(values)
                         row[f"{col}_not_observed_n"] = len(complete) - len(values)
+                        row[f"{col}_observed_denominator"] = len(complete)
+                        row[f"{col}_observed_fraction"] = len(values) / len(complete) if len(complete) else np.nan
+                    for flag in ["retest_close_inward", "same_bar_retest_separation_ambiguous"]:
+                        numerator = int(complete[flag].fillna(False).astype(bool).sum())
+                        row[f"{flag}_numerator"] = numerator
+                        row[f"{flag}_denominator"] = len(complete)
+                        row[f"{flag}_fraction"] = numerator / len(complete) if len(complete) else np.nan
+                    for name in ["high", "low", "open", "close"]:
+                        col = f"rejection_{name}_revisit_ts_ms"
+                        numerator = int(complete[col].notna().sum())
+                        row[f"rejection_{name}_revisit_numerator"] = numerator
+                        row[f"rejection_{name}_revisit_denominator"] = len(complete)
+                        row[f"rejection_{name}_revisit_fraction"] = numerator / len(complete) if len(complete) else np.nan
+                    row["censored_n"] = int((group.status != "complete").sum())
+                    row["censored_denominator"] = len(group)
                     for col in metrics:
                         values = complete[col].dropna()
                         for stat, val in [
@@ -310,13 +329,30 @@ def run(events_path: Path, feature_dir: Path, minute_dir: Path, output_dir: Path
         raise ValueError("Event/horizon row reconciliation failed")
     if a_df.event_id.duplicated().any() or p_df.duplicated(["event_id", "horizon"]).any():
         raise ValueError("Duplicate event output identity")
+    for horizon in HORIZONS:
+        subset = p_df[p_df.horizon == horizon]
+        if len(subset) != len(a_df) or subset.event_id.nunique() != len(a_df):
+            raise ValueError(f"{horizon}: event/horizon population reconciliation failed")
+        if int((subset.status == "complete").sum() + (subset.status != "complete").sum()) != len(a_df):
+            raise ValueError(f"{horizon}: complete/censored reconciliation failed")
+    for audit in audits:
+        asset = audit["asset"]
+        for horizon in HORIZONS:
+            subset = p_df[(p_df.asset == asset) & (p_df.horizon == horizon)]
+            audit[f"{horizon}_complete_events"] = int((subset.status == "complete").sum())
+            audit[f"{horizon}_censored_events"] = int((subset.status != "complete").sum())
     output_dir.mkdir(parents=True, exist_ok=True)
     a_df.to_csv(output_dir / "event_anatomy_v1.csv", index=False)
     p_df.to_csv(output_dir / "event_path_outcomes_v1.csv", index=False)
     build_summaries(p_df).to_csv(output_dir / "group_summary_v1.csv", index=False)
     pd.DataFrame(audits).to_csv(output_dir / "data_validation_v1.csv", index=False)
+    import hashlib
+    from datetime import datetime, timezone
+    implementation_sha256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     metadata = {
         "study": "Sideways Rejection Episode and Retest Anatomy V1",
+        "execution_timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "implementation_sha256": implementation_sha256,
         "events": len(a_df), "horizon_rows": len(p_df),
         "cohort_counts": {k: int((a_df.definition == k).sum()) for k in ["broad", "strict"]},
         "horizons_minutes": HORIZONS, "confirmation_delay_ms": CONFIRMATION_DELAY_MS,
