@@ -117,6 +117,30 @@ def load_features(path: Path, asset: str) -> pd.DataFrame:
     return f.reset_index(drop=True)
 
 
+def resolve_feature_snapshot(event, features: pd.DataFrame) -> pd.Series:
+    """Resolve and verify the exact zero-based frozen feature snapshot for an event."""
+    ix = int(event.snapshot_index)
+    if ix < 0 or ix >= len(features):
+        raise ValueError(f"{event.asset}: snapshot index outside feature file")
+    feature = features.iloc[ix]
+    next_available = (
+        int(features.iloc[ix + 1].available_at_ts_ms)
+        if ix + 1 < len(features)
+        else int(feature.available_at_ts_ms) + 4 * 60 * 60 * 1000
+    )
+    if (
+        int(feature.available_at_ts_ms) != int(event.snapshot_available_at_ts_ms)
+        or next_available != int(event.snapshot_next_available_at_ts_ms)
+    ):
+        raise ValueError(f"{event.event_id}: event-to-feature snapshot availability mismatch")
+    if (
+        int(event.first_strong_rejection_ts_ms) < int(feature.available_at_ts_ms)
+        or int(event.first_strong_rejection_ts_ms) >= next_available
+    ):
+        raise ValueError(f"{event.event_id}: rejection outside its frozen snapshot interval")
+    return feature
+
+
 def load_minutes(path: Path, asset: str) -> pd.DataFrame:
     m = pd.read_csv(path, usecols=["ts", *OHLC])
     m["ts"] = pd.to_numeric(m.ts, errors="coerce")
@@ -327,15 +351,7 @@ def run(events_path: Path, feature_dir: Path, minute_dir: Path, output_dir: Path
         features = load_features(feature_dir / f"{asset}_features_original_v1.csv", asset)
         minutes = load_minutes(minute_dir / f"{asset}_USDT_USDT_1m.csv", asset)
         for e in ae.itertuples(index=False):
-            ix = int(e.snapshot_index)
-            if ix < 0 or ix >= len(features):
-                raise ValueError(f"{asset}: snapshot index outside feature file")
-            f = features.iloc[ix]
-            next_available = int(features.iloc[ix+1].available_at_ts_ms) if ix+1 < len(features) else int(f.available_at_ts_ms) + 4*60*60*1000
-            if int(f.available_at_ts_ms) != int(e.snapshot_available_at_ts_ms) or next_available != int(e.snapshot_next_available_at_ts_ms):
-                raise ValueError(f"{e.event_id}: event-to-feature snapshot availability mismatch")
-            if int(e.first_strong_rejection_ts_ms) < int(f.available_at_ts_ms) or int(e.first_strong_rejection_ts_ms) >= next_available:
-                raise ValueError(f"{e.event_id}: rejection outside its frozen snapshot interval")
+            f = resolve_feature_snapshot(e, features)
             a, result = event_measurements(e, f, minutes)
             anatomy.append(a)
             path_rows.extend(result["rows"])
