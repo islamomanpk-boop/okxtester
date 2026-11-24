@@ -6,6 +6,7 @@ on:
       - price-action-v1
     paths:
       - "docs/RESEARCH_ARCHIVING_RULE.md"
+      - "reports/sideways_phase3_research_archive_v1/**"
       - ".github/workflows/research-archive-policy-check.yml"
   workflow_dispatch:
 
