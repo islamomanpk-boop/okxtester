@@ -71,8 +71,8 @@ def greedy_match(frame: pd.DataFrame, *, max_distance: float = 3.0) -> pd.DataFr
                           "retest_event_id": rb.event_id,
                           "asset": ra.asset, "direction": ra.direction,
                           "confirmation_month": ra.confirmation_month,
-                          "separation_confirmation_ts_ms": int(ra.confirmation_ts_ms),
-                          "retest_confirmation_ts_ms": int(rb.confirmation_ts_ms),
+                          "separation_confirmation_ts_ms": int(ra['confirmation_ts_ms']),
+                          "retest_confirmation_ts_ms": int(rb['confirmation_ts_ms']),
                           "pair_confirmation_ts_ms": int((int(ra.confirmation_ts_ms)+int(rb.confirmation_ts_ms))//2),
                           "match_distance_rms_robust_sd": d})
     return pd.DataFrame(pairs, columns=["pair_id", "separation_event_id", "retest_event_id",
