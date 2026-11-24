@@ -9,11 +9,20 @@ from research.sideways_boundary_interaction_taxonomy.sideways_boundary_interacti
     strong_rejection_reference,
     penetration_distribution,
     compare_class_tables,
+    EXPECTED_15M_SHA256,
 )
 
 
 U = 110.0
 L = 100.0
+
+
+class TestSourceHashManifest(unittest.TestCase):
+    def test_sol_source_hash_matches_verified_provenance(self):
+        self.assertEqual(
+            EXPECTED_15M_SHA256["SOL"],
+            "5b34cbb006497ecd7ebe0cfa67b25b4230cb769d6362d278991171a8f6da2d33",
+        )
 
 
 class TestUpperBoundaryTaxonomy(unittest.TestCase):

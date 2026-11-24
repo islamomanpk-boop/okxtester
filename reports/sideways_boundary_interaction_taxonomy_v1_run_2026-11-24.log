@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/data/data/com.termux/files/home/okxtester/research/sideways_boundary_interaction_taxonomy/sideways_boundary_interaction_taxonomy_v1.py", line 578, in <module>
+    main()
+    ~~~~^^
+  File "/data/data/com.termux/files/home/okxtester/research/sideways_boundary_interaction_taxonomy/sideways_boundary_interaction_taxonomy_v1.py", line 573, in main
+    run(args.data_dir, args.feature_dir, args.output_dir,
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        verify_hashes=not args.skip_source_hash_check)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/okxtester/research/sideways_boundary_interaction_taxonomy/sideways_boundary_interaction_taxonomy_v1.py", line 282, in run
+    bars, source_hash = load_15m(data_dir / f"{asset}_USDT_15m.csv", asset, verify_hashes)
+                        ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/okxtester/research/sideways_boundary_interaction_taxonomy/sideways_boundary_interaction_taxonomy_v1.py", line 54, in load_15m
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: SOL: 15M SHA-256 mismatch; expected 5b34cbb006497ecd7ebe0cfa67b25b4230cb769d6362d2789911711a8f6da2d33, got 5b34cbb006497ecd7ebe0cfa67b25b4230cb769d6362d278991171a8f6da2d33
