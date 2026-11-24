@@ -411,7 +411,7 @@ def run(data_dir: Path, output_dir: Path):
             "complete_15m_bars": len(bars15), "complete_4h_bars": len(bars4),
             "joined_15m_rows": len(joined),
             "joined_15m_gaps": int((joined.index.to_series().diff().dropna() != FIFTEEN_MIN).sum()),
-            "snapshot_changes": int(joined["snapshot"].ne(joined["snapshot"].shift(1)).sum() - 1),
+            "snapshot_changes": max(0, int(joined["snapshot"].dropna().ne(joined["snapshot"].dropna().shift(1)).sum() - 1)),
         }
         events, quantiles, counts = original_events(asset, joined, data[asset])
         all_events.extend(events)
