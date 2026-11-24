@@ -154,7 +154,7 @@ def event_measurements(event, feature: pd.Series, minutes: pd.DataFrame) -> tupl
             status, censor = "incomplete", "missing_or_irregular_minute"
         row = {
             "event_id": event.event_id, "asset": event.asset, "definition": event.definition,
-            "direction": direction, "test_rank": int(event.test_rank), "horizon": horizon,
+            "direction": direction, "test_rank": int(event.test_rank), "confirmation_ts_ms": confirmation, "horizon": horizon,
             "expected_bars": count, "observed_bars": len(observed_ts),
             "status": status, "censor_reason": censor,
         }
@@ -221,21 +221,54 @@ def event_measurements(event, feature: pd.Series, minutes: pd.DataFrame) -> tupl
 
 
 def build_summaries(paths: pd.DataFrame) -> pd.DataFrame:
-    metrics = ["first_boundary_retest_elapsed_min", "first_inward_separation_elapsed_min", "first_penetration_elapsed_min", "max_inward_excursion_width", "max_outward_penetration_width", "horizon_close_from_midpoint_width"]
+    work = paths.copy()
+    work["asset_group"] = work["asset"]
+    work["direction_group"] = work["direction"]
+    work["test_rank_group"] = work["test_rank"].map(lambda n: str(int(n)) if int(n) <= 3 else "4+")
+    work["chronological_period"] = pd.to_datetime(work["confirmation_ts_ms"], unit="ms", utc=True).dt.strftime("%Y-%m")
+    dimensions = [
+        ("ALL", []), ("asset", ["asset_group"]), ("direction", ["direction_group"]),
+        ("rank", ["test_rank_group"]), ("month", ["chronological_period"]),
+        ("asset_direction", ["asset_group", "direction_group"]),
+        ("asset_rank", ["asset_group", "test_rank_group"]),
+        ("direction_rank", ["direction_group", "test_rank_group"]),
+    ]
+    metrics = [
+        "first_boundary_retest_elapsed_min", "first_inward_separation_elapsed_min",
+        "first_penetration_elapsed_min", "max_inward_excursion_width",
+        "max_outward_penetration_width", "horizon_close_from_midpoint_width",
+    ]
     rows = []
-    for keys, group in paths.groupby(["definition", "horizon", "asset", "direction"], dropna=False):
-        complete = group[group.status == "complete"]
-        row = dict(zip(["definition", "horizon", "asset_group", "direction_group"], keys))
-        row.update({"events": len(group), "complete": len(complete), "censored": int((group.status != "complete").sum())})
-        for col in ["first_boundary_retest_elapsed_min", "first_inward_separation_elapsed_min", "first_penetration_elapsed_min"]:
-            valid = complete[col].dropna()
-            row[f"{col}_observed_n"] = len(valid)
-            row[f"{col}_not_observed_n"] = len(complete) - len(valid)
-        for col in metrics:
-            values = complete[col].dropna()
-            for stat, val in [("median", values.median()), ("p10", values.quantile(.1)), ("p25", values.quantile(.25)), ("p75", values.quantile(.75)), ("p90", values.quantile(.9))]:
-                row[f"{col}_{stat}"] = float(val) if pd.notna(val) else np.nan
-        rows.append(row)
+    for definition in ["broad", "strict"]:
+        for horizon in HORIZONS:
+            base = work[(work.definition == definition) & (work.horizon == horizon)]
+            for dimension_name, cols in dimensions:
+                groups = [((), base)] if not cols else base.groupby(cols, dropna=False)
+                for keys, group in groups:
+                    if not isinstance(keys, tuple):
+                        keys = (keys,)
+                    row = {
+                        "definition": definition, "horizon": horizon,
+                        "group_dimension": dimension_name, "events": len(group),
+                        "complete": int((group.status == "complete").sum()),
+                        "censored": int((group.status != "complete").sum()),
+                    }
+                    for col, key in zip(cols, keys):
+                        row[col] = key
+                    complete = group[group.status == "complete"]
+                    for col in ["first_boundary_retest_elapsed_min", "first_inward_separation_elapsed_min", "first_penetration_elapsed_min"]:
+                        values = complete[col].dropna()
+                        row[f"{col}_observed_n"] = len(values)
+                        row[f"{col}_not_observed_n"] = len(complete) - len(values)
+                    for col in metrics:
+                        values = complete[col].dropna()
+                        for stat, val in [
+                            ("median", values.median()), ("p10", values.quantile(.1)),
+                            ("p25", values.quantile(.25)), ("p75", values.quantile(.75)),
+                            ("p90", values.quantile(.9)),
+                        ]:
+                            row[f"{col}_{stat}"] = float(val) if pd.notna(val) else np.nan
+                    rows.append(row)
     return pd.DataFrame(rows)
 
 
