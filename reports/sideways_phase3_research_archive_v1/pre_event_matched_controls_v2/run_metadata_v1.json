@@ -1,0 +1,42 @@
+{
+  "study": "Sideways Rejection Pre-event Matched Control Sensitivity V2",
+  "matching": "1:1 greedy nearest-neighbour without replacement; exact asset, direction, and UTC confirmation month strata",
+  "distance": "root-mean-square difference on robust median/MAD-scaled pre-confirmation covariates",
+  "maximum_match_distance_rms_robust_sd": 1.5,
+  "maximum_abs_difference_per_covariate_robust_sd": 0.75,
+  "covariates": [
+    "channel_width_pct",
+    "directional_efficiency",
+    "mean_overlap",
+    "width_p50_pct",
+    "range_channel_width",
+    "body_range_ratio",
+    "upper_wick_range_ratio",
+    "lower_wick_range_ratio",
+    "close_location_in_range",
+    "signed_close_boundary_distance_width",
+    "pre_60m_realized_vol",
+    "pre_240m_realized_vol",
+    "test_rank",
+    "test_duration_minutes"
+  ],
+  "pre_event_only": true,
+  "outcomes": "strictly post-15-minute classification landmark",
+  "bootstrap": "paired differences resampled in shared UTC calendar-day moving blocks",
+  "block_lengths_days": [
+    3,
+    7,
+    14
+  ],
+  "replicates_per_contrast": 10000,
+  "seed": 20261124,
+  "contrast": "SEPARATION_FIRST minus RETEST_FIRST",
+  "limitations": [
+    "observational matched sensitivity analysis, not causal identification",
+    "greedy matching is not globally optimal and caliper may leave unmatched events",
+    "exact asset/direction/month strata reduce generalizability and sample size",
+    "matching cannot remove unmeasured confounding",
+    "bootstrap intervals are not adjusted for multiple comparisons",
+    "broad and strict cohorts are nested, not independent"
+  ]
+}

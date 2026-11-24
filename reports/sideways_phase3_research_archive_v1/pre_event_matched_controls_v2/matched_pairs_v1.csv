@@ -1,0 +1,2 @@
+pair_id,separation_event_id,retest_event_id,asset,direction,confirmation_month,separation_confirmation_ts_ms,retest_confirmation_ts_ms,pair_confirmation_ts_ms,match_distance_rms_robust_sd,match_max_abs_covariate_difference_robust_sd,definition
+P000001,ETH|broad|upper|1060|1|1|1776417300000,ETH|broad|upper|1061|1|1|1776429900000,ETH,upper,2026-04,1776418200000,1776430800000,1776424500000,0.3705979743962132,0.6857964799658619,broad

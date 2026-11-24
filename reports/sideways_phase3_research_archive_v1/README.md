@@ -7,7 +7,8 @@ source datasets already stored in this repository.
 - `episode_retest_anatomy_v1/`: event anatomy, forward path outcomes, validation, summaries, metadata.
 - `early_path_followthrough_v1/`: sequence labels, post-landmark outcomes, validation, summaries, metadata.
 - `sequence_block_bootstrap_v1/`: calendar moving-block bootstrap contrasts and run metadata.
-- `pre_event_matched_controls_v1/`: matched pairs, pre-event covariate balance, and post-landmark outcome contrasts.
+- `pre_event_matched_controls_v1/`: initial 1:1 matched sensitivity; retained for audit, but covariate balance was insufficient for a conclusive comparison.
+- `pre_event_matched_controls_v2/`: stricter 1:1 matched sensitivity with both overall-distance and per-covariate calipers.
 
 The bootstrap contrasts are descriptive observational comparisons, not causal estimates
 or proof of a profitable trading strategy. The run metadata files record the study
