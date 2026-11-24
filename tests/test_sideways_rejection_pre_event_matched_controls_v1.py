@@ -15,7 +15,8 @@ class MatchedControlTests(unittest.TestCase):
             for i, x in enumerate(offsets):
                 row = {"event_id": f"{label}-{i}", "sequence_class": label,
                        "asset": "BTC", "direction": "upper",
-                       "confirmation_month": "2025-10",\n                       "confirmation_ts_ms": 1760000000000 + i * 60000 + (0 if label == "SEPARATION_FIRST" else 30000)}
+                       "confirmation_month": "2025-10",
+                       "confirmation_ts_ms": 1760000000000 + i * 60000 + (0 if label == "SEPARATION_FIRST" else 30000)}
                 row.update({c: x for c in COVARIATES})
                 rows.append(row)
         return pd.DataFrame(rows)
