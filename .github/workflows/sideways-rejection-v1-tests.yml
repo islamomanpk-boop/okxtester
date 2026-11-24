@@ -34,7 +34,7 @@ jobs:
         run: |
           python -m py_compile \
             research/sideways_rejection_forward_outcomes_v1.py \
-            tests/test_sideways_rejection_forward_outcomes_v1.py \\
+            tests/test_sideways_rejection_forward_outcomes_v1.py \
             research/sideways_rejection_episode_retest_anatomy_v1.py \\
             tests/test_sideways_rejection_episode_retest_anatomy_v1.py
 
