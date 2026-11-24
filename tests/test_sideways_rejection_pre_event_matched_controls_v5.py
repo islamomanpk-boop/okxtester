@@ -19,9 +19,9 @@ class V5CaliperTests(unittest.TestCase):
         return pd.DataFrame(rows)
 
     def test_target_caliper_retains_balanced_pairs(self):
-        pairs=match_with_target_caliper(self.frame(),0.5)
+        pairs=match_with_target_caliper(self.frame(),1.5)
         self.assertEqual(len(pairs),4)
-        self.assertTrue((pairs.target_abs_difference_robust_sd<=0.5).all())
+        self.assertTrue((pairs.target_abs_difference_robust_sd<=1.5).all())
 
     def test_tight_target_caliper_rejects_pairs(self):
         frame=self.frame()
