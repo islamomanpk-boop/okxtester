@@ -6,10 +6,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from scipy.optimize import linear_sum_assignment
-from research.sideways_rejection_pre_event_matched_controls_v4 import (
-    COVARIATES, CLASSES, build_covariates, robust_scale, smd,
-)
-from research.sideways_rejection_pre_event_matched_controls_v5 import CALIPERS, TARGET
+try:
+    from research.sideways_rejection_pre_event_matched_controls_v4 import COVARIATES, CLASSES, build_covariates, robust_scale, smd
+    from research.sideways_rejection_pre_event_matched_controls_v5 import CALIPERS, TARGET
+except ModuleNotFoundError:
+    from sideways_rejection_pre_event_matched_controls_v4 import COVARIATES, CLASSES, build_covariates, robust_scale, smd
+    from sideways_rejection_pre_event_matched_controls_v5 import CALIPERS, TARGET
 
 def optimal_match(frame: pd.DataFrame, target_caliper: float, max_distance: float=2.0,
                   max_component: float=1.5, max_time_gap_days: float=30.0) -> pd.DataFrame:
