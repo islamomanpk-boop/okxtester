@@ -1,0 +1,18 @@
+BREAKOUT FORWARD OUTCOME STUDY V1
+PASS: original breakout event counts 20/20 reproduced.
+PASS: original channel-width quantiles 10/10 reproduced.
+PASS: original source Git blob SHA verified.
+PASS: every original event maps to exactly three prior-test zones.
+PASS: prior-test links reconcile with touch-test counts.
+Common 1M timestamps: 569,125
+Original breakout events: 1,592
+Classification rows: 4,776
+Event-zone-horizon rows: 19,104
+Complete horizon rows: 19,104
+Excluded/incomplete horizon rows: 0
+Entry: next 1M candle OPEN at signal_time.
+Horizon lengths: 15, 60, 240, and 720 consecutive 1M candles.
+Descriptive gross price movement only; no profitability inference.
+Full-sample channel quantiles are retrospective, not live calibrated.
+Touch-zone variants overlap and are not independent samples.
+Volume excluded because source units are unverified.

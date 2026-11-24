@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/data/data/com.termux/files/home/okxtester/research/breakout_forward_outcomes/breakout_forward_outcome_study_v1.py", line 777, in <module>
+    main()
+    ~~~~^^
+  File "/data/data/com.termux/files/home/okxtester/research/breakout_forward_outcomes/breakout_forward_outcome_study_v1.py", line 773, in main
+    run(args.data_dir, args.output_dir)
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/okxtester/research/breakout_forward_outcomes/breakout_forward_outcome_study_v1.py", line 549, in run
+    load_common_data(data_dir)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/data/data/com.termux/files/home/okxtester/research/breakout_forward_outcomes/breakout_forward_outcome_study_v1.py", line 85, in load_common_data
+    if timestamps.has_duplicates:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.14/site-packages/pandas/core/generic.py", line 6434, in __getattr__
+    return object.__getattribute__(self, name)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AttributeError: 'Series' object has no attribute 'has_duplicates'. Did you mean: '_duplicated'?

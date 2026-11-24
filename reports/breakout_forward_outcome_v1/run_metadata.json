@@ -1,0 +1,89 @@
+{
+  "study": "breakout_forward_outcome_study_v1",
+  "specification": "docs/research_checkpoints/2026-11-24_breakout_forward_outcome_study_spec_v1.md",
+  "measurement_clarification": "docs/research_checkpoints/2026-11-24_breakout_forward_outcome_study_measurement_clarification_v1.md",
+  "original_source": "research/archive/final_timing_corrected_breakout_and_retest_recovered_original_2026-11-22.py",
+  "original_source_git_blob_sha": "95d2975947c449f3813d80ee7b12008db14f071f",
+  "assets": [
+    "BTC",
+    "ETH",
+    "SOL",
+    "DOGE",
+    "AVAX"
+  ],
+  "definitions": [
+    "BROAD_P40",
+    "STRICT_P25"
+  ],
+  "directions": [
+    "UPPER",
+    "LOWER"
+  ],
+  "zones_pct_of_channel": [
+    5.0,
+    10.0,
+    15.0
+  ],
+  "primary_zone_pct": 10.0,
+  "horizons_minutes": {
+    "15M": 15,
+    "1H": 60,
+    "4H": 240,
+    "12H": 720
+  },
+  "entry_convention": "First 1M candle opening at signal_time; entry price is its OPEN.",
+  "outcome_rows": 19104,
+  "classification_rows": 4776,
+  "complete_horizon_rows": 19104,
+  "excluded_or_incomplete_rows": 0,
+  "common_1m_timestamps": 569125,
+  "common_1m_gaps": 0,
+  "source_rows": {
+    "BTC": 569125,
+    "ETH": 569125,
+    "SOL": 569126,
+    "DOGE": 569126,
+    "AVAX": 569127
+  },
+  "source_sha256": {
+    "BTC": "3afab3d60387c87fc4b96f54911538fea6bbb7682b2e18001537bc4359da6633",
+    "ETH": "8a2924bcb23bd5963cd1c46b8871475ff7ff4a3c8d8bed6325dbd406ec0552d2",
+    "SOL": "8ed0a2efade22a11aa50f4511cdab3d32f438759f7acd7819ccbe41ab92ac0b3",
+    "DOGE": "eabf087b1a782d316fa1560b10fc4ee7adfc0adb426ef3d1158dc18c248c40f4",
+    "AVAX": "44ac7db951247a374aecba845336517b82b2655489920d62ec70f9b02fccdfd5"
+  },
+  "input_sha256": {
+    "classifications": "6f85c221fde408878df779d2938ed7432d6067ac2cad45c35ed101ae0cdda4e2",
+    "links": "0046092afe4d4fcc7280736c5dcb561fea032acab115463ad1d7d9ab261275cc",
+    "original_reproduction": "954736383fa28b7382554bf7ac7235091713e33c43c3b2078f5434de8f0a2267",
+    "reconstruction_audit": "149002e89ebced2aaab78c0427b12a6544e5cc98276dedf16934e1340140b978",
+    "prior_metadata": "b9e6f37ed9cd82f5edd7b86c4cc1c92bbac928b767758137ba5289e2de279804"
+  },
+  "output_sha256": {
+    "breakout_forward_outcomes_v1.csv": "71e1429a37ace9c38b2fae7cc2b42daa421709a701f864b97e5c206a7fbcfacf",
+    "breakout_forward_group_summary_v1.csv": "e4f034af08a141640a938b3d7140f7bba6077a489dc7b3e86befcd1e773ae784",
+    "breakout_forward_exclusions_audit_v1.csv": "7915f12d6292104f798055c6a471291239ae5fc356768eefbeeea7ea588c2c34",
+    "original_event_reproduction_v1.csv": "954736383fa28b7382554bf7ac7235091713e33c43c3b2078f5434de8f0a2267",
+    "original_quantile_reproduction_v1.csv": "a9895c17c301194d885f266fc0d5622bb94cac5ef3eb471905c0d475dab03ebe",
+    "reconstruction_audit_v1.csv": "9f6b4a8adc5351da81ffc2ea1cba9deebcf6a21d4ebb390df392c24609fe7364",
+    "run.log": "865719d7f8997049533b9b2b0dea6bbdc012a4c0f5ead73b490cd769f431bcd7"
+  },
+  "expected_event_counts_reproduced": 20,
+  "expected_quantiles_reproduced": 10,
+  "strict_events_are_subset_of_broad": true,
+  "pre_breakout_groups": [
+    "DIRECT",
+    "CONTACT_ONLY",
+    "ONE_REJECTION",
+    "TWO_REJECTIONS",
+    "THREE_PLUS_REJECTIONS"
+  ],
+  "limitations": [
+    "Descriptive historical forward outcomes only; no strategy or profitability inference.",
+    "No fees, slippage, spread, funding, sizing, stops, or portfolio constraints.",
+    "Full-sample channel-width quantiles are retrospective, not live calibrated.",
+    "Touch-zone variants overlap and are not independent samples.",
+    "OHLC data gives candle-level, not intraminute, extreme timing.",
+    "Volume excluded because source units are unverified."
+  ]
+}

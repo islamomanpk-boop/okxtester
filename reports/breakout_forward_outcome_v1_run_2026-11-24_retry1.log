@@ -1,0 +1,7 @@
+PASS: original event counts 20/20 and quantiles 10/10 reproduced.
+Common 1M timestamps: 569,125; gaps: 0
+Classification rows: 4,776
+Event-zone-horizon rows: 19,104
+Complete horizons: 19,104
+Excluded/incomplete horizons: 0
+Reports: reports/breakout_forward_outcome_v1

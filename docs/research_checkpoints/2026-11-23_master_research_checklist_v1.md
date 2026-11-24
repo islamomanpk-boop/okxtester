@@ -15,9 +15,11 @@
 
 ## Executive view
 
-The project has useful five-asset data-quality, market-behaviour, sideways-detector, boundary-rejection, and breakout/retest evidence. It does **not** yet have a complete explanation of sideways-market behaviour, a validated matched-control comparison, a full general-signal study, or a validated executable strategy.
+The project has useful five-asset data-quality, market-behaviour, sideways-detector, boundary-rejection, breakout/retest, prior-test classification, and breakout forward-outcome evidence. It does **not** yet have a complete explanation of sideways-market behaviour, a valid matched-control comparison, a full general-signal study, or a validated executable strategy.
 
-**Immediate research gate:** review and build a corrected matched-breakout-control implementation. Before any matching/outcome calculation, it must reproduce the 20 accepted breakout event counts exactly. If even one count differs, stop.
+**Current phase:** Phase 3 — Sideways / Range. Finish the agreed Phase 3 research before moving to Phase 1 — Bullish / Uptrend, Phase 2 — Bearish / Downtrend, Phase 4 — Choppy / High Volatility, and Phase 5 — Transition / Expansion.
+
+**Current coordination gate:** reconcile the remaining Phase 3 questions and choose the next descriptive study from the open work in Sections 3–7 and 13.3. Matched-control V2 was attempted but failed its matching-balance audit; it is not accepted evidence and is not the automatic next experiment.
 
 No strategy backtest, exit sweep, parameter optimization, profitability claim, or live-trading conclusion is authorized by this checklist.
 
@@ -91,6 +93,8 @@ No strategy backtest, exit sweep, parameter optimization, profitability claim, o
 - **[DONE]** Timing-corrected descriptive breakout/retest path study exists, including frozen boundaries, approach versus actual penetration, retest-hold descriptions, and fixed-horizon path outcomes.
 - **[DONE]** Original breakout event masks reproduced exactly: 20/20 asset × definition × direction counts.
 - **[DONE]** Accepted counts are recorded in `2026-11-22_original_breakout_event_reproduction_pass.md`.
+- **[DONE]** Prior-breakout test-count classification study completed and audited: 4,776 classification rows and 4,534 prior-test links; original event counts reproduced 20/20 and channel-width quantiles reproduced 10/10. See `2026-11-24_breakout_prior_test_count_study_audit_v1.md`.
+- **[DONE]** Breakout forward-outcome study completed and audited: 1,592 original events, 4,776 classifications, and 19,104 complete event-zone-horizon rows across 15M, 1H, 4H, and 12H. All 11 unit tests passed. This is descriptive gross price-path evidence, not a profitability or tradability test. See `2026-11-24_breakout_forward_outcome_study_audit_v1.md`.
 - **[PARTIAL]** Existing work does not fully explain all false-breakout/failure paths or establish whether breakouts differ from comparable non-breakout approaches.
 - **[OPEN]** Build a failure taxonomy: immediate return inside, shallow penetration then failure, failed retest, repeated boundary crossing, delayed failure, continuation, and unresolved outcomes. Define labels before counting.
 - **[OPEN]** Measure time and distance outside the channel, retained breakout movement, retest depth/time, return-inside time, and opposite-side movement.
@@ -99,23 +103,21 @@ No strategy backtest, exit sweep, parameter optimization, profitability claim, o
 
 **Accepted event-mask rules to preserve:** same frozen 4H snapshot for prior/current 15M observations; prior close at/inside boundary and current close outside; no added previous-sideways condition; no de-clustering/cooldown. The 15M close label maps to the final 1M candle at label minus one minute; follow-up begins at the next minute.
 
-## 7. Matched non-breakout controls — immediate priority
+## 7. Matched non-breakout controls — attempted; V2 failed balance
 
-- **[DONE]** Study design and matching specification documented.
-- **[DONE]** Accepted original breakout event counts reproduced 20/20.
-- **[HOLD]** First matched-control run is rejected as empirical evidence: breakout counts differed; some width thresholds were hard-coded incorrectly; MAE convention was wrong; exact minute continuity was not proven; outcome and matching-balance diagnostics were incomplete.
-- **[OPEN — NEXT GATE]** Review/create a corrected replacement script and tests. The current GitHub tree did not contain a committed replacement implementation at the last review.
-- **[OPEN]** Reproduce all 20 accepted breakout counts before any control construction. Stop on any mismatch.
-- **[OPEN]** Use exact recovered full-sample thresholds computed by the accepted method; do not substitute rounded values.
-- **[OPEN]** Correct non-positive MAE and require exact 1M continuity through every reported horizon.
-- **[OPEN]** Validate control eligibility and pre-start-only matching covariates.
-- **[OPEN]** Report standardized mean differences before/after matching, feature distributions, pair distances, unmatched events, and matching limitations.
-- **[OPEN]** Label the specified greedy one-to-one matching accurately; do not claim globally optimal assignment.
-- **[OPEN]** Complete all specified outcomes and same-direction breakout incidence during control follow-up. Never exclude a control because of future behaviour.
-- **[OPEN]** Any uncertainty analysis must account for time blocks/event overlap; do not treat overlapping events as independent.
-- **[OPEN]** Keep calculations read-only and conclusions conditional/descriptive, not causal or profitable.
+- **[DONE]** Study design and matching specifications were documented in versioned checkpoints.
+- **[DONE]** The accepted original breakout event counts were reproduced exactly, 20/20, in the forward research workflow.
+- **[HOLD — HISTORICAL ATTEMPT]** The first matched-control implementation had multiple defects, including event-count discrepancies, incorrect width thresholds, an incorrect MAE convention, unproven minute continuity, and incomplete diagnostics. Preserve its code, specification, and logs as historical evidence only.
+- **[DONE — FAILED ACCEPTANCE]** Matched-control V2 produced 971 matched pairs, but its balance audit failed: all 20/20 post-match strata had absolute standardized mean differences above 0.10 (approximately 2.2–2.85 in magnitude). The matched comparison is not accepted as a balanced control study.
+- **[HOLD]** Do not use V2 matched-pair outcomes, bootstrap intervals, or comparisons as causal, tradability, or strategy evidence. Preserve the V2 implementation, frozen specification, run records, and failed-balance audit unchanged.
+- **[OPEN — LATER REVIEW]** Review why the signed boundary-distance distributions remained structurally different after matching. Decide whether a defensible alternative control design exists before writing or running another implementation.
+- **[OPEN]** Any future control design must predefine eligibility, pre-start-only covariates, matching distance and calipers, unmatched-event handling, balance acceptance criteria, overlap/dependence treatment, and falsification rules.
+- **[OPEN]** Any future attempt must reproduce all 20 accepted breakout event counts before constructing controls; stop on any mismatch.
+- **[OPEN]** Any future attempt must validate exact 1M continuity, correct non-positive MAE, and all required outcomes and same-direction breakout incidence without excluding controls based on future behaviour.
+- **[OPEN]** Report standardized mean differences and feature distributions before and after matching, pair distances, unmatched events, and limitations. Describe greedy one-to-one matching accurately if used; do not call it globally optimal.
+- **[OPEN]** Treat any future uncertainty analysis as dependent on time blocks and overlapping events. Do not treat overlapping events as independent observations.
 
-**Gate:** no matched-control result is accepted until code review, tests, exact event-count validation, continuity checks, and matching diagnostics pass.
+**Current decision:** V2 is a completed but failed methodological attempt. It does not satisfy the matched-control acceptance gate. A replacement is not the immediate next research task; reconsider it only after a separate methodological review and prioritization within the agreed market-phase sequence.
 
 ## 8. General 15M signal-candle anatomy and post-signal behaviour
 
@@ -271,9 +273,11 @@ For each phase (bullish trend, bearish trend, quiet/compressed range, wide/order
 
 ## Recommended working order
 
+**Approved market-phase sequence:** finish Phase 3 — Sideways / Range first; then Phase 1 — Bullish / Uptrend; Phase 2 — Bearish / Downtrend; Phase 4 — Choppy / High Volatility; and Phase 5 — Transition / Expansion. This phase sequence governs prioritization across the broader research backlog below. Items from other phases remain open backlog and must not silently pull the project out of the current phase.
+
 This is the practical sequence. A numbered item is not automatically authorized just because it appears here.
 
-1. **[NOW] Matched breakout controls:** inspect/build corrected implementation; pass 20/20 event-count gate before matching.
+1. **[NOW] Phase 3 coordination:** review the remaining sideways/range questions in Sections 3–7 and 13.3, then select the next descriptive study by dependency and evidence gap. Matched-control V2 is failed and requires separate methodological review before any replacement.
 2. **[NEXT] General signal anatomy and post-signal path/retest:** use the complete frozen 15M signal cohort.
 3. **[NEXT] Execution-resolution comparison:** same 15M signals across 1M/3M/5M/15M; descriptive opportunity first.
 4. **[THEN] Data provenance and coverage closure:** exchange/instrument identity, volume, funding, and signal lineage.
