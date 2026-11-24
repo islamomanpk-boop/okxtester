@@ -24,7 +24,7 @@ class V7AuditTests(unittest.TestCase):
         strata,balance,summary=audit_pairs(p,a)
         self.assertEqual(len(strata),1)
         self.assertEqual(strata.iloc[0].matched_pairs,2)
-        self.assertEqual(len(balance),1)
+        self.assertEqual(len(balance),len(COVARIATES))
         self.assertEqual(summary.iloc[0].pairs_with_cross_pair_window_overlap,2)
     def test_event_reuse_rejected(self):
         p,a=self.fixture()
