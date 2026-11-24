@@ -39,9 +39,9 @@ class TestRejectionAnatomyV1(unittest.TestCase):
 
     def test_first_boundary_retest_uses_directional_touch(self):
         highs = np.array([108., 109., 109.2, 111.])
-        lows = np.array([107., 108., 108., 109.])
+        lows = np.array([107., 105., 108., 109.])
         self.assertEqual(first_touch(np.arange(4), highs, lows, 109., "upper"), 1)
-        self.assertEqual(first_touch(np.arange(4), highs, lows, 101., "lower"), 0)
+        self.assertEqual(first_touch(np.arange(4), highs, lows, 106., "lower"), 1)
 
     def test_boundary_penetration_is_strict_not_equality(self):
         highs = np.array([110., 110.01])
