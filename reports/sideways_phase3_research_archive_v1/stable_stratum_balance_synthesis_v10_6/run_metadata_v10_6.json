@@ -1,0 +1,10 @@
+{
+  "study": "Phase 3 V10.6 stable-stratum balance persistence synthesis",
+  "input": "asset_direction_covariate_balance_v10_5.csv",
+  "minimum_pairs_per_stratum": 5,
+  "imbalance_threshold_abs_smd": 0.1,
+  "designs": 48,
+  "detail_rows": 672,
+  "outcome_data_loaded": false,
+  "interpretation": "Descriptive balance audit only; no cohort accepted and no outcome comparison."
+}
