@@ -23,6 +23,8 @@ def candle_anatomy(open_: float, high: float, low: float, close: float, upper: f
     vals = np.asarray([open_, high, low, close, upper, lower], dtype=float)
     if not np.isfinite(vals).all() or upper <= lower:
         raise ValueError("Non-finite candle or invalid channel bounds")
+    if direction not in {"upper", "lower"}:
+        raise ValueError("Unknown boundary direction")
     if high < max(open_, close, low) or low > min(open_, close, high):
         raise ValueError("Invalid rejection candle OHLC")
     width = upper - lower
