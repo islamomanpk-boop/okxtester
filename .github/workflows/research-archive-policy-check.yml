@@ -1,0 +1,32 @@
+name: Research Archive Policy Check
+
+on:
+  push:
+    branches:
+      - price-action-v1
+    paths:
+      - "docs/RESEARCH_ARCHIVING_RULE.md"
+      - ".github/workflows/research-archive-policy-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-archive-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify research archiving rule and archive structure
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s docs/RESEARCH_ARCHIVING_RULE.md
+          grep -qi "permanent" docs/RESEARCH_ARCHIVING_RULE.md
+          grep -qi "workflow" docs/RESEARCH_ARCHIVING_RULE.md
+          grep -qi "results" docs/RESEARCH_ARCHIVING_RULE.md
+          test -d reports/sideways_phase3_research_archive_v1
+          test -s reports/sideways_phase3_research_archive_v1/README.md
+          echo "Research archiving policy and Phase 3 archive are present."
