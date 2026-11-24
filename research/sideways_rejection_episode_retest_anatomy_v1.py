@@ -185,7 +185,16 @@ def event_measurements(event, feature: pd.Series, minutes: pd.DataFrame) -> tupl
                 "first_boundary_retest_close": float(cl[zone_ix]) if zone_ix is not None else np.nan,
                 "retest_close_inward": bool(cl[zone_ix] < upper if direction == "upper" else cl[zone_ix] > lower) if zone_ix is not None else False,
                 "first_inward_separation_ts_ms": stamp(sep_ix), "first_inward_separation_elapsed_min": elapsed(sep_ix),
+                "first_inward_separation_open": float(op[sep_ix]) if sep_ix is not None else np.nan,
+                "first_inward_separation_high": float(hi[sep_ix]) if sep_ix is not None else np.nan,
+                "first_inward_separation_low": float(lo[sep_ix]) if sep_ix is not None else np.nan,
+                "first_inward_separation_close": float(cl[sep_ix]) if sep_ix is not None else np.nan,
                 "first_penetration_ts_ms": stamp(pen_ix), "first_penetration_elapsed_min": elapsed(pen_ix),
+                "first_penetration_depth_width": float(((hi[pen_ix]-upper) if direction == "upper" else (lower-lo[pen_ix])) / width) if pen_ix is not None else np.nan,
+                "first_penetration_open": float(op[pen_ix]) if pen_ix is not None else np.nan,
+                "first_penetration_high": float(hi[pen_ix]) if pen_ix is not None else np.nan,
+                "first_penetration_low": float(lo[pen_ix]) if pen_ix is not None else np.nan,
+                "first_penetration_close": float(cl[pen_ix]) if pen_ix is not None else np.nan,
                 "max_high": float(np.max(hi)), "min_low": float(np.min(lo)),
                 "max_inward_excursion_width": float(inward), "max_outward_penetration_width": float(outward),
                 "horizon_close": float(cl[-1]), "horizon_close_from_upper_width": float((cl[-1]-upper)/width),
@@ -197,8 +206,10 @@ def event_measurements(event, feature: pd.Series, minutes: pd.DataFrame) -> tupl
             for name, ix in level_ix.items():
                 row[f"rejection_{name}_revisit_ts_ms"] = stamp(ix)
                 row[f"rejection_{name}_revisit_elapsed_min"] = elapsed(ix)
+                for field, values in [("open", op), ("high", hi), ("low", lo), ("close", cl)]:
+                    row[f"rejection_{name}_revisit_{field}"] = float(values[ix]) if ix is not None else np.nan
         else:
-            for col in ["first_boundary_retest_ts_ms","first_boundary_retest_elapsed_min","first_boundary_retest_open","first_boundary_retest_high","first_boundary_retest_low","first_boundary_retest_close","first_inward_separation_ts_ms","first_inward_separation_elapsed_min","first_penetration_ts_ms","first_penetration_elapsed_min","max_high","min_low","max_inward_excursion_width","max_outward_penetration_width","horizon_close","horizon_close_from_upper_width","horizon_close_from_lower_width","horizon_close_from_midpoint_width","rejection_high_revisit_ts_ms","rejection_low_revisit_ts_ms","rejection_open_revisit_ts_ms","rejection_close_revisit_ts_ms"]:
+            for col in ["first_boundary_retest_ts_ms","first_boundary_retest_elapsed_min","first_boundary_retest_open","first_boundary_retest_high","first_boundary_retest_low","first_boundary_retest_close","first_inward_separation_ts_ms","first_inward_separation_elapsed_min","first_inward_separation_open","first_inward_separation_high","first_inward_separation_low","first_inward_separation_close","first_penetration_ts_ms","first_penetration_elapsed_min","first_penetration_depth_width","first_penetration_open","first_penetration_high","first_penetration_low","first_penetration_close","max_high","min_low","max_inward_excursion_width","max_outward_penetration_width","horizon_close","horizon_close_from_upper_width","horizon_close_from_lower_width","horizon_close_from_midpoint_width","rejection_high_revisit_ts_ms","rejection_low_revisit_ts_ms","rejection_open_revisit_ts_ms","rejection_close_revisit_ts_ms"] + [f"rejection_{name}_revisit_{field}" for name in ["high","low","open","close"] for field in ["open","high","low","close"]]:
                 row[col] = np.nan
             row["retest_close_inward"] = False
             row["same_bar_retest_separation_ambiguous"] = False
