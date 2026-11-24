@@ -1,0 +1,43 @@
+{
+  "study": "Phase 3 outcome-blind pre-event matching caliper sensitivity V5",
+  "input_builder": "V4 frozen pre-event covariate construction",
+  "matching": "1:1 greedy nearest-edge without replacement; exact asset/direction; max 30-day gap",
+  "target_covariate": "signed_close_boundary_distance_width",
+  "target_calipers_robust_sd": [
+    0.25,
+    0.5,
+    0.75,
+    1.0
+  ],
+  "other_constraints": {
+    "overall_rms_robust_sd": 2.0,
+    "maximum_component_robust_sd": 1.5
+  },
+  "outcome_blind": true,
+  "outcome_note": "no outcome columns are loaded or used",
+  "month_matching": "not enforced; month labels are retained only for audit",
+  "covariates": [
+    "channel_width_pct",
+    "directional_efficiency",
+    "mean_overlap",
+    "width_p50_pct",
+    "range_channel_width",
+    "body_range_ratio",
+    "upper_wick_range_ratio",
+    "lower_wick_range_ratio",
+    "close_location_in_range",
+    "signed_close_boundary_distance_width",
+    "pre_60m_realized_vol",
+    "pre_240m_realized_vol",
+    "test_rank",
+    "test_duration_minutes"
+  ],
+  "selection_rule": "compare retained pair counts and absolute standardized mean differences; do not select by outcome",
+  "limitations": [
+    "greedy matching is not globally optimal",
+    "standardized differences are diagnostics, not proof of exchangeability",
+    "residual and unmeasured confounding may remain",
+    "broad and strict cohorts are nested",
+    "sensitivity grid comparisons are descriptive"
+  ]
+}
