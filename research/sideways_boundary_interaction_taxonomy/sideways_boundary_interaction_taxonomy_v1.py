@@ -434,13 +434,17 @@ def run(data_dir: Path, feature_dir: Path, output_dir: Path, verify_hashes: bool
             **penetration_distribution(group),
         })
     penetration = pd.DataFrame(penetration_rows)
+    # Count each underlying candle once, not once per upper/lower side row.
+    dual_candles = obs.drop_duplicates(
+        subset=["asset", "definition", "snapshot_index", "observation_ts_ms"]
+    )
     dual = (
-        obs.groupby(["asset", "definition"])["dual_boundary_interaction_15pct"]
-        .agg(observations="count", dual_boundary_rows="sum")
+        dual_candles.groupby(["asset", "definition"])["dual_boundary_interaction_15pct"]
+        .agg(observed_candles="count", dual_boundary_candles="sum")
         .reset_index()
     )
-    dual["dual_boundary_row_proportion"] = (
-        dual["dual_boundary_rows"] / dual["observations"]
+    dual["dual_boundary_candle_proportion"] = (
+        dual["dual_boundary_candles"] / dual["observed_candles"]
     )
     audit = (
         obs.groupby(["asset", "definition", "side"])
@@ -537,7 +541,8 @@ def run(data_dir: Path, feature_dir: Path, output_dir: Path, verify_hashes: bool
         "final_snapshot_tail_policy": "exclude entire final 4H interval from primary summaries",
         "timestamp_policy": "strict continuous 15M cadence; no gaps bridged",
         "first_bar_policy": "suppress first observed 15M candle at/after each snapshot availability",
-        "dual_boundary_definition": "both sides have non-NO_APPROACH class under widest 15% band",
+        "dual_boundary_definition": "both sides have non-NO_APPROACH class under widest 15% band; counted once per candle",
+        "snapshot_exclusion_note": "nonqualifying-context and final-tail exclusion counts are reason flags and can overlap",
         "volume_policy": "volume retained only in source validation; no volume-based inference",
         "limitations": [
             "Consecutive candle rows are not independent episodes.",
