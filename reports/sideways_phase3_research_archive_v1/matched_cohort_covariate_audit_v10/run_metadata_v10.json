@@ -1,0 +1,17 @@
+{
+  "study": "Phase 3 V6 matched cohort covariate structure and bottleneck attribution V10",
+  "inputs": "Frozen eligible pre-event covariates, archived V6 matched pairs, archived V9 edge diagnostics",
+  "correlation_scope": "Separate definition x asset x direction x sequence-class groups; no outcomes used",
+  "imbalance_scale": "Within definition x asset x direction pooled sample SD of both full eligible classes, matching V8 reference convention",
+  "constraint_analysis": "V9 one-constraint-at-a-time edge counts summed by definition and caliper; counterfactuals overlap and are not additive",
+  "interpretation": "Descriptive diagnostics only; no covariates removed, no matching rules changed, no cohort accepted/rejected, no outcomes loaded or compared",
+  "limitations": [
+    "correlation is not proof of redundancy or causal irrelevance",
+    "correlation summaries can be unstable in small strata",
+    "small matched strata produce unstable SMDs",
+    "edge expansions do not equal additional maximum matched pairs",
+    "maximum cardinality and balance are distinct properties",
+    "broad and strict cohorts are nested",
+    "unmeasured confounding remains possible"
+  ]
+}

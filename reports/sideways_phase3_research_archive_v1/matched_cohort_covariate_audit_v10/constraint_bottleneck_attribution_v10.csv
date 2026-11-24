@@ -1,0 +1,9 @@
+definition,target_caliper_robust_sd,candidate_edges,edges_if_overall_distance_removed,edges_if_component_limit_removed,edges_if_target_caliper_removed,edges_if_time_gap_removed,additional_edges_if_overall_distance_removed,additional_edges_if_component_limit_removed,additional_edges_if_target_caliper_removed,additional_edges_if_time_gap_removed
+broad,0.25,25,25,298,122,153,0,273,97,128
+broad,0.5,51,51,616,122,295,0,565,71,244
+broad,0.75,74,74,894,122,445,0,820,48,371
+broad,1.0,88,88,1164,122,571,0,1076,34,483
+strict,0.25,12,12,192,69,84,0,180,57,72
+strict,0.5,28,28,368,69,168,0,340,41,140
+strict,0.75,41,41,531,69,244,0,490,28,203
+strict,1.0,47,47,689,69,312,0,642,22,265
