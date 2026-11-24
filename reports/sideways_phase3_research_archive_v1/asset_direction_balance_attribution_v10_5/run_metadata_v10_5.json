@@ -1,0 +1,15 @@
+{
+  "study": "Phase 3 V10.5 asset-direction-specific balance attribution",
+  "design_grid": "Exactly the six V10.4 designs and four V5 target calipers; no new tuning",
+  "matching": "V6 maximum-cardinality 1:1 assignment, exact asset/direction, outcome-blind",
+  "diagnostics": "Within each asset-direction stratum, compare matched class covariate means using the V4 SMD definition; also report pre-match SMD and match coverage",
+  "small_stratum_threshold_pairs": 5,
+  "interpretation": "SMDs in strata with fewer than five pairs are flagged as unstable descriptive diagnostics, not accepted evidence",
+  "prohibited_inference": "No outcomes loaded or compared; no causal, strategy, or profitability conclusions",
+  "limitations": [
+    "small subgroup samples can make SMDs unstable",
+    "stratum-specific balance does not establish exchangeability",
+    "broad and strict cohorts are nested",
+    "no outcome comparison is performed"
+  ]
+}
