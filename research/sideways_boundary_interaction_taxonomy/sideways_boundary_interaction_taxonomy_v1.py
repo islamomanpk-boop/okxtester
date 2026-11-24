@@ -28,6 +28,7 @@ FOUR_HOURS_MS = 14_400_000
 BANDS = (0.05, 0.10, 0.15)
 DEFINITIONS = ("STRICT_P25", "BROAD_P40")
 EXPECTED_15M_ROWS = 37_941
+EXPECTED_FEATURE_ROWS = 2_358
 EXPECTED_15M_SHA256 = {
     "BTC": "0721a4a25a61f1917be4f9952514096c641fbec64e7ae0d50c7cf1c3ebfe9658",
     "ETH": "7195e45315c360e9f1fdd37746125968359bce8632a0bfe51628f104792fdc04",
@@ -120,6 +121,8 @@ def load_features(path: Path, asset: str) -> pd.DataFrame:
         raise ValueError(f"{asset}: feature snapshots are not exactly 4H spaced")
     if (df["upper"] <= df["lower"]).any():
         raise ValueError(f"{asset}: invalid frozen channel bounds")
+    if len(df) != EXPECTED_FEATURE_ROWS:
+        raise ValueError(f"{asset}: expected {EXPECTED_FEATURE_ROWS} feature snapshots, got {len(df)}")
     return df.reset_index(drop=True)
 
 
@@ -228,6 +231,44 @@ def classify_candle(row: Any, upper: float, lower: float) -> tuple[dict, dict, b
     return upper_results, lower_results, bool(dual)
 
 
+def penetration_distribution(group: pd.DataFrame) -> dict[str, Any]:
+    """Summarize strictly positive penetration depths, keeping zeros explicit."""
+    depths = group["penetration_depth_w"].astype(float)
+    positive = depths[depths > 0]
+    return {
+        "observations": int(len(depths)),
+        "zero_penetration_observations": int((depths == 0).sum()),
+        "penetration_observations": int(len(positive)),
+        "penetration_rate": float(len(positive) / len(depths)) if len(depths) else np.nan,
+        "mean_positive_depth_w": float(positive.mean()) if len(positive) else np.nan,
+        "median_positive_depth_w": float(positive.median()) if len(positive) else np.nan,
+        "p90_positive_depth_w": float(positive.quantile(0.90)) if len(positive) else np.nan,
+        "p95_positive_depth_w": float(positive.quantile(0.95)) if len(positive) else np.nan,
+        "maximum_positive_depth_w": float(positive.max()) if len(positive) else np.nan,
+    }
+
+
+def compare_class_tables(counts: pd.DataFrame, key_left: str, key_right: str,
+                         left_name: str, right_name: str, keys: list[str],
+                         selector: str) -> pd.DataFrame:
+    """Align class counts/proportions for descriptive cohort comparisons."""
+    left = counts[counts[selector] == key_left][keys + ["count", "denominator", "proportion"]]
+    right = counts[counts[selector] == key_right][keys + ["count", "denominator", "proportion"]]
+    left = left.rename(columns={
+        "count": f"{left_name}_count", "denominator": f"{left_name}_denominator",
+        "proportion": f"{left_name}_proportion",
+    })
+    right = right.rename(columns={
+        "count": f"{right_name}_count", "denominator": f"{right_name}_denominator",
+        "proportion": f"{right_name}_proportion",
+    })
+    out = left.merge(right, on=keys, how="outer", validate="one_to_one")
+    out[f"{right_name}_minus_{left_name}_proportion"] = (
+        out[f"{right_name}_proportion"] - out[f"{left_name}_proportion"]
+    )
+    return out
+
+
 def run(data_dir: Path, feature_dir: Path, output_dir: Path, verify_hashes: bool = True) -> None:
     if output_dir.exists() and any(output_dir.iterdir()):
         raise FileExistsError(f"Refusing to write into non-empty output directory: {output_dir}")
@@ -278,14 +319,25 @@ def run(data_dir: Path, feature_dir: Path, output_dir: Path, verify_hashes: bool
                     eligible = interval.iloc[1:].copy() if len(interval) else interval.copy()
                     tail_status = "RIGHT_TRUNCATED_FINAL_SNAPSHOT_EXCLUDED"
 
+                eligible_after_suppression = len(eligible)
+                included_primary = bool(qualifies and not is_final_truncated)
+                included_bars = eligible_after_suppression if included_primary else 0
                 snapshot_audits.append({
                     "asset": asset, "definition": definition, "snapshot_index": i,
                     "available_at_ts_ms": available, "next_available_at_ts_ms": next_available,
                     "qualifies_for_range_cohort": qualifies,
                     "observed_15m_bars": len(interval),
-                    "first_bar_suppressed": bool(len(interval) > 0),
-                    "eligible_bars_before_tail_rule": len(eligible),
-                    "included_in_primary": bool(qualifies and not is_final_truncated),
+                    "first_bar_suppressed_count": int(len(interval) > 0),
+                    "eligible_bars_after_first_bar_suppression": eligible_after_suppression,
+                    "eligible_bars_excluded_by_nonqualifying_context": (
+                        eligible_after_suppression if not qualifies else 0
+                    ),
+                    "eligible_bars_excluded_by_final_tail_rule": (
+                        eligible_after_suppression if is_final_truncated else 0
+                    ),
+                    "included_primary_15m_bars": included_bars,
+                    "included_primary_side_rows_expected": included_bars * 2,
+                    "included_in_primary": included_primary,
                     "tail_status": tail_status,
                 })
 
@@ -366,13 +418,22 @@ def run(data_dir: Path, feature_dir: Path, output_dir: Path, verify_hashes: bool
                 })
 
     class_counts = pd.DataFrame(count_rows)
-    penetration = (
-        obs.groupby(["asset", "definition", "side"])["penetration_depth_w"]
-        .agg(observations="count", penetrations=lambda x: int((x > 0).sum()),
-             mean="mean", median="median", p90=lambda x: x.quantile(0.90),
-             p95=lambda x: x.quantile(0.95), maximum="max")
-        .reset_index()
+    upper_lower = compare_class_tables(
+        class_counts, "UPPER", "LOWER", "upper", "lower",
+        ["asset", "definition", "approach_band_pct", "interaction_class"], "side",
     )
+    strict_broad = compare_class_tables(
+        class_counts, "STRICT_P25", "BROAD_P40", "strict", "broad",
+        ["asset", "side", "approach_band_pct", "interaction_class"], "definition",
+    )
+
+    penetration_rows = []
+    for (asset, definition, side), group in obs.groupby(["asset", "definition", "side"]):
+        penetration_rows.append({
+            "asset": asset, "definition": definition, "side": side,
+            **penetration_distribution(group),
+        })
+    penetration = pd.DataFrame(penetration_rows)
     dual = (
         obs.groupby(["asset", "definition"])["dual_boundary_interaction_15pct"]
         .agg(observations="count", dual_boundary_rows="sum")
@@ -390,12 +451,75 @@ def run(data_dir: Path, feature_dir: Path, output_dir: Path, verify_hashes: bool
         .reset_index()
     )
 
+    strong_rejection = (
+        obs.groupby(["asset", "definition", "side", "interaction_class_10",
+                    "strong_rejection_reference"])
+        .size().rename("count").reset_index()
+    )
+    strong_denoms = (
+        obs.groupby(["asset", "definition", "side"])
+        .size().rename("denominator").reset_index()
+    )
+    strong_rejection = strong_rejection.merge(
+        strong_denoms, on=["asset", "definition", "side"], validate="many_to_one"
+    )
+    strong_rejection["proportion_of_side_observations"] = (
+        strong_rejection["count"] / strong_rejection["denominator"]
+    )
+
+    chronological = obs[[
+        "asset", "definition", "side", "observation_ts_ms",
+        "interaction_class_5", "interaction_class_10", "interaction_class_15",
+    ]].copy()
+    utc_dates = pd.to_datetime(chronological["observation_ts_ms"], unit="ms", utc=True)
+    chronological["utc_quarter"] = (
+        utc_dates.dt.year.astype(str) + "-Q" +
+        (((utc_dates.dt.month - 1) // 3) + 1).astype(str)
+    )
+    chronological_rows = []
+    for band in (5, 10, 15):
+        part = chronological[[
+            "asset", "definition", "side", "utc_quarter", f"interaction_class_{band}"
+        ]].rename(columns={f"interaction_class_{band}": "interaction_class"})
+        grouped = (
+            part.groupby(["asset", "definition", "side", "utc_quarter", "interaction_class"])
+            .size().rename("count").reset_index()
+        )
+        denominators = (
+            part.groupby(["asset", "definition", "side", "utc_quarter"])
+            .size().rename("denominator").reset_index()
+        )
+        grouped = grouped.merge(
+            denominators,
+            on=["asset", "definition", "side", "utc_quarter"],
+            validate="many_to_one",
+        )
+        grouped["approach_band_pct"] = band
+        grouped["proportion"] = grouped["count"] / grouped["denominator"]
+        chronological_rows.append(grouped)
+    chronological_summary = pd.concat(chronological_rows, ignore_index=True)
+
+    snapshot_audit_df = pd.DataFrame(snapshot_audits)
+    expected_side_rows = int(snapshot_audit_df["included_primary_side_rows_expected"].sum())
+    if len(obs) != expected_side_rows:
+        raise ValueError(
+            f"observation reconciliation failed: produced {len(obs)} side rows, "
+            f"snapshot audit expects {expected_side_rows}"
+        )
+    if not (snapshot_audit_df["included_in_primary"] ==
+            (snapshot_audit_df["included_primary_15m_bars"] > 0)).all():
+        raise ValueError("snapshot inclusion audit does not reconcile")
+
     obs.to_csv(output_dir / "candle_level_interactions_v1.csv", index=False)
     class_counts.to_csv(output_dir / "class_counts_proportions_v1.csv", index=False)
     penetration.to_csv(output_dir / "penetration_depth_summary_v1.csv", index=False)
     dual.to_csv(output_dir / "dual_boundary_summary_v1.csv", index=False)
     audit.to_csv(output_dir / "observation_audit_v1.csv", index=False)
-    pd.DataFrame(snapshot_audits).to_csv(output_dir / "snapshot_tail_audit_v1.csv", index=False)
+    snapshot_audit_df.to_csv(output_dir / "snapshot_tail_audit_v1.csv", index=False)
+    upper_lower.to_csv(output_dir / "upper_lower_class_comparison_v1.csv", index=False)
+    strict_broad.to_csv(output_dir / "strict_broad_class_comparison_v1.csv", index=False)
+    strong_rejection.to_csv(output_dir / "strong_rejection_reference_comparison_v1.csv", index=False)
+    chronological_summary.to_csv(output_dir / "chronological_subperiod_summary_v1.csv", index=False)
 
     metadata = {
         "study": "Sideways Boundary Interaction and Penetration Taxonomy V1",
@@ -404,7 +528,11 @@ def run(data_dir: Path, feature_dir: Path, output_dir: Path, verify_hashes: bool
         "bands": list(BANDS), "primary_band": 0.10,
         "source_files": source_metadata,
         "observation_rows": int(len(obs)),
+        "expected_observation_rows_from_snapshot_audit": expected_side_rows,
         "snapshot_audit_rows": int(len(snapshot_audits)),
+        "chronological_period": "UTC calendar quarters",
+        "penetration_summary_policy": "distribution statistics use strictly positive penetration depths only; zero counts reported separately",
+        "comparison_policy": "upper/lower and strict/broad comparisons are descriptive; strict and broad cohorts overlap",
         "final_truncated_snapshot_excluded": True,
         "final_snapshot_tail_policy": "exclude entire final 4H interval from primary summaries",
         "timestamp_policy": "strict continuous 15M cadence; no gaps bridged",
