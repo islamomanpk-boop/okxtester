@@ -1,0 +1,22 @@
+{
+  "study": "Phase 3 V6 matched-cohort quality and dependence audit V7",
+  "input": "Archived outcome-blind V6 optimal matched pairs; frozen event anatomy, sequence and pre-event feature inputs",
+  "checks": [
+    "pair ID uniqueness",
+    "one-to-one event use per definition/caliper",
+    "event membership in frozen eligible cohort",
+    "exact asset/direction/definition agreement",
+    "asset-direction subgroup coverage",
+    "within-subgroup covariate SMD",
+    "cross-pair overlap of event test windows within the same asset"
+  ],
+  "event_window": "test_start_ts_ms through confirmation_ts_ms, inclusive",
+  "overlap_interpretation": "descriptive dependence warning only; overlapping windows do not establish identical information sets",
+  "limitations": [
+    "small subgroup SMDs are unstable; values are descriptive and not a pass/fail causal test",
+    "broad and strict cohorts are nested",
+    "matched balance does not establish exchangeability",
+    "overlapping windows are only one dependence diagnostic",
+    "no outcomes are loaded or compared; no trading inference is made"
+  ]
+}
