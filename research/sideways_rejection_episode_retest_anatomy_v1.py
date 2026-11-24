@@ -19,7 +19,7 @@ OHLC = ["open", "high", "low", "close"]
 FEATURE_REQUIRED = ["available_at_ts_ms", "upper", "lower"]
 
 
-def candle_anatomy(open_: float, high: float, low: float, close: float, upper: float, lower: float) -> dict:
+def candle_anatomy(open_: float, high: float, low: float, close: float, upper: float, lower: float, direction: str) -> dict:
     vals = np.asarray([open_, high, low, close, upper, lower], dtype=float)
     if not np.isfinite(vals).all() or upper <= lower:
         raise ValueError("Non-finite candle or invalid channel bounds")
@@ -39,7 +39,7 @@ def candle_anatomy(open_: float, high: float, low: float, close: float, upper: f
         "close_location_in_range": (close - low) / denom,
         "range_channel_width": rng / width, "body_channel_width": body / width,
         "upper_wick_channel_width": uw / width, "lower_wick_channel_width": lw / width,
-        "signed_close_boundary_distance_width": ((upper - close) if close <= upper else -(close-upper)) / width,
+        "signed_close_boundary_distance_width": ((upper - close) if direction == "upper" else (close - lower)) / width,
         "zero_range_candle": bool(rng == 0),
     }
 
@@ -122,7 +122,7 @@ def event_measurements(event, feature: pd.Series, minutes: pd.DataFrame) -> tupl
         raise ValueError("Invalid channel width")
     direction = event.direction
     ro, rh, rl, rc = map(float, [event.rejection_open, event.rejection_high, event.rejection_low, event.rejection_close])
-    anatomy = candle_anatomy(ro, rh, rl, rc, upper, lower)
+    anatomy = candle_anatomy(ro, rh, rl, rc, upper, lower, direction)
     confirmation = int(event.confirmation_ts_ms)
     ts_all = minutes.ts.to_numpy(dtype=np.int64)
     start = int(np.searchsorted(ts_all, confirmation, side="left"))
