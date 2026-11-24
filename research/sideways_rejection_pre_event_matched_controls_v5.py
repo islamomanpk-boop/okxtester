@@ -111,7 +111,7 @@ def run(anatomy:Path,sequence:Path,feature_dir:Path,minute_dir:Path,output:Path)
       "matching":"1:1 greedy nearest-edge without replacement; exact asset/direction; max 30-day gap",
       "target_covariate":TARGET,"target_calipers_robust_sd":list(CALIPERS),
       "other_constraints":{"overall_rms_robust_sd":2.0,"maximum_component_robust_sd":1.5},
-      "outcome_blind":True,"no outcome columns are loaded or used",
+      "outcome_blind":True,"outcome_note":"no outcome columns are loaded or used",
       "month_matching":"not enforced; month labels are retained only for audit",
       "covariates":list(COVARIATES),
       "selection_rule":"compare retained pair counts and absolute standardized mean differences; do not select by outcome",
