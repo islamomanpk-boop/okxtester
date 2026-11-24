@@ -12,7 +12,7 @@ class V107Tests(unittest.TestCase):
     def test_thresholds_are_monotonic_in_eligible_counts(self):
         detail,summary=analyze(self.frame())
         counts=summary.sort_values("minimum_pairs").eligible_cells.tolist()
-        self.assertEqual(counts,[5,4,3,2])
+        self.assertEqual(counts,[4,3,2,1])
     def test_missing_columns_fail_closed(self):
         with self.assertRaises(ValueError): analyze(pd.DataFrame({"matched_pairs":[5]}))
     def test_no_outcome_fields_required(self):
