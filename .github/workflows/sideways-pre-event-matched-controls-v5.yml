@@ -6,6 +6,8 @@ on:
     branches: [price-action-v1]
     paths:
       - .github/workflows/sideways-pre-event-matched-controls-v5.yml
+      - research/sideways_rejection_pre_event_matched_controls_v5.py
+      - tests/test_sideways_rejection_pre_event_matched_controls_v5.py
 
 permissions:
   contents: write
