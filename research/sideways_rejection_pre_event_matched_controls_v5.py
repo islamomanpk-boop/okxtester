@@ -5,9 +5,12 @@ import argparse, json
 from pathlib import Path
 import numpy as np
 import pandas as pd
-from sideways_rejection_pre_event_matched_controls_v4 import (
-    COVARIATES, CLASSES, build_covariates, robust_scale, smd
-)
+try:
+    from research.sideways_rejection_pre_event_matched_controls_v4 import COVARIATES, CLASSES, build_covariates, robust_scale, smd
+except ModuleNotFoundError:
+    from sideways_rejection_pre_event_matched_controls_v4 import (
+        COVARIATES, CLASSES, build_covariates, robust_scale, smd
+    )
 
 TARGET = "signed_close_boundary_distance_width"
 CALIPERS = (0.25, 0.50, 0.75, 1.00)
