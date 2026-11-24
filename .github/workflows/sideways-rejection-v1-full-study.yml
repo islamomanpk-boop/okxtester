@@ -1,0 +1,72 @@
+name: Sideways Rejection V1 - Full Historical Study
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sideways-rejection-v1-full-study
+  cancel-in-progress: false
+
+jobs:
+  full-study:
+    name: Tests and five-asset historical study
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out price-action-v1
+        uses: actions/checkout@v4
+        with:
+          ref: price-action-v1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install research dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy pandas
+
+      - name: Compile research module and focused tests
+        run: |
+          python -m py_compile \
+            research/sideways_rejection_forward_outcomes_v1.py \
+            tests/test_sideways_rejection_forward_outcomes_v1.py
+
+      - name: Run focused unit tests
+        run: |
+          python -m unittest discover \
+            -s tests \
+            -p 'test_sideways_rejection_forward_outcomes_v1.py' \
+            -v
+
+      - name: Verify five historical market datasets
+        run: |
+          set -euo pipefail
+          for asset in BTC ETH SOL DOGE AVAX; do
+            file="data/market_1m/${asset}_USDT_USDT_1m.csv"
+            test -s "$file"
+            printf '%s | %s bytes | %s rows including header\n' \
+              "$file" "$(wc -c < "$file")" "$(wc -l < "$file")"
+            test "$(head -n 1 "$file")" = "ts,open,high,low,close,vol"
+          done
+
+      - name: Run frozen historical forward-outcome study
+        run: |
+          python research/sideways_rejection_forward_outcomes_v1.py \
+            --events reports/sideways_boundary_events_historical_v1/boundary_tests_historical_v1.csv \
+            --minute-dir data/market_1m \
+            --output "$RUNNER_TEMP/sideways_rejection_forward_outcomes_v1"
+
+      - name: Upload generated research reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: sideways-rejection-forward-outcomes-v1
+          path: ${{ runner.temp }}/sideways_rejection_forward_outcomes_v1/
+          if-no-files-found: error
+          retention-days: 14
