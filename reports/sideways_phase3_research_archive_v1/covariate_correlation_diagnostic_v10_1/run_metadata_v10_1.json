@@ -1,0 +1,21 @@
+{
+  "study": "Phase 3 V10.1 robust covariate correlation diagnostic repair",
+  "input": "Frozen eligible pre-event covariates rebuilt from original Phase 3 inputs",
+  "scopes": [
+    "within sequence class by definition x asset x direction",
+    "pooled classes within definition x asset x direction",
+    "pooled assets within definition x sequence class",
+    "pooled all assets and classes by definition"
+  ],
+  "method": "Pearson correlations using pairwise available observations with minimum 3; constant or insufficient variables explicitly counted and excluded from matrix eigenanalysis",
+  "effective_rank": "Participation-ratio effective rank of the symmetric nonnegative-clipped correlation eigenvalues for nonconstant variables only; NA where fewer than two variable covariates or matrix invalid",
+  "thresholds": "Absolute pairwise correlation >=0.80 and >=0.90 are descriptive flags, not automatic variable-removal rules",
+  "interpretation": "Outcome-blind descriptive diagnostics only; no covariates removed, no matching rules changed, no outcomes loaded or compared",
+  "limitations": [
+    "correlation is not proof of redundancy or causal irrelevance",
+    "pooled correlations may reflect between-group structure; compare with within-group results",
+    "pairwise deletion can produce non-positive-semidefinite matrices with missingness",
+    "small groups yield unstable estimates",
+    "effective rank is a summary, not a causal or predictive measure"
+  ]
+}

@@ -1,0 +1,5 @@
+scope,groups,groups_with_constant_variables,median_effective_rank,median_variable_covariates,groups_with_any_abs_corr_ge_0_90
+pooled_all_assets_and_classes,2,0,9.223368509061995,14.0,0
+pooled_assets_within_class,4,0,9.037854973329873,14.0,0
+pooled_classes_within_asset_direction,20,20,7.83327329651786,13.0,0
+within_sequence_class,40,40,7.192928223554995,13.0,5
