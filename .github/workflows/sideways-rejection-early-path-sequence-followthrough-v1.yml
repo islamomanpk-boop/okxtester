@@ -1,0 +1,71 @@
+name: Sideways Rejection Early-Path Sequence Follow-Through V1 - Historical Study
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sideways-rejection-early-path-sequence-followthrough-v1
+  cancel-in-progress: false
+
+jobs:
+  historical-study:
+    name: Validate, test, and run five-asset conditional path study
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out price-action-v1
+        uses: actions/checkout@v4
+        with:
+          ref: price-action-v1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install research dependencies
+        run: |
+          python -m pip install --upgrade pip numpy pandas
+
+      - name: Compile research module and tests
+        run: |
+          python -m py_compile \
+            research/sideways_rejection_episode_retest_anatomy_v1.py \
+            research/sideways_rejection_early_path_sequence_followthrough_v1.py \
+            tests/test_sideways_rejection_episode_retest_anatomy_v1.py \
+            tests/test_sideways_rejection_early_path_sequence_followthrough_v1.py
+
+      - name: Run early-path sequence synthetic tests
+        run: |
+          python -m unittest discover \
+            -s tests \
+            -p 'test_sideways_rejection_early_path_sequence_followthrough_v1.py' \
+            -v
+
+      - name: Verify all frozen source inputs exist
+        run: |
+          test -f reports/sideways_boundary_events_historical_v1/boundary_tests_historical_v1.csv
+          for asset in BTC ETH SOL DOGE AVAX; do
+            test -f "reports/sideways_detector_original_v1/${asset}_features_original_v1.csv"
+            test -f "data/market_1m/${asset}_USDT_USDT_1m.csv"
+          done
+
+      - name: Run five-asset conditional path study to fresh temporary output
+        run: |
+          python research/sideways_rejection_early_path_sequence_followthrough_v1.py \
+            --events reports/sideways_boundary_events_historical_v1/boundary_tests_historical_v1.csv \
+            --feature-dir reports/sideways_detector_original_v1 \
+            --minute-dir data/market_1m \
+            --output "$RUNNER_TEMP/sideways_rejection_early_path_sequence_followthrough_v1"
+
+      - name: Upload historical study outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: sideways-rejection-early-path-sequence-followthrough-v1
+          path: ${{ runner.temp }}/sideways_rejection_early_path_sequence_followthrough_v1/
+          if-no-files-found: error
+          retention-days: 14
