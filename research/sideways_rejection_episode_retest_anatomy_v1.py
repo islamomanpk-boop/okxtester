@@ -23,6 +23,8 @@ def candle_anatomy(open_: float, high: float, low: float, close: float, upper: f
     vals = np.asarray([open_, high, low, close, upper, lower], dtype=float)
     if not np.isfinite(vals).all() or upper <= lower:
         raise ValueError("Non-finite candle or invalid channel bounds")
+    if min(open_, high, low, close) <= 0:
+        raise ValueError("Non-positive rejection candle OHLC")
     if direction not in {"upper", "lower"}:
         raise ValueError("Unknown boundary direction")
     if high < max(open_, close, low) or low > min(open_, close, high):
@@ -84,8 +86,14 @@ def validate_event_ledger(path: Path) -> pd.DataFrame:
         raise ValueError(f"Rejection cohort count mismatch: expected {expected}, got {counts}")
     df["event_id"] = df[EVENT_KEY].astype(str).agg("|".join, axis=1)
     df["confirmation_ts_ms"] = df.first_strong_rejection_ts_ms + CONFIRMATION_DELAY_MS
+    if (df.first_strong_rejection_ts_ms % (15 * MINUTE_MS) != 0).any():
+        raise ValueError("Rejection candle open is not 15-minute aligned")
     if (df.confirmation_ts_ms % MINUTE_MS != 0).any():
         raise ValueError("Confirmation timestamp is not minute aligned")
+    broad_keys = set(map(tuple, df.loc[df.definition == "broad", [c for c in EVENT_KEY if c != "definition"]].to_numpy()))
+    strict_keys = set(map(tuple, df.loc[df.definition == "strict", [c for c in EVENT_KEY if c != "definition"]].to_numpy()))
+    if not strict_keys.issubset(broad_keys):
+        raise ValueError("Strict rejection events are not a subset of broad events")
     return df.sort_values(["asset", "definition", "confirmation_ts_ms", "event_id"]).reset_index(drop=True)
 
 
