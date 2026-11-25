@@ -66,7 +66,7 @@ The Gate 0 report was refined after inspecting the underlying preflight and engi
 
 ### Funding coverage audit tool added
 
-The local funding audit implementation is available at [funding coverage audit documentation](../../docs/funding_coverage_audit_v1.md), with code in `src/funding_coverage_audit.py`. It hashes each file, checks the expected coverage/cadence, detects missing/irregular settlements, and compares all five asset timestamp sets. Its GitHub workflow tests synthetic fixtures only. Gate 0 stays on hold until the actual local funding files are audited and the generated manifest is archived.
+The local funding audit implementation is available at [funding coverage audit documentation](../../docs/funding_coverage_audit_v1.md), with code in `src/funding_coverage_audit.py`. It hashes each file, checks the expected coverage/cadence, detects missing/irregular settlements, and compares all five asset timestamp sets. Its GitHub workflow tests synthetic fixtures only. The real local files have since been audited and their manifest archived; the new `src/verify_local_funding_manifest.py` command rechecks local hashes and schedules without running a backtest.
 
 
 ### Actual local funding coverage audit — 2026-11-25
@@ -83,4 +83,4 @@ The raw/processed CSVs remain local and are not committed. The manifest records 
 The funding-rate coverage audit and engine call-site inventory are shared infrastructure evidence, retained for reuse across Phase 3 and later phases:
 - [Funding coverage and engine call-site inventory](../../docs/research_checkpoints/2026-11-25_funding_coverage_and_engine_callsite_inventory_v1.md)
 
-The inventory records the exact grep scope/results, engine definitions, test fixtures, and research-runner integrations. It does not close G0-03; fail-closed funding coverage validation remains required in both engines.
+The inventory records the pre-migration grep results and the post-migration call-site disposition. The fail-closed coverage contract is now implemented in both engines and the exact-commit GitHub workflow passes 75 focused tests. See the [G0-03 funding contract implementation checkpoint](../../docs/research_checkpoints/2026-11-25_g0-03_funding_contract_implementation_plan_v1.md). G0-03 remains open only for the real local-source verification using `PYTHONPATH=src python src/verify_local_funding_manifest.py`, formal acceptance of the explicitly labelled candle-close proxy versus exact settlement marks, and the final project-wide call-site re-audit.
