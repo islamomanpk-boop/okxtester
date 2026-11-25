@@ -653,7 +653,19 @@ def compare_with_forward_archive(horizon_rows, reference):
             checks["outside_retest_hold"] = ref_hold is None
         all_pass = all(checks.values())
         if not all_pass:
-            mismatches.append({"event_id": row["event_id"], "horizon": row["horizon"], "failed_fields": [k for k,v in checks.items() if not v]})
+            failed = [k for k, v in checks.items() if not v]
+            reference_names = dict(metric_pairs)
+            mismatch_values = {
+                name: {
+                    "actual": str(row.get(name)),
+                    "reference": str(ref.get(reference_names[name])) if name in reference_names else str(ref.get("retest_hold")),
+                }
+                for name in failed
+            }
+            mismatches.append({
+                "event_id": row["event_id"], "horizon": row["horizon"],
+                "failed_fields": failed, "comparison_values": mismatch_values,
+            })
         output.append({
             "event_id": row["event_id"], "asset": row["asset"],
             "definition": row["definition"], "direction": row["direction"],
