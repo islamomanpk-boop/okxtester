@@ -704,8 +704,24 @@ def run(root: Path, output_dir: Path):
         raise ValueError("Prior-test source reproduction gate was not fully passed")
     if forward_meta["expected_event_counts_reproduced"] != 20 or forward_meta["expected_quantiles_reproduced"] != 10:
         raise ValueError("Forward-outcome source reproduction gate was not fully passed")
+    if (forward_meta["outcome_rows"] != 19104 or forward_meta["classification_rows"] != EXPECTED_CLASSIFICATION_ROWS
+            or forward_meta["complete_horizon_rows"] != 19104 or forward_meta["excluded_or_incomplete_rows"] != 0):
+        raise ValueError("Accepted forward-outcome archive completeness metadata mismatch")
     if prior_meta["common_1m_timestamps"] != EXPECTED_COMMON_MINUTES or prior_meta["common_1m_gaps"] != 0:
         raise ValueError("Accepted common 1M timeline metadata mismatch")
+    if prior_meta["source_sha256"] != EXPECTED_MARKET_SHA256 or forward_meta["source_sha256"] != EXPECTED_MARKET_SHA256:
+        raise ValueError("Accepted prior/forward study market SHA-256 manifests disagree")
+    event_reproduction = pd.read_csv(root / "reports/breakout_forward_outcome_v1/original_event_reproduction_v1.csv")
+    quantile_reproduction = pd.read_csv(root / "reports/breakout_forward_outcome_v1/original_quantile_reproduction_v1.csv")
+    reconstruction_audit = pd.read_csv(root / "reports/breakout_prior_test_count_v1/reconstruction_audit_v1.csv")
+    if len(event_reproduction) != 20 or not event_reproduction["passed"].astype(bool).all():
+        raise ValueError("Archived original event-count reproduction audit failed")
+    if len(quantile_reproduction) != 10 or not quantile_reproduction["passed"].astype(bool).all():
+        raise ValueError("Archived original quantile reproduction audit failed")
+    if len(reconstruction_audit) != 5 or (reconstruction_audit["common_1m_gaps"] != 0).any():
+        raise ValueError("Five-asset source reconstruction audit is incomplete")
+    if not reconstruction_audit["original_counts_reproduced"].astype(bool).all() or not reconstruction_audit["strict_subset_broad"].astype(bool).all():
+        raise ValueError("Five-asset original breakout reconstruction audit did not pass")
 
     market_frames, market_hashes = {}, {}
     for asset in ASSETS:
@@ -740,6 +756,8 @@ def run(root: Path, output_dir: Path):
         raise ValueError("Primary 10% prior-test link row count mismatch")
     if len(primary_forward) != EXPECTED_PRIMARY_EVENTS * 4:
         raise ValueError("Primary forward-outcome reference must have exactly four horizons per event")
+    if not primary_forward["horizon_status"].eq("COMPLETE").all():
+        raise ValueError("Primary forward-outcome reference contains incomplete horizons")
 
     link_groups = defaultdict(list)
     for _, link in primary_links.iterrows():
@@ -849,6 +867,9 @@ def run(root: Path, output_dir: Path):
         "horizon_rows": len(horizon_rows),
         "forward_crosscheck_rows": len(cross_validation),
         "forward_crosscheck_passed": sum(1 for x in cross_validation if x["reference_match"]),
+        "original_event_count_reproduction_rows": len(event_reproduction),
+        "original_quantile_reproduction_rows": len(quantile_reproduction),
+        "reconstruction_audit_rows": len(reconstruction_audit),
         "common_1m_timestamps": len(common),
         "common_1m_gaps": int(np.count_nonzero(np.diff(common.asi8) != MINUTE_NS)),
         "source_rows": {asset: market_hashes[asset]["rows"] for asset in ASSETS},
