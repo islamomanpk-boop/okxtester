@@ -103,7 +103,7 @@ Top-level tracked inventory:
 | `scripts/` | 1 | Repository sync helper; inspect before changing. |
 | root files | 2 | `.gitignore`, `README.md`. |
 
-### 6.1 Confirmed likely unrelated legacy EMA-pullback files — deletion candidates only
+### 6.1 Confirmed likely unrelated legacy EMA-pullback files — 12 deletion candidates only
 
 The following 16 paths are explicitly named for the older EMA-pullback project and are the clearest non-Price-Action candidates in the canonical tree:
 
@@ -122,8 +122,6 @@ The following 16 paths are explicitly named for the older EMA-pullback project a
 - `src/diagnose_ema_pullback_losses.py`
 - `src/diagnose_ema_pullback_v1_1.py`
 - `src/validate_ema_pullback_inputs.py`
-
-Correction: the source list above contains **7** files; total candidate count is therefore **12**, not 16. This count is intentionally explicit to avoid a misleading cleanup claim.
 
 **Decision:** These are flagged for possible removal from the canonical Price Action branch, but **nothing has been deleted**. Before any deletion, inspect import/workflow dependencies and preserve an export/archive or other recovery route. The user must approve the exact deletion list. A filename alone is not enough to delete a file.
 
