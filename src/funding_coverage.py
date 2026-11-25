@@ -22,8 +22,8 @@ _REQUIRED_COVERAGE_FIELDS = (
 
 
 def expected_settlements(start_ms, end_ms, schedule_start_ms, interval_ms,
-                         schedule_end_ms):
-    """Return scheduled timestamps in (start_ms, end_ms] from a fixed schedule."""
+                         schedule_end_ms, include_start=False):
+    """Return scheduled timestamps in (start_ms, end_ms], or [start_ms, end_ms] when requested."""
     values = (start_ms, end_ms, schedule_start_ms, interval_ms, schedule_end_ms)
     if any(not isinstance(value, int) or isinstance(value, bool) for value in values):
         raise ValueError("Funding schedule timestamps and interval must be integers")
@@ -31,7 +31,10 @@ def expected_settlements(start_ms, end_ms, schedule_start_ms, interval_ms,
         raise ValueError("Invalid funding schedule bounds or interval")
     if start_ms > end_ms:
         raise ValueError("Funding event window is reversed")
-    first_index = max(0, (start_ms - schedule_start_ms) // interval_ms + 1)
+    if include_start:
+        first_index = max(0, (start_ms - schedule_start_ms + interval_ms - 1) // interval_ms)
+    else:
+        first_index = max(0, (start_ms - schedule_start_ms) // interval_ms + 1)
     first = schedule_start_ms + first_index * interval_ms
     if first > schedule_end_ms:
         return []
@@ -112,6 +115,7 @@ def validate_funding_contract(bars_by_asset, funding_by_asset):
             coverage["schedule_start_ms"],
             coverage["schedule_interval_ms"],
             coverage["schedule_end_ms"],
+            include_start=True,
         )
         actual = []
         previous = None
