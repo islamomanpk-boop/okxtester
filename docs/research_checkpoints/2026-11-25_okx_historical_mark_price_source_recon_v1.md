@@ -31,3 +31,17 @@ The current `candle_close_proxy` remains explicitly approximate. Do not change t
 - **Mark-candle proxy mode:** only after full source audit; identify whether open, close, or another field is used.
 - **Trade-candle close proxy mode:** remains a lower-confidence fallback and must never be presented as exact.
 - Do not authorize final strategy PnL claims while the chosen funding-price approximation is not disclosed and stress-tested.
+
+## Follow-up verification against the current official API guide
+
+A second documentation pass on 2026-11-25 confirmed the following distinctions:
+
+- The official OKX V5 API guide lists separate market-data endpoints for mark-price candles and historical mark-price candles. The historical-mark-price endpoint is a distinct source from the ordinary trade-price candle endpoint. The official guide's market-data section is available at https://www.okx.com/docs-v5/en/ and the API change-log/documentation index at https://www.okx.com/docs-v5/log_en/.
+- The documented candle schema is OHLC plus candle timestamp/status. That is a time-bucket summary, not a per-settlement execution/valuation ledger. A matching minute timestamp therefore does not prove which instant within that minute supplied the funding valuation.
+- The official account bills documentation also distinguishes funding-fee expense/income event subtypes (173/174) and documents an archived bill-history endpoint for historical account bills. Those records can potentially corroborate actual funding debits/credits for an account, but they are account-specific realized cashflows; they do not provide a universal historical settlement mark series for hypothetical backtests. See https://www.okx.com/docs-v5/en/ (Account bills / bills history archive sections).
+
+### Updated decision
+
+The historical mark-price candle route is technically actionable for a controlled sample test, but it is still only a candidate proxy until validated. The account-bills route is a useful independent cross-check for actual account funding cashflows, not a replacement source for hypothetical strategy funding marks.
+
+No exact settlement-price source has yet been established. Keep Gate 0 / G0-03 open and keep PnL backtests blocked pending a documented decision on acceptable funding-price fidelity.
