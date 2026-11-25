@@ -1,5 +1,6 @@
 name: Phase 3 Breakout Lifecycle V1.1
 # Includes protocol regressions for strict/broad nesting and duplicate source identity.
+# Re-run comparison checkpoint: keep analysis source, test file, frozen inputs and report schema unchanged.
 
 on:
   workflow_dispatch:
