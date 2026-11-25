@@ -66,7 +66,7 @@ The single controlling roadmap is `docs/research_checkpoints/2026-11-25_phase3_e
 | Gate | Required outcome | Current status |
 |---|---|---|
 | G0 | Archive/source readiness: exact source/event ledgers and hashes, causal availability, market/funding inputs, instrument/fee/mark provenance | **CONDITIONAL HOLD — not passed**; funding file coverage G0-01/G0-02 closed for audited Termux files; G0-03 fail-closed contract implemented and focused CI passed but full acceptance remains open |
-| G1 | Complete descriptive lifecycle for rejection, breakout continuation, and failed-breakout reversal | Partial; P3-13/P3-14 remain |
+| G1 | Complete descriptive lifecycle for rejection, breakout continuation, and failed-breakout reversal | **PARTIAL / OPEN**; P3-13 rejection Module A accepted; P3-14 breakout failure/reclaim Module B remains open |
 | G2 | Compare 1M/3M/5M/15M execution on identical completed 15M signals | Open |
 | G3 | Freeze and compare causal entry methods with fill/miss/expiry rules | Open |
 | G4 | Freeze and study stop, target, and management hypotheses | Open |
