@@ -56,8 +56,28 @@ def get_json(base: str, path: str, params: dict[str, str],
         with urlopen(req, timeout=TIMEOUT_SECONDS) as response:
             payload = response.read().decode("utf-8")
     except HTTPError as exc:
-        # Do not print request headers, credentials, or raw response bodies.
-        raise RuntimeError(f"HTTP request failed with status {exc.code}") from None
+        # Show only the exchange's generic error code/message, never raw body or headers.
+        detail = ""
+        try:
+            error_payload = exc.read(4096).decode("utf-8", errors="replace")
+            parsed_error = json.loads(error_payload)
+            if isinstance(parsed_error, dict):
+                code = str(parsed_error.get("code", "")).strip()
+                msg = str(parsed_error.get("msg", "")).strip()
+                parts = []
+                if code:
+                    parts.append(f"OKX code={code}")
+                if msg:
+                    parts.append(f"message={msg[:180]}")
+                if parts:
+                    detail = "; " + "; ".join(parts)
+            else:
+                detail = "; non-standard error response"
+        except (UnicodeError, json.JSONDecodeError, OSError):
+            detail = "; non-JSON/edge response (body withheld)"
+        raise RuntimeError(
+            f"HTTP {exc.code} on GET {path}{detail}"
+        ) from None
     except URLError as exc:
         raise RuntimeError(f"Network error: {exc.reason}") from None
 
