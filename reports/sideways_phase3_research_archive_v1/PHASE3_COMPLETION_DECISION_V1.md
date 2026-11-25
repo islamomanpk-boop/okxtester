@@ -77,3 +77,16 @@ Phase 1 begins as a separate descriptive research phase. First define and valida
 ## 6. Reproducibility
 
 V10.11 used the frozen V6 pair file and the same eligible pre-event covariate source. The four percentile ranges were fixed before execution. No future-outcome data were loaded or compared, and no rematching occurred. The archived CSV and JSON outputs are the authoritative detailed record.
+
+
+## 7. Scope clarification addendum — 2026-11-25
+
+This completion decision closes the **core descriptive research scope only**. It must not be interpreted as completion of all Phase 3 work needed to build a trading bot.
+
+A subsequent reconciliation of the original execution roadmap found that comprehensive failed-breakout/reversal lifecycle research, full post-signal retest execution analysis, 1M/3M/5M/15M execution-resolution comparison, entry-method research, stop-loss/take-profit/trade-management research, full cost/funding validation, and a realistic Phase 3 strategy backtest remain open or require explicit readiness audits.
+
+The Phase 3 workstream therefore remains active for these execution and trading-system questions. The Phase 1 handoff is paused by the user's 2026-11-25 decision. See:
+- `PHASE3_SCOPE_COMPLETENESS_AUDIT_V1.md`
+- `../../docs/research_checkpoints/2026-11-25_phase3_execution_and_backtest_roadmap_v1.md`
+
+This addendum does not reopen the rejected V6 matched-control branch. It also does not authorize arbitrary parameter sweeps. Work must proceed through the gates in the roadmap and the project-wide research governance rules.
