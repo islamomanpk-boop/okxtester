@@ -170,3 +170,26 @@ This materially closes the code-level missing-funding-default issue, but G0-03 r
 ## Historical exit experiment archive disposition — 2026-11-25
 
 The existing 66-configuration exit matrix is a **Model A trend-candidate** study, not Phase 3 range trading. Its source uses the trend-only candidate generator, which suppresses `NO_TREND`, and historical signal files from the separate `okx_adaptive_bot/reports/price_action_signals` input path. All 66 archived configurations completed; all 66 had negative net returns over the shared five-asset sample (approximately −99.89% to −34.34%), with no untouched chronological OOS validation evidenced. Preserve this negative historical result as trend-pipeline/shared-engine evidence; do not select its least-bad exit parameters or transfer them to Phase 3. The separate telemetry rerun archive is incomplete (2 completed, 1 running, 63 pending) and must remain clearly distinguished. Full details are in `docs/PROJECT_RESEARCH_REGISTER_V1.md`, Section 10.
+
+
+## Latest Gate 0 / Gate 1 status — 2026-11-25
+
+This is the current status snapshot and supersedes earlier provisional Gate 0 and Gate 1 wording in this roadmap and its first audit sections.
+
+### Gate 0
+
+**CONDITIONAL HOLD — not passed.**
+- G0-01 / G0-02: **CLOSED** for the five actual processed funding files audited in Termux, with file hashes and coverage manifest archived.
+- G0-03: **PARTIALLY CLOSED / ACCEPTANCE OPEN**. Both engines now require explicit funding coverage contracts; fail-closed validation is integrated and focused CI run 45624704814 passed compilation plus seven test groups. A reproducible real-input integration check and exact settlement-mark policy acceptance remain open.
+- G0-04 / G0-05: **OPEN / CRITICAL**. Freeze and audit causal Phase 3 event availability/provenance and build/test the separate three-family range candidate generator. The current Model A candidate generator remains trend-only.
+- G0-07: portfolio planned-risk sizing includes estimated entry/stop-exit fees and slippage; standalone sizing, exchange lot/tick rounding, and gap-through-stop risk remain open.
+- G0-08 / G0-09: historical fee/instrument assumptions and exact settlement mark-price fidelity remain open. The current candle-close funding mode is an explicitly labelled proxy.
+- No Gate 6 strategy PnL backtest is authorized.
+
+### Gate 1
+
+**PARTIAL / OPEN.**
+- Rejection lifecycle Module A: **ACCEPTED — descriptive closeout complete**. The V1.1 overlap-cluster amendment and closeout are archived at `docs/research_checkpoints/2026-11-25_phase3_rejection_lifecycle_v1_1_overlap_cluster_amendment.md` and `reports/phase3_rejection_lifecycle_v1_1/PHASE3_REJECTION_LIFECYCLE_CLOSEOUT_V1_1.md`.
+- Evidence: 1,992 accepted event rows (1,154 broad; 838 nested strict), 3,028 retest episodes, 7,968 horizon rows, 380 overlap clusters, zero source 1M gaps, and 12 passing synthetic tests. Workflow run 45627723414 succeeded; output archive commit 2987ca84a4277170beea9ae36ef88133c886d6bb.
+- Breakout failure/reclaim lifecycle Module B: **OPEN**. This is the next Gate 1 task under the same frozen lifecycle protocol.
+- Gate 2 remains closed until Module B is accepted or formally rejected and the overall Gate 1 closeout is issued.
