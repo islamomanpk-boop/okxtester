@@ -1,0 +1,7 @@
+Phase 3 Breakout / Failed-Breakout Lifecycle V1.1
+primary_events=1592
+primary_prior_test_links=1537
+horizon_rows=6368
+forward_crosscheck_passed=6368/6368
+overlap_clusters={'total': 454, 'by_asset': {'BTC': 99, 'ETH': 86, 'SOL': 98, 'DOGE': 77, 'AVAX': 94}, 'largest_cluster_size': 18, 'size_distribution': {'1': 69, '2': 177, '3': 27, '4': 84, '5': 8, '6': 38, '7': 3, '8': 27, '9': 1, '10': 10, '12': 3, '14': 6, '18': 1}}
+No strategy simulation, fills, or PnL were performed.

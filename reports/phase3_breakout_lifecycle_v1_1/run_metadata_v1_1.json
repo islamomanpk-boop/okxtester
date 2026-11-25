@@ -1,0 +1,124 @@
+{
+  "study": "Phase 3 Breakout / Failed-Breakout Lifecycle V1.1",
+  "status": "DESCRIPTIVE_RUN_COMPLETE_PENDING_INDEPENDENT_CLOSEOUT",
+  "protocol": "docs/research_checkpoints/2026-11-25_phase3_boundary_lifecycle_closure_protocol_v1.md",
+  "protocol_amendment": "docs/research_checkpoints/2026-11-25_phase3_breakout_lifecycle_v1_1_amendment.md",
+  "original_source_git_blob_sha": "95d2975947c449f3813d80ee7b12008db14f071f",
+  "primary_zone_pct_of_channel": 10.0,
+  "post_breakout_retest_band_pct_of_boundary": 0.1,
+  "assets": [
+    "BTC",
+    "ETH",
+    "SOL",
+    "DOGE",
+    "AVAX"
+  ],
+  "primary_events": 1592,
+  "primary_definitions": {
+    "BROAD_P40": 932,
+    "STRICT_P25": 660
+  },
+  "primary_directions": {
+    "UPPER": 823,
+    "LOWER": 769
+  },
+  "primary_links": 1537,
+  "events_with_zero_prior_touch_tests": 160,
+  "horizon_rows": 6368,
+  "forward_crosscheck_rows": 6368,
+  "forward_crosscheck_passed": 6368,
+  "forward_crosscheck_scope": "Only measurements present in the frozen accepted forward-outcome CSV; lifecycle retest metrics are not independently benchmarked by that archive.",
+  "forward_crosscheck_fields_checked_per_row": 18,
+  "forward_archive_unavailable_lifecycle_fields": [
+    "outside_retest",
+    "outside_retest_boundary_crossed",
+    "outside_retest_minutes",
+    "outside_retest_depth_pct_of_boundary",
+    "outside_retest_hold"
+  ],
+  "original_event_count_reproduction_rows": 20,
+  "original_quantile_reproduction_rows": 10,
+  "reconstruction_audit_rows": 5,
+  "common_1m_timestamps": 569125,
+  "common_1m_gaps": 0,
+  "source_rows": {
+    "BTC": 569125,
+    "ETH": 569125,
+    "SOL": 569126,
+    "DOGE": 569126,
+    "AVAX": 569127
+  },
+  "source_git_blob_ids": {
+    "research/archive/final_timing_corrected_breakout_and_retest_recovered_original_2026-11-22.py": "95d2975947c449f3813d80ee7b12008db14f071f",
+    "reports/breakout_prior_test_count_v1/breakout_prior_test_classifications_v1.csv": "b432bf5d399f5340f3ed985c45aa64791779ab5f",
+    "reports/breakout_prior_test_count_v1/breakout_prior_test_links_v1.csv": "7e8119e0634f2fa73207f0a030e6140d2612a32e",
+    "reports/breakout_prior_test_count_v1/run_metadata.json": "6a26e087108381ad10507971468bef4b785291ec",
+    "reports/breakout_prior_test_count_v1/reconstruction_audit_v1.csv": "dddf558db7e5eaee28b579b2f585863991dd4707",
+    "reports/breakout_forward_outcome_v1/run_metadata.json": "456ee605a2b2ba7c01b1e390a2880619e01c0660",
+    "reports/breakout_forward_outcome_v1/breakout_forward_outcomes_v1.csv": "458fb8d65bb108b78c04c201ed6115c56ff8096e",
+    "reports/breakout_forward_outcome_v1/original_event_reproduction_v1.csv": "7e697d7f861d54a9e14da1efb8bcf6c53b69b2e6",
+    "reports/breakout_forward_outcome_v1/original_quantile_reproduction_v1.csv": "dea9d1cc7548d74da71f0de265bb10ef26089d03",
+    "data/market_1m/BTC_USDT_USDT_1m.csv": "639f7b8a6d54747dd3eb3370dc133d53f6382bfd",
+    "data/market_1m/ETH_USDT_USDT_1m.csv": "3017d870fe1cb764e1acb8fdec04138592749d69",
+    "data/market_1m/SOL_USDT_USDT_1m.csv": "a850c2dc4a2c14b34b59737ccfbb2e4c59d97bf3",
+    "data/market_1m/DOGE_USDT_USDT_1m.csv": "2162df0f277bef6c04bd191b459a35d735c68f2d",
+    "data/market_1m/AVAX_USDT_USDT_1m.csv": "6e0cb0c55aa2aafb4118d62522826bcf1a2aeb62"
+  },
+  "source_sha256": {
+    "BTC": "3afab3d60387c87fc4b96f54911538fea6bbb7682b2e18001537bc4359da6633",
+    "ETH": "8a2924bcb23bd5963cd1c46b8871475ff7ff4a3c8d8bed6325dbd406ec0552d2",
+    "SOL": "8ed0a2efade22a11aa50f4511cdab3d32f438759f7acd7819ccbe41ab92ac0b3",
+    "DOGE": "eabf087b1a782d316fa1560b10fc4ee7adfc0adb426ef3d1158dc18c248c40f4",
+    "AVAX": "44ac7db951247a374aecba845336517b82b2655489920d62ec70f9b02fccdfd5"
+  },
+  "overlap_clusters": {
+    "total": 454,
+    "by_asset": {
+      "BTC": 99,
+      "ETH": 86,
+      "SOL": 98,
+      "DOGE": 77,
+      "AVAX": 94
+    },
+    "largest_cluster_size": 18,
+    "size_distribution": {
+      "1": 69,
+      "2": 177,
+      "3": 27,
+      "4": 84,
+      "5": 8,
+      "6": 38,
+      "7": 3,
+      "8": 27,
+      "9": 1,
+      "10": 10,
+      "12": 3,
+      "14": 6,
+      "18": 1
+    }
+  },
+  "reproduction_gates": {
+    "original_event_counts_reproduced": 20,
+    "original_quantiles_reproduced": 10,
+    "primary_classification_rows": 1592,
+    "primary_prior_test_link_rows": 1537,
+    "prior_test_link_count_mismatches": 0,
+    "primary_forward_reference_rows": 6368
+  },
+  "output_sha256": {
+    "breakout_lifecycle_events_v1_1.csv": "0886bcb779ef2f6cc590b6677c74e9ac44506b5d88f876a83b38e4b6184c5179",
+    "breakout_lifecycle_forward_crosscheck_v1_1.csv": "9f239c12e7922269c01ff601a46af0dfdb7cf3421c68153529d3094400f78996",
+    "breakout_lifecycle_group_summary_v1_1.csv": "1405553f66e2567a23dd50b6fbde91d305c992aab774d1862f569949cb05a1ad",
+    "breakout_lifecycle_horizons_v1_1.csv": "b129723b3b4549263d2eeae8c8d715a8c8c7d0ff1dd655a43680e536ac34ad9d",
+    "breakout_lifecycle_prior_links_v1_1.csv": "9816667ab0d95994bd6c769d007da51b5f0161c8475eee524d9d9e0920fc9666"
+  },
+  "limitations": [
+    "Descriptive lifecycle and price-path study only; no orders, fills, fees, funding, PnL or profitability inference.",
+    "Strict breakout definition is nested within broad; never pool as independent samples.",
+    "OHLC data cannot establish intraminute event order or executable fills.",
+    "The 10% prior-test zone is 10% of channel width; the post-breakout retest band is separately 0.10% of boundary price.",
+    "Overlapping event windows are dependent; clusters are reported and no independent-event standard errors are calculated.",
+    "The original full-sample P25/P40 channel-width quantiles are retrospective and not live calibrated.",
+    "Outside/inside lifecycle retest measurements are computed descriptively but are absent from the frozen forward-outcome CSV and therefore have no independent archived cross-check."
+  ]
+}
