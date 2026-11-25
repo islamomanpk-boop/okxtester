@@ -154,3 +154,19 @@ The automated GitHub workflow tests synthetic fixtures only. It does not have th
 The real local audit has now been executed successfully against the five processed OKX realized-rate CSVs in the user's Termux environment. It found 1,188 rows per asset (5,940 total), identical timestamps across assets, coverage from 2025-10-20 00:00 UTC through 2026-11-19 16:00 UTC, 1,187 expected 8-hour intervals per asset, zero missing settlements, and no gaps or irregular intervals. Per-file SHA-256 hashes are permanently recorded in `reports/sideways_phase3_research_archive_v1/funding_coverage_audit_v1/funding_coverage_manifest.json`, alongside the human-readable report.
 
 This closes the funding-file availability/hash/coverage evidence items G0-01 and G0-02 for the audited Termux environment. It does **not** close engine-side funding validation/application, exact mark-price provenance, fee/instrument assumptions, or the Phase 3 candidate-generation blockers. **Gate 0 remains CONDITIONAL HOLD; Gate 6 backtesting is still not authorized.** Raw funding CSVs remain local and are not committed.
+
+
+## Funding contract implementation and focused workflow update — 2026-11-25
+
+The earlier funding blocker description is a historical snapshot and has been materially updated:
+- Both execution paths now require explicit funding contracts; the single-trade engine no longer defaults to an empty event list.
+- The shared validator checks declared source/coverage/schedule metadata against the exact expected settlement timestamps. An empty list is valid only when the declared schedule proves no settlement is due.
+- The portfolio engine validates per-asset contracts and settlement alignment against its synchronized 1M timeline.
+- The experiment input loader verifies the local CSV hashes and metadata against the archived manifest and explicitly labels its current funding mark mode as `candle_close_proxy`.
+- Focused CI run **45624704814** passed compilation and all seven focused test groups: https://github.com/islamomanpk-boop/okxtester/actions/runs/45624704814.
+
+This materially closes the code-level missing-funding-default issue, but G0-03 remains partially open pending a reproducible real-input integration check and final mark-price policy acceptance. The historical mark-price candle endpoint is only a candidate proxy; exact OKX settlement valuation remains unverified. The portfolio path includes estimated entry/stop-exit slippage and taker fees in planned risk sizing; standalone single-trade sizing does not, and contract rounding/gap risk remain open. G0-01/G0-02 are closed for the five actual Termux files audited and hashed on 2026-11-25.
+
+## Historical exit experiment archive disposition — 2026-11-25
+
+The existing 66-configuration exit matrix is a **Model A trend-candidate** study, not Phase 3 range trading. Its source uses the trend-only candidate generator, which suppresses `NO_TREND`, and historical signal files from the separate `okx_adaptive_bot/reports/price_action_signals` input path. All 66 archived configurations completed; all 66 had negative net returns over the shared five-asset sample (approximately −99.89% to −34.34%), with no untouched chronological OOS validation evidenced. Preserve this negative historical result as trend-pipeline/shared-engine evidence; do not select its least-bad exit parameters or transfer them to Phase 3. The separate telemetry rerun archive is incomplete (2 completed, 1 running, 63 pending) and must remain clearly distinguished. Full details are in `docs/PROJECT_RESEARCH_REGISTER_V1.md`, Section 10.
