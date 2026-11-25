@@ -204,3 +204,42 @@ It records SHA-256 and absolute file paths, checks schema/instrument/rates, stri
 **Important:** the 8-hour cadence and coverage endpoints are explicit defaults based on the prior reconciliation report, not universal assumptions. GitHub Actions uses synthetic unit-test fixtures because processed funding CSVs are intentionally local and not tracked in Git. A passing workflow proves audit logic tests only; it does not prove the actual five funding files pass.
 
 Gate 0 remains **CONDITIONAL HOLD** until the real-data command is run in the environment containing the five processed files and its output manifest is archived. The current run is not yet a real-data funding audit.
+
+
+## 11. Actual local funding coverage audit — 2026-11-25
+
+**Result: PASS against the user's actual processed OKX realized-rate CSVs in the Termux execution environment.** This supersedes the earlier statement that current local file presence, hashes, and settlement-gap completeness remained unverified. The audit was run with:
+
+```bash
+python src/funding_coverage_audit.py \\
+  --funding-dir "$HOME/okx_scalping_data/funding_rates/processed" \\
+  --output-dir reports/funding_coverage_audit_v1
+```
+
+The run generated and passed both archived outputs:
+- `reports/funding_coverage_audit_v1/funding_coverage_audit.md`
+- `reports/funding_coverage_audit_v1/funding_coverage_manifest.json`
+
+Scope and result:
+- Five instruments: BTC-USDT-SWAP, ETH-USDT-SWAP, SOL-USDT-SWAP, DOGE-USDT-SWAP, AVAX-USDT-SWAP.
+- 1,188 rows per asset; 5,940 records total.
+- Expected and observed first settlement: 2025-10-20 00:00:00 UTC.
+- Expected and observed last settlement: 2026-11-19 16:00:00 UTC.
+- Expected cadence: 28,800,000 ms (8 hours); 1,187 intervals per asset.
+- Missing settlements: zero for every asset; gaps and irregular intervals: none.
+- Per-asset timestamp sets are identical; audit failures/issues: none.
+- Each source file's SHA-256 is recorded in the JSON manifest and Markdown report.
+
+| Asset | Rows | Missing | SHA-256 |
+|---|---:|---:|---|
+| BTC | 1,188 | 0 | `44c1c9c219adb2f1808612a492f451b995d27d3a258d5bbd5ef8ff1a4ccf5642` |
+| ETH | 1,188 | 0 | `146a3b8310eb0f361d014c61aeb3cd311e19964faf4a231f98881d228fdbe903` |
+| SOL | 1,188 | 0 | `fe473ac103c549853fd0ca044d8607776fe07bdfd95f1fcf303d6df35fee3041` |
+| DOGE | 1,188 | 0 | `c00d261ba97e2d64fbb173e4d4c28c01970b3ee3ea4ff1e8e7d32c1ac4113749` |
+| AVAX | 1,188 | 0 | `c3e84c3271dd233f65e9cf61393f49109b3f155c6f0cd7d44bd1eab805c444a9` |
+
+The five exact local source paths are recorded in the JSON manifest; they are outside Git and the raw/processed CSVs are intentionally not copied into this archive. The manifest's absolute paths are specific to the user's Termux environment. The archived hashes identify the exact inputs audited without publishing the private local files.
+
+**Interpretation and boundary:** G0-01 and G0-02 are closed for funding source availability, file identity, cadence, and cross-asset coverage in the audited Termux environment. This is not proof of mark-price coverage, exact mark-price usage, funding cashflow correctness inside either execution engine, or fail-closed behaviour when inputs are absent. G0-03 therefore remains open. Gate 0 remains **CONDITIONAL HOLD**; no Phase 3 strategy PnL backtest is authorized by this funding-data PASS.
+
+The audit's 8-hour cadence and date endpoints are the explicit project audit scope inherited from the prior OKX reconciliation, not a claim that every instrument or historical period universally settles on this schedule.
