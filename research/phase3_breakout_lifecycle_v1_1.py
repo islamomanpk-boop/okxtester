@@ -302,6 +302,14 @@ def _float_or_blank(value):
     return float(value)
 
 
+def parse_bool(value):
+    if value is None or pd.isna(value):
+        return None
+    if isinstance(value, str):
+        return value.strip().lower() in ("true", "1", "yes")
+    return bool(value)
+
+
 def _time_ms_or_blank(value):
     if value is None or pd.isna(value) or value == "":
         return ""
@@ -577,8 +585,15 @@ def analyze_event(event, minute: pd.DataFrame, bars15: pd.DataFrame):
             "outside_retest_minutes": outside_retest["elapsed_minutes"] if retest_in_horizon else "",
             "outside_retest_depth_pct_of_boundary": outside_retest["depth_pct_of_boundary"] if retest_in_horizon else "",
             "outside_retest_hold": outside_retest["hold_status"] in ("HELD_OUTSIDE",) if retest_hold_in_horizon else "",
+            "first_1m_return_inside_available_ts_ms": first_1m_inside["available_ts_ms"] if first_1m_inside and first_1m_inside["available_ts_ms"] <= horizon_end_ts else "",
             "first_15m_return_inside_close_ts_ms": failure15["close_ts_ms"] if failure15 and failure15["close_ts_ms"] <= horizon_end_ts else "",
             "breakout_side_reclaim_close_ts_ms": reclaim15["close_ts_ms"] if reclaim15 and reclaim15["close_ts_ms"] <= horizon_end_ts else "",
+            "inside_retest": bool(inside_retest and inside_retest.get("offset") is not None and inside_retest["bar_open_ts_ms"] + MINUTE_MS <= horizon_end_ts),
+            "inside_retest_hold": (
+                inside_retest.get("hold_status") == "HELD_INSIDE"
+                if inside_retest and inside_retest.get("hold_close_ts_ms")
+                and int(inside_retest["hold_close_ts_ms"]) <= horizon_end_ts else ""
+            ),
         })
     return event_result, horizon_results
 
@@ -599,6 +614,8 @@ def compare_with_forward_archive(horizon_rows, reference):
         ("time_to_mfe_minutes", "time_to_mfe_minutes"),
         ("time_to_mae_minutes", "time_to_mae_minutes"),
         ("entry_open", "entry_open"), ("entry_open_already_through_boundary", "entry_open_already_through_boundary"),
+        ("favourable_extreme_time_ms", "favourable_extreme_time"),
+        ("adverse_extreme_time_ms", "adverse_extreme_time"),
         ("boundary_failure", "boundary_failure"), ("minutes_to_boundary_failure", "minutes_to_boundary_failure"),
         ("outside_retest", "band_approach"), ("outside_retest_boundary_crossed", "boundary_penetration"),
         ("outside_retest_minutes", "retest_minutes"), ("outside_retest_depth_pct_of_boundary", "penetration_depth_pct"),
@@ -615,16 +632,18 @@ def compare_with_forward_archive(horizon_rows, reference):
             if a == "" or a is None or pd.isna(a):
                 checks[ours] = bool(pd.isna(b) or b == "")
             elif isinstance(a, (bool, np.bool_)):
-                checks[ours] = bool(a) == bool(b)
+                parsed_b = parse_bool(b)
+                checks[ours] = parsed_b is not None and bool(a) == parsed_b
             elif isinstance(a, (int, float, np.integer, np.floating)):
                 checks[ours] = bool(pd.notna(b) and math.isclose(float(a), float(b), rel_tol=0.0, abs_tol=1e-8))
             else:
                 checks[ours] = str(a) == str(b)
         # Retest hold is only comparable when the first completed 15M close is within this horizon.
-        if row["outside_retest"] and row["outside_retest_hold"] != "":
-            checks["outside_retest_hold"] = bool(row["outside_retest_hold"]) == bool(ref.get("retest_hold"))
+        ref_hold = parse_bool(ref.get("retest_hold"))
+        if row["outside_retest_hold"] != "":
+            checks["outside_retest_hold"] = ref_hold is not None and bool(row["outside_retest_hold"]) == ref_hold
         else:
-            checks["outside_retest_hold"] = True
+            checks["outside_retest_hold"] = ref_hold is None
         all_pass = all(checks.values())
         if not all_pass:
             mismatches.append({"event_id": row["event_id"], "horizon": row["horizon"], "failed_fields": [k for k,v in checks.items() if not v]})
@@ -640,17 +659,10 @@ def compare_with_forward_archive(horizon_rows, reference):
 
 
 def build_group_summary(event_rows, horizon_rows):
-    events = pd.DataFrame(event_rows)
     horizons = pd.DataFrame(horizon_rows)
-    joined = horizons.merge(
-        events[["event_id", "overlap_cluster_id", "first_1m_return_inside_available_ts_ms",
-                "first_15m_return_inside_close_ts_ms", "breakout_side_reclaim_close_ts_ms",
-                "outside_retest_status", "inside_retest_status"]],
-        on="event_id", how="left", validate="many_to_one"
-    )
     group_cols = ["asset", "definition", "direction", "pre_breakout_group", "horizon"]
     result = []
-    for key, group in joined.groupby(group_cols, dropna=False, sort=True):
+    for key, group in horizons.groupby(group_cols, dropna=False, sort=True):
         result.append({
             **dict(zip(group_cols, key)),
             "events": len(group),
@@ -661,10 +673,10 @@ def build_group_summary(event_rows, horizon_rows):
             "boundary_failure_rate": float(group["boundary_failure"].mean()),
             "outside_retests": int(group["outside_retest"].sum()),
             "outside_retest_rate": float(group["outside_retest"].mean()),
-            "one_minute_return_inside": int(group["first_1m_return_inside_available_ts_ms"].notna().sum()),
-            "fifteen_minute_failure_confirmations": int(group["first_15m_return_inside_close_ts_ms"].notna().sum()),
-            "breakout_side_reclaims": int(group["breakout_side_reclaim_close_ts_ms"].notna().sum()),
-            "inside_retests": int((group["inside_retest_status"] == "RETEST_AFTER_MOVING_AWAY").sum()),
+            "one_minute_return_inside": int(group["first_1m_return_inside_available_ts_ms"].ne("").sum()),
+            "fifteen_minute_failure_confirmations": int(group["first_15m_return_inside_close_ts_ms"].ne("").sum()),
+            "breakout_side_reclaims": int(group["breakout_side_reclaim_close_ts_ms"].ne("").sum()),
+            "inside_retests": int(group["inside_retest"].sum()),
             "mfe_median_pct": float(group["mfe_pct"].median()),
             "mae_median_pct": float(group["mae_pct"].median()),
             "mfe_channel_median_pct": float(group["mfe_channel_width_pct"].median()),
@@ -753,11 +765,11 @@ def run(root: Path, output_dir: Path):
         for link in prior_links:
             if abs(float(link.upper) - upper) > 1e-8 or abs(float(link.lower) - lower) > 1e-8 or abs(float(link.channel_width_price) - width) > 1e-8:
                 raise ValueError(f"{event_id}: linked prior-test boundary mismatch")
-            if not pd.Timestamp(link.test_start_time, tz="UTC") < source.signal_time:
+            if not pd.to_datetime(link.test_start_time, utc=True) < source.signal_time:
                 raise ValueError(f"{event_id}: prior test starts at/after breakout signal")
-            if pd.notna(link.first_rejection_time) and not pd.Timestamp(link.first_rejection_time, tz="UTC") < source.signal_time:
+            if pd.notna(link.first_rejection_time) and not pd.to_datetime(link.first_rejection_time, utc=True) < source.signal_time:
                 raise ValueError(f"{event_id}: prior rejection is not strictly before breakout")
-            if pd.notna(link.test_end_time) and pd.Timestamp(link.test_end_time, tz="UTC") > source.signal_time:
+            if pd.notna(link.test_end_time) and pd.to_datetime(link.test_end_time, utc=True) > source.signal_time:
                 raise ValueError(f"{event_id}: prior test end is after breakout signal")
             link_dict = link.to_dict()
             link_dict["event_id"] = event_id
