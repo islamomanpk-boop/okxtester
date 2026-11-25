@@ -80,3 +80,36 @@ This is deliberately a small coverage/timestamp probe, not a bulk downloader. If
 The endpoint contract is now sufficiently specified to test pagination and timestamp alignment. Actual API responses for the five assets have not yet been inspected. Gate 0 / G0-03 remains OPEN; no PnL backtest is authorized by this reconnaissance alone.
 
 Implementation note: the probe scans each local 1-minute trade-candle CSV for only the three requested close values instead of loading all five large candle histories into memory. This keeps the first source check practical on the Termux/mobile environment.
+
+
+## First live sample results (Termux, 2026-11-25)
+
+The user ran the probe against the local funding/candle files and the public OKX endpoint after compiling it successfully.
+
+Observed output:
+- 15 requests attempted (first, middle, last settlement for each of five instruments).
+- 15 exact-timestamp mark-price candles found.
+- 0 API errors and 0 missing mark-price candles.
+- All 15 returned candles had `confirm=1`.
+- At the five middle samples, mark-candle close and local trade-candle close matched exactly at the printed precision (0.000000 bps).
+- The first and last samples for all five assets had no matching local trade candle (10 boundary misses); this was not an OKX mark-candle coverage failure.
+
+The local trade-candle file boundaries reported by the user:
+- All assets start at `1760950200000`.
+- BTC ends at `1795097640000`; SOL and DOGE at `1795097700000`; AVAX at `1795097760000`; ETH at `1795097640000`.
+- The sampled first funding timestamp is `1760918400000`, which is 8 hours 50 minutes before the local trade-candle start.
+- The sampled last funding timestamp is `1795104000000`, which is 1 hour 44–46 minutes after the local trade-candle end, depending on asset.
+
+Interpretation:
+- The 10 missing trade closes are explained by the local trade-candle dataset boundaries. They must not be counted as missing OKX mark-price candles or as evidence of corrupted candle data.
+- This first sample confirms that the historical mark-price endpoint returned complete, exact-minute candles for these 15 selected funding timestamps.
+- The five middle close matches are encouraging but are only five observations. They do not establish a general equality between mark-price candles and trade-price candles, nor do they identify the exact funding settlement mark.
+- The sample does not establish full-window mark-candle coverage, pagination correctness over the full range, or exact settlement-price equivalence.
+
+Next validation:
+1. Expand to a bounded, evenly spaced sample across the full funding history for all five assets (for example, 12 settlements per asset, 60 requests).
+2. Record mark-candle open/high/low/close and compare both open and close with local trade-candle close only when the trade timestamp is within local file coverage.
+3. Report exact timestamp matches, duplicates, missing mark candles, confirmation status, boundary-excluded trade comparisons, and per-asset difference distributions.
+4. Keep `candle_close_proxy` unchanged and Gate 0 / G0-03 OPEN until the broader evidence and settlement-price semantics are assessed.
+
+This section supersedes the earlier statement that actual API responses had not yet been inspected. It does not change the decision that no exact settlement-price source has been established and no PnL backtest is authorized by this reconnaissance.
