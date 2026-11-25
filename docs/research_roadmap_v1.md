@@ -89,6 +89,12 @@ Before optimizing exits, evaluate the forward behaviour of the existing 15M sign
 
 Define all event windows and labels without look-ahead. Account for overlapping signals and dependent observations when estimating uncertainty.
 
+### Shared cross-phase funding-price fidelity dependency
+
+Funding-price fidelity is a common infrastructure gate for **all five phases**, not a Phase-3-specific task. Preserve the canonical shared research note at `docs/research/funding_price_fidelity_shared_v1.md` and its detailed evidence checkpoint at `docs/research_checkpoints/2026-11-25_okx_historical_mark_price_source_recon_v1.md`.
+
+Every phase must use the common funding contract and approved price-fidelity policy. Gate 0 / G0-03 remains OPEN until the exact-settlement source or an explicitly approved proxy policy is validated and documented. Do not authorize authoritative strategy PnL backtests or create phase-specific funding shortcuts while this gate is open.
+
 ### Workstream E — Costs and execution
 
 Quantify:
