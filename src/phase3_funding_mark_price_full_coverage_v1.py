@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Read-only full-window funding/mark-candle coverage and proxy comparison.
+"""Read-only full-window OKX mark-price coverage at audited funding timestamps.
 
-Downloads public OKX monthly funding archives and realizedRate API records into
-memory, retrieves 4H historical mark-price candles, and compares their opens
-with funding timestamps and available canonical 1m trade candles. A bounded
-1m mark-candle sample checks cross-resolution open-price consistency.
+Funding timestamps are reconstructed from the already-audited, committed
+funding coverage manifest (all five schedules have exact recorded coverage and
+cadence). The script retrieves public 4H mark-price candles and a bounded 1m
+mark-candle sample, then compares them with available canonical 1m trade bars.
 
-No credentials are used. No source CSV, archive, database, or VPS state is
+No credentials are used. No source CSV, funding file, database, or VPS state is
 modified. Only a small JSON summary is written to the requested output path.
 """
 
@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import argparse
 import csv
-import io
+import hashlib
 import json
 import math
 import statistics
@@ -22,7 +22,6 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-import zipfile
 from collections import Counter
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
@@ -30,28 +29,10 @@ from pathlib import Path
 from typing import Iterable
 
 ASSETS = ["BTC", "ETH", "SOL", "DOGE", "AVAX"]
-START_MS = 1760918400000  # 2025-10-20 00:00:00 UTC
-END_MS = 1795104000000    # 2026-11-19 16:00:00 UTC
-EXPECTED_ROWS = 1188
-EXPECTED_INTERVAL_MS = 28_800_000
-ARCHIVE_FIELDS = ["instrument_name", "funding_rate", "funding_time"]
+DEFAULT_FUNDING_MANIFEST = Path(
+    "reports/sideways_phase3_research_archive_v1/funding_coverage_audit_v1/funding_coverage_manifest.json"
+)
 MARK_BASE = "https://www.okx.com/api/v5/market/history-mark-price-candles"
-FUNDING_API_BASE = "https://www.okx.com/api/v5/public/funding-rate-history"
-ARCHIVE_BASE = "https://static.okx.com/cdn/okex/traderecords/swaprates/monthly"
-
-
-def month_range(start: str = "2025-10", end: str = "2026-11") -> list[str]:
-    sy, sm = map(int, start.split("-"))
-    ey, em = map(int, end.split("-"))
-    result = []
-    year, month = sy, sm
-    while (year, month) <= (ey, em):
-        result.append(f"{year:04d}-{month:02d}")
-        month += 1
-        if month == 13:
-            year += 1
-            month = 1
-    return result
 
 
 def as_decimal(value: object) -> Decimal:
@@ -103,6 +84,54 @@ def distribution(values: Iterable[float]) -> dict:
     }
 
 
+def build_funding_timestamps(asset_record: dict) -> list[int]:
+    if asset_record.get("issues") or asset_record.get("gaps") or asset_record.get("irregular_intervals"):
+        raise ValueError("Funding manifest asset record contains issues, gaps, or irregular intervals")
+    rows = int(asset_record["rows"])
+    first_ts = int(asset_record["first_timestamp_ms"])
+    last_ts = int(asset_record["last_timestamp_ms"])
+    interval_ms = int(asset_record["expected_interval_ms"])
+    if rows < 2 or interval_ms <= 0:
+        raise ValueError("Funding manifest row count or interval is invalid")
+    timestamps = [first_ts + i * interval_ms for i in range(rows)]
+    if timestamps[-1] != last_ts:
+        raise ValueError("Funding manifest bounds do not agree with its row count and interval")
+    return timestamps
+
+
+def load_funding_manifest(path: Path) -> tuple[dict[str, list[int]], dict]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if payload.get("status") != "PASS":
+        raise ValueError(f"Funding coverage manifest is not PASS: {payload.get('status')}")
+    events = {}
+    meta = {}
+    for asset in ASSETS:
+        records = [x for x in payload.get("assets", []) if x.get("asset") == asset]
+        if len(records) != 1:
+            raise ValueError(f"Funding manifest must contain exactly one record for {asset}")
+        record = records[0]
+        timestamps = build_funding_timestamps(record)
+        events[asset] = timestamps
+        meta[asset] = {
+            "source": "committed funding coverage manifest",
+            "instrument_name": record.get("instrument_name"),
+            "rows": len(timestamps),
+            "first_timestamp_ms": timestamps[0],
+            "last_timestamp_ms": timestamps[-1],
+            "first_timestamp_utc": datetime.fromtimestamp(timestamps[0] / 1000, timezone.utc).isoformat(),
+            "last_timestamp_utc": datetime.fromtimestamp(timestamps[-1] / 1000, timezone.utc).isoformat(),
+            "expected_interval_ms": int(record["expected_interval_ms"]),
+            "expected_interval_minutes": int(record["expected_interval_ms"]) // 60000,
+            "funding_csv_sha256_from_manifest": record.get("sha256"),
+            "missing_settlement_count": record.get("missing_settlement_count"),
+        }
+    reference = set(events[ASSETS[0]])
+    if any(set(events[a]) != reference for a in ASSETS[1:]):
+        raise ValueError("Funding manifest timestamp sets differ across assets")
+    manifest_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+    return events, {"path": str(path), "sha256": manifest_hash, "status": payload.get("status"), "assets": meta}
+
+
 def http_json(url: str, *, timeout: int = 45, retries: int = 4, pause: float = 0.12) -> dict:
     last_error = None
     for attempt in range(retries):
@@ -125,111 +154,9 @@ def http_json(url: str, *, timeout: int = 45, retries: int = 4, pause: float = 0
     raise RuntimeError(f"Request failed after {retries} attempts: {last_error}") from last_error
 
 
-def fetch_archive_month(asset: str, month: str) -> dict[int, Decimal]:
+def fetch_mark_candles(asset: str, start_ms: int, end_ms: int, bar: str = "4H") -> tuple[dict[int, dict], dict]:
     instrument = f"{asset}-USDT-SWAP"
-    year, mon = month.split("-")
-    filename = f"{instrument}-fundingrates-{month}.zip"
-    url = f"{ARCHIVE_BASE}/{year}{mon}/{filename}?v=1001"
-    request = urllib.request.Request(url, headers={"User-Agent": "OKX-Price-Action-Research/1.0"})
-    with urllib.request.urlopen(request, timeout=60) as response:
-        content = response.read()
-
-    if not zipfile.is_zipfile(io.BytesIO(content)):
-        raise ValueError(f"{asset} {month}: invalid ZIP archive")
-    records: dict[int, Decimal] = {}
-    with zipfile.ZipFile(io.BytesIO(content)) as archive:
-        names = [name for name in archive.namelist() if not name.endswith("/")]
-        if len(names) != 1:
-            raise ValueError(f"{asset} {month}: expected one CSV member, found {len(names)}")
-        with archive.open(names[0]) as raw:
-            text = io.TextIOWrapper(raw, encoding="utf-8-sig", newline="")
-            reader = csv.DictReader(text)
-            if reader.fieldnames != ARCHIVE_FIELDS:
-                raise ValueError(f"{asset} {month}: unexpected archive header {reader.fieldnames}")
-            for row in reader:
-                if row["instrument_name"] != instrument:
-                    raise ValueError(f"{asset} {month}: wrong instrument {row['instrument_name']}")
-                ts = int(row["funding_time"])
-                rate = as_decimal(row["funding_rate"])
-                if START_MS <= ts <= END_MS:
-                    if ts in records and records[ts] != rate:
-                        raise ValueError(f"{asset} {month}: conflicting duplicate timestamp {ts}")
-                    records[ts] = rate
-    return records
-
-
-def fetch_funding_api(asset: str) -> dict[int, Decimal]:
-    instrument = f"{asset}-USDT-SWAP"
-    params = urllib.parse.urlencode({"instId": instrument, "limit": "400"})
-    payload = http_json(f"{FUNDING_API_BASE}?{params}", pause=0.15)
-    records: dict[int, Decimal] = {}
-    for row in payload.get("data", []):
-        if row.get("instId") != instrument:
-            raise ValueError(f"{asset}: funding API returned another instrument")
-        if row.get("realizedRate") in (None, ""):
-            raise ValueError(f"{asset}: API row missing realizedRate")
-        ts = int(row["fundingTime"])
-        rate = as_decimal(row["realizedRate"])
-        if START_MS <= ts <= END_MS:
-            if ts in records and records[ts] != rate:
-                raise ValueError(f"{asset}: conflicting API duplicate {ts}")
-            records[ts] = rate
-    return records
-
-
-def merge_funding_records(
-    archive: dict[int, Decimal],
-    api: dict[int, Decimal],
-    tolerance: Decimal = Decimal("0.000000000001"),
-) -> tuple[dict[int, Decimal], int]:
-    overlap = set(archive) & set(api)
-    conflicts = [ts for ts in overlap if abs(archive[ts] - api[ts]) > tolerance]
-    if conflicts:
-        raise ValueError(f"{len(conflicts)} archive/API realized-rate conflicts")
-    combined = dict(archive)
-    combined.update(api)
-    return combined, len(overlap)
-
-
-def load_funding_events(asset: str, months: list[str]) -> tuple[list[int], dict]:
-    archive: dict[int, Decimal] = {}
-    archive_months_ok = 0
-    for month in months:
-        month_rows = fetch_archive_month(asset, month)
-        archive_months_ok += 1
-        for ts, rate in month_rows.items():
-            if ts in archive and archive[ts] != rate:
-                raise ValueError(f"{asset}: conflicting archive duplicate {ts}")
-            archive[ts] = rate
-        time.sleep(0.15)
-
-    api = fetch_funding_api(asset)
-    combined, overlap_count = merge_funding_records(archive, api)
-    events = sorted(combined)
-    if len(events) != EXPECTED_ROWS:
-        raise ValueError(f"{asset}: expected {EXPECTED_ROWS} funding events, found {len(events)}")
-    if events[0] != START_MS or events[-1] != END_MS:
-        raise ValueError(f"{asset}: unexpected funding bounds {events[0]}..{events[-1]}")
-    intervals = Counter(b - a for a, b in zip(events, events[1:]))
-    if intervals != Counter({EXPECTED_INTERVAL_MS: EXPECTED_ROWS - 1}):
-        raise ValueError(f"{asset}: unexpected settlement intervals {dict(intervals)}")
-
-    return events, {
-        "archive_months_downloaded": archive_months_ok,
-        "archive_rows": len(archive),
-        "api_rows_in_window": len(api),
-        "archive_api_overlap": overlap_count,
-        "rate_conflicts": 0,
-        "merged_rows": len(events),
-        "first_timestamp_ms": events[0],
-        "last_timestamp_ms": events[-1],
-        "intervals_minutes": {str(k // 60000): v for k, v in intervals.items()},
-    }
-
-
-def fetch_mark_candles(asset: str, bar: str = "4H") -> tuple[dict[int, dict], dict]:
-    instrument = f"{asset}-USDT-SWAP"
-    cursor = END_MS + 1
+    cursor = end_ms + 1
     candles: dict[int, dict] = {}
     pages = 0
     duplicate_rows = 0
@@ -253,7 +180,7 @@ def fetch_mark_candles(asset: str, bar: str = "4H") -> tuple[dict[int, dict], di
                 raise ValueError(f"{asset}: malformed {bar} mark candle")
             ts = int(row[0])
             page_timestamps.append(ts)
-            if START_MS <= ts <= END_MS:
+            if start_ms <= ts <= end_ms:
                 candle = {
                     "open": as_decimal(row[1]),
                     "high": as_decimal(row[2]),
@@ -271,7 +198,7 @@ def fetch_mark_candles(asset: str, bar: str = "4H") -> tuple[dict[int, dict], di
         page_min = min(page_timestamps)
         if page_min >= cursor:
             raise RuntimeError(f"{asset}: {bar} pagination did not move backwards")
-        if page_min <= START_MS:
+        if page_min <= start_ms:
             break
         cursor = page_min
     else:
@@ -362,9 +289,9 @@ def utc_string(ts: int | None) -> str | None:
     return datetime.fromtimestamp(ts / 1000, timezone.utc).isoformat()
 
 
-def run_audit(trade_dir: Path, samples_per_asset: int = 12) -> dict:
-    months = month_range()
-    all_timestamps = {}
+def run_audit(trade_dir: Path, funding_manifest: Path, samples_per_asset: int = 12) -> dict:
+    events_by_asset, funding_meta = load_funding_manifest(funding_manifest)
+    all_timestamps = {asset: set(events_by_asset[asset]) for asset in ASSETS}
     asset_results = {}
     pooled = {
         "mark_4h_open_vs_trade_1m_close_bps": [],
@@ -376,12 +303,11 @@ def run_audit(trade_dir: Path, samples_per_asset: int = 12) -> dict:
     }
 
     for asset in ASSETS:
-        print(f"[{asset}] Downloading and reconciling public funding history...", flush=True)
-        events, funding_meta = load_funding_events(asset, months)
-        all_timestamps[asset] = set(events)
-
+        events = events_by_asset[asset]
+        start_ms, end_ms = events[0], events[-1]
+        print(f"[{asset}] funding events from audited manifest: {len(events)}", flush=True)
         print(f"[{asset}] Fetching full-window 4H mark-price candles...", flush=True)
-        mark_4h, mark_meta = fetch_mark_candles(asset, "4H")
+        mark_4h, mark_meta = fetch_mark_candles(asset, start_ms, end_ms, "4H")
         event_mark_rows = {ts: mark_4h[ts] for ts in events if ts in mark_4h}
         missing_mark = [ts for ts in events if ts not in mark_4h]
         incomplete_mark = [ts for ts, candle in event_mark_rows.items() if candle["confirm"] != 1]
@@ -441,20 +367,17 @@ def run_audit(trade_dir: Path, samples_per_asset: int = 12) -> dict:
             sample_results.append({
                 "timestamp_ms": ts,
                 "timestamp_utc": utc_string(ts),
-                "mark_4h_open": str(mark_4h_row["open"]),
-                "mark_1m_open": str(mark_1m_row["open"]),
-                "mark_1m_close": str(mark_1m_row["close"]),
                 "mark_1m_confirm": mark_1m_row["confirm"],
                 "mark_1m_open_vs_4h_open_bps": open_diff,
                 "mark_1m_close_vs_4h_open_bps": close_diff,
-                "trade_1m_close": str(trade["close"]) if trade else None,
+                "trade_1m_close_available": trade is not None,
             })
 
         pooled["sample_1m_open_vs_4h_open_bps"].extend(sample_diffs_open)
         pooled["sample_1m_close_vs_4h_open_bps"].extend(sample_diffs_close)
 
         asset_results[asset] = {
-            "funding": funding_meta,
+            "funding": funding_meta["assets"][asset],
             "mark_4h": {
                 **mark_meta,
                 "exact_funding_timestamp_matches": len(event_mark_rows),
@@ -479,11 +402,11 @@ def run_audit(trade_dir: Path, samples_per_asset: int = 12) -> dict:
                 "mark_1m_open_equals_mark_4h_open": sample_open_matches,
                 "mark_1m_open_vs_4h_open_bps": distribution(sample_diffs_open),
                 "mark_1m_close_vs_4h_open_bps": distribution(sample_diffs_close),
-                "examples": sample_results[:12],
+                "examples": sample_results,
             },
         }
         print(
-            f"[{asset}] funding={len(events)} mark4h_exact={len(event_mark_rows)} "
+            f"[{asset}] mark4h_exact={len(event_mark_rows)}/{len(events)} "
             f"missing_mark={len(missing_mark)} trade_matches={len(trade_rows)} "
             f"1m_sample={len(sample_diffs_open)}/{len(sample_timestamps)}",
             flush=True,
@@ -491,43 +414,50 @@ def run_audit(trade_dir: Path, samples_per_asset: int = 12) -> dict:
 
     reference = all_timestamps[ASSETS[0]]
     cross_asset_equal = all(all_timestamps[a] == reference for a in ASSETS[1:])
-    result = {
+    first_ts = events_by_asset[ASSETS[0]][0]
+    last_ts = events_by_asset[ASSETS[0]][-1]
+    return {
         "status": "COMPLETE",
-        "inspection": "public funding archive/API reconstruction plus public mark-candle coverage; canonical trade CSVs read-only; no credentials or source data writes",
+        "inspection": "public mark-candle coverage against the previously audited funding manifest; canonical trade CSVs read-only; no credentials or source data writes",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "funding_window": {
-            "start_ms": START_MS,
-            "end_ms": END_MS,
-            "start_utc": utc_string(START_MS),
-            "end_utc": utc_string(END_MS),
-            "expected_events_per_asset": EXPECTED_ROWS,
+        "funding_manifest": {
+            "path": funding_meta["path"],
+            "sha256": funding_meta["sha256"],
+            "status": funding_meta["status"],
         },
-        "mark_price_proxy_definition": "4H mark-price candle open at the exact public fundingTime; this is a candle-derived proxy, not independently proven exact settlement mark",
+        "funding_window": {
+            "start_ms": first_ts,
+            "end_ms": last_ts,
+            "start_utc": utc_string(first_ts),
+            "end_utc": utc_string(last_ts),
+            "events_per_asset": len(events_by_asset[ASSETS[0]]),
+            "cross_asset_timestamp_sets_identical": cross_asset_equal,
+        },
+        "mark_price_proxy_definition": "4H mark-price candle open at the exact fundingTime; this is a candle-derived proxy, not independently proven exact settlement mark",
         "official_endpoint": "GET /api/v5/market/history-mark-price-candles",
-        "cross_asset_funding_timestamp_sets_identical": cross_asset_equal,
         "assets": asset_results,
         "pooled_proxy_difference_distributions_bps": {
             key: distribution(values) for key, values in pooled.items()
         },
         "interpretation_limits": [
-            "A matching 4H candle timestamp and open does not prove that the exchange's funding assessment used that exact mark snapshot.",
+            "A matching 4H candle timestamp and open does not prove that the exchange funding assessment used that exact mark snapshot.",
             "The OKX funding mechanism may assess positions over a short window after the nominal settlement timestamp.",
-            "Account-bill px for real production funding events remains the strongest candidate for independent settlement reconciliation, but no production account bills were accessed.",
-            "Canonical 1m trade files do not cover every funding event at the start/end boundaries; those events remain in the mark-price coverage audit but are excluded from trade-proxy comparisons.",
+            "Account-bill px for real production funding events remains the strongest candidate for independent settlement reconciliation; no production account bills were accessed.",
+            "Canonical 1m trade files do not cover every funding event at the start/end boundaries; those events remain in mark-price coverage but are excluded from trade-proxy comparisons.",
         ],
     }
-    return result
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--trade-dir", type=Path, default=Path("data/market_1m"))
+    parser.add_argument("--funding-manifest", type=Path, default=DEFAULT_FUNDING_MANIFEST)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--samples-per-asset", type=int, default=12)
     args = parser.parse_args()
     if args.samples_per_asset < 1 or args.samples_per_asset > 50:
         raise SystemExit("--samples-per-asset must be between 1 and 50")
-    result = run_audit(args.trade_dir, args.samples_per_asset)
+    result = run_audit(args.trade_dir, args.funding_manifest, args.samples_per_asset)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(f"Summary written to {args.output}", flush=True)
