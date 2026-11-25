@@ -373,6 +373,7 @@ def analyze_event_path(event: dict, bars: list[dict], gap_after: bool = False):
             if flags["close_through"]:
                 active["resolution"] = "CLOSE_THROUGH_BOUNDARY"
                 active["resolution_ts_ms"] = bar["ts"]
+                active["same_bar_ambiguous"] = True
             elif flags["separation"]:
                 active["resolution"] = "INWARD_SEPARATION"
                 active["resolution_ts_ms"] = bar["ts"]
@@ -602,6 +603,7 @@ def run(root: Path, output_dir: Path):
 
     metadata = {
         "study": "Phase 3 Rejection Lifecycle V1",
+        "implementation_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "protocol": "docs/research_checkpoints/2026-11-25_phase3_boundary_lifecycle_closure_protocol_v1.md",
         "status": "DESCRIPTIVE_RUN_COMPLETE_PENDING_INDEPENDENT_CLOSEOUT",
         "assets": list(ASSETS),
