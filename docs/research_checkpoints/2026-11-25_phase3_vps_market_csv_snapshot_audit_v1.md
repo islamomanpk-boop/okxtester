@@ -117,3 +117,27 @@ A single public request to OKX `GET /api/v5/market/history-candles` for SOL-USDT
 This establishes that the historical SOL gap in the confirmed-only CSV is currently reproduced by the exchange's own history-candles response, not caused by a local value mismatch. The export's `confirm=1` filter is behaving consistently with the source field. The reason OKX still labels this old candle unconfirmed is not established. Preserve the row's source status; do not relabel it confirmed, fill the CSV, or alter the VPS database. A second independent sample or exchange clarification would be needed before making any broader claim about the semantics of old `confirm=0` candles.
 
 **Updated disposition:** the SOL interval is an exchange-source non-confirmed candle, not an absent SQLite record and not a downloader/export mismatch. The confirmed-only CSV has one expected-by-policy exclusion within the historical window, which must remain explicitly visible in dataset-quality metadata.
+
+
+## 9. Five-asset timestamp-set alignment
+
+The explicit streaming timestamp-set comparison completed successfully in supporting workflow [45656654156](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45656654156), on `okxtester_private@main` commit `93dd76ff5340e6d1a84d7c7ac1c7131f3eef48c5`. Metadata-only artifact `15042707158`, SHA-256 `cd9538989b3a2bd97fd62c459844f421ad2ddfd5944e6b39792a89ed03fa446b`.
+
+Results:
+- Five-asset timestamp intersection: **578,021** timestamps.
+- Common first timestamp: 2025-10-20 00:00 UTC.
+- Common last timestamp: 2026-11-25 09:41 UTC (the BTC export's final confirmed minute).
+- Union of all five asset timestamp sets: **578,141** timestamps.
+- Union minus common intersection: **120** timestamps.
+- The common intersection itself contains one one-minute hole: 2026-08-28 08:30 UTC, because SOL excludes that exchange-returned `confirm=0` candle while the other four assets include their corresponding timestamp.
+
+Per-asset rows outside the five-way intersection:
+- BTC: 1 — only the 2026-08-28 08:30 UTC timestamp.
+- ETH: 30 — that timestamp plus its 29-minute tail after the BTC endpoint.
+- SOL: 59 — its 59-minute tail after the BTC endpoint; it lacks the historical 08:30 timestamp.
+- DOGE: 90 — the historical timestamp plus its 89-minute tail after BTC.
+- AVAX: 120 — the historical timestamp plus its 119-minute tail after BTC.
+
+This confirms that the exports share a large common window but are not identical timestamp sets. The 120 non-common timestamps are fully explained by one exchange-marked non-confirmed SOL minute and the staggered asset end times. No additional internal timestamp gaps were found by the prior per-file audits. For a strictly common five-asset study, use the intersection as recorded and preserve the 08:30 UTC hole explicitly; do not fill or relabel it. Any analysis requiring uninterrupted bars must segment or exclude across that timestamp under a predeclared rule.
+
+The VPS snapshot's timestamp alignment is now characterized. It remains a separate later snapshot from canonical Git market data and still requires OHLCV-level source reconciliation and a versioned data-use decision before adoption in research.
