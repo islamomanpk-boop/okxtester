@@ -3,7 +3,7 @@ import unittest
 from execution_engine import (
     ExecutionConfig,
     find_next_entry_index,
-    simulate_trade,
+    simulate_trade as _simulate_trade,
     size_position,
 )
 
@@ -25,6 +25,46 @@ def bar(ts, o, h, l, c):
         "low": l,
         "close": c,
     }
+
+
+def funding_contract_for_test(bars, events=None):
+    events = list(events or [])
+    first_bar = int(bars[0]["ts"])
+    last_bar = int(bars[-1]["ts"])
+    interval = 28_800_000
+    schedule_start = (
+        int(events[0]["funding_time"])
+        if events else last_bar + interval
+    )
+    schedule_end = (
+        int(events[-1]["funding_time"])
+        if events else schedule_start
+    )
+    return {
+        "events": events,
+        "coverage": {
+            "instrument_name": "BTC-USDT-SWAP",
+            "source_sha256": "a" * 64,
+            "coverage_start_ms": 0,
+            "coverage_end_ms": last_bar,
+            "schedule_id": "test_schedule_v1",
+            "schedule_start_ms": schedule_start,
+            "schedule_interval_ms": interval,
+            "schedule_end_ms": schedule_end,
+            "event_window_start_ms": 0,
+            "event_window_end_ms": last_bar,
+            "mark_price_mode": "candle_close_proxy",
+        },
+    }
+
+
+def simulate_trade(bars, entry_index, side, stop_price, target_price,
+                   equity, execution_config, funding_events=None):
+    return _simulate_trade(
+        bars, entry_index, side, stop_price, target_price, equity,
+        execution_config,
+        funding_contract=funding_contract_for_test(bars, funding_events),
+    )
 
 
 class ExecutionEngineTests(unittest.TestCase):
