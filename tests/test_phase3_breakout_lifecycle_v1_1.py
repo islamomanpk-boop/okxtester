@@ -31,7 +31,7 @@ class BreakoutLifecycleTests(unittest.TestCase):
     def test_lower_outside_retest_is_symmetric(self):
         result = find_outside_retest(
             "LOWER", 90.0, 89.8,
-            [bar(0, 89.85, 89.9, 89.8, 89.86)],
+            [bar(0, 89.85, 89.91, 89.8, 89.86)],
         )
         self.assertIsNotNone(result)
         self.assertFalse(result["boundary_crossed"])
