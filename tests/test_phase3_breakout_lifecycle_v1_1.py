@@ -12,6 +12,7 @@ from research.phase3_breakout_lifecycle_v1_1 import (
     first_15m_failure_and_reclaim,
     _first_15m_close_after,
     compare_with_forward_archive,
+    build_group_summary,
     FORWARD_ARCHIVE_METRIC_PAIRS,
     FORWARD_ARCHIVE_UNAVAILABLE_FIELDS,
 )
@@ -200,6 +201,26 @@ class BreakoutLifecycleTests(unittest.TestCase):
         self.assertEqual(result[0]["reference_fields_checked"], len(FORWARD_ARCHIVE_METRIC_PAIRS))
         self.assertIn("outside_retest", FORWARD_ARCHIVE_UNAVAILABLE_FIELDS)
         self.assertIn("outside_retest_hold", FORWARD_ARCHIVE_UNAVAILABLE_FIELDS)
+
+    def test_group_summary_reports_ambiguous_retest_counts_separately(self):
+        rows = [{
+            "event_id": "event-1", "asset": "BTC", "definition": "STRICT_P25",
+            "direction": "UPPER", "pre_breakout_group": 0, "horizon": "1H",
+            "overlap_cluster_id": "BTC|overlap|0001", "complete": True,
+            "boundary_failure": False, "outside_retest": True,
+            "outside_retest_same_bar_ambiguous": True,
+            "first_1m_return_inside_available_ts_ms": 60_000,
+            "first_15m_return_inside_close_ts_ms": "",
+            "breakout_side_reclaim_close_ts_ms": "", "inside_retest": False,
+            "inside_retest_same_bar_ambiguous": True,
+            "mfe_pct": 1.0, "mae_pct": 0.5,
+            "mfe_channel_width_pct": 10.0, "mae_channel_width_pct": 5.0,
+        }]
+        result = build_group_summary([], rows)[0]
+        self.assertEqual(result["outside_retests"], 1)
+        self.assertEqual(result["inside_retests"], 0)
+        self.assertEqual(result["outside_retest_same_bar_ambiguous"], 1)
+        self.assertEqual(result["inside_retest_same_bar_ambiguous"], 1)
 
     def test_overlap_clusters_are_transitive_and_asset_scoped(self):
         rows = [
