@@ -295,3 +295,6 @@ The five-asset overlap comparison is complete and saved in `docs/research_checkp
 ### Full-window funding mark-price coverage — 2026-11-25
 
 The full-window public mark-price audit is saved in `docs/research_checkpoints/2026-11-25_phase3_full_window_mark_price_coverage_audit_v1.md` and research register Section 12.25. All 5,940 audited funding timestamps matched exact 4H mark-candle opens; 2,375 candles per asset, all confirmed, no gaps. A 60-point 1M sample matched the 4H open exactly at every point. The 4H mark-open proxy is much closer to trade 1M open (pooled mean absolute 0.650 bps) than trade 1M close (7.514 bps). This is the best-supported public proxy candidate, not an exact settlement mark. No engine mode changed; G0-03/G0-09 remain OPEN and Gate 0 remains CONDITIONAL HOLD.
+
+
+The full 5,940-row event-time 4H mark-price candidate snapshot is now versioned at `data/funding_mark_price_proxy_candidate_v1/` (CSV SHA-256 `22e2894a8c467777f9ee90d5824deaf243a8b3d6e44ebff7f7d33b3e88c4cc82`, commit `adaf25d7a27c1e01def1a14a011c99be99186c67`). Its manifest explicitly says exact settlement mark is unverified, proxy policy is not accepted, and engine mode is unchanged.
