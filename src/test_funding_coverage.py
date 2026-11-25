@@ -17,7 +17,7 @@ def contract(events, mode="candle_close_proxy", **overrides):
         "coverage_start_ms": 0,
         "coverage_end_ms": 300,
         "schedule_id": "test_fixed_interval_100ms_v1",
-        "schedule_start_ms": 0,
+        "schedule_start_ms": 100,
         "schedule_interval_ms": 100,
         "schedule_end_ms": 300,
         "event_window_start_ms": 0,
@@ -54,7 +54,7 @@ class FundingCoverageTests(unittest.TestCase):
             validate_funding_contract({"BTC": [1]}, {"BTC": contract([])})
 
     def test_empty_events_without_expected_settlement_passes(self):
-        item = contract([], event_window_start_ms=100, event_window_end_ms=100)
+        item = contract([], event_window_start_ms=100, event_window_end_ms=100,\n                       schedule_start_ms=200, schedule_end_ms=200)
         result = validate_funding_contract({"BTC": [1]}, {"BTC": item})
         self.assertEqual(result["BTC"]["expected_settlements"], [])
 
