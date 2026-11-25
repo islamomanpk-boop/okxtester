@@ -53,6 +53,14 @@ jobs:
           assert data["horizon_rows"] == 6368, data["horizon_rows"]
           assert data["forward_crosscheck_rows"] == 6368
           assert data["forward_crosscheck_passed"] == 6368
+          assert data["forward_crosscheck_fields_checked_per_row"] == 18
+          assert data["forward_archive_unavailable_lifecycle_fields"] == [
+              "outside_retest",
+              "outside_retest_boundary_crossed",
+              "outside_retest_minutes",
+              "outside_retest_depth_pct_of_boundary",
+              "outside_retest_hold",
+          ]
           assert data["common_1m_timestamps"] == 569125
           assert data["common_1m_gaps"] == 0
           clusters = data["overlap_clusters"]

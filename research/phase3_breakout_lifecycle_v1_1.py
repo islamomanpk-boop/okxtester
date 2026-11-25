@@ -21,6 +21,35 @@ MINUTE_MS = 60_000
 MINUTE_NS = 60_000_000_000
 QUARTER_HOUR_MS = 900_000
 HORIZONS = (("15M", 15), ("1H", 60), ("4H", 240), ("12H", 720))
+# The accepted forward-outcome CSV predates lifecycle retest fields. Compare only
+# measurements actually present in that frozen reference; keep retest outputs
+# descriptive and explicitly disclose that they lack an archived benchmark.
+FORWARD_ARCHIVE_METRIC_PAIRS = (
+    ("entry_time_ms", "entry_time"),
+    ("directional_close_return_pct", "directional_close_return_pct"),
+    ("mfe_pct", "mfe_pct"), ("mae_pct", "mae_pct"),
+    ("mfe_channel_width_pct", "mfe_channel_width_pct"),
+    ("mae_channel_width_pct", "mae_channel_width_pct"),
+    ("favourable_extreme_price", "favourable_extreme_price"),
+    ("adverse_extreme_price", "adverse_extreme_price"),
+    ("time_to_mfe_minutes", "time_to_mfe_minutes"),
+    ("time_to_mae_minutes", "time_to_mae_minutes"),
+    ("entry_open", "entry_open"),
+    ("entry_open_already_through_boundary", "entry_open_already_through_boundary"),
+    ("horizon_status", "horizon_status"),
+    ("favourable_extreme_time_ms", "favourable_extreme_time"),
+    ("adverse_extreme_time_ms", "adverse_extreme_time"),
+    ("boundary_failure_time_ms", "boundary_failure_time"),
+    ("boundary_failure", "boundary_failure"),
+    ("minutes_to_boundary_failure", "minutes_to_boundary_failure"),
+)
+FORWARD_ARCHIVE_UNAVAILABLE_FIELDS = (
+    "outside_retest",
+    "outside_retest_boundary_crossed",
+    "outside_retest_minutes",
+    "outside_retest_depth_pct_of_boundary",
+    "outside_retest_hold",
+)
 EXPECTED_SOURCE_ROWS = {"BTC": 569125, "ETH": 569125, "SOL": 569126, "DOGE": 569126, "AVAX": 569127}
 EXPECTED_CLASSIFICATION_ROWS = 4776
 EXPECTED_LINK_ROWS = 4534
@@ -606,25 +635,7 @@ def compare_with_forward_archive(horizon_rows, reference):
         key = (row.asset, row.definition, row.direction, timestamp_ms(row.signal_time), str(row.horizon))
         ref_map[key] = row
     output = []
-    metric_pairs = (
-        ("entry_time_ms", "entry_time"),
-        ("directional_close_return_pct", "directional_close_return_pct"),
-        ("mfe_pct", "mfe_pct"), ("mae_pct", "mae_pct"),
-        ("mfe_channel_width_pct", "mfe_channel_width_pct"),
-        ("mae_channel_width_pct", "mae_channel_width_pct"),
-        ("favourable_extreme_price", "favourable_extreme_price"),
-        ("adverse_extreme_price", "adverse_extreme_price"),
-        ("time_to_mfe_minutes", "time_to_mfe_minutes"),
-        ("time_to_mae_minutes", "time_to_mae_minutes"),
-        ("entry_open", "entry_open"), ("entry_open_already_through_boundary", "entry_open_already_through_boundary"),
-        ("horizon_status", "horizon_status"),
-        ("favourable_extreme_time_ms", "favourable_extreme_time"),
-        ("adverse_extreme_time_ms", "adverse_extreme_time"),
-        ("boundary_failure_time_ms", "boundary_failure_time"),
-        ("boundary_failure", "boundary_failure"), ("minutes_to_boundary_failure", "minutes_to_boundary_failure"),
-        ("outside_retest", "band_approach"), ("outside_retest_boundary_crossed", "boundary_penetration"),
-        ("outside_retest_minutes", "retest_minutes"), ("outside_retest_depth_pct_of_boundary", "penetration_depth_pct"),
-    )
+    metric_pairs = FORWARD_ARCHIVE_METRIC_PAIRS
     mismatches = []
     for row in horizon_rows:
         key = (row["asset"], row["definition"], row["direction"], row["entry_time_ms"], row["horizon"])
@@ -645,12 +656,6 @@ def compare_with_forward_archive(horizon_rows, reference):
                 checks[ours] = bool(pd.notna(b) and math.isclose(float(a), float(b), rel_tol=0.0, abs_tol=1e-8))
             else:
                 checks[ours] = str(a) == str(b)
-        # Retest hold is only comparable when the first completed 15M close is within this horizon.
-        ref_hold = parse_bool(ref.get("retest_hold"))
-        if row["outside_retest_hold"] != "":
-            checks["outside_retest_hold"] = ref_hold is not None and bool(row["outside_retest_hold"]) == ref_hold
-        else:
-            checks["outside_retest_hold"] = ref_hold is None
         all_pass = all(checks.values())
         if not all_pass:
             failed = [k for k, v in checks.items() if not v]
@@ -670,6 +675,7 @@ def compare_with_forward_archive(horizon_rows, reference):
             "event_id": row["event_id"], "asset": row["asset"],
             "definition": row["definition"], "direction": row["direction"],
             "horizon": row["horizon"], "reference_match": all_pass,
+            "reference_fields_checked": len(checks),
             "failed_fields": ";".join(k for k,v in checks.items() if not v),
         })
     if mismatches:
@@ -880,6 +886,9 @@ def run(root: Path, output_dir: Path):
         "horizon_rows": len(horizon_rows),
         "forward_crosscheck_rows": len(cross_validation),
         "forward_crosscheck_passed": sum(1 for x in cross_validation if x["reference_match"]),
+        "forward_crosscheck_scope": "Only measurements present in the frozen accepted forward-outcome CSV; lifecycle retest metrics are not independently benchmarked by that archive.",
+        "forward_crosscheck_fields_checked_per_row": len(FORWARD_ARCHIVE_METRIC_PAIRS),
+        "forward_archive_unavailable_lifecycle_fields": list(FORWARD_ARCHIVE_UNAVAILABLE_FIELDS),
         "original_event_count_reproduction_rows": len(event_reproduction),
         "original_quantile_reproduction_rows": len(quantile_reproduction),
         "reconstruction_audit_rows": len(reconstruction_audit),
@@ -905,6 +914,7 @@ def run(root: Path, output_dir: Path):
             "The 10% prior-test zone is 10% of channel width; the post-breakout retest band is separately 0.10% of boundary price.",
             "Overlapping event windows are dependent; clusters are reported and no independent-event standard errors are calculated.",
             "The original full-sample P25/P40 channel-width quantiles are retrospective and not live calibrated.",
+            "Outside/inside lifecycle retest measurements are computed descriptively but are absent from the frozen forward-outcome CSV and therefore have no independent archived cross-check.",
         ],
     }
     for path in sorted(output_dir.glob("*.csv")):

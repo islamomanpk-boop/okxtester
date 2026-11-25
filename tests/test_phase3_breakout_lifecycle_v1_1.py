@@ -10,6 +10,9 @@ from research.phase3_breakout_lifecycle_v1_1 import (
     find_outside_retest,
     first_1m_return_inside,
     first_15m_failure_and_reclaim,
+    compare_with_forward_archive,
+    FORWARD_ARCHIVE_METRIC_PAIRS,
+    FORWARD_ARCHIVE_UNAVAILABLE_FIELDS,
 )
 
 
@@ -126,6 +129,44 @@ class BreakoutLifecycleTests(unittest.TestCase):
             "close": np.arange(len(idx)) + 100.5,
         }, index=idx)
         self.assertTrue(build_complete_15m(frame).empty)
+
+    def test_forward_archive_crosscheck_uses_only_archived_fields(self):
+        signal = pd.Timestamp("2025-01-01T00:00:00Z")
+        signal_ms = int(signal.value // 1_000_000)
+        row = {
+            "event_id": "event-1", "asset": "BTC", "definition": "STRICT_P25",
+            "direction": "UPPER", "entry_time_ms": signal_ms, "horizon": "15M",
+            "directional_close_return_pct": 0.1, "mfe_pct": 0.2, "mae_pct": 0.3,
+            "mfe_channel_width_pct": 4.0, "mae_channel_width_pct": 5.0,
+            "favourable_extreme_price": 101.0, "adverse_extreme_price": 99.0,
+            "time_to_mfe_minutes": 2, "time_to_mae_minutes": 3,
+            "entry_open": 100.0, "entry_open_already_through_boundary": False,
+            "horizon_status": "COMPLETE",
+            "favourable_extreme_time_ms": signal_ms + 120_000,
+            "adverse_extreme_time_ms": signal_ms + 180_000,
+            "boundary_failure_time_ms": signal_ms + 60_000,
+            "boundary_failure": True, "minutes_to_boundary_failure": 1,
+            "outside_retest_hold": "",
+        }
+        reference = pd.DataFrame([{
+            "asset": "BTC", "definition": "STRICT_P25", "direction": "UPPER",
+            "signal_time": signal, "horizon": "15M", "entry_time": signal,
+            "directional_close_return_pct": 0.1, "mfe_pct": 0.2, "mae_pct": 0.3,
+            "mfe_channel_width_pct": 4.0, "mae_channel_width_pct": 5.0,
+            "favourable_extreme_price": 101.0, "adverse_extreme_price": 99.0,
+            "time_to_mfe_minutes": 2, "time_to_mae_minutes": 3,
+            "entry_open": 100.0, "entry_open_already_through_boundary": False,
+            "horizon_status": "COMPLETE",
+            "favourable_extreme_time": signal + pd.Timedelta(minutes=2),
+            "adverse_extreme_time": signal + pd.Timedelta(minutes=3),
+            "boundary_failure_time": signal + pd.Timedelta(minutes=1),
+            "boundary_failure": True, "minutes_to_boundary_failure": 1,
+        }])
+        result = compare_with_forward_archive([row], reference)
+        self.assertTrue(result[0]["reference_match"])
+        self.assertEqual(result[0]["reference_fields_checked"], len(FORWARD_ARCHIVE_METRIC_PAIRS))
+        self.assertIn("outside_retest", FORWARD_ARCHIVE_UNAVAILABLE_FIELDS)
+        self.assertIn("outside_retest_hold", FORWARD_ARCHIVE_UNAVAILABLE_FIELDS)
 
     def test_overlap_clusters_are_transitive_and_asset_scoped(self):
         rows = [
