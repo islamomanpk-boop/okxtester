@@ -438,3 +438,16 @@ The VPS run compared all 5,940 events with the full VPS 1M trade dataset. An ind
 Main audit run [45659424729](https://github.com/islamomanpk-boop/okxtester/actions/runs/45659424729) passed on commit `fc1e030d95a1c4cbd6a4ca4c46b3640d2d152ef4`, artifact `15043858498`, SHA-256 `632501e666f91c4b7d5b3f88a0345077d986923d308624be874bf370c1250dea`. VPS audit run [45659811546](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45659811546) passed on workflow commit `2d44491649408d89f9c370ca32ed49b5138eaec1`, artifact `15045165371`, SHA-256 `55f1330f735323b1353ca424ee101090bab7f9754432d7fb0858a172c89a76f5`. Synthetic helper tests [45659424766](https://github.com/islamomanpk-boop/okxtester/actions/runs/45659424766) passed.
 
 Recommended but not yet accepted: add a clearly labelled `mark_candle_open_proxy` mode, retain `candle_close_proxy` as a sensitivity comparator, and keep `exact` mode fail-closed without an independently verified settlement mark. No engine mode was changed. The account-bills `px` field for funding-fee bill subtypes 173/174 remains the best candidate for independent realized-settlement validation; no production account bills were accessed. G0-03/G0-09 remain OPEN, Gate 0 remains CONDITIONAL HOLD, and Phase 3 strategy PnL backtests remain unauthorized.
+
+
+### 12.26 Versioned public mark-price candidate snapshot archived — 2026-11-25
+
+The 5,940-row event-time 4H mark-price dataset from Section 12.25 has been committed to `data/funding_mark_price_proxy_candidate_v1/`:
+- CSV: `mark_price_at_funding_4h.csv`
+- SHA-256: `22e2894a8c467777f9ee90d5824deaf243a8b3d6e44ebff7f7d33b3e88c4cc82`
+- Git blob SHA-1: `7fa9f40cf189193fcd855578f5b7d89600e86e08`
+- Size: 396,308 bytes; 1,188 rows per asset; all confirmed.
+- Commit: `adaf25d7a27c1e01def1a14a011c99be99186c67`.
+- README and manifest are committed alongside the CSV.
+
+The snapshot hash was independently reproduced byte-for-byte by the hosted-runner and VPS-runner audits. The manifest explicitly records `exact_settlement_mark_verified=false`, `funding_proxy_policy_accepted=false`, and `engine_mode_changed=false`. This is an additive candidate research input only; it does not change the current execution engine, close G0-03/G0-09, or authorize PnL backtests.
