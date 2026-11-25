@@ -172,6 +172,6 @@ Canonical workflow history showed:
 - Runs **45572264154** and **45575145332** failed at the compile step; all later test steps were skipped.
 - Comparing the changes after the passing run showed the new read-only OKX demo API inspection script was added to the compile command. The workflow's line-continuation before that script had two trailing backslashes instead of one.
 - The extra backslash was corrected in `.github/workflows/funding-engine-contract-tests.yml`, commit `5b9b487b8081113470e5da490c4465262dd08672`.
-- A new run **45624704814** was triggered by the fix. At the time this register update was written, it was **queued**; no pass is claimed until the run completes and all test steps are inspected.
+- A new run **45624704814** was triggered by the fix and subsequently **completed successfully**: https://github.com/islamomanpk-boop/okxtester/actions/runs/45624704814. The compile step and all seven focused test groups completed successfully. This resolves the immediate workflow syntax regression; it does not by itself pass Phase 3 Gate 0 or authorize strategy backtesting.
 
 This is a workflow syntax/command assembly correction only. It does not change engine code, data, or research conclusions. Gate 0 remains conditional hold until the full blocker register is formally closed.
