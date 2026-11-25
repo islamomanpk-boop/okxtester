@@ -86,7 +86,9 @@ These documents govern current Phase 3 work. Read them before starting or changi
 4. Phase 3 execution/backtest roadmap: `docs/research_checkpoints/2026-11-25_phase3_execution_and_backtest_roadmap_v1.md`
 5. Phase 3 knowledge synthesis: `reports/sideways_phase3_research_archive_v1/PHASE3_KNOWLEDGE_SYNTHESIS_V1.md`
 6. Phase 3 boundary lifecycle closure protocol: `docs/research_checkpoints/2026-11-25_phase3_boundary_lifecycle_closure_protocol_v1.md`
-7. Evidence-backed repository research register: `docs/PROJECT_RESEARCH_REGISTER_V1.md`
+7. Rejection lifecycle V1.1 overlap-cluster amendment: `docs/research_checkpoints/2026-11-25_phase3_rejection_lifecycle_v1_1_overlap_cluster_amendment.md`
+8. Rejection lifecycle Module A closeout: `reports/phase3_rejection_lifecycle_v1_1/PHASE3_REJECTION_LIFECYCLE_CLOSEOUT_V1_1.md`
+9. Evidence-backed repository research register: `docs/PROJECT_RESEARCH_REGISTER_V1.md`
 
 The Phase 3 execution roadmap has the single ordered gate sequence:
 
@@ -118,6 +120,11 @@ Cleanup rule: do not delete ambiguous or historical provenance material. Explici
 ### Newly frozen Gate 1 protocol
 
 `docs/research_checkpoints/2026-11-25_phase3_boundary_lifecycle_closure_protocol_v1.md` defines the two remaining descriptive lifecycle modules: rejection retest/cross lifecycle and breakout return-inside/reclaim/reversal lifecycle. It is frozen before implementation; no new historical outcomes have yet been run.
+
+
+### Gate 1 progress
+
+Rejection lifecycle Module A is accepted as a descriptive study: 1,992 events, 3,028 retest episodes, 7,968 horizon rows, and 380 overlap clusters; 12 synthetic tests passed. See `reports/phase3_rejection_lifecycle_v1_1/PHASE3_REJECTION_LIFECYCLE_CLOSEOUT_V1_1.md`. Breakout failed-lifecycle Module B remains open, so Gate 1 overall remains PARTIAL / OPEN and Gate 2 remains closed.
 
 ## 5. Mandatory research governance
 
