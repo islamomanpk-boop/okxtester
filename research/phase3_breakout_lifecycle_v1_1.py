@@ -140,6 +140,19 @@ def event_id_from_key(key):
     return f"{asset}|{definition.lower()}|{direction.lower()}|{signal_ms}|zone{zone:g}"
 
 
+def add_unique_event_id(event_id, seen_event_ids):
+    """Reject duplicate immutable source identities before event analysis."""
+    if event_id in seen_event_ids:
+        raise ValueError(f"Duplicate primary breakout event ID: {event_id}")
+    seen_event_ids.add(event_id)
+
+
+def validate_strict_subset_broad(reconstruction_audit):
+    """Require every asset-level source reconstruction to preserve nesting."""
+    if not reconstruction_audit["strict_subset_broad"].astype(bool).all():
+        raise ValueError("Strict breakout cohort is not nested within broad cohort")
+
+
 def load_market(root: Path, asset: str):
     relative = f"data/market_1m/{asset}_USDT_USDT_1m.csv"
     path = root / relative
@@ -771,8 +784,9 @@ def run(root: Path, output_dir: Path):
         raise ValueError("Archived original quantile reproduction audit failed")
     if len(reconstruction_audit) != 5 or (reconstruction_audit["common_1m_gaps"] != 0).any():
         raise ValueError("Five-asset source reconstruction audit is incomplete")
-    if not reconstruction_audit["original_counts_reproduced"].astype(bool).all() or not reconstruction_audit["strict_subset_broad"].astype(bool).all():
+    if not reconstruction_audit["original_counts_reproduced"].astype(bool).all():
         raise ValueError("Five-asset original breakout reconstruction audit did not pass")
+    validate_strict_subset_broad(reconstruction_audit)
 
     market_frames, market_hashes = {}, {}
     for asset in ASSETS:
@@ -820,9 +834,7 @@ def run(root: Path, output_dir: Path):
     for _, source in primary.iterrows():
         key = (source.asset, source.definition, source.direction, timestamp_ms(source.signal_time), float(source.zone_pct_of_channel))
         event_id = event_id_from_key(key)
-        if event_id in seen_event_ids:
-            raise ValueError(f"Duplicate primary breakout event ID: {event_id}")
-        seen_event_ids.add(event_id)
+        add_unique_event_id(event_id, seen_event_ids)
         prior_links = link_groups.get(key, [])
         declared = int(source.prior_touch_test_count)
         if len(prior_links) != declared:
