@@ -398,3 +398,12 @@ SQLite contains 2,890,411 rows. Per-instrument CSV row counts exactly equal the 
 The monitor run [45647566750](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45647566750) had reported 5/5 download completion and no running downloader process at 15:39 UTC. The VPS export is a distinct, later, nine-column snapshot than the earlier canonical Git market dataset; do not overwrite the canonical snapshot or treat the file hashes as directly comparable across different schemas/windows.
 
 Gate 0 remains CONDITIONAL HOLD. Next: verify the historical SOL confirmation flag against the current public OKX history-candles response, then perform full five-asset timestamp alignment and source reconciliation. No VPS data was changed; no candidate generation, Gate 2 execution comparison, strategy PnL backtest, or Phase 1 handoff is authorized.
+
+
+### 12.22 Historical SOL non-confirmed candle verified against current OKX API — 2026-11-25
+
+The historical SOL timestamp responsible for the single internal gap in the confirmed-only VPS CSV was checked against the current public OKX history-candles endpoint. Supporting workflow [45656418316](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45656418316) completed successfully on `okxtester_private@main` commit `48c93964070bbf5634291872dc38e886f4771ce8`; artifact `15042463198`, SHA-256 `832935bdd17e86a412fcb64135cbb4d30ada0f79b50c88db4aaec8627b3d6081`.
+
+For SOL-USDT-SWAP at 2026-08-28 08:30:00 UTC (`1787905800000` ms), the API returned the exact row with HTTP 200 / API code 0 and `confirm=0`. OHLC, `vol`, `volCcy`, and `volCcyQuote` all matched the read-only SQLite row exactly; SQLite also had `confirm=0`. The gap in the confirmed-only CSV is therefore consistent with the exchange's current response and the downloader's `confirm=1` export filter. It is not a local missing row or a demonstrated downloader/export mismatch.
+
+The reason the exchange still marks this old candle unconfirmed is unknown. Preserve the source flag; do not relabel, impute, or modify the VPS row. The checkpoint's disposition is updated accordingly. Gate 0 remains CONDITIONAL HOLD; cross-asset timestamp alignment and the remaining source/execution readiness blockers remain open.
