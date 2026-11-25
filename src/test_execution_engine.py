@@ -181,6 +181,26 @@ class ExecutionEngineTests(unittest.TestCase):
         )
         self.assertEqual(result["funding_pnl"], 0)
 
+    def test_omitted_funding_contract_is_rejected(self):
+        bars = [bar(60000, 100, 100.5, 99.5, 100)]
+        with self.assertRaises(TypeError):
+            _simulate_trade(bars, 0, 1, 90, 110, 1000, config())
+
+    def test_trade_outside_funding_coverage_is_rejected(self):
+        bars = [
+            bar(60000, 100, 100.5, 99.5, 100),
+            bar(120000, 100, 100.5, 99.5, 100),
+            bar(180000, 100, 100.5, 99.5, 100),
+        ]
+        contract = funding_contract_for_test(bars)
+        contract["coverage"]["coverage_end_ms"] = 120000
+        contract["coverage"]["event_window_end_ms"] = 120000
+        with self.assertRaisesRegex(ValueError, "exceeds verified funding coverage"):
+            _simulate_trade(
+                bars, 0, 1, 90, 110, 1000, config(),
+                funding_contract=contract,
+            )
+
     def test_fee_and_slippage_are_recorded(self):
         bars = [bar(60000, 100, 100.5, 99.5, 100)]
         result = simulate_trade(
