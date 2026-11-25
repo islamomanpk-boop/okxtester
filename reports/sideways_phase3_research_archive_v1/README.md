@@ -46,3 +46,8 @@ The earlier completion decision means **core descriptive research complete**, no
 - [Project research governance rules](../../docs/RESEARCH_GOVERNANCE_RULES_V1.md)
 
 Phase 1 handoff is paused while the Phase 3 execution research gates are addressed. No strategy backtest or stop/target optimization is authorized by the roadmap itself; first complete the Gate 0 source/engine readiness audit and freeze candidate rules.
+
+
+## Phase 3 trading families — explicit scope
+
+Phase 3 execution research covers **support/resistance rejection**, **breakout continuation**, and **failed-breakout reversal**. Support and resistance will be analysed separately before any pooling; long/short and boundary asymmetries must remain visible. The common sequence is Gate 0 readiness audit, Gate 1 descriptive lifecycle, Gate 2 execution-resolution comparison, Gate 3 entry definitions, Gate 4 stops/targets/management, Gate 5 engine acceptance, Gate 6 separate family backtests, and Gate 7 chronological validation. See the roadmap and scope audit above for the controlling details.
