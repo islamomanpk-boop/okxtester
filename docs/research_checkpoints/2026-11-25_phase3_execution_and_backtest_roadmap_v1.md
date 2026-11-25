@@ -140,3 +140,10 @@ Phase 3 is not a breakout-only project. The range-trading programme must evaluat
 These are research families, not approved strategies. Gate 0–5 apply across all relevant families, with family-specific signal definitions and order rules. At Gate 6, test each family independently first, report support versus resistance and long versus short breakdowns, and only then consider a combined portfolio if the individual results and exposure interactions justify it. Never pool the families in a way that hides a losing side or regime. The original Gate 0–7 sequence remains the single control sequence; this clarification expands the scope, not the number of gates.
 
 For clarity, the shared control sequence is: **0 readiness audit → 1 descriptive lifecycle → 2 execution-resolution comparison → 3 entry rules → 4 stops/targets/management → 5 engine acceptance → 6 family-by-family strategy backtests → 7 chronological validation**. Phase 1 remains paused until the Phase 3 programme is completed or formally rejected.
+
+
+## Funding verification implementation update — 2026-11-25
+
+The fail-closed funding coverage audit code and deterministic unit tests have been added. See `src/funding_coverage_audit.py`, `src/test_funding_coverage_audit.py`, and `docs/funding_coverage_audit_v1.md`. The audit uses explicit expected window/cadence defaults from the prior reconciliation report, hashes each input, checks missing/irregular settlements and cross-asset timestamp equality, and produces a JSON manifest plus Markdown report.
+
+The automated GitHub workflow tests synthetic fixtures only. It does not have the local processed funding files and cannot certify them. Gate 0 remains on hold until the actual local audit passes and the real manifest is archived.
