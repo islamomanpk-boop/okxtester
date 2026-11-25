@@ -1,7 +1,9 @@
 """Causal one-minute trade execution engine for Price Action V1."""
 
 from dataclasses import dataclass
-from typing import Iterable, Optional
+from typing import Optional
+
+from funding_coverage import validate_funding_contract, validate_trade_funding_window
 
 
 @dataclass(frozen=True)
@@ -98,17 +100,20 @@ def simulate_trade(
     target_price,
     equity,
     config,
-    funding_events: Iterable = (),
+    funding_contract,
 ):
     """
     Simulate one market-entry trade.
 
     bars use candle-open timestamps in milliseconds.
-    Funding events are dictionaries with funding_time and funding_rate.
+    funding_contract is an explicit {events, coverage} contract.
     Positive funding: longs pay, shorts receive.
     """
     config.validate()
     _validate_bars(bars)
+    validated_funding = validate_funding_contract(
+        {"TRADE": bars}, {"TRADE": funding_contract}
+    )["TRADE"]
 
     if not 0 <= entry_index < len(bars):
         raise ValueError("entry_index is outside the candle data")
@@ -201,7 +206,10 @@ def simulate_trade(
     funding_pnl = 0.0
     bars_by_timestamp = {int(bar["ts"]): bar for bar in bars}
 
-    for event in funding_events:
+    expected_funding = validate_trade_funding_window(
+        "TRADE", int(entry_bar["ts"]), exit_time, validated_funding
+    )
+    for event in validated_funding["events"]:
         funding_time = int(event["funding_time"])
         rate = float(event["funding_rate"])
 
@@ -215,6 +223,8 @@ def simulate_trade(
             if event.get("mark_price") is not None:
                 settlement_price = float(event["mark_price"])
             else:
+                if validated_funding["coverage"]["mark_price_mode"] != "candle_close_proxy":
+                    raise ValueError("Missing exact funding mark price")
                 settlement_bar = bars_by_timestamp.get(funding_time)
                 if settlement_bar is None:
                     raise ValueError(
@@ -244,6 +254,11 @@ def simulate_trade(
         "gross_exposure": sizing["gross_exposure"],
         "gross_pnl": gross_pnl,
         "funding_pnl": funding_pnl,
+        "funding_mark_price_mode": validated_funding["coverage"]["mark_price_mode"],
+        "funding_source_sha256": validated_funding["coverage"]["source_sha256"],
+        "funding_instrument_name": validated_funding["coverage"]["instrument_name"],
+        "funding_schedule_id": validated_funding["coverage"]["schedule_id"],
+        "funding_settlements_applied": len(expected_funding),
         "entry_fee": entry_fee,
         "exit_fee": exit_fee,
         "total_fees": total_fees,
