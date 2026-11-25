@@ -46,7 +46,7 @@ class FundingCoverageTests(unittest.TestCase):
             validate_funding_contract({"BTC": [1]}, {})
 
     def test_missing_coverage_metadata_fails(self):
-        with self.assertRaisesRegex(ValueError, "coverage metadata"):
+        with self.assertRaisesRegex(ValueError, "coverage missing fields"):
             validate_funding_contract({"BTC": [1]}, {"BTC": {"events": [], "coverage": {}}})
 
     def test_empty_events_with_expected_settlement_fails(self):
