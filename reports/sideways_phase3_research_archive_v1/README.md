@@ -34,3 +34,15 @@ The V6 outcome-blind optimal matching cohort and its follow-up audits are retain
 V10.11 froze the V6 pair IDs and tested central 80%, 90%, 95%, and 98% common-support intervals. The central-90% output reproduces V10.10 exactly. Even central 98% retained at most 16 of 58 broad pairs and 11 of 34 strict pairs; no cohort was accepted for outcome comparison. **The V6 matched-controls branch is closed for this cohort.** No future outcomes were loaded or compared in V10.11.
 
 See [PHASE3_COMPLETION_DECISION_V1.md](PHASE3_COMPLETION_DECISION_V1.md) for the formal completion decision and [PHASE3_KNOWLEDGE_SYNTHESIS_V1.md](PHASE3_KNOWLEDGE_SYNTHESIS_V1.md) for the evidence-based review of what Phase 3 taught us, what remains uncertain, and the practical implications. Project-wide mandatory study rules are in [docs/RESEARCH_GOVERNANCE_RULES_V1.md](../../docs/RESEARCH_GOVERNANCE_RULES_V1.md). All historical scripts and rejected diagnostics remain preserved. The closeout archive is checked by the Phase 3 Completion Archive Validation workflow.
+
+
+## Phase 3 scope reconciliation — 2026-11-25
+
+The earlier completion decision means **core descriptive research complete**, not that the full Phase 3 trading-system research is finished. The scope audit identifies unfinished failed-breakout/reversal lifecycle, comprehensive retest work, 1M/3M/5M/15M execution comparison, entry methods, stop/target/trade management, cost/funding validation, and realistic strategy backtesting.
+
+- [Phase 3 scope completeness audit](PHASE3_SCOPE_COMPLETENESS_AUDIT_V1.md)
+- [Phase 3 knowledge synthesis](PHASE3_KNOWLEDGE_SYNTHESIS_V1.md)
+- [Phase 3 execution and strategy research roadmap](../../docs/research_checkpoints/2026-11-25_phase3_execution_and_backtest_roadmap_v1.md)
+- [Project research governance rules](../../docs/RESEARCH_GOVERNANCE_RULES_V1.md)
+
+Phase 1 handoff is paused while the Phase 3 execution research gates are addressed. No strategy backtest or stop/target optimization is authorized by the roadmap itself; first complete the Gate 0 source/engine readiness audit and freeze candidate rules.
