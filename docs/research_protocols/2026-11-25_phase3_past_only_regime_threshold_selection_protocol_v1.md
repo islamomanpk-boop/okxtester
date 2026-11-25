@@ -98,3 +98,25 @@ The output should establish whether Phase 3 can define a causal regime threshold
 - No change to Phase 3 family scope or the approved phase order.
 
 **Current gate status:** G0-04 and G0-05 remain OPEN / CRITICAL. Gate 0 remains CONDITIONAL HOLD. Gate 2 and strategy backtesting remain closed.
+
+
+## 10. Source-specific calibration amendment — mandatory
+
+The detector feature ledgers and the recovered breakout pipeline are distinct source constructions. The three candidate policies in Sections 4–5 are first applied to the detector feature ledgers for the rejection source chain. Their numerical thresholds must not be copied into breakout events without an independent source reconstruction.
+
+### Rejection pipeline
+- Preserve the exact feature-ledger identity and the existing event-to-feature join by asset and `snapshot_index`.
+- Verify `snapshot_available_at_ts_ms` and `snapshot_next_available_at_ts_ms` against the exact feature row and next feature row.
+- Calculate the past-only threshold from the prior completed detector feature snapshots, strictly before the event's snapshot availability timestamp.
+
+### Breakout pipeline
+- Reconstruct complete 4H bars from the exact canonical common 1M source hashes recorded in the accepted breakout metadata.
+- Reproduce the recovered source's lagged 12-completed-4H-candle context and its backward as-of join to complete, right-labelled 15M bars. Verify that the event's `snapshot` is the right-labelled context timestamp and is no later than the breakout signal close timestamp.
+- The accepted historical P25/P40 values were calculated over the joined 15M channel-width series. That full-sample population is retrospective. The follow-up must separately compare two clearly specified past-only populations: (a) unique completed 4H context snapshots, and (b) the exact joined 15M rows. Do not assume they are interchangeable, even if complete 15M coverage often repeats each 4H context value uniformly.
+- For any event, its threshold must use only observations available strictly before the signal's own context snapshot timestamp, or an explicitly justified same-snapshot availability convention frozen before running the diagnostic. Do not include later 15M rows from the same 4H context period.
+- Compare the reconstructed breakout 4H context values/timestamps with the detector feature ledgers. Any offset, value difference or source mismatch must be reported; do not force an approximate join.
+
+### Family scope
+- Rejection and breakout calibration results remain separate.
+- Failed-breakout reversal inherits the source breakout's regime context and therefore cannot be assigned a separate threshold until the breakout source context is causally verified.
+- If the source-specific reconstruction or exact event-to-snapshot join fails, stop that family and record the blocker. Do not generate candidates.
