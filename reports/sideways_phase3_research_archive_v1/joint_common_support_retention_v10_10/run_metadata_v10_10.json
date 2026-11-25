@@ -1,0 +1,16 @@
+{
+  "study": "Phase 3 V10.10 joint common-support retention audit",
+  "reference": "Within definition x asset x direction, intersection of full eligible classes' central 5th-95th percentile intervals across all nonconstant covariates with overlapping intervals",
+  "constant_dimensions": "Excluded from joint intersection and counted separately",
+  "no_overlap_dimensions": "If any nonconstant covariate has disjoint central intervals, joint support is empty for that stratum",
+  "matched_retention": "Fraction of original matched pairs for which both endpoints remain inside every joint-support interval",
+  "limitations": [
+    "conservative univariate-interval intersection, not a multivariate density estimator",
+    "support restriction is diagnostic only; no pairs are rematched or outcomes compared",
+    "central 90% interval is descriptive, not an acceptance threshold",
+    "broad and strict cohorts are nested",
+    "no outcomes loaded; no trading inference"
+  ],
+  "outcome_data_loaded": false,
+  "acceptance_status": "No cohort accepted for outcome comparison"
+}
