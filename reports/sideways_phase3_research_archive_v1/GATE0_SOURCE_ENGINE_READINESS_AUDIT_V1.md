@@ -116,7 +116,7 @@ Issues requiring resolution:
 The documentation and code inspection identify:
 - Limit orders, expiry and setup invalidation are not implemented.
 - The portfolio backtester currently calculates cost-adjusted `risk_per_unit` from entry and stop-exit slippage plus entry/exit taker fees and passes it to the allocator. This is stronger than the older documentation states. It still does not cover stop-gap losses, contract lot/tick rounding, or prove exchange-specific fee assumptions. The standalone single-trade engine remains stop-distance-only for sizing.
-- Funding mark-price fallback is a 1M close proxy.
+- The current engine fallback is a 1M trade-candle close proxy. A full-window 4H mark-candle open proxy now has exact timestamp coverage for all 5,940 audited funding events, but exact settlement-mark equivalence and policy acceptance remain open.
 - Candidate generation from actual Phase 3 signal/regime data is not integrated.
 - Funding validation requires a mapping key for every asset but accepts an empty event list. A separate coverage validator is required to distinguish a genuinely complete interval with no settlement from missing funding data.
 - The engine uses taker-style market entries/exits; it does not yet model maker fills or order-book queue position.
@@ -138,7 +138,7 @@ Before strategy results are trusted, test contract sizing/lot rounding, tick rou
 | G0-06 | Limit orders, expiry, cancellation, partial/missed fills are not implemented | High | Implement only after Gate 2/3 establishes which entry rules need them |
 | G0-07 | Portfolio path has cost-adjusted sizing, but standalone engine does not; gap loss and contract rounding remain unbounded/unverified | High | Add parity/acceptance tests, quantify gap risk, and apply contract constraints before accepting either path |
 | G0-08 | Exact fee tier, contract multiplier/lot size, tick size and minimum quantity not documented | High | Verified instrument/fee specification and frozen test assumptions |
-| G0-09 | Funding mark-price fallback is a close proxy | High | Exact mark-price source or explicitly approved conservative proxy/sensitivity |
+| G0-09 | Full-window public mark-candle coverage is now proven, but exact settlement mark and approved engine proxy remain open | High | Review the 4H mark-candle open proxy evidence, approve a clearly labelled proxy policy, and test sensitivity; exact mode still requires an independently verified settlement mark. |
 | G0-10 | CLOSED — canonical 1M files are tracked in Git and documented | Medium | Canonical paths, hashes, sizes, retention, and volume semantics are recorded in `docs/execution_data_audit_v1.md`; overlap reconciliation is in research register Section 12.24. |
 
 ## 6. Readiness decision
@@ -325,13 +325,13 @@ Current source review confirms:
 |---|---|---|
 | G0-01 | **CLOSED** for the audited five local processed files | Actual Termux audit manifest and hashes in Section 11 |
 | G0-02 | **CLOSED** for the audited Termux execution environment | Actual five-file coverage audit; local files remain outside Git |
-| G0-03 | **PARTIALLY CLOSED / ACCEPTANCE OPEN** | Fail-closed contracts are integrated and focused CI passes. Still require a reproducible real-input integration check linking the archived local manifest/source hashes through the actual execution path, plus explicit acceptance of the mark-price mode. |
+| G0-03 | **PARTIALLY CLOSED / ACCEPTANCE OPEN** | Fail-closed contracts and focused CI are in place. Full-window 4H mark-open proxy coverage is now verified (5,940/5,940 funding timestamps), but explicit proxy-policy acceptance, engine mode integration, and real-input accounting acceptance remain open. |
 | G0-04 | **OPEN / CRITICAL** | Frozen Phase 3 event ledger, stable event IDs, source provenance, de-clustering and end-to-end causal availability audit |
 | G0-05 | **OPEN / CRITICAL** | Separate three-family Phase 3 range candidate generator and tests; current Model A engine remains trend-only |
 | G0-06 | **OPEN / HIGH** | Limit/expiry/cancellation/partial/missed-fill support only after Gate 2/3 defines the needed order types |
 | G0-07 | **PARTIALLY CLOSED / OPEN** | Portfolio sizing includes estimated entry and stop-exit slippage plus entry/exit taker fees. Standalone single-trade sizing does not; contract lot/tick rounding and gap-through-stop risk remain unverified. |
 | G0-08 | **OPEN / HIGH** | Verify exact instrument multiplier, lot size, tick size, minimum order and applicable historical fee tier; current fees are scenario assumptions |
-| G0-09 | **OPEN / HIGH** | Historical mark-price candle probe exists, but exact settlement valuation is not established. Current candle-close mode is a proxy and must be disclosed/sensitivity-tested. |
+| G0-09 | **OPEN / HIGH** | Full-window public 4H mark-candle open coverage is established and is the preferred proxy candidate; exact settlement valuation is still not independently established, and the engine has not adopted this mode. |
 | G0-10 | **CLOSED** | Canonical Git paths, hashes, sizes, retention, and volume semantics are documented; overlapping OHLCV values are reconciled with the VPS snapshot. |
 
 **Revised Gate 0 decision remains CONDITIONAL HOLD.** The former missing-funding-input vulnerability has been materially addressed in code and focused tests; it is no longer accurate to describe the current public engine signature as silently defaulting to an empty funding list. However, G0-03 is not fully accepted until the real-input integration and mark-policy evidence are complete. G0-04 and G0-05 remain critical, so Phase 3 strategy PnL backtests remain **NOT AUTHORIZED**.
@@ -344,3 +344,18 @@ G0-10 is now CLOSED. The five canonical Git 1M files, hashes, sizes, and retenti
 The canonical and VPS files are different snapshots with different schemas and coverage windows; the VPS snapshot is wider and later. One historical SOL timestamp (2026-08-28 08:30 UTC) is included in canonical Git but excluded from the confirmed-only VPS export because OKX currently returns it with `confirm=0`; the row exists in VPS SQLite and its OHLCV matches. Preserve this exception and both snapshots separately. See [canonical/VPS OHLCV reconciliation](../../docs/research_checkpoints/2026-11-25_phase3_vps_canonical_ohlcv_reconciliation_v1.md).
 
 This closes the documentation and overlap-value reconciliation issue only. Original Termux input byte identity, full acquisition lineage, mark-price fidelity, causal Phase 3 candidate rules, and engine acceptance remain open. Gate 0 remains CONDITIONAL HOLD.
+
+
+### Follow-up — full-window public mark-price evidence (2026-11-25)
+
+The full-window mark-price audit is saved in [the research checkpoint](../../docs/research_checkpoints/2026-11-25_phase3_full_window_mark_price_coverage_audit_v1.md) and shared policy document `docs/research/funding_price_fidelity_shared_v1.md`.
+
+- All 5,940 funding timestamps (1,188 per asset) matched an exact 4H mark-candle opening timestamp.
+- 2,375 4H mark candles per asset were retrieved; all were confirmed, with zero gaps and zero missing funding-time candles.
+- A 60-point 1M mark-candle sample returned 60/60 exact rows; every 1M mark-candle open exactly equalled the corresponding 4H mark-candle open.
+- Pooled mark-4H-open vs trade-1M-open difference: mean absolute 0.650 bps, p05 -2.073, p95 +1.072, p99 +2.122.
+- Pooled mark-4H-open vs trade-1M-close difference: mean absolute 7.514 bps, p05 -16.217, p95 +15.428, p99 +29.380, with observed outliers up to +363.923 bps.
+
+This makes the 4H mark-candle open at the exact funding timestamp the best-supported **public proxy candidate** currently available. It is not an exact settlement mark. The current engine still uses its existing trade-candle close proxy; no engine mode or funding contract was changed. Recommended next policy direction is to add a separately labelled `mark_candle_open_proxy` mode, retain `candle_close_proxy` for sensitivity, and keep `exact` mode fail-closed unless an independently verified settlement mark is supplied. This recommendation is not yet accepted.
+
+The OKX account-bills `px` field for funding-fee bill subtypes 173/174 remains the candidate for independent realized-settlement validation. No production account bills were accessed. G0-03 and G0-09 remain OPEN; Gate 0 remains CONDITIONAL HOLD; no strategy PnL backtest is authorized.
