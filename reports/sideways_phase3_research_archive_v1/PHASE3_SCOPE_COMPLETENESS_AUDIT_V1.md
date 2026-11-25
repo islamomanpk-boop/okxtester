@@ -115,3 +115,14 @@ This is not permission to run arbitrary stop/target optimizations. It is a decis
 - **Phase 3 overall trading-system readiness:** not established.
 
 No Phase 3 strategy is currently approved as profitable or ready for live use.
+
+
+## 9. Explicit trading scope: support, resistance, and breakouts
+
+The Phase 3 trading objective includes three distinct candidate families, not breakout trading alone:
+
+1. **Support/resistance rejection:** potential long trades from confirmed support rejection and potential short trades from confirmed resistance rejection. Analyse support and resistance separately before any pooling; symmetry must be demonstrated, not assumed.
+2. **Breakout continuation:** potential long trades after confirmed resistance breaks and short trades after confirmed support breaks, including separately specified continuation and retest entries.
+3. **Failed-breakout reversal:** potential short trades after failed upside breaks and potential long trades after failed downside breaks, requiring a causal re-entry/reclaim confirmation.
+
+The existing Gate 0–7 roadmap is the common control sequence for all three families. The descriptive lifecycle and execution-resolution stages must include rejection events at both range boundaries as well as breakout and failed-breakout events. Entry, stop, target, costs, and backtests must be defined and reported by family, side, and boundary type where applicable. Gate 6 begins with separate family-level tests; any combined portfolio is a later, separately justified comparison. This clarification does not claim that any family has a profitable edge or authorize arbitrary parameter optimization.
