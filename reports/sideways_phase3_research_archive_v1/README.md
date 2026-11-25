@@ -62,3 +62,8 @@ Phase 3 execution research covers **support/resistance rejection**, **breakout c
 ### Gate 0 follow-up inspection — funding chronology and risk sizing
 
 The Gate 0 report was refined after inspecting the underlying preflight and engine code. The older funding-not-found report is a historical snapshot; a later preflight recorded 1,188 funding rows per asset, but current local file hashes and settlement-gap completeness still need verification. The portfolio backtester already has cost-adjusted stop-risk sizing for modeled entry/stop slippage and taker fees; the standalone single-trade engine does not, and stop gaps remain a risk. See the updated Gate 0 audit and execution-engine documentation for the precise distinctions.
+
+
+### Funding coverage audit tool added
+
+The local funding audit implementation is available at [funding coverage audit documentation](../../docs/funding_coverage_audit_v1.md), with code in `src/funding_coverage_audit.py`. It hashes each file, checks the expected coverage/cadence, detects missing/irregular settlements, and compares all five asset timestamp sets. Its GitHub workflow tests synthetic fixtures only. Gate 0 stays on hold until the actual local funding files are audited and the generated manifest is archived.
