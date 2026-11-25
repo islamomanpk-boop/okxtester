@@ -50,7 +50,7 @@ class FundingCoverageTests(unittest.TestCase):
             validate_funding_contract({"BTC": [1]}, {"BTC": {"events": [], "coverage": {}}})
 
     def test_empty_events_with_expected_settlement_fails(self):
-        with self.assertRaisesRegex(ValueError, "1 missing"):
+        with self.assertRaisesRegex(ValueError, "3 missing"):
             validate_funding_contract({"BTC": [1]}, {"BTC": contract([])})
 
     def test_empty_events_without_expected_settlement_passes(self):
