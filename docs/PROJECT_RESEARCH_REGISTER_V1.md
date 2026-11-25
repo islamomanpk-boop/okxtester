@@ -149,3 +149,29 @@ The following 16 paths are explicitly named for the older EMA-pullback project a
 - Do not delete historical audit notes merely because they mention older projects; some document data provenance needed by Price Action.
 - Any cleanup must be path-specific, dependency-checked, recoverable, and approved before execution.
 - Keep the canonical research branch as the single project truth; supporting operational work must be linked with exact repo/ref/path/commit/workflow/artifact provenance.
+
+
+## 9. Workflow and supporting-repository reconciliation update — 2026-11-25
+
+### Supporting repository run evidence
+
+- Phase 3 range measurement workflow run **45613180053** completed successfully: https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45613180053. This is an exploratory descriptive range-measurement artifact only; it does not pass Gate 0 or Gates 1–4.
+- Phase 3 Gate 0 readiness inventory workflow run **45620563733** completed successfully: https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45620563733. Its workflow explicitly says inventory-only and does not auto-approve a gate.
+- Aligned five-coin dataset build run **45612158710** and final data alignment audit run **45611757117** completed successfully. Their workflows use read-only SQLite access and preserve the raw database.
+- Scheduled download/VPS monitor run **45623691013** completed successfully. This is operational health evidence, not a research gate result.
+- Safe VPS cleanup and some VPS data-audit workflow runs failed; no cleanup is inferred from those failures. VPS/data deletion is outside this research reconciliation.
+
+### Conflicting five-gate document corrected
+
+The supporting repository's `research/PHASE3_REMAINING_RESEARCH_PROGRAMME.md` previously described itself as the canonical source of truth with five gates. That conflicts with the current eight-gate roadmap in the canonical repository. Its header has now been clarified as a historical condensed checklist; the canonical eight-gate roadmap remains controlling. Supporting-repo commit: `ad5aac7294f0650e800ad834a1642f335915a649`.
+
+### Funding/execution contract workflow regression found and corrected
+
+Canonical workflow history showed:
+- Run **45570913178** passed all listed funding/execution compile and focused test steps.
+- Runs **45572264154** and **45575145332** failed at the compile step; all later test steps were skipped.
+- Comparing the changes after the passing run showed the new read-only OKX demo API inspection script was added to the compile command. The workflow's line-continuation before that script had two trailing backslashes instead of one.
+- The extra backslash was corrected in `.github/workflows/funding-engine-contract-tests.yml`, commit `5b9b487b8081113470e5da490c4465262dd08672`.
+- A new run **45624704814** was triggered by the fix. At the time this register update was written, it was **queued**; no pass is claimed until the run completes and all test steps are inspected.
+
+This is a workflow syntax/command assembly correction only. It does not change engine code, data, or research conclusions. Gate 0 remains conditional hold until the full blocker register is formally closed.
