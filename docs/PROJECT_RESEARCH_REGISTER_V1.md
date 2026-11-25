@@ -45,7 +45,7 @@ The following statuses reflect archived code, tests, reports, and the formal sco
 | P3-09 | Breakout forward-path outcomes | Completed descriptive study | `research/breakout_forward_outcomes/breakout_forward_outcome_study_v1.py`, test, workflow, `reports/breakout_forward_outcome_v1/` | G1; forward MFE/MAE/path outcomes are not executable PnL. |
 | P3-10 | Pre-event matched-control investigation | Rejected for outcome comparison; retained | `research/matched_controls/`, `research/sideways_rejection_pre_event_matched_controls_*.py`, corresponding tests/workflows, `.../pre_event_matched_controls_v1..v6/` and V7–V10.11 diagnostic archives | G1; V6 cohort failed balance/joint-support requirements. Do not rematch or compare future outcomes using these pairs. Preserve all versions. |
 | P3-11 | Five-asset 1M source quality and alignment | Prior preflight completed; runtime/source provenance reconciliation remains part of G0 | `reports/1m_data_quality_audit_2026-11-20.md`, `reports/cross_asset_timestamp_alignment.*`, `research/phase1_uptrend_data_preflight_v1.py` and test | G0; current market-data blobs are in Git despite an older doc saying raw data is local. Resolve documentation/source-of-truth discrepancy and freeze hashes. |
-| P3-12 | Funding coverage and source manifest | Local coverage audit reported passed; engine contract has since been integrated and needs current acceptance closeout | `src/funding_coverage.py`, `src/funding_coverage_audit.py`, tests, `docs/funding_coverage_audit_v1.md`, funding manifest/report archive, G0-03 checkpoint | G0/G5; exact settlement mark-price policy and fresh project-wide call-site audit remain open. Missing funding must fail closed. |
+| P3-12 | Funding coverage and source manifest | **Local five-file audit passed; fail-closed engine contract implemented and focused CI passed; strict real-input/mark-price acceptance remains open** | `src/funding_coverage.py`, `src/funding_coverage_audit.py`, tests, `docs/research_checkpoints/2026-11-25_funding_coverage_and_engine_callsite_inventory_v1.md`, funding manifest/report archive | G0/G5; `simulate_trade` now requires an explicit coverage contract; portfolio validates schedule and coverage; workflow run 45624704814 passed compile plus seven focused test groups. CI uses synthetic fixtures. Exact settlement marks remain unverified; current experiment loader labels candle-close proxy. Keep G0-03 partially implemented until remaining real-input integration and mark policy are accepted. |
 | P3-13 | Comprehensive rejection lifecycle (continuation/pullback, signal-level retests, depth, hold/failure, repeated crosses, candle anatomy) | Partial / open | Existing rejection anatomy and early-path studies plus `docs/research_checkpoints/2026-11-22_post_signal_retest_execution_research_roadmap.md` and related addenda | G1; complete the explicitly missing lifecycle items only after protocol and source ledger are reconciled. |
 | P3-14 | Comprehensive failed-breakout / reversal lifecycle | Open | Breakout prior-test and forward-outcome studies exist; no complete accepted lifecycle archive demonstrated | G1; define return-inside, reclaim, reversal, retest, hold/failure, timing, de-clustering, and post-retest continuation with causal timestamps. |
 | P3-15 | Same-signal execution resolution comparison (1M/3M/5M/15M) | Open | Controlling roadmap only | G2; same completed 15M cohort, first eligible execution bar at/after signal availability. |
@@ -65,7 +65,7 @@ The single controlling roadmap is `docs/research_checkpoints/2026-11-25_phase3_e
 
 | Gate | Required outcome | Current status |
 |---|---|---|
-| G0 | Archive/source readiness: exact source/event ledgers and hashes, causal availability, market/funding inputs, instrument/fee/mark provenance | **CONDITIONAL HOLD — not passed** |
+| G0 | Archive/source readiness: exact source/event ledgers and hashes, causal availability, market/funding inputs, instrument/fee/mark provenance | **CONDITIONAL HOLD — not passed**; funding file coverage G0-01/G0-02 closed for audited Termux files; G0-03 fail-closed contract implemented and focused CI passed but full acceptance remains open |
 | G1 | Complete descriptive lifecycle for rejection, breakout continuation, and failed-breakout reversal | Partial; P3-13/P3-14 remain |
 | G2 | Compare 1M/3M/5M/15M execution on identical completed 15M signals | Open |
 | G3 | Freeze and compare causal entry methods with fill/miss/expiry rules | Open |
@@ -175,3 +175,34 @@ Canonical workflow history showed:
 - A new run **45624704814** was triggered by the fix and subsequently **completed successfully**: https://github.com/islamomanpk-boop/okxtester/actions/runs/45624704814. The compile step and all seven focused test groups completed successfully. This resolves the immediate workflow syntax regression; it does not by itself pass Phase 3 Gate 0 or authorize strategy backtesting.
 
 This is a workflow syntax/command assembly correction only. It does not change engine code, data, or research conclusions. Gate 0 remains conditional hold until the full blocker register is formally closed.
+
+
+## 10. Exit-experiment archive classification and result reconciliation — 2026-11-25
+
+A deeper source-to-output audit was completed for the two large exit-experiment folders. They must not be treated as Phase 3 range-strategy research, and they must not be deleted as unrelated legacy files.
+
+### 10.1 Original exit-experiment archive
+
+- Source runner: `src/run_exit_experiments.py`; batch runner: `src/run_exit_experiment_batch.py`; frozen matrix builder: `src/exit_experiment_config.py`.
+- Candidate generator: `src/trade_candidate_engine.py`, explicitly documented in `docs/trade_candidate_engine_v1.md` as **Model A trend candidates only**. It emits no trend candidate for `NO_TREND`; SIDEWAYS/range strategies are expressly separate research.
+- Signal input path expected by the runner: `~/okx_adaptive_bot/reports/price_action_signals/`; execution candles/funding expected under `~/okx_scalping_data/`. The outputs are historical five-asset trend-candidate exit experiments, not candidates generated from the frozen Phase 3 boundary/rejection/breakout event ledgers.
+- Matrix: 66 configurations (22 baseline, 22 trailing-stop, 22 trailing-take-profit). The committed manifest has 66 rows and all 66 marked completed. The comparison has 66 result rows. The folder has 729 tracked files: 66 × 11 expected experiment artifacts plus 3 batch-level files (manifest, comparison, log).
+- Shared cohort: 17,943 candidates; five assets; synchronized 1M execution window 2025-10-20 08:50 UTC to 2026-11-19 14:14 UTC; 569,125 execution minutes; starting equity $1,000; risk fraction 0.5%; max gross exposure 1.0x; configured taker fee 0.05% per side and slippage 2 bps per side; funding uses an explicitly labelled candle-close proxy in the loader.
+- Reconciled result: all 66 configurations finished below starting equity. Net return range was approximately **−99.89% to −34.34%**; maximum drawdown range approximately **47.72% to 99.89%**. Even the least-bad configuration lost approximately 34.34% over this historical sample. This is an important negative finding for that trend-candidate/exit setup, not a Phase 3 result.
+- Research limitation: the 66-way full-sample matrix is exploratory historical evidence. No untouched chronological out-of-sample validation is evidenced by this archive. Do not select the least-bad row as an optimal exit, do not transfer its parameters to Phase 3, and do not treat the run as proof that Phase 3 rejection/breakout/reversal signals lose money.
+
+**Classification:** retain as historical Price Action trend-pipeline and shared execution/portfolio/funding-engine evidence; exclude from Phase 3 signal-family conclusions. The use of a legacy-named input directory is a provenance dependency to document, not proof that the generated candidate logic is an unrelated EMA-pullback strategy.
+
+### 10.2 Telemetry rerun archive
+
+- `reports/exit_experiments_telemetry_v1/` contains 25 tracked files: the batch-level files plus the expected artifacts for only two completed experiments.
+- Its manifest records 66 planned configurations: 2 completed, 1 left in `running`, and 63 `pending`. This is an incomplete/stale rerun snapshot, not a second completed 66-configuration study.
+- Preserve its log and manifest as failed/incomplete operational history. Do not merge its partial results into the original 66-row comparison or claim that all telemetry experiments completed.
+
+### 10.3 Gate mapping
+
+These experiments are relevant only as historical shared-engine integration evidence and possibly background for G4 exit hypothesis generation. They do not pass Phase 3 G1 (range event lifecycle), G2 (same Phase 3 signal cohort at multiple execution resolutions), G3 (range entry rules), G4 (frozen Phase 3 exits), G6, or G7. The full-sample matrix must not be used to pre-select Phase 3 parameters. Preserve the negative results and the incomplete telemetry run.
+
+### 10.4 Cleanup disposition
+
+Neither exit-experiment folder is approved for deletion. The 729-file original archive is a completed, reproducible historical negative finding; the 25-file telemetry archive records an incomplete rerun. Retain both unless a future dependency/provenance review establishes a safe archival move and the user approves it.
