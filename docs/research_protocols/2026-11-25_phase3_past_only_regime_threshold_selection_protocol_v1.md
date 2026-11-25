@@ -129,3 +129,12 @@ The recovered breakout implementation labels 4H bars on their right edge and app
 `breakout_context_snapshot_ts_ms = detector_feature_available_at_ts_ms + 14,400,000`
 
 This is a source-code-derived expected offset, not permission to force a join. The follow-up must verify the exact asset, upper/lower values, width formula and timestamp relation against reconstructed 1M-derived bars. Any mismatch beyond documented numeric tolerance, missing snapshot, or source-hash discrepancy is a stop condition. Do not mistake this deliberate one-4H context lag for a data error, and do not remove it to make the pipelines appear aligned.
+
+
+### Existing breakout-ledger coverage limitation and full-population requirement
+
+The 1,592 accepted lifecycle rows were successfully matched to detector feature rows using the expected four-hour offset, with exact upper/lower boundary and width equality for every row. However, these rows contain only 932 unique signal keys because the 660 strict-labelled records are nested duplicates of signals also present in the 932 broad-labelled records.
+
+Those 932 unique signals were originally selected using retrospective full-sample P25/P40 filters. Reclassifying them under past-only thresholds is a useful provenance/sensitivity check, but it cannot recover signals that the retrospective filter excluded. It is not a complete causal breakout cohort.
+
+Before G0-04/G0-05 can close, rebuild the full completed-15M breakout signal population from the canonical common 1M source, apply the predeclared past-only regime threshold at each context snapshot, and preserve unique event identity independently of strict/broad labels. Reconcile the resulting full population against the 932 previously archived unique signals, reporting newly eligible, no-longer-eligible, unchanged and source-excluded signals separately. Never infer the complete new event universe from the selected historical ledger alone.
