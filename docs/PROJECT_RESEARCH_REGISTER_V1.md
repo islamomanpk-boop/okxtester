@@ -26,7 +26,7 @@ This register is the navigation index for existing Price Action work. It records
 | 4 | Choppy / High Volatility | Not yet evidenced as started in this reconciliation | No completion claim. Start only after Phase 3 and preceding phases. |
 | 5 | Transition / Expansion | Not yet evidenced as started in this reconciliation | No completion claim. Start only after preceding phases. |
 
-The controlling user-directed sequence is numerical: Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5, with the current explicit instruction to finish Phase 3 execution/trading-system research before handing off to Phase 1. The Phase 3 handoff pause is therefore still in force. Do not use older handoff wording in historical closeout documents to override the current control center.
+The agreed execution sequence is: **finish the currently active Phase 3 completely first; then Phase 1 → Phase 2 → Phase 4 → Phase 5**. Phase 1 remains paused until Phase 3 is formally completed or explicitly rejected. After the Phase 3 handoff, continue the remaining numbered phases in order without skipping. Do not use older handoff wording in historical closeout documents to override the current control center.
 
 ## 3. Phase 3 research register
 
@@ -46,7 +46,7 @@ The following statuses reflect archived code, tests, reports, and the formal sco
 | P3-10 | Pre-event matched-control investigation | Rejected for outcome comparison; retained | `research/matched_controls/`, `research/sideways_rejection_pre_event_matched_controls_*.py`, corresponding tests/workflows, `.../pre_event_matched_controls_v1..v6/` and V7–V10.11 diagnostic archives | G1; V6 cohort failed balance/joint-support requirements. Do not rematch or compare future outcomes using these pairs. Preserve all versions. |
 | P3-11 | Five-asset 1M source quality and alignment | Prior preflight completed; runtime/source provenance reconciliation remains part of G0 | `reports/1m_data_quality_audit_2026-11-20.md`, `reports/cross_asset_timestamp_alignment.*`, `research/phase1_uptrend_data_preflight_v1.py` and test | G0; current market-data blobs are in Git despite an older doc saying raw data is local. Resolve documentation/source-of-truth discrepancy and freeze hashes. |
 | P3-12 | Funding coverage and source manifest | **Local five-file audit passed; fail-closed engine contract implemented and focused CI passed; strict real-input/mark-price acceptance remains open** | `src/funding_coverage.py`, `src/funding_coverage_audit.py`, tests, `docs/research_checkpoints/2026-11-25_funding_coverage_and_engine_callsite_inventory_v1.md`, funding manifest/report archive | G0/G5; `simulate_trade` now requires an explicit coverage contract; portfolio validates schedule and coverage; workflow run 45624704814 passed compile plus seven focused test groups. CI uses synthetic fixtures. Exact settlement marks remain unverified; current experiment loader labels candle-close proxy. Keep G0-03 partially implemented until remaining real-input integration and mark policy are accepted. |
-| P3-13 | Comprehensive rejection lifecycle (continuation/pullback, signal-level retests, depth, hold/failure, repeated crosses, candle anatomy) | Partial / open | Existing rejection anatomy and early-path studies plus `docs/research_checkpoints/2026-11-22_post_signal_retest_execution_research_roadmap.md` and related addenda | G1; complete the explicitly missing lifecycle items only after protocol and source ledger are reconciled. |
+| P3-13 | Comprehensive rejection lifecycle (continuation/pullback, signal-level retests, depth, hold/failure, repeated crosses, candle anatomy) | Partial / open; a frozen closure protocol is now committed | Accepted anatomy and early-path studies; `docs/research_checkpoints/2026-11-25_phase3_boundary_lifecycle_closure_protocol_v1.md` | G1; implement Module A only after accepted source population/hash reproduction and synthetic tests. The old 2,095-cohort 1M follow-up is superseded preliminary work and must not be reused. |
 | P3-14 | Comprehensive failed-breakout / reversal lifecycle | Open | Breakout prior-test and forward-outcome studies exist; no complete accepted lifecycle archive demonstrated | G1; define return-inside, reclaim, reversal, retest, hold/failure, timing, de-clustering, and post-retest continuation with causal timestamps. |
 | P3-15 | Same-signal execution resolution comparison (1M/3M/5M/15M) | Open | Controlling roadmap only | G2; same completed 15M cohort, first eligible execution bar at/after signal availability. |
 | P3-16 | Candidate entry definitions and realistic fill/miss rules | Open | Existing execution-engine foundations/specifications; no Phase 3 entry study closeout | G3; market-style, pullback/limit, retest, and lower-timeframe confirmation hypotheses. OHLC touch is not guaranteed fill. |
@@ -206,3 +206,30 @@ These experiments are relevant only as historical shared-engine integration evid
 ### 10.4 Cleanup disposition
 
 Neither exit-experiment folder is approved for deletion. The 729-file original archive is a completed, reproducible historical negative finding; the 25-file telemetry archive records an incomplete rerun. Retain both unless a future dependency/provenance review establishes a safe archival move and the user approves it.
+
+
+## 11. Gate 1 protocol and historical rejection-cohort reconciliation — 2026-11-25
+
+### 11.1 Frozen lifecycle protocol
+
+Committed `docs/research_checkpoints/2026-11-25_phase3_boundary_lifecycle_closure_protocol_v1.md` (commit `1ebf38c7febbe8f778935069b2344c344c345667`, clarified in `9ff63478ddc6a31aefaa17cbdf6eae38710a6322`).
+
+It defines two separate descriptive modules:
+- Module A: complete rejection lifecycle, distinct retest episodes, inward separation, boundary close-through/reclaim, repeated close-to-close crosses, and reuse of accepted signal-candle anatomy.
+- Module B: breakout outside retest, 1M return-inside, completed-15M return-inside confirmation, breakout-side reclaim, inside retest after failure, and reversal-direction path.
+
+The protocol freezes the source populations, time-zero/availability conventions, 10% primary boundary band and 20% rejection separation geometry, no-gap/no-lookahead rules, same-bar ambiguity, censoring, event de-clustering, output fields, synthetic test requirements, and stopping criteria. It authorizes no strategy PnL, entry/exit simulation, or parameter optimization. No implementation or new historical outcomes have been run yet.
+
+### 11.2 Earlier rejection follow-up is superseded preliminary evidence
+
+`docs/research/sideways_rejection_1m_followup_empirical_results_v1.md` and the 2026-11-22 provisional post-rejection checkpoint describe an older 1M follow-up and non-touch controls sampled by candle-range quartile. The older checkpoint explicitly records 2,095 cohort checks and says its outcome-calculation audit was pending. Later accepted anatomy specifications explicitly prohibit using the prior unreconciled 2,095-event cohort/results and establish the reproducible source population of 1,154 broad + 838 nested strict events (1,992 eligible rows across those nested cohorts).
+
+**Disposition:** preserve the older report/checkpoints for historical provenance, but classify their results as superseded preliminary evidence, not accepted Phase 3 findings. Do not use their control comparison, counts, or outcome values in candidate design or Gate 2. The accepted anatomy/early-path and current lifecycle protocol use the reconciled event ledger and exact snapshot joins.
+
+### 11.3 Immediate implementation order
+
+1. Reproduce and hash the accepted boundary/rejection source ledger, frozen feature snapshots, minute candles, and event anatomy inputs.
+2. Build and test Module A in isolation.
+3. Reproduce and hash the accepted breakout classifications, links, original-source identity and minute candles.
+4. Build and test Module B in isolation.
+5. Run both frozen modules once, archive all event-level evidence, and issue a Gate 1 closeout. Do not advance to Gate 2 until both modules pass or are formally rejected.
