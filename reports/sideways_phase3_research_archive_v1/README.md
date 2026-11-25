@@ -51,3 +51,9 @@ Phase 1 handoff is paused while the Phase 3 execution research gates are address
 ## Phase 3 trading families — explicit scope
 
 Phase 3 execution research covers **support/resistance rejection**, **breakout continuation**, and **failed-breakout reversal**. Support and resistance will be analysed separately before any pooling; long/short and boundary asymmetries must remain visible. The common sequence is Gate 0 readiness audit, Gate 1 descriptive lifecycle, Gate 2 execution-resolution comparison, Gate 3 entry definitions, Gate 4 stops/targets/management, Gate 5 engine acceptance, Gate 6 separate family backtests, and Gate 7 chronological validation. See the roadmap and scope audit above for the controlling details.
+
+
+## Gate 0 readiness audit — 2026-11-25
+
+- [Gate 0 source and execution-engine readiness audit](GATE0_SOURCE_ENGINE_READINESS_AUDIT_V1.md)
+- **Decision: CONDITIONAL HOLD.** Market data, descriptive rejection/breakout archives, and engine foundations exist, but funding-file availability/coverage, causal Phase 3 candidate generation, fail-closed funding handling, and cost-aware risk sizing must be resolved before strategy backtesting.
