@@ -101,3 +101,19 @@ Before selection, freeze a protocol that compares the two methods on threshold s
 ## 8. Next action
 
 Write and review a formal threshold-selection protocol before implementing a reusable diagnostic script. The next comparison should measure time-series stability and event-eligibility consequences for both methods, preserving the three Phase 3 families separately. G0-04 and G0-05 remain OPEN / CRITICAL; Gate 0 remains CONDITIONAL HOLD; Gate 2 and strategy backtesting remain closed.
+
+
+## 10. Scope amendment — breakout calibration is a separate source pipeline
+
+A subsequent source-code inspection identified an important scope boundary. The calculations in this checkpoint use the five `sideways_detector_original_v1/*_features_original_v1.csv` ledgers. They directly describe the reconstructed sideways detector feature pipeline and are relevant to the rejection source chain, which joins events to those feature rows by asset and snapshot index.
+
+They must **not** be assumed to reproduce the breakout pipeline's historical threshold population. The recovered breakout source independently builds complete 4H bars from the canonical common 1M data, constructs a lagged 12-candle context, backward-as-of joins that context to completed 15M bars, and calculates its historical P25/P40 quantiles over the joined 15M channel-width series. Its `snapshot` field is the right-labelled 4H context timestamp. That source-specific context/threshold population must be reconstructed and audited separately before applying a past-only breakout threshold.
+
+Accordingly:
+- The rolling-180 and expanding-prior results above are preliminary detector-feature diagnostics, not a universal Phase 3 threshold decision.
+- Do not apply those numerical thresholds directly to breakout events.
+- Rebuild the breakout 4H context from the exact canonical 1M source hashes recorded in its accepted metadata; verify complete 4H/15M bars, right-label timestamps, context lag and the event's snapshot timestamp.
+- Define a past-only breakout threshold using only earlier available context snapshots, with a clearly stated unique-snapshot versus repeated-15M-row calibration population. Do not silently mix the two.
+- Compare the breakout source's unique 4H context widths to the rejection detector feature ledger and explain any timestamp/value differences before candidate generation.
+
+This amendment narrows the interpretation of the original diagnostic; it does not invalidate the detector-feature calculations or change any accepted historical archive.
