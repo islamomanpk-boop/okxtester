@@ -142,3 +142,59 @@ Integrate the shared contract into the standalone engine first, then the portfol
 5. Migrate the portfolio runner and all fixtures/call sites to the same contract shape.
 6. Verify the local CSV SHA-256 values against the archived manifest in `run_exit_experiments.py`.
 7. Re-run the dedicated workflow and only then consider G0-03 closure.
+
+
+## 11. Engine integration and source-loader checkpoint — 2026-11-25
+
+Implemented on `price-action-v1`:
+
+### Standalone engine
+- `simulate_trade` now requires an explicit `funding_contract`; the former silent `funding_events=()` default is removed.
+- The shared validator checks the contract before simulation and checks the actual entry-to-exit holding interval after the exit is known.
+- A missing exact mark fails in exact mode. Candle-close fallback is permitted only in explicit `candle_close_proxy` mode.
+- Trade output records mark-price mode, source hash, instrument, schedule ID, and settlements applied.
+
+### Portfolio engine
+- `run_portfolio_backtest` now requires per-asset `{events, coverage}` contracts.
+- It validates complete source schedule coverage, actual trade holding intervals, and exact/proxy mark rules.
+- A settlement inside the execution window must align with the 1-minute timeline. Events outside the current execution window remain part of the verified full source history and are not incorrectly required to appear on the trimmed timeline.
+- Portfolio trade output records the same funding provenance fields.
+
+### Historical data loader and reporting
+- `run_exit_experiments.py` now reads the archived funding coverage manifest, requires PASS status and the complete five-asset set, verifies each local CSV SHA-256, instrument identity, row count, endpoints, ordering, and rates, then passes the full verified history and manifest-defined schedule into the portfolio engine.
+- The loader does not derive its schedule from observed event rows. It uses the archived per-asset first timestamp, interval, and final timestamp.
+- `run_cost_sensitivity.py` and the batch experiment runner were migrated to the new six-item shared-input tuple.
+- Experiment and cost-sensitivity summaries/report metadata identify the manifest hash and explicitly state `candle_close_proxy`. Trade rows retain per-asset source identity and schedule provenance.
+- Exact OKX settlement marks remain unavailable in the audited source files; no output labels candle-close proxy marks as exact.
+
+### Integration tests and workflow
+- Added `src/test_funding_loader.py` for manifest hash mismatch, instrument mismatch, and successful contract construction.
+- Added engine-level tests for omitted standalone funding input, out-of-coverage trades, missing portfolio settlements, and portfolio holding intervals beyond coverage.
+- The workflow compiles the engines, loaders, batch runner, and focused tests. It now checks out the exact triggering commit (`${{ github.sha }}`) rather than the moving branch tip.
+
+Latest full focused run before the exact-checkout workflow adjustment:
+https://github.com/islamomanpk-boop/okxtester/actions/runs/45545448535
+
+Result: **PASS — 75 tests**:
+- Funding contract: 13
+- Funding manifest loader: 3
+- Standalone execution engine: 14
+- Portfolio backtester: 17
+- Experiment integration: 4
+- Trailing portfolio integration: 5
+- Portfolio allocator: 15
+- Portfolio safety: 4
+
+The workflow was then corrected to test the exact event commit; its new run is tracked here:
+https://github.com/islamomanpk-boop/okxtester/actions/runs/45545547488
+
+## 12. Remaining G0-03 acceptance work
+
+G0-03 is still **OPEN**. The code-level contract and local-file loader are implemented, but do not close the gate until:
+
+1. The exact-commit workflow run above passes.
+2. The real local five-asset processed CSVs are loaded by the migrated runner and their SHA-256 values match the archived manifest. Those CSVs are intentionally not in GitHub, so CI's synthetic loader tests cannot replace this local-source verification.
+3. The exact-mark versus proxy policy is formally accepted for the research objective. The current implementation explicitly supports proxy mode but does not claim exact settlement marks.
+4. All remaining project-wide funding call sites are re-audited after the API migration.
+
+No strategy PnL backtest is authorized until the Gate 0 decision is formally updated. The five-asset audit and contract remain reusable for later phases while the exact source files and scope remain unchanged.
