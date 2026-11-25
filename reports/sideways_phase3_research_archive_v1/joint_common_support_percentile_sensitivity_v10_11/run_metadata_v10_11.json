@@ -1,0 +1,33 @@
+{
+  "study": "Phase 3 V10.11 joint common-support percentile sensitivity",
+  "frozen_pair_source": "V6 optimal_matched_pairs_v6.csv; no rematching or cohort changes",
+  "ranges": {
+    "central_98": {
+      "lower_quantile": 0.01,
+      "upper_quantile": 0.99
+    },
+    "central_95": {
+      "lower_quantile": 0.025,
+      "upper_quantile": 0.975
+    },
+    "central_90": {
+      "lower_quantile": 0.05,
+      "upper_quantile": 0.95
+    },
+    "central_80": {
+      "lower_quantile": 0.1,
+      "upper_quantile": 0.9
+    }
+  },
+  "method": "Within definition x asset x direction, intersect class-specific central percentile intervals across all nonconstant covariates; any disjoint dimension empties joint support for that stratum",
+  "constant_dimensions": "Excluded and counted, exactly as V10.10",
+  "baseline": "central_90 reproduces V10.10's 5th-95th percentile definition",
+  "outcome_data_loaded": false,
+  "outcomes_compared": false,
+  "limitations": [
+    "conservative intersection of marginal intervals, not a multivariate density estimator",
+    "percentile sensitivity is diagnostic and does not authorize selecting a favorable range",
+    "no rematching; original V6 pairs remain frozen",
+    "no cohort accepted for outcome comparison"
+  ]
+}
