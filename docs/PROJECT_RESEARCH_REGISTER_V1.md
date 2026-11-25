@@ -385,3 +385,16 @@ A further read-only AST extraction captured safe module constants and the exact 
 The downloader's configured start is `2025-10-20 00:00:00 UTC`, converted to milliseconds by `int(START.timestamp() * 1000)`. Its exact CSV header order is `ts, open, high, low, close, vol, volCcy, volCcyQuote, confirm`. The two API volume headers map positionally to SQLite's `vol_ccy` and `vol_ccy_quote` columns. The start boundary matches the first timestamp in the separate five-asset funding manifest, but does not by itself prove the first market-candle timestamp or VPS-to-canonical file identity. Full details are appended to the downloader SQL/export checkpoint.
 
 Gate 0 remains CONDITIONAL HOLD. This is source-constant evidence only; no VPS data, services, or files were changed.
+
+
+### 12.21 VPS market CSV snapshot and SQLite confirmation reconciliation — 2026-11-25
+
+A metadata-only, read-only audit of the five actual VPS exports is recorded in `docs/research_checkpoints/2026-11-25_phase3_vps_market_csv_snapshot_audit_v1.md`. Supporting workflow [45655914596](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45655914596) completed successfully on `okxtester_private@main` commit `01110f9a8e9e5e61d0db4271a3220a6aa2fa8250`; artifact `15042212515`, SHA-256 `3fe4e98476f906435ef3a6e383a0fdea5389d1a29222cdfdd9102d9c578bfd45`. The workflow streamed CSV metadata and queried SQLite in read-only mode; it uploaded no raw market data.
+
+All five VPS exports have the expected nine-column header and begin at 2025-10-20 00:00 UTC. Exported row counts are BTC 578,022; ETH 578,051; SOL 578,080; DOGE 578,111; AVAX 578,141. No duplicate or out-of-order timestamps, malformed rows, invalid timestamps, invalid OHLC, or invalid volume fields were found. The CSV end timestamps differ across assets (BTC 09:41, ETH 10:10, SOL 10:40, DOGE 11:10, AVAX 11:40 UTC on 2026-11-25), so this snapshot still needs explicit cross-asset timestamp-set reconciliation.
+
+SQLite contains 2,890,411 rows. Per-instrument CSV row counts exactly equal the SQLite counts where `confirm=1`. There are six `confirm=0` rows: one latest incomplete row for each asset, plus a historical SOL row at 2026-08-28 08:30 UTC. That historical SOL row exists in SQLite but is excluded by the confirmed-only CSV predicate, creating the single internal one-minute gap between 08:29 and 08:31 UTC. It must not be imputed or silently relabelled. A narrow current-OKX endpoint check is required to determine whether this historical flag is stale.
+
+The monitor run [45647566750](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45647566750) had reported 5/5 download completion and no running downloader process at 15:39 UTC. The VPS export is a distinct, later, nine-column snapshot than the earlier canonical Git market dataset; do not overwrite the canonical snapshot or treat the file hashes as directly comparable across different schemas/windows.
+
+Gate 0 remains CONDITIONAL HOLD. Next: verify the historical SOL confirmation flag against the current public OKX history-candles response, then perform full five-asset timestamp alignment and source reconciliation. No VPS data was changed; no candidate generation, Gate 2 execution comparison, strategy PnL backtest, or Phase 1 handoff is authorized.
