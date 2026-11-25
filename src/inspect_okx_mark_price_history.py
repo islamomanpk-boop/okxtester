@@ -4,6 +4,7 @@ This is a source-reconnaissance tool only. It does not assign mark-candle OHLC
 values as exact funding settlement marks and does not run a backtest.
 """
 import argparse
+import csv
 import json
 import time
 from pathlib import Path
@@ -11,7 +12,6 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from compact_bar_series import CompactBarSeries, TimestampBarLookup
 from run_exit_experiments import (
     ASSETS,
     load_funding_contract,
@@ -62,6 +62,37 @@ def fetch_mark_candles(inst_id, target_ts, timeout=20):
     return parsed
 
 
+def load_trade_closes(path, target_timestamps):
+    """Read only the three requested trade-candle closes; keep memory small."""
+    targets = set(int(value) for value in target_timestamps)
+    found = {}
+    with Path(path).open("r", newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        required = {"ts", "close"}
+        if not reader.fieldnames or not required.issubset(reader.fieldnames):
+            raise ValueError(f"{path}: candle CSV must contain ts and close")
+        for line_number, row in enumerate(reader, start=2):
+            try:
+                timestamp = int(float(row["ts"]))
+            except (TypeError, ValueError) as exc:
+                raise ValueError(
+                    f"{path}: invalid timestamp on line {line_number}"
+                ) from exc
+            if timestamp not in targets:
+                continue
+            if timestamp in found:
+                raise ValueError(
+                    f"{path}: duplicate candle timestamp {timestamp}"
+                )
+            try:
+                found[timestamp] = float(row["close"])
+            except (TypeError, ValueError) as exc:
+                raise ValueError(
+                    f"{path}: invalid close on line {line_number}"
+                ) from exc
+    return found
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--home", type=Path, default=Path.home())
@@ -99,8 +130,8 @@ def main(argv=None):
         indices = (0, len(events) // 2, len(events) - 1)
 
         candle_path = candle_dir / f"{asset}_USDT_USDT_1m.csv"
-        bars = CompactBarSeries.from_csv(candle_path)
-        lookup = TimestampBarLookup(bars)
+        targets = [int(events[index]["funding_time"]) for index in indices]
+        trade_closes = load_trade_closes(candle_path, targets)
 
         for label, index in zip(SAMPLE_LABELS, indices):
             event = events[index]
@@ -142,13 +173,13 @@ def main(argv=None):
                         f"count={len(exact)}"
                     )
                 row = exact[-1]
-                try:
-                    trade_close = float(lookup[target]["close"])
-                    diff_bps = (row["close"] / trade_close - 1.0) * 10_000
-                    trade_text = f"{trade_close:.12g} close_diff_bps={diff_bps:.6f}"
-                except KeyError:
+                trade_close = trade_closes.get(target)
+                if trade_close is None:
                     missing_trade += 1
                     trade_text = "TRADE_CANDLE_NOT_FOUND"
+                else:
+                    diff_bps = (row["close"] / trade_close - 1.0) * 10_000
+                    trade_text = f"{trade_close:.12g} close_diff_bps={diff_bps:.6f}"
                 print(
                     f"{asset} {label} ts={target}: "
                     f"mark_o={row['open']:.12g} mark_h={row['high']:.12g} "
