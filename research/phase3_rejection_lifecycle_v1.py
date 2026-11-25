@@ -35,7 +35,7 @@ EXPECTED_BLOBS = {
     "data/market_1m/BTC_USDT_USDT_1m.csv": "639f7b8a6d54747dd3eb3370dc133d53f6382bfd",
     "data/market_1m/ETH_USDT_USDT_1m.csv": "3017d870fe1cb764e1acb8fdec04138592749d69",
     "data/market_1m/SOL_USDT_USDT_1m.csv": "a850c2dc4a2c14b34b59737ccfbb2e4c59d97bf3",
-    "data/market_1m/DOGE_USDT_USDT_1m.csv": "2162df0f277befc04bd191b459a35d735c68f2d",
+    "data/market_1m/DOGE_USDT_USDT_1m.csv": "2162df0f277bef6c04bd191b459a35d735c68f2d",
     "data/market_1m/AVAX_USDT_USDT_1m.csv": "6e0cb0c55aa2aafb4118d62522826bcf1a2aeb62",
 }
 
@@ -63,6 +63,13 @@ def to_int_ms(value, label: str) -> int:
     if not math.isfinite(number) or not number.is_integer():
         raise ValueError(f"{label} must be an exact finite millisecond timestamp")
     return int(number)
+
+
+def optional_finite_float(value):
+    if value is None or str(value).strip() == "":
+        return ""
+    number = float(value)
+    return number if math.isfinite(number) else ""
 
 
 def read_dict_rows(path: Path):
@@ -211,10 +218,10 @@ def prepare_events(root: Path, features_by_asset, anatomy_by_id):
             "rejection_body": float(anatomy["rejection_body"]),
             "rejection_upper_wick": float(anatomy["rejection_upper_wick"]),
             "rejection_lower_wick": float(anatomy["rejection_lower_wick"]),
-            "body_range_ratio": float(anatomy["body_range_ratio"]) if anatomy["body_range_ratio"] else "",
-            "upper_wick_range_ratio": float(anatomy["upper_wick_range_ratio"]) if anatomy["upper_wick_range_ratio"] else "",
-            "lower_wick_range_ratio": float(anatomy["lower_wick_range_ratio"]) if anatomy["lower_wick_range_ratio"] else "",
-            "close_location_in_range": float(anatomy["close_location_in_range"]) if anatomy["close_location_in_range"] else "",
+            "body_range_ratio": optional_finite_float(anatomy["body_range_ratio"]),
+            "upper_wick_range_ratio": optional_finite_float(anatomy["upper_wick_range_ratio"]),
+            "lower_wick_range_ratio": optional_finite_float(anatomy["lower_wick_range_ratio"]),
+            "close_location_in_range": optional_finite_float(anatomy["close_location_in_range"]),
             "range_channel_width": float(anatomy["range_channel_width"]),
             "body_channel_width": float(anatomy["body_channel_width"]),
             "upper_wick_channel_width": float(anatomy["upper_wick_channel_width"]),
@@ -313,8 +320,7 @@ def analyze_event_path(event: dict, bars: list[dict], gap_after: bool = False):
             first_separation = bar["ts"]
         if first_close_through is None and flags["close_through"]:
             first_close_through = bar["ts"]
-        if flags["close_through"]:
-            close_through_seen = True
+        had_close_through_before = close_through_seen
         if close_through_seen and first_reclaim is None and crossed_in:
             first_reclaim = bar["ts"]
 
@@ -339,14 +345,15 @@ def analyze_event_path(event: dict, bars: list[dict], gap_after: bool = False):
             if flags["close_through"]:
                 active["resolution"] = "CLOSE_THROUGH_BOUNDARY"
                 active["resolution_ts_ms"] = bar["ts"]
+                active["same_bar_ambiguous"] = True
             elif flags["separation"]:
                 active["resolution"] = "INWARD_SEPARATION"
                 active["resolution_ts_ms"] = bar["ts"]
             if active["resolution"]:
-                active["same_bar_ambiguous"] = bool(flags["retest"] and flags["separation"])
+                active["same_bar_ambiguous"] = bool(flags["retest"] and (flags["separation"] or flags["close_through"]))
                 episodes.append(_finish_episode(event, active))
                 active = None
-        elif not close_through_seen and flags["retest"]:
+        elif not had_close_through_before and flags["retest"]:
             if first_retest is None:
                 first_retest = bar["ts"]
             active = {
@@ -374,6 +381,8 @@ def analyze_event_path(event: dict, bars: list[dict], gap_after: bool = False):
                 episodes.append(_finish_episode(event, active))
                 active = None
 
+        if flags["close_through"]:
+            close_through_seen = True
         previous_close = bar["close"]
 
     if active is not None:
@@ -519,11 +528,11 @@ def build_summaries(horizon_rows):
     return output
 
 
-def write_csv(path: Path, rows):
+def write_csv(path: Path, rows, fieldnames=None):
     path.parent.mkdir(parents=True, exist_ok=True)
-    if not rows:
-        raise ValueError(f"Refusing to write empty output: {path}")
-    fields = list(rows[0].keys())
+    if not rows and not fieldnames:
+        raise ValueError(f"Field names are required for empty output: {path}")
+    fields = list(rows[0].keys()) if rows else list(fieldnames)
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
         writer.writeheader()
@@ -576,16 +585,18 @@ def run(root: Path, output_dir: Path):
     summaries = build_summaries(horizon_results)
     output_dir.mkdir(parents=True, exist_ok=True)
     write_csv(output_dir / "rejection_lifecycle_events_v1.csv", event_results)
-    write_csv(output_dir / "rejection_lifecycle_episodes_v1.csv", episode_results or [{
-        "event_id": "", "episode_id": "", "episode_index": 0,
-        "asset": "", "definition": "", "direction": "", "test_rank_group": "",
-        "start_ts_ms": "", "resolution_ts_ms": "", "resolution": "NO_EPISODES",
-        "elapsed_minutes": "", "bar_count": "", "start_open": "", "start_high": "",
-        "start_low": "", "start_close": "", "deepest_ts_ms": "", "deepest_open": "",
-        "deepest_high": "", "deepest_low": "", "deepest_close": "",
-        "signed_boundary_distance_width": "", "wick_penetration_width": "",
-        "same_bar_ambiguous": "",
-    }])
+    write_csv(
+        output_dir / "rejection_lifecycle_episodes_v1.csv",
+        episode_results,
+        fieldnames=[
+            "event_id", "episode_id", "episode_index", "asset", "definition",
+            "direction", "test_rank_group", "start_ts_ms", "resolution_ts_ms",
+            "resolution", "elapsed_minutes", "bar_count", "start_open", "start_high",
+            "start_low", "start_close", "deepest_ts_ms", "deepest_open", "deepest_high",
+            "deepest_low", "deepest_close", "signed_boundary_distance_width",
+            "wick_penetration_width", "same_bar_ambiguous",
+        ],
+    )
     write_csv(output_dir / "rejection_lifecycle_horizons_v1.csv", horizon_results)
     write_csv(output_dir / "rejection_lifecycle_group_summary_v1.csv", summaries)
 
