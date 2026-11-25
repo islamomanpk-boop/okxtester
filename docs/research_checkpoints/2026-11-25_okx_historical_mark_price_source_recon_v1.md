@@ -152,3 +152,32 @@ Next validation:
 4. Keep Gate 0 / G0-03 OPEN and authoritative strategy PnL backtests blocked until the funding-price fidelity decision is explicit.
 
 The expanded probe and the focused GitHub Actions workflow both completed successfully on commit `90668a27a2b3a5eb0b82328a6f22435e5fc8be5f` (workflow run #25). CI success validates compilation and the existing focused tests; it does not validate settlement-price equivalence.
+
+
+## New official account-bill field discovery (2026-11-25)
+
+A further review of the current official OKX V5 API guide materially improves the source investigation.
+
+In the documented account-bills response:
+- `px` is described as the price related to the bill subtype.
+- The guide explicitly maps `px` to the **mark price** for subtype `173` (funding fee expense) and subtype `174` (funding fee income).
+- `pnl` is the funding-fee payment field for subtype `173`.
+- `sz` is the position quantity in contracts for SWAP/FUTURES/OPTION records.
+- `ts` is described as the time when the account balance update completes.
+- The account-bills endpoints are private/account-specific. The archived bills endpoint supports historical records since 2021 (excluding the current quarter); the current rolling bills endpoints cover shorter recent periods.
+
+Official source: OKX V5 API guide, Trading Account → Get bills details (last 7 days / last 3 months / since 2021), especially the response field definitions for `px`, subtypes 173/174, `pnl`, `sz`, and `ts`: https://my.okx.com/docs-v5/en/
+
+This corrects and sharpens the earlier checkpoint wording: account bills are not merely a funding-cashflow cross-check. For actual account funding events, OKX documents a bill `px` field specifically as the mark price for funding-fee expense/income records. This is the strongest candidate found so far for an exchange-recorded settlement mark.
+
+Important validation still required before adopting it:
+1. Retrieve a small set of the user's own funding bill records using a read-only API key with account read permission; never transmit API key, secret, or passphrase into chat or commit them to the repository.
+2. Verify `subType` 173/174, instrument ID, bill timestamp, `px`, `sz`, `pnl`, `balChg`, and currency fields. Compare bill timestamps with the public funding history timestamps, allowing for the documented distinction that `ts` is the balance-update completion time.
+3. Check whether one bill row is emitted per instrument/settlement/position, whether records aggregate net positions, and whether `px` is populated consistently.
+4. Reconcile the recorded `pnl` against the funding rate, recorded position quantity, contract specifications, and `px` using the correct linear/inverse contract formula. Do not infer the formula solely from field names.
+5. Only after these checks may the source be considered validated for actual account settlements. It remains account-specific and cannot by itself supply marks for arbitrary hypothetical positions.
+
+Current decision:
+- Treat the account-bill `px` field as a high-priority candidate for exact realized funding mark validation, not yet as a globally validated data source.
+- Keep the public mark-candle close as a candle-derived proxy.
+- Keep `candle_close_proxy` unchanged, Gate 0 / G0-03 OPEN, and authoritative hypothetical strategy PnL backtests blocked pending validation and an explicit funding-price fidelity policy.
