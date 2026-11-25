@@ -164,6 +164,7 @@ Implemented on `price-action-v1`:
 - `run_exit_experiments.py` now reads the archived funding coverage manifest, requires PASS status and the complete five-asset set, verifies each local CSV SHA-256, instrument identity, row count, endpoints, ordering, and rates, then passes the full verified history and manifest-defined schedule into the portfolio engine.
 - The loader does not derive its schedule from observed event rows. It uses the archived per-asset first timestamp, interval, and final timestamp.
 - `run_cost_sensitivity.py` and the batch experiment runner were migrated to the new six-item shared-input tuple.
+- Added `src/verify_local_funding_manifest.py`, a no-backtest CLI that verifies all five real local CSVs against the committed manifest and validates their complete schedules. It is included in CI compilation.
 - Experiment and cost-sensitivity summaries/report metadata identify the manifest hash and explicitly state `candle_close_proxy`. Trade rows retain per-asset source identity and schedule provenance.
 - Exact OKX settlement marks remain unavailable in the audited source files; no output labels candle-close proxy marks as exact.
 
@@ -191,7 +192,7 @@ Result: **PASS — 75 tests on the exact triggering commit**:
 G0-03 is still **OPEN**. The code-level contract and local-file loader are implemented, but do not close the gate until:
 
 1. The exact-commit workflow run above passes — **complete**.
-2. The real local five-asset processed CSVs are loaded by the migrated runner and their SHA-256 values match the archived manifest. Those CSVs are intentionally not in GitHub, so CI's synthetic loader tests cannot replace this local-source verification.
+2. Run `PYTHONPATH=src python src/verify_local_funding_manifest.py` from the repository root on the user's Termux environment. It checks the real five-asset processed CSVs against the archived manifest without running a backtest. Those CSVs are intentionally not in GitHub, so CI's synthetic loader tests cannot replace this local-source verification.
 3. The exact-mark versus proxy policy is formally accepted for the research objective. The current implementation explicitly supports proxy mode but does not claim exact settlement marks.
 4. All remaining project-wide funding call sites are re-audited after the API migration.
 
