@@ -35,3 +35,5 @@ class V1010Tests(unittest.TestCase):
         p,e=self.fixture();p.loc[0,"retest_event_id"]="missing"
         with self.assertRaises(ValueError):joint_support_audit(p,e)
 if __name__=="__main__":unittest.main()
+
+# Re-trigger V10.10 after updating the deterministic test fixture.
