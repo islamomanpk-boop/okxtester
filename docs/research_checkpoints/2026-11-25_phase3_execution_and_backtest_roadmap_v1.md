@@ -116,9 +116,13 @@ Only after Gates 0–5:
 - Preserve all prior scripts, data, protocols, failures, and outputs.
 - A failed strategy is a valid result if it is evaluated fairly.
 
-## Current next action
+## Current status after Gate 0 inspection — 2026-11-25
 
-Begin Gate 0: inspect the existing Phase 3 signal/event ledgers, original signal availability timestamps, funding/fee source coverage, and existing execution-engine limitations. Produce a source/engine readiness report before coding a strategy or running any trade simulation.
+The initial source/engine readiness report is recorded at [GATE0_SOURCE_ENGINE_READINESS_AUDIT_V1.md](../../reports/sideways_phase3_research_archive_v1/GATE0_SOURCE_ENGINE_READINESS_AUDIT_V1.md).
+
+**Gate 0 decision: CONDITIONAL HOLD — not passed.** The audit found usable five-asset 1M candles, Phase 3 descriptive rejection/breakout ledgers, a funding reconciliation report, and existing execution foundations. Critical blockers remain: reconcile the stale funding audit with the later funding report and verify the five processed funding files in the actual runtime; freeze source hashes/provenance; prove causal Phase 3 event availability and build the three-family range candidate generator; make missing funding fail closed; and include fees/slippage in initial risk sizing. The audit also records the distinction between the trend-only candidate engine and Phase 3 range trading.
+
+Next action: resolve the Gate 0 blocker register in order and reissue a documented Gate 0 pass/hold decision. Do not run Phase 3 strategy PnL backtests until critical blockers are closed.
 
 ## Completion standard
 
