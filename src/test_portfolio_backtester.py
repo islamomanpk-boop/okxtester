@@ -266,6 +266,50 @@ class PortfolioBacktesterTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Funding contract missing"):
             run_portfolio_backtest(bars, [], {}, config())
 
+    def test_engine_rejects_missing_expected_funding_settlement(self):
+        bars = {"BTC": make_bars([
+            (100, 100.2, 99.8, 100),
+            (100, 100.2, 99.8, 100),
+            (100, 100.2, 99.8, 100),
+            (100, 100.2, 99.8, 100),
+        ])}
+        first_ts = BASE_TS
+        last_ts = BASE_TS + 180_000
+        contract = {
+            "events": [],
+            "coverage": {
+                "instrument_name": "BTC-USDT-SWAP",
+                "source_sha256": "a" * 64,
+                "coverage_start_ms": first_ts,
+                "coverage_end_ms": last_ts,
+                "schedule_id": "missing_settlement_test_v1",
+                "schedule_start_ms": BASE_TS + 120_000,
+                "schedule_interval_ms": 28_800_000,
+                "schedule_end_ms": BASE_TS + 120_000,
+                "event_window_start_ms": first_ts,
+                "event_window_end_ms": last_ts,
+                "mark_price_mode": "candle_close_proxy",
+            },
+        }
+        with self.assertRaisesRegex(ValueError, "1 missing"):
+            _run_portfolio_backtest(
+                bars, [], {"BTC": contract}, config()
+            )
+
+    def test_engine_rejects_trade_holding_beyond_funding_coverage(self):
+        bars = {"BTC": make_bars([
+            (100, 100.2, 99.8, 100),
+            (100, 100.2, 99.8, 100),
+            (100, 100.2, 99.8, 100),
+        ])}
+        contract = funding_contract_for_test(bars["BTC"])
+        contract["coverage"]["coverage_end_ms"] = BASE_TS + 60_000
+        contract["coverage"]["event_window_end_ms"] = BASE_TS + 60_000
+        with self.assertRaisesRegex(ValueError, "exceeds verified funding coverage"):
+            _run_portfolio_backtest(
+                bars, [candidate()], {"BTC": contract}, config()
+            )
+
     def test_unsynchronized_asset_timestamps_are_rejected(self):
         bars = {
             "BTC": make_bars([(100, 100.2, 99.8, 100)] * 3),
