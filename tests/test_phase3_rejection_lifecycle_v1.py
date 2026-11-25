@@ -1,6 +1,6 @@
 import unittest
 
-from phase3_rejection_lifecycle_v1 import analyze_event_path
+from research.phase3_rejection_lifecycle_v1 import analyze_event_path
 
 
 def event(direction="upper"):
@@ -77,6 +77,14 @@ class RejectionLifecycleTests(unittest.TestCase):
         _, episodes, _ = analyze_event_path(event("lower"), bars)
         self.assertEqual(episodes[0]["resolution"], "INWARD_SEPARATION")
         self.assertTrue(episodes[0]["same_bar_ambiguous"])
+
+
+    def test_exact_boundary_close_is_not_close_through(self):
+        bars = [bar(0, 99.5, 100.0, 99.0, 100.0)]
+        result, episodes, _ = analyze_event_path(event(), bars)
+        self.assertIsNone(result["first_close_through_ts_ms"])
+        self.assertEqual(result["inside_to_outside_close_cross_count"], 0)
+        self.assertEqual(result["retest_episode_count"], 1)
 
     def test_source_end_censors_incomplete_horizons(self):
         bars = [
