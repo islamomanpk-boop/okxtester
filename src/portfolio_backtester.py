@@ -128,9 +128,11 @@ def _validate_funding(bars_by_asset, funding_by_asset, timestamps):
     """Validate explicit coverage contracts and the 1m settlement timeline."""
     normalized = validate_funding_contract(bars_by_asset, funding_by_asset)
     timeline = set(timestamps)
+    timeline_start, timeline_end = timestamps[0], timestamps[-1]
     for asset, contract in normalized.items():
         for event in contract["events"]:
-            if int(event["funding_time"]) not in timeline:
+            event_ts = int(event["funding_time"])
+            if timeline_start <= event_ts <= timeline_end and event_ts not in timeline:
                 raise ValueError(
                     f"{asset} funding settlement does not align with the 1m execution timeline"
                 )
