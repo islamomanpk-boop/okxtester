@@ -189,3 +189,18 @@ The Gate 0 hold remains because (a) the files are local and cannot be confirmed 
 A deeper line-by-line inspection of `src/portfolio_backtester.py` and `src/portfolio_engine.py` refines the initial sizing finding. The portfolio backtester computes `effective_risk_per_unit` as the entry-to-adverse-stop-exit distance after slippage plus taker fees on entry and stop exit, then passes that as `risk_per_unit` to the allocator. The allocator uses this value to cap quantity against the configured 0.5% risk budget. Therefore, it is inaccurate to say the current portfolio path entirely omits fees/slippage from initial sizing.
 
 Remaining qualifications: the standalone `src/execution_engine.py:size_position` does not include fees/slippage; the portfolio calculation assumes the configured fee is appropriate and does not include exchange lot/tick rounding; and a gap through the stop can still exceed the planned cost-adjusted stop risk. Tests and documentation must distinguish planned stop-risk sizing from a hard maximum-loss guarantee.
+
+
+## 10. Funding coverage audit implementation — 2026-11-25
+
+A fail-closed local-file audit has now been added:
+- Code: `src/funding_coverage_audit.py`
+- Tests: `src/test_funding_coverage_audit.py`
+- Documentation: `docs/funding_coverage_audit_v1.md`
+- Test workflow: `.github/workflows/phase3-funding-coverage-audit.yml`
+
+It records SHA-256 and absolute file paths, checks schema/instrument/rates, strict ordering and duplicates, configured first/last timestamps, an explicit 8-hour expected interval, missing/irregular settlements, and cross-asset timestamp-set equality. It writes JSON and Markdown reports and exits non-zero on any failure.
+
+**Important:** the 8-hour cadence and coverage endpoints are explicit defaults based on the prior reconciliation report, not universal assumptions. GitHub Actions uses synthetic unit-test fixtures because processed funding CSVs are intentionally local and not tracked in Git. A passing workflow proves audit logic tests only; it does not prove the actual five funding files pass.
+
+Gate 0 remains **CONDITIONAL HOLD** until the real-data command is run in the environment containing the five processed files and its output manifest is archived. The current run is not yet a real-data funding audit.
