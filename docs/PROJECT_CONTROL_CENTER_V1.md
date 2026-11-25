@@ -282,3 +282,6 @@ A read-only manifest audit of the five actual VPS CSV exports and targeted SQLit
 
 
 A targeted public OKX history-candles probe has now confirmed the old SOL 2026-08-28 08:30 UTC row itself is returned with `confirm=0`, and its OHLCV/volume fields match the VPS SQLite row exactly. The single internal gap in the confirmed-only SOL CSV is therefore consistent with the exchange response and the `confirm=1` export filter, not a demonstrated local missing-row or export mismatch. Do not relabel or fill it. See research register Section 12.22 and the VPS snapshot checkpoint. The reason for the exchange's historical `confirm=0` remains unknown; cross-asset alignment is still the next step.
+
+
+The explicit VPS five-asset timestamp-set audit is complete: 578,021 common timestamps from 2025-10-20 00:00 UTC through 2026-11-25 09:41 UTC; union 578,141; 120 timestamps outside the intersection. Differences are explained by staggered per-asset end times and the single SOL 2026-08-28 08:30 UTC candle that OKX itself returns with `confirm=0`. The common timeline preserves that one-minute hole; do not impute it. See research register Section 12.23 and the VPS snapshot checkpoint. Next source task is OHLCV-level comparison of the separate VPS snapshot with canonical Git data, without overwriting either dataset.
