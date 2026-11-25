@@ -1,0 +1,43 @@
+{
+  "dataset": "Phase 3 funding-time 4H mark-price candidate proxy V1",
+  "status": "CANDIDATE_PROXY_NOT_EXACT_SETTLEMENT_MARK",
+  "schema_version": 1,
+  "source_endpoint": "https://www.okx.com/api/v5/market/history-mark-price-candles",
+  "bar": "4H",
+  "candidate_price_field": "mark_open",
+  "diagnostic_fields": [
+    "mark_high",
+    "mark_low",
+    "mark_close"
+  ],
+  "rows": 5940,
+  "rows_by_asset": {
+    "AVAX": 1188,
+    "BTC": 1188,
+    "DOGE": 1188,
+    "ETH": 1188,
+    "SOL": 1188
+  },
+  "all_confirmed": true,
+  "csv_sha256": "22e2894a8c467777f9ee90d5824deaf243a8b3d6e44ebff7f7d33b3e88c4cc82",
+  "funding_manifest_sha256": "59c08bb34ac82e00e60066dad7e50d0cc62b4097a3580e186251a6c23de67c7e",
+  "funding_window": {
+    "start_ms": 1760918400000,
+    "end_ms": 1795104000000,
+    "start_utc": "2025-10-20T00:00:00+00:00",
+    "end_utc": "2026-11-19T16:00:00+00:00",
+    "events_per_asset": 1188,
+    "cross_asset_timestamp_sets_identical": true
+  },
+  "generated_at_utc": "2026-11-25T17:10:46.855858+00:00",
+  "main_workflow_run_id": 45661716701,
+  "main_source_commit": "c606114219d66f4801c4e9a17d6310ab1f294fd7",
+  "independent_vps_reproduction": {
+    "workflow_run_id": 45660812264,
+    "csv_sha256": "22e2894a8c467777f9ee90d5824deaf243a8b3d6e44ebff7f7d33b3e88c4cc82",
+    "byte_identical": true
+  },
+  "exact_settlement_mark_verified": false,
+  "funding_proxy_policy_accepted": false,
+  "engine_mode_changed": false
+}
