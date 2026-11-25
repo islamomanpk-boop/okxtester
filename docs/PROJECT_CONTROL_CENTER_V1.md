@@ -119,12 +119,12 @@ Cleanup rule: do not delete ambiguous or historical provenance material. Explici
 
 ### Newly frozen Gate 1 protocol
 
-`docs/research_checkpoints/2026-11-25_phase3_boundary_lifecycle_closure_protocol_v1.md` defines the two descriptive lifecycle modules: rejection retest/cross lifecycle and breakout return-inside/reclaim/reversal lifecycle. It was frozen before implementation. Rejection Module A has been accepted; breakout Module B's descriptive historical run is complete and independently reviewed at the event/horizon output level, but formal closeout remains open.
+`docs/research_checkpoints/2026-11-25_phase3_boundary_lifecycle_closure_protocol_v1.md` defines the two descriptive lifecycle modules: rejection retest/cross lifecycle and breakout return-inside/reclaim/reversal lifecycle. It was frozen before implementation. Rejection Module A and breakout Module B are now both formally accepted as descriptive lifecycle studies. Module B closeout: `reports/phase3_breakout_lifecycle_v1_1/PHASE3_BREAKOUT_LIFECYCLE_CLOSEOUT_V1_1.md`. The five outside-retest fields absent from the frozen forward archive are accepted only as descriptive measurements, not independently cross-validated.
 
 
 ### Gate 1 progress
 
-Rejection lifecycle Module A is accepted as a descriptive study: 1,992 events, 3,028 retest episodes, 7,968 horizon rows, and 380 overlap clusters; 12 synthetic tests passed. See `reports/phase3_rejection_lifecycle_v1_1/PHASE3_REJECTION_LIFECYCLE_CLOSEOUT_V1_1.md`. Breakout failed-lifecycle Module B's historical run and 19-test workflow passed; independent audit reconciled all 1,592 event rows, 6,368 horizon rows and 244 group-summary rows, with no event-to-horizon timing/membership or group-total inconsistencies. Module B remains open pending formal closeout and reconciliation of the five retest fields that are absent from the frozen historical benchmark. Gate 1 remains PARTIAL / OPEN and Gate 2 remains closed.
+Rejection lifecycle Module A is accepted as a descriptive study: 1,992 events, 3,028 retest episodes, 7,968 horizon rows, and 380 overlap clusters; 12 synthetic tests passed. See `reports/phase3_rejection_lifecycle_v1_1/PHASE3_REJECTION_LIFECYCLE_CLOSEOUT_V1_1.md`. Breakout lifecycle Module B is now formally ACCEPTED as descriptive evidence. Its 1,592 events, 6,368 horizon rows, 244 group summaries, 23 synthetic tests and same-revision deterministic rerun are recorded in the formal closeout report. The five retest fields absent from the frozen benchmark remain descriptive-only limitations. With Module A also accepted, Gate 1 is COMPLETE. Gate 0 remains CONDITIONAL HOLD, so Gate 2 remains closed.
 
 ## 5. Mandatory research governance
 
@@ -231,20 +231,20 @@ The first cross-repository inventory and Gate 1 lifecycle reconciliation are rec
 - Canonical `okxtester@price-action-v1`: recursive tree inspected at commit `e025e1188c266b2c678b47de7953a65aa0a4ee30`; 1,360 tracked blobs (1,421 tree entries including 61 directories). Counts: 34 workflows, 48 research Python files, 38 test Python files, 1,001 report files, 163 docs, 68 shared source files, five tracked 1M market datasets, and one helper script.
 - Supporting `okxtester_private@main`: recursive tree inspected at `ad5aac7294f0650e800ad834a1642f335915a649`; 12 tracked blobs (three research scripts and nine workflows). It remains supporting VPS/data infrastructure, not a replacement for the canonical research archive.
 - Supporting Phase 3 range-measurement and Gate 0 inventory workflow results are linked in the register. Their successful execution is not a Gate 0 pass. The VPS inventory did not find event/signal timestamps, funding history, fee history or an execution engine in its inspected roots; the separate canonical Termux funding-file audit does not prove those inputs are installed or consumed by the VPS runtime.
-- Module B event/horizon and group-summary outputs have been independently reconciled. Formal Module B closeout remains open because the five lifecycle retest fields are absent from the frozen forward benchmark and need explicit closeout treatment.
+- Module B formal closeout is complete; its five unbenchmarked lifecycle fields are explicitly restricted to descriptive-only use. Gate 1 is COMPLETE, while Gate 0 remains CONDITIONAL HOLD.
 - The older master checklist and five-gate supporting checklist remain historical aids; the eight-gate roadmap is controlling.
 
 ## 10. Immediate next action
 
 Continue content-level reconciliation of the Phase 3 archive and Gate 0 dependencies. In order:
-1. Audit the remaining Module B closeout protocol criteria and document whether the five unbenchmarked lifecycle fields can be accepted as descriptive-only evidence or require further source reconstruction.
-2. Reconcile the VPS aligned-dataset/download pipeline, SQLite schema and data provenance against canonical five-asset source hashes, timestamps, instrument identity and the separately audited Termux funding files. Do not assume the two runtime environments share files.
-3. Review the Phase 3 source/event ledger availability timestamps and three-family candidate-generation dependency.
-4. Continue the remaining Gate 0 fee, instrument, settlement-mark and execution-engine acceptance blockers.
-5. Only after the above, issue an explicit Gate 0/Gate 1 decision and proceed to Gate 2 in order. No Phase 3 strategy PnL backtest is authorized while required gates remain open.
+1. Resolve VPS source/event availability and provenance, and build/test the separate three-family Phase 3 range candidate generator.
+2. Reconcile VPS market/funding inputs with canonical sources; verify runtime funding integration and exact settlement mark-price policy.
+3. Verify fee schedules, instrument/contract specifications, lot/tick rounding and execution-engine real-input readiness.
+4. Close each Gate 0 blocker with reproducible evidence, then issue an explicit Gate 0 decision.
+5. Only after Gate 0 is formally passed may Gate 2 execution-resolution research begin. Gates 3–7 remain sequentially closed; no strategy PnL backtest is authorized.
 
 **Project rule:** The assistant owns continuity, organization, and status tracking. The user should not have to remember filenames, completed studies, or governance rules.
 
 
-- Module B same-revision reproducibility is now confirmed: [workflow 45645349572](https://github.com/islamomanpk-boop/okxtester/actions/runs/45645349572) repeated the 23-test suite and frozen historical generation with analysis code, tests, inputs and schema unchanged; the output-commit step found no report changes. Formal closeout remains open only for the five unbenchmarked lifecycle fields and criterion-by-criterion closeout documentation. See register Section 12.10.
+- Module B same-revision reproducibility is now confirmed: [workflow 45645349572](https://github.com/islamomanpk-boop/okxtester/actions/runs/45645349572) repeated the 23-test suite and frozen historical generation with analysis code, tests, inputs and schema unchanged; the output-commit step found no report changes. The formal closeout is now complete; the five unbenchmarked fields are explicitly descriptive-only. See register Section 12.12 and the closeout report.
 - The first enhanced Gate 0 scan was found to contain self-match/cross-category false positives and was explicitly invalidated in register Section 12.9. The corrected read-only audit [45647247070](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45647247070) passed all steps on `okxtester_private@main` `87e80fbb71d2ffae0d7498bf17384807aec7b356`. It found no candidate event data, signal timestamps, funding history, fees, provenance records or execution engine in the inspected VPS roots; SQLite integrity is OK with 2,890,411 candle rows. This is scoped inventory evidence only, not proof of global absence or Gate 0 acceptance. Gate 0 remains CONDITIONAL HOLD. Details: register Section 12.11.
