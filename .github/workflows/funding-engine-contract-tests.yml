@@ -48,6 +48,8 @@ jobs:
       - name: Compile execution engines and focused tests
         run: |
           python -m py_compile \
+            src/funding_coverage.py \
+            src/test_funding_coverage.py \
             src/execution_engine.py \
             src/portfolio_backtester.py \
             src/test_execution_engine.py \
