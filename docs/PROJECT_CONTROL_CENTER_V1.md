@@ -257,3 +257,12 @@ The expanded read-only VPS inventory [45648774228](https://github.com/islamomanp
 G0-10 documentation correction: `docs/execution_data_audit_v1.md` now corrects the stale claim that current market data is local-only. The five canonical one-minute CSVs are tracked under `data/market_1m/`, and the exact byte sizes, Git blob IDs and SHA-256 values are recorded in that document and Module B run metadata. This closes the documentation contradiction only; VPS downloader lineage, runtime equivalence and refresh/retention controls remain unverified.
 
 **Current gate decision remains unchanged:** Gate 0 CONDITIONAL HOLD; Gate 1 COMPLETE (descriptive lifecycle only); Gate 2 remains closed. No strategy PnL backtest is authorized.
+
+
+### Candidate availability and causal-timing blocker — 2026-11-25
+
+The read-only audit in `docs/research_checkpoints/2026-11-25_phase3_candidate_availability_audit_v1.md` is now recorded in research register Section 12.14. It confirms the rejection-family 15-minute candle-close availability convention, the completed 15-minute/4-hour breakout source chain and first eligible one-minute bar timing, and a critical causal limitation: historical STRICT_P25 / BROAD_P40 thresholds were calculated from the full feature sample. Those historical regime labels are descriptive only and must not be treated as live-knowable candidate signals.
+
+G0-04/G0-05 remain OPEN / CRITICAL. Before any candidate generator is implemented, a past-only regime-threshold/calibration policy and a single causal candidate contract covering rejection, breakout continuation and failed-breakout reversal must be specified and frozen. The failed-breakout return-inside 15-minute close is only a proposed confirmation point, not an accepted rule. No candidate generation, Gate 2 execution comparison or strategy PnL backtest is authorized.
+
+The next research step is to reconcile any available raw 15-minute source files against exact 15-minute aggregation from the five tracked canonical one-minute datasets, including hashes, bar counts, close-time labels and missing-bar handling. Do not claim source equivalence until those checks are reproducibly completed.
