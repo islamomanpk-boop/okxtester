@@ -29,6 +29,11 @@
   "forward_crosscheck_passed": 6368,
   "forward_crosscheck_scope": "Only measurements present in the frozen accepted forward-outcome CSV; lifecycle retest metrics are not independently benchmarked by that archive.",
   "forward_crosscheck_fields_checked_per_row": 18,
+  "lifecycle_ambiguity_counts": {
+    "outside_retest_same_bar_ordering": 107,
+    "inside_retest_same_bar_ordering": 551,
+    "inside_retest_confirmed_after_separation": 630
+  },
   "forward_archive_unavailable_lifecycle_fields": [
     "outside_retest",
     "outside_retest_boundary_crossed",
@@ -108,8 +113,8 @@
   "output_sha256": {
     "breakout_lifecycle_events_v1_1.csv": "d47cc0c480f5175c7c07bc09b3878d00f30e847223df5aee517435bd6216c861",
     "breakout_lifecycle_forward_crosscheck_v1_1.csv": "9f239c12e7922269c01ff601a46af0dfdb7cf3421c68153529d3094400f78996",
-    "breakout_lifecycle_group_summary_v1_1.csv": "b5f1c53c266bb9dd51e34238ad7463dee119dd0bdf54f05bacb17cc8a2598f26",
-    "breakout_lifecycle_horizons_v1_1.csv": "851d7dfe6f9aff81572a2d647466af197da97110da3ce8419a5bd8a5f5307982",
+    "breakout_lifecycle_group_summary_v1_1.csv": "de755b4e8f3e4bff8cbf79ded9001f450b85a97aabe8e2f2e58371ebe18d441b",
+    "breakout_lifecycle_horizons_v1_1.csv": "532e68ecb7b1394457202b8c4cb4c3252ec11a8c1807ad91087e0d0341b06faf",
     "breakout_lifecycle_prior_links_v1_1.csv": "9816667ab0d95994bd6c769d007da51b5f0161c8475eee524d9d9e0920fc9666"
   },
   "limitations": [
