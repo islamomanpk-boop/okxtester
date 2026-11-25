@@ -1,0 +1,47 @@
+name: Phase 3 Full-Window Funding Mark-Price Coverage Audit
+on:
+  push:
+    branches: [price-action-v1]
+    paths:
+      - "src/phase3_funding_mark_price_full_coverage_v1.py"
+      - "src/test_phase3_funding_mark_price_full_coverage_v1.py"
+      - ".github/workflows/phase3-funding-mark-price-full-audit.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: phase3-funding-mark-price-full-audit
+  cancel-in-progress: false
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out pinned research branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile and run synthetic helper tests
+        run: |
+          python -m py_compile \
+            src/phase3_funding_mark_price_full_coverage_v1.py \
+            src/test_phase3_funding_mark_price_full_coverage_v1.py
+          python -m unittest discover -s src -p 'test_phase3_funding_mark_price_full_coverage_v1.py' -v
+      - name: Run public funding and mark-price coverage audit
+        run: |
+          mkdir -p "$RUNNER_TEMP/phase3-funding-mark-price"
+          python src/phase3_funding_mark_price_full_coverage_v1.py \
+            --trade-dir data/market_1m \
+            --samples-per-asset 12 \
+            --output "$RUNNER_TEMP/phase3-funding-mark-price/summary.json"
+      - name: Upload summary only
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3-funding-mark-price-full-audit
+          path: ${{ runner.temp }}/phase3-funding-mark-price/summary.json
+          if-no-files-found: error
+          retention-days: 90
