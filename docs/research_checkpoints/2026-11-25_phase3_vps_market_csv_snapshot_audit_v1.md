@@ -102,3 +102,18 @@ Still open:
 4. Compare the canonical and VPS datasets at the OHLCV-field level only after aligning schema, source window, and instrument identity.
 
 Gate 0 remains **CONDITIONAL HOLD**. This snapshot audit does not establish source acquisition lineage, exact volume-unit suitability, funding mark-price fidelity, or execution-engine readiness. No candidate generation, Gate 2 execution comparison, strategy PnL backtest, or Phase 1 handoff is authorized.
+
+
+## 8. Current OKX source probe for the historical SOL row
+
+The targeted read-only probe is recorded in supporting workflow [45656418316](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45656418316), completed successfully on `okxtester_private@main` commit `48c93964070bbf5634291872dc38e886f4771ce8`. Metadata-only artifact `15042463198`, SHA-256 `832935bdd17e86a412fcb64135cbb4d30ada0f79b50c88db4aaec8627b3d6081`.
+
+A single public request to OKX `GET /api/v5/market/history-candles` for SOL-USDT-SWAP, 1m, returned the exact row at `1787905800000` (2026-08-28 08:30:00 UTC). The API response had HTTP 200, API code `0`, and `confirm=0`. Its OHLCV and all three volume values matched the read-only SQLite row exactly:
+
+- open 106.44; high 106.48; low 106.44; close 106.48
+- vol 5217.86; volCcy 5217.86; volCcyQuote 555485.7181
+- confirm 0 in both current API response and SQLite
+
+This establishes that the historical SOL gap in the confirmed-only CSV is currently reproduced by the exchange's own history-candles response, not caused by a local value mismatch. The export's `confirm=1` filter is behaving consistently with the source field. The reason OKX still labels this old candle unconfirmed is not established. Preserve the row's source status; do not relabel it confirmed, fill the CSV, or alter the VPS database. A second independent sample or exchange clarification would be needed before making any broader claim about the semantics of old `confirm=0` candles.
+
+**Updated disposition:** the SOL interval is an exchange-source non-confirmed candle, not an absent SQLite record and not a downloader/export mismatch. The confirmed-only CSV has one expected-by-policy exclusion within the historical window, which must remain explicitly visible in dataset-quality metadata.
