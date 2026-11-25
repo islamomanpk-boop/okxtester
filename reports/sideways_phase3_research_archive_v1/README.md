@@ -57,3 +57,8 @@ Phase 3 execution research covers **support/resistance rejection**, **breakout c
 
 - [Gate 0 source and execution-engine readiness audit](GATE0_SOURCE_ENGINE_READINESS_AUDIT_V1.md)
 - **Decision: CONDITIONAL HOLD.** Market data, descriptive rejection/breakout archives, and engine foundations exist, but funding-file availability/coverage, causal Phase 3 candidate generation, fail-closed funding handling, and cost-aware risk sizing must be resolved before strategy backtesting.
+
+
+### Gate 0 follow-up inspection — funding chronology and risk sizing
+
+The Gate 0 report was refined after inspecting the underlying preflight and engine code. The older funding-not-found report is a historical snapshot; a later preflight recorded 1,188 funding rows per asset, but current local file hashes and settlement-gap completeness still need verification. The portfolio backtester already has cost-adjusted stop-risk sizing for modeled entry/stop slippage and taker fees; the standalone single-trade engine does not, and stop gaps remain a risk. See the updated Gate 0 audit and execution-engine documentation for the precise distinctions.
