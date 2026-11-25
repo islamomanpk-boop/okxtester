@@ -113,3 +113,42 @@ Next validation:
 4. Keep `candle_close_proxy` unchanged and Gate 0 / G0-03 OPEN until the broader evidence and settlement-price semantics are assessed.
 
 This section supersedes the earlier statement that actual API responses had not yet been inspected. It does not change the decision that no exact settlement-price source has been established and no PnL backtest is authorized by this reconnaissance.
+
+
+## Expanded distributed sample results (Termux, 2026-11-25)
+
+The user ran the expanded probe successfully after compiling it. The run sampled 12 evenly spaced funding events per instrument (60 total requests) across the 1,188-event funding history for each of BTC, ETH, SOL, DOGE, and AVAX.
+
+Observed results:
+- 60 requests; 0 API errors.
+- 60/60 exact-timestamp mark-price candles found.
+- 0 missing mark-price candles.
+- 0 duplicate extra mark rows.
+- 0 incomplete mark candles; every returned candle had `confirm=1`.
+- 50 local trade-close comparisons were available; 10 samples were excluded because their timestamps were outside the local trade-candle file coverage (first and last sampled events for each asset).
+- All five assets reported a median close difference of 0.000000 bps at the printed precision.
+- Across the 50 comparisons, 41 differences printed as 0.000000 bps and 9 were non-zero at six decimal places.
+- Pooled observed minimum was -1.217730 bps (DOGE); pooled observed maximum was +1.012818 bps (ETH). Largest absolute observed difference was therefore about 1.22 bps.
+
+Per-asset observed ranges (bps, mark-candle close versus local trade-candle close):
+- BTC: -0.013233 to +0.618004; median 0.000000.
+- ETH: -0.053702 to +1.012818; median 0.000000.
+- SOL: -1.152339 to 0.000000; median 0.000000.
+- DOGE: -1.217730 to +0.988826; median 0.000000.
+- AVAX: 0.000000 to 0.000000; median 0.000000.
+
+Interpretation and limits:
+- The endpoint returned complete exact-minute mark candles at every one of these 60 selected funding timestamps. This is strong evidence of endpoint availability for this bounded sample, not proof of uninterrupted full-history coverage.
+- The mark-close and trade-close values are often equal at the displayed precision and otherwise differ by small amounts in this sample. This is a comparison of two one-minute candle closes, not a comparison against an independently known settlement snapshot.
+- The sample selection is evenly spaced, not exhaustive or random; it cannot establish the distribution of differences across all 1,188 funding events per instrument.
+- The 10 trade-comparison exclusions are at the local dataset boundaries and do not indicate missing mark candles.
+- The historical mark-price candle remains an OHLC interval aggregate. Timestamp alignment does not identify whether OKX used the minute's open, close, or another instant-specific value for the funding settlement.
+- Do not upgrade `candle_close_proxy` to exact mode, and do not claim the mark-candle close is the exact settlement mark.
+
+Next validation:
+1. Inspect the official account-bills funding event records as an independent check of realized account funding cashflows, while recognizing they do not provide a universal settlement-mark series for hypothetical backtests.
+2. Determine whether OKX exposes any public or account-specific source that explicitly records the settlement valuation price, or obtain a documented exchange confirmation of the exact settlement-price semantics.
+3. If no exact universal source exists, document a proxy policy and quantify its limitations before deciding whether exploratory PnL research may proceed.
+4. Keep Gate 0 / G0-03 OPEN and authoritative strategy PnL backtests blocked until the funding-price fidelity decision is explicit.
+
+The expanded probe and the focused GitHub Actions workflow both completed successfully on commit `90668a27a2b3a5eb0b82328a6f22435e5fc8be5f` (workflow run #25). CI success validates compilation and the existing focused tests; it does not validate settlement-price equivalence.
