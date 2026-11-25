@@ -70,7 +70,7 @@ jobs:
             src/run_cost_sensitivity.py \
             src/run_exit_experiment_batch.py \
             src/verify_local_funding_manifest.py \
-            src/inspect_okx_mark_price_history.py \\
+            src/inspect_okx_mark_price_history.py \
             research/inspect_okx_demo_readonly_api.py
 
       - name: Run funding coverage contract tests
