@@ -39,7 +39,7 @@
       "32": 1
     }
   },
-  "status": "DESCRIPTIVE_RUN_COMPLETE_PENDING_INDEPENDENT_CLOSEOUT",
+  "status": "ACCEPTED_DESCRIPTIVE_MODULE_A",
   "assets": [
     "BTC",
     "ETH",
@@ -105,5 +105,28 @@
     "Minute OHLC cannot establish intrabar ordering or executable fills.",
     "Incomplete horizons are censored; no gap bridging or synthetic candles.",
     "The 10% retest band and 20% separation line are inherited frozen definitions, not optimized thresholds."
-  ]
+  ],
+  "closeout_report": "reports/phase3_rejection_lifecycle_v1_1/PHASE3_REJECTION_LIFECYCLE_CLOSEOUT_V1_1.md",
+  "independent_audit": {
+    "event_rows": 1992,
+    "unique_event_ids": 1992,
+    "episode_rows": 3028,
+    "unique_episode_ids": 3028,
+    "horizon_rows": 7968,
+    "grouped_summary_rows": 200,
+    "overlap_clusters": 380,
+    "largest_overlap_cluster_size": 32,
+    "event_episode_join_mismatches": 0,
+    "orphan_episodes": 0,
+    "duplicate_episode_ids": 0,
+    "independent_cluster_id_mismatches": 0,
+    "episode_cluster_mismatches": 0,
+    "horizon_cluster_mismatches": 0,
+    "events_missing_horizon_rows": 0
+  },
+  "workflow_run_id": 45627723414,
+  "workflow_run_url": "https://github.com/islamomanpk-boop/okxtester/actions/runs/45627723414",
+  "workflow_artifact_id": 15028138933,
+  "workflow_artifact_sha256": "e8d12a4d2de9ebe3ffb7c2375fa8a4ac1e30364a59882c1a3a4424ff17a3d116",
+  "output_archive_commit": "2987ca84a4277170beea9ae36ef88133c886d6bb"
 }
