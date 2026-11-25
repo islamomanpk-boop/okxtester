@@ -505,6 +505,7 @@ def analyze_event(event, minute: pd.DataFrame, bars15: pd.DataFrame):
         "post_retest_continuation_minutes": outside_retest.get("post_retest_continuation_minutes", "") if outside_retest else "",
         "post_retest_adverse_width_pct": outside_retest.get("post_retest_adverse_width_pct", "") if outside_retest else "",
         "inside_retest_status": inside_retest["status"] if inside_retest else "NO_15M_FAILURE_CONFIRMATION",
+        "inside_retest_initially_in_band_at_failure_confirmation": inside_retest.get("initially_in_band", "") if inside_retest else "",
         "inside_retest_bar_open_ts_ms": inside_retest.get("bar_open_ts_ms", "") if inside_retest else "",
         "inside_retest_depth_pct_of_boundary": inside_retest.get("depth_pct_of_boundary", "") if inside_retest else "",
         "inside_retest_boundary_crossed": inside_retest.get("boundary_crossed", "") if inside_retest else "",
