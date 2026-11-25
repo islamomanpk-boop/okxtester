@@ -193,3 +193,19 @@ This is the current status snapshot and supersedes earlier provisional Gate 0 an
 - Evidence: 1,992 accepted event rows (1,154 broad; 838 nested strict), 3,028 retest episodes, 7,968 horizon rows, 380 overlap clusters, zero source 1M gaps, and 12 passing synthetic tests. Workflow run 45627723414 succeeded; output archive commit 2987ca84a4277170beea9ae36ef88133c886d6bb.
 - Breakout failure/reclaim lifecycle Module B: **OPEN**. This is the next Gate 1 task under the same frozen lifecycle protocol.
 - Gate 2 remains closed until Module B is accepted or formally rejected and the overall Gate 1 closeout is issued.
+
+
+## Superseding status snapshot — 2026-11-25 (latest)
+
+This section supersedes the earlier provisional Gate 1 PARTIAL / OPEN wording above.
+
+### Gate 0 — CONDITIONAL HOLD; not passed
+
+The corrected read-only VPS inventory workflow [45647247070](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45647247070) completed successfully and found no candidate event data, signal timestamps, funding history, fee history, source-provenance records or execution engine in the inspected VPS/project/repository roots. The inspected SQLite database passed `PRAGMA quick_check` and contained one candles table with 2,890,411 rows; this is scoped inventory evidence, not proof of global absence. The five processed funding files previously audited in Termux remain separate evidence and do not prove VPS runtime availability. G0-03 real-input integration/settlement-mark policy, G0-04/G0-05 causal event availability and three-family candidate generation, fee/instrument verification, and real-input execution-engine readiness remain open. No Gate 2+ work is authorized.
+
+### Gate 1 — COMPLETE; descriptive lifecycle only
+
+- Module A rejection lifecycle: ACCEPTED under `reports/phase3_rejection_lifecycle_v1_1/PHASE3_REJECTION_LIFECYCLE_CLOSEOUT_V1_1.md`.
+- Module B breakout/failure lifecycle: ACCEPTED under `reports/phase3_breakout_lifecycle_v1_1/PHASE3_BREAKOUT_LIFECYCLE_CLOSEOUT_V1_1.md`. Same-revision deterministic output is confirmed by workflows 45644799449 and 45645349572; all 23 synthetic tests passed in both. Five outside-retest fields remain explicitly descriptive-only because they are absent from the frozen forward archive.
+
+Gate 1 completion does not bypass Gate 0. Gate 2 execution-resolution comparison remains closed until Gate 0 is formally passed. Gates 3–7 remain closed/not authorized in order. Phase 1 remains paused; no strategy PnL backtest or live-trading conclusion is authorized.
