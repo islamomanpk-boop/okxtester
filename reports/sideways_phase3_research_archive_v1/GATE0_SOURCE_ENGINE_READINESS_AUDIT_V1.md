@@ -139,7 +139,7 @@ Before strategy results are trusted, test contract sizing/lot rounding, tick rou
 | G0-07 | Portfolio path has cost-adjusted sizing, but standalone engine does not; gap loss and contract rounding remain unbounded/unverified | High | Add parity/acceptance tests, quantify gap risk, and apply contract constraints before accepting either path |
 | G0-08 | Exact fee tier, contract multiplier/lot size, tick size and minimum quantity not documented | High | Verified instrument/fee specification and frozen test assumptions |
 | G0-09 | Funding mark-price fallback is a close proxy | High | Exact mark-price source or explicitly approved conservative proxy/sensitivity |
-| G0-10 | Documentation says raw market data local, but 1M CSVs are tracked in Git | Medium | Reconcile storage/provenance/retention documentation |
+| G0-10 | CLOSED — canonical 1M files are tracked in Git and documented | Medium | Canonical paths, hashes, sizes, retention, and volume semantics are recorded in `docs/execution_data_audit_v1.md`; overlap reconciliation is in research register Section 12.24. |
 
 ## 6. Readiness decision
 
@@ -332,6 +332,15 @@ Current source review confirms:
 | G0-07 | **PARTIALLY CLOSED / OPEN** | Portfolio sizing includes estimated entry and stop-exit slippage plus entry/exit taker fees. Standalone single-trade sizing does not; contract lot/tick rounding and gap-through-stop risk remain unverified. |
 | G0-08 | **OPEN / HIGH** | Verify exact instrument multiplier, lot size, tick size, minimum order and applicable historical fee tier; current fees are scenario assumptions |
 | G0-09 | **OPEN / HIGH** | Historical mark-price candle probe exists, but exact settlement valuation is not established. Current candle-close mode is a proxy and must be disclosed/sensitivity-tested. |
-| G0-10 | **OPEN / MEDIUM** | Reconcile documentation that says market candles are local with the fact that five 1M CSVs are tracked in the canonical Git tree. |
+| G0-10 | **CLOSED** | Canonical Git paths, hashes, sizes, retention, and volume semantics are documented; overlapping OHLCV values are reconciled with the VPS snapshot. |
 
 **Revised Gate 0 decision remains CONDITIONAL HOLD.** The former missing-funding-input vulnerability has been materially addressed in code and focused tests; it is no longer accurate to describe the current public engine signature as silently defaulting to an empty funding list. However, G0-03 is not fully accepted until the real-input integration and mark-policy evidence are complete. G0-04 and G0-05 remain critical, so Phase 3 strategy PnL backtests remain **NOT AUTHORIZED**.
+
+
+### Follow-up — canonical Git / VPS data reconciliation (2026-11-25)
+
+G0-10 is now CLOSED. The five canonical Git 1M files, hashes, sizes, and retention policy are documented. A pinned, read-only comparison against the audited VPS snapshot found exact OHLC equality on every matched timestamp and exact equality between canonical `vol` and VPS `volCcy` across all five assets. OKX defines derivative `vol` as contracts, `volCcy` as base-currency quantity, and `volCcyQuote` as quote-currency quantity. The canonical generic `vol` column is therefore base-currency volume, and the execution-data audit now records this explicitly.
+
+The canonical and VPS files are different snapshots with different schemas and coverage windows; the VPS snapshot is wider and later. One historical SOL timestamp (2026-08-28 08:30 UTC) is included in canonical Git but excluded from the confirmed-only VPS export because OKX currently returns it with `confirm=0`; the row exists in VPS SQLite and its OHLCV matches. Preserve this exception and both snapshots separately. See [canonical/VPS OHLCV reconciliation](../../docs/research_checkpoints/2026-11-25_phase3_vps_canonical_ohlcv_reconciliation_v1.md).
+
+This closes the documentation and overlap-value reconciliation issue only. Original Termux input byte identity, full acquisition lineage, mark-price fidelity, causal Phase 3 candidate rules, and engine acceptance remain open. Gate 0 remains CONDITIONAL HOLD.
