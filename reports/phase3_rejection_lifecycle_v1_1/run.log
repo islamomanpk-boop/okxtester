@@ -1,0 +1,7 @@
+Phase 3 Rejection Lifecycle V1
+eligible_events=1992
+episodes=3028
+horizon_rows=7968
+overlap_clusters={'total': 380, 'by_asset': {'BTC': 76, 'ETH': 79, 'SOL': 78, 'DOGE': 71, 'AVAX': 76}, 'largest_cluster_size': 32, 'size_distribution': {'1': 53, '2': 90, '3': 21, '4': 70, '5': 9, '6': 34, '7': 8, '8': 29, '9': 4, '10': 21, '11': 6, '12': 11, '13': 2, '14': 3, '16': 3, '17': 1, '18': 7, '19': 1, '20': 3, '21': 1, '22': 2, '32': 1}}
+market_gaps={'BTC': 0, 'ETH': 0, 'SOL': 0, 'DOGE': 0, 'AVAX': 0}
+No strategy simulation or PnL was performed.

@@ -1,0 +1,109 @@
+{
+  "study": "Phase 3 Rejection Lifecycle V1",
+  "implementation_sha256": "6c0e4445459aa95d882486c9d704300d3c7dba769dfd7eadcc7bff5c8cc22016",
+  "protocol": "docs/research_checkpoints/2026-11-25_phase3_boundary_lifecycle_closure_protocol_v1.md",
+  "protocol_amendment": "docs/research_checkpoints/2026-11-25_phase3_rejection_lifecycle_v1_1_overlap_cluster_amendment.md",
+  "overlap_cluster_method": "Per-asset interval-graph connected components across all definitions and directions; half-open observed windows; strict start < running end means overlap.",
+  "overlap_clusters": {
+    "total": 380,
+    "by_asset": {
+      "BTC": 76,
+      "ETH": 79,
+      "SOL": 78,
+      "DOGE": 71,
+      "AVAX": 76
+    },
+    "largest_cluster_size": 32,
+    "size_distribution": {
+      "1": 53,
+      "2": 90,
+      "3": 21,
+      "4": 70,
+      "5": 9,
+      "6": 34,
+      "7": 8,
+      "8": 29,
+      "9": 4,
+      "10": 21,
+      "11": 6,
+      "12": 11,
+      "13": 2,
+      "14": 3,
+      "16": 3,
+      "17": 1,
+      "18": 7,
+      "19": 1,
+      "20": 3,
+      "21": 1,
+      "22": 2,
+      "32": 1
+    }
+  },
+  "status": "DESCRIPTIVE_RUN_COMPLETE_PENDING_INDEPENDENT_CLOSEOUT",
+  "assets": [
+    "BTC",
+    "ETH",
+    "SOL",
+    "DOGE",
+    "AVAX"
+  ],
+  "eligible_events": 1992,
+  "cohort_counts": {
+    "broad": 1154,
+    "strict": 838
+  },
+  "event_level_rows": 1992,
+  "episode_rows": 3028,
+  "horizon_rows": 7968,
+  "horizons_minutes": {
+    "15m": 15,
+    "1h": 60,
+    "4h": 240,
+    "24h": 1440
+  },
+  "confirmation_delay_ms": 900000,
+  "touch_band_fraction": 0.1,
+  "inward_separation_fraction": 0.2,
+  "source_git_blob_ids": {
+    "reports/sideways_boundary_events_historical_v1/boundary_tests_historical_v1.csv": "2af6f85cd60194019f903a17f16216841ae61f8c",
+    "reports/sideways_phase3_research_archive_v1/episode_retest_anatomy_v1/event_anatomy_v1.csv": "c58de65ec1936607790c2ee40b828897e6f726dc",
+    "reports/sideways_detector_original_v1/BTC_features_original_v1.csv": "e422073b993cf5d9d11050216509165277339710",
+    "reports/sideways_detector_original_v1/ETH_features_original_v1.csv": "c38641d3846931afd6e44a7f39318251fe3c5653",
+    "reports/sideways_detector_original_v1/SOL_features_original_v1.csv": "5ba90a99a33924f3de6bcbe9cd1d76aa0a9dd207",
+    "reports/sideways_detector_original_v1/DOGE_features_original_v1.csv": "5fb8cb621628e069b1e2500f8047eb908b031909",
+    "reports/sideways_detector_original_v1/AVAX_features_original_v1.csv": "06b6f7ee947ef5e62b8cf2b9cc64fb7caaa523e5",
+    "data/market_1m/BTC_USDT_USDT_1m.csv": "639f7b8a6d54747dd3eb3370dc133d53f6382bfd",
+    "data/market_1m/ETH_USDT_USDT_1m.csv": "3017d870fe1cb764e1acb8fdec04138592749d69",
+    "data/market_1m/SOL_USDT_USDT_1m.csv": "a850c2dc4a2c14b34b59737ccfbb2e4c59d97bf3",
+    "data/market_1m/DOGE_USDT_USDT_1m.csv": "2162df0f277bef6c04bd191b459a35d735c68f2d",
+    "data/market_1m/AVAX_USDT_USDT_1m.csv": "6e0cb0c55aa2aafb4118d62522826bcf1a2aeb62"
+  },
+  "market_source_rows": {
+    "BTC": 569125,
+    "ETH": 569125,
+    "SOL": 569126,
+    "DOGE": 569126,
+    "AVAX": 569127
+  },
+  "market_source_gap_counts": {
+    "BTC": 0,
+    "ETH": 0,
+    "SOL": 0,
+    "DOGE": 0,
+    "AVAX": 0
+  },
+  "output_sha256": {
+    "rejection_lifecycle_episodes_v1.csv": "27c39aed94bbd9354603bce24ef6095d3f02eb5da20c48b514d453571db6d9af",
+    "rejection_lifecycle_events_v1.csv": "56d48f52a6b2eeaa62f0e8696c62802a2a3a0839d6e6bd4038f5dfdc8de60f65",
+    "rejection_lifecycle_group_summary_v1.csv": "060b325ea893e918b0a4733a69d45a0885bbd0d4fed88d366051d184d8fa66c6",
+    "rejection_lifecycle_horizons_v1.csv": "038f2e1167d101ff63674f3b9d1a8fee1440ebfe35f811ac8f1c1b0bf53999c0"
+  },
+  "limitations": [
+    "Descriptive event/path study only; no entries, fills, PnL or profitability inference.",
+    "Strict cohort is nested within broad and is reported separately.",
+    "Overlapping event windows are dependent and are not independent samples.",
+    "Minute OHLC cannot establish intrabar ordering or executable fills.",
+    "Incomplete horizons are censored; no gap bridging or synthetic candles.",
+    "The 10% retest band and 20% separation line are inherited frozen definitions, not optimized thresholds."
+  ]
+}
