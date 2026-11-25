@@ -1,6 +1,6 @@
 # Phase 1 — Uptrend / Bullish Research Kickoff V1
 
-**Status:** Source preflight initiated; no trend labels or thresholds frozen yet.  
+**Status:** Five-asset source preflight passed and permanently archived; no trend labels or thresholds frozen yet.  
 **Sequence:** Follows the Phase 3 completion decision dated 2026-11-25.
 
 ## Objective
@@ -30,3 +30,9 @@ No numerical trend thresholds, moving-average lengths, or event labels are decla
 ## Phase order
 
 After Phase 1: Phase 2 Downtrend/Bearish, then Phase 4 Choppy/High Volatility, then Phase 5 Transition/Expansion.
+
+## Preflight result
+
+The independent Phase 1 V1 preflight passed on GitHub Actions run [45529585905](https://github.com/islamomanpk-boop/okxtester/actions/runs/45529585905). Five source files were revalidated: BTC 569,125 rows; ETH 569,125; SOL 569,126; DOGE 569,126; AVAX 569,127. All had zero duplicate timestamps, zero irregular/missing 1-minute intervals, and valid OHLCV. The common intersection is 569,125 timestamps; the union is 569,127. Source SHA-256 hashes are permanently recorded in `data_preflight_v1/run_metadata_v1.json` and `phase1_source_input_audit_v1.csv`.
+
+Archive: `reports/phase1_uptrend_research_v1/data_preflight_v1/`
