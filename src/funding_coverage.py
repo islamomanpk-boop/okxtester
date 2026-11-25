@@ -3,7 +3,6 @@
 The contract separates source coverage, the versioned settlement schedule,
 the events loaded for a backtest window, and the mark-price provenance.
 """
-import hashlib
 import math
 
 
