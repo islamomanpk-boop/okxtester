@@ -192,8 +192,13 @@ Result: **PASS — 75 tests on the exact triggering commit**, including compilat
 G0-03 is still **OPEN**. The code-level contract and local-file loader are implemented, but do not close the gate until:
 
 1. The exact-commit workflow run above passes — **complete**.
-2. Run `PYTHONPATH=src python src/verify_local_funding_manifest.py` from the repository root on the user's Termux environment. It checks the real five-asset processed CSVs against the archived manifest without running a backtest. Those CSVs are intentionally not in GitHub, so CI's synthetic loader tests cannot replace this local-source verification.
+2. **Actual local-source verification — COMPLETE (2026-11-25).** The user ran `PYTHONPATH=src python src/verify_local_funding_manifest.py` from the repository root in Termux. All five local CSVs passed hash, instrument, row-count, endpoint, ordering, rate, and schedule validation against manifest SHA-256 `59c08bb34ac82e00e60066dad7e50d0cc62b4097a3580e186251a6c23de67c7e`. Each asset contained 1,188 settlements; no backtest was run. The CSVs remain local and are intentionally not committed.
 3. The exact-mark versus proxy policy is formally accepted for the research objective. The current implementation explicitly supports proxy mode but does not claim exact settlement marks.
 4. All remaining project-wide funding call sites are re-audited after the API migration.
 
 No strategy PnL backtest is authorized until the Gate 0 decision is formally updated. The five-asset audit and contract remain reusable for later phases while the exact source files and scope remain unchanged.
+
+
+## 13. Local verification confirmation — 2026-11-25
+
+The user's Termux run returned `LOCAL FUNDING MANIFEST VERIFICATION: PASS` for BTC, ETH, SOL, DOGE, and AVAX (1,188 settlements each). All five source hashes matched the committed manifest; coverage was 2025-10-20 00:00 UTC through 2026-11-19 16:00 UTC. The CLI explicitly reported that no backtest was run. This closes the local reproducibility item in section 12. Remaining G0-03 items are formal mark-price policy and a fresh project-wide call-site audit.
