@@ -57,3 +57,7 @@ signal generation. These will be added and tested in later stages.
 ## Risk-sizing limitation clarification — 2026-11-25
 
 The standalone `size_position` function sizes from stop distance and gross-exposure cap only. It does not include entry/exit fees or slippage in the initial quantity calculation. This differs from the integrated portfolio backtester, which calculates a cost-adjusted per-unit risk estimate before allocation. Treat this standalone function as a simpler baseline, not cost-adjusted risk sizing.
+
+## Funding validation status — 2026-11-25
+
+Funding events are currently optional in the single-trade function (default empty iterable). The function calculates funding when events are supplied, but it does not bind them to a verified coverage manifest or distinguish a verified no-settlement interval from missing input. The 1m-close fallback is a proxy, not the exact exchange mark. Funding source completeness and strict-mode fail-closed validation remain open; see the Gate 0 audit for required remediation. Do not interpret zero funding PnL as proof that funding was absent or correctly loaded.
