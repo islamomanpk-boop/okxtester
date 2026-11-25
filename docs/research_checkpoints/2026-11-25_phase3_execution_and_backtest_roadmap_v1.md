@@ -123,3 +123,16 @@ Begin Gate 0: inspect the existing Phase 3 signal/event ledgers, original signal
 ## Completion standard
 
 Phase 3 is not complete as a trading-system research phase until its scope audit's open items are resolved or explicitly rejected, a candidate strategy is specified and fairly tested, and the final evidence/decision is documented under the project research-governance rules.
+
+
+## 8. Scope clarification — all three Phase 3 trade families
+
+Phase 3 is not a breakout-only project. The range-trading programme must evaluate both support/resistance rejection opportunities and moves through those boundaries. The candidate families are:
+
+1. **Support/resistance rejection (range-boundary trades):** long after a causally confirmed rejection at support; short after a causally confirmed rejection at resistance. Support and resistance are evaluated separately as well as directionally pooled; do not assume they behave symmetrically. Candidate exits may include the range interior/opposing boundary, a predeclared R target, or a time/invalidation exit.
+2. **Breakout continuation:** long after a confirmed resistance break or short after a confirmed support break, with continuation and retest-entry variants tested as distinct hypotheses.
+3. **Failed-breakout reversal:** after a confirmed break fails and price re-enters/reclaims the prior range, test the reversal direction (short after failed upside break; long after failed downside break), with exact confirmation and invalidation timestamps frozen.
+
+These are research families, not approved strategies. Gate 0–5 apply across all relevant families, with family-specific signal definitions and order rules. At Gate 6, test each family independently first, report support versus resistance and long versus short breakdowns, and only then consider a combined portfolio if the individual results and exposure interactions justify it. Never pool the families in a way that hides a losing side or regime. The original Gate 0–7 sequence remains the single control sequence; this clarification expands the scope, not the number of gates.
+
+For clarity, the shared control sequence is: **0 readiness audit → 1 descriptive lifecycle → 2 execution-resolution comparison → 3 entry rules → 4 stops/targets/management → 5 engine acceptance → 6 family-by-family strategy backtests → 7 chronological validation**. Phase 1 remains paused until the Phase 3 programme is completed or formally rejected.
