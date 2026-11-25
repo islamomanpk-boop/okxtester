@@ -1,0 +1,77 @@
+{
+  "study": "Phase 1 Uptrend/Bullish source-input preflight V1",
+  "assets": [
+    "BTC",
+    "ETH",
+    "SOL",
+    "DOGE",
+    "AVAX"
+  ],
+  "timeframe": "1 minute",
+  "expected_rows": {
+    "BTC": 569125,
+    "ETH": 569125,
+    "SOL": 569126,
+    "DOGE": 569126,
+    "AVAX": 569127
+  },
+  "union_timestamps": 569127,
+  "timestamps_common_to_all_assets": 569125,
+  "cross_asset_alignment": "PASS_WITH_TRAILING_DIFFERENCES",
+  "aggregation_policy": "Future timeframe bars must be built from complete, timestamp-aligned source candles; never forward-fill or fabricate missing bars.",
+  "phase1_scope": "descriptive uptrend/bullish research only; regime and event definitions must be pre-registered before outcome analysis",
+  "strategy_optimization_started": false,
+  "outcome_comparison_started": false,
+  "source_files": [
+    {
+      "asset": "BTC",
+      "rows": 569125,
+      "first_ts_ms": 1760950200000,
+      "last_ts_ms": 1795097640000,
+      "duplicates": 0,
+      "unexpected_intervals": 0,
+      "ohlcv_valid": true,
+      "sha256": "3afab3d60387c87fc4b96f54911538fea6bbb7682b2e18001537bc4359da6633"
+    },
+    {
+      "asset": "ETH",
+      "rows": 569125,
+      "first_ts_ms": 1760950200000,
+      "last_ts_ms": 1795097640000,
+      "duplicates": 0,
+      "unexpected_intervals": 0,
+      "ohlcv_valid": true,
+      "sha256": "8a2924bcb23bd5963cd1c46b8871475ff7ff4a3c8d8bed6325dbd406ec0552d2"
+    },
+    {
+      "asset": "SOL",
+      "rows": 569126,
+      "first_ts_ms": 1760950200000,
+      "last_ts_ms": 1795097700000,
+      "duplicates": 0,
+      "unexpected_intervals": 0,
+      "ohlcv_valid": true,
+      "sha256": "8ed0a2efade22a11aa50f4511cdab3d32f438759f7acd7819ccbe41ab92ac0b3"
+    },
+    {
+      "asset": "DOGE",
+      "rows": 569126,
+      "first_ts_ms": 1760950200000,
+      "last_ts_ms": 1795097700000,
+      "duplicates": 0,
+      "unexpected_intervals": 0,
+      "ohlcv_valid": true,
+      "sha256": "eabf087b1a782d316fa1560b10fc4ee7adfc0adb426ef3d1158dc18c248c40f4"
+    },
+    {
+      "asset": "AVAX",
+      "rows": 569127,
+      "first_ts_ms": 1760950200000,
+      "last_ts_ms": 1795097760000,
+      "duplicates": 0,
+      "unexpected_intervals": 0,
+      "ohlcv_valid": true,
+      "sha256": "44ac7db951247a374aecba845336517b82b2655489920d62ec70f9b02fccdfd5"
+    }
+  ]
+}
