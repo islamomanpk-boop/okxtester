@@ -117,3 +117,5 @@ def main():
     a=p.parse_args()
     run(a.anatomy,a.sequence,a.feature_dir,a.minute_dir,a.pairs,a.output)
 if __name__=="__main__": main()
+
+# V10.9 execution trigger: workflow and test files are committed on price-action-v1.
