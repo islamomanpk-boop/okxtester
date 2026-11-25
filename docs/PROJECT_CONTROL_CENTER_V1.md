@@ -285,3 +285,8 @@ A targeted public OKX history-candles probe has now confirmed the old SOL 2026-0
 
 
 The explicit VPS five-asset timestamp-set audit is complete: 578,021 common timestamps from 2025-10-20 00:00 UTC through 2026-11-25 09:41 UTC; union 578,141; 120 timestamps outside the intersection. Differences are explained by staggered per-asset end times and the single SOL 2026-08-28 08:30 UTC candle that OKX itself returns with `confirm=0`. The common timeline preserves that one-minute hole; do not impute it. See research register Section 12.23 and the VPS snapshot checkpoint. Next source task is OHLCV-level comparison of the separate VPS snapshot with canonical Git data, without overwriting either dataset.
+
+
+### Canonical Git vs VPS OHLCV reconciliation — 2026-11-25
+
+The five-asset overlap comparison is complete and saved in `docs/research_checkpoints/2026-11-25_phase3_vps_canonical_ohlcv_reconciliation_v1.md` and research register Section 12.24. Every matched timestamp has exact OHLC equality. Canonical Git `vol` equals VPS `volCcy` exactly on all matched timestamps for all five assets; OKX defines `volCcy` as base-currency volume for derivatives and VPS `vol` as contract quantity. The execution-data audit now records this mapping and requires explicit volume units. The only timestamp exception is the known SOL 2026-08-28 08:30 UTC row returned by OKX with `confirm=0`, present in SQLite and canonical Git but excluded from the confirmed-only VPS CSV. The VPS snapshot is a wider, later dataset; preserve both snapshots separately. Gate 0 remains CONDITIONAL HOLD.
