@@ -16,6 +16,8 @@ from research.phase3_breakout_lifecycle_v1_1 import (
     analyze_event,
     FORWARD_ARCHIVE_METRIC_PAIRS,
     FORWARD_ARCHIVE_UNAVAILABLE_FIELDS,
+    add_unique_event_id,
+    validate_strict_subset_broad,
 )
 
 
@@ -24,6 +26,20 @@ def bar(ts, o, h, low, close):
 
 
 class BreakoutLifecycleTests(unittest.TestCase):
+    def test_strict_breakout_population_must_be_nested_in_broad(self):
+        valid = pd.DataFrame({"strict_subset_broad": [True, True, True]})
+        validate_strict_subset_broad(valid)
+        invalid = pd.DataFrame({"strict_subset_broad": [True, False]})
+        with self.assertRaisesRegex(ValueError, "not nested"):
+            validate_strict_subset_broad(invalid)
+
+    def test_duplicate_source_event_identity_is_rejected(self):
+        seen = set()
+        add_unique_event_id("BTC|broad_p40|upper|1000|zone10", seen)
+        with self.assertRaisesRegex(ValueError, "Duplicate primary breakout event ID"):
+            add_unique_event_id("BTC|broad_p40|upper|1000|zone10", seen)
+        self.assertEqual(len(seen), 1)
+
     def test_upper_outside_retest_uses_point_one_percent_of_boundary(self):
         result = find_outside_retest(
             "UPPER", 100.0, 100.2,
