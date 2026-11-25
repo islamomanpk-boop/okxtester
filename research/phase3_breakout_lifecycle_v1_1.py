@@ -560,7 +560,8 @@ def analyze_event(event, minute: pd.DataFrame, bars15: pd.DataFrame):
             "definition": event["definition"], "direction": direction,
             "pre_breakout_group": event["pre_breakout_group"],
             "horizon": horizon_name, "horizon_minutes": minutes,
-            "complete": complete, "observed_bars": len(sample),
+            "complete": complete, "horizon_status": "COMPLETE" if complete else "INCOMPLETE",
+            "observed_bars": len(sample),
             "entry_time_ms": timestamp_ms(signal_time), "entry_open": entry_open,
             "directional_close_return_pct": (1.0 if direction == "UPPER" else -1.0) * (closes[-1] / entry_open - 1.0) * 100.0,
             "mfe_pct": favourable_move / entry_open * 100.0,
@@ -605,6 +606,7 @@ def compare_with_forward_archive(horizon_rows, reference):
         ref_map[key] = row
     output = []
     metric_pairs = (
+        ("entry_time_ms", "entry_time"),
         ("directional_close_return_pct", "directional_close_return_pct"),
         ("mfe_pct", "mfe_pct"), ("mae_pct", "mae_pct"),
         ("mfe_channel_width_pct", "mfe_channel_width_pct"),
@@ -614,8 +616,10 @@ def compare_with_forward_archive(horizon_rows, reference):
         ("time_to_mfe_minutes", "time_to_mfe_minutes"),
         ("time_to_mae_minutes", "time_to_mae_minutes"),
         ("entry_open", "entry_open"), ("entry_open_already_through_boundary", "entry_open_already_through_boundary"),
+        ("horizon_status", "horizon_status"),
         ("favourable_extreme_time_ms", "favourable_extreme_time"),
         ("adverse_extreme_time_ms", "adverse_extreme_time"),
+        ("boundary_failure_time_ms", "boundary_failure_time"),
         ("boundary_failure", "boundary_failure"), ("minutes_to_boundary_failure", "minutes_to_boundary_failure"),
         ("outside_retest", "band_approach"), ("outside_retest_boundary_crossed", "boundary_penetration"),
         ("outside_retest_minutes", "retest_minutes"), ("outside_retest_depth_pct_of_boundary", "penetration_depth_pct"),
@@ -631,6 +635,8 @@ def compare_with_forward_archive(horizon_rows, reference):
             a, b = row.get(ours), ref.get(theirs)
             if a == "" or a is None or pd.isna(a):
                 checks[ours] = bool(pd.isna(b) or b == "")
+            elif ours.endswith("_time_ms") and theirs.endswith("_time"):
+                checks[ours] = bool(pd.notna(b) and timestamp_ms(b) == int(a))
             elif isinstance(a, (bool, np.bool_)):
                 parsed_b = parse_bool(b)
                 checks[ours] = parsed_b is not None and bool(a) == parsed_b
@@ -673,9 +679,9 @@ def build_group_summary(event_rows, horizon_rows):
             "boundary_failure_rate": float(group["boundary_failure"].mean()),
             "outside_retests": int(group["outside_retest"].sum()),
             "outside_retest_rate": float(group["outside_retest"].mean()),
-            "one_minute_return_inside": int(group["first_1m_return_inside_available_ts_ms"].ne("").sum()),
-            "fifteen_minute_failure_confirmations": int(group["first_15m_return_inside_close_ts_ms"].ne("").sum()),
-            "breakout_side_reclaims": int(group["breakout_side_reclaim_close_ts_ms"].ne("").sum()),
+            "one_minute_return_inside": int(group["first_1m_return_inside_available_ts_ms"].apply(lambda x: x is not None and not pd.isna(x) and x != "").sum()),
+            "fifteen_minute_failure_confirmations": int(group["first_15m_return_inside_close_ts_ms"].apply(lambda x: x is not None and not pd.isna(x) and x != "").sum()),
+            "breakout_side_reclaims": int(group["breakout_side_reclaim_close_ts_ms"].apply(lambda x: x is not None and not pd.isna(x) and x != "").sum()),
             "inside_retests": int(group["inside_retest"].sum()),
             "mfe_median_pct": float(group["mfe_pct"].median()),
             "mae_median_pct": float(group["mae_pct"].median()),
