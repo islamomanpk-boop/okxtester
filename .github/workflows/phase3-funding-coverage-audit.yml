@@ -1,0 +1,31 @@
+name: Phase 3 Funding Coverage Audit Tests
+on:
+  push:
+    branches: [price-action-v1]
+    paths:
+      - src/funding_coverage_audit.py
+      - src/test_funding_coverage_audit.py
+      - .github/workflows/phase3-funding-coverage-audit.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: phase3-funding-coverage-audit-tests
+  cancel-in-progress: false
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: price-action-v1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile audit and tests
+        run: |
+          python -m py_compile src/funding_coverage_audit.py src/test_funding_coverage_audit.py
+      - name: Run deterministic funding coverage tests
+        run: |
+          python -m unittest discover -s src -p 'test_funding_coverage_audit.py' -v
