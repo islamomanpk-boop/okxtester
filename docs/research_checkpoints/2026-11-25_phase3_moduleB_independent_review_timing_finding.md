@@ -38,3 +38,25 @@ The state machine now records `SAME_BAR_AMBIGUOUS` for this case on both UPPER a
 - Review event-level output contract, row counts, timing fields, ambiguity handling and summary consistency.
 - Retain the explicit limitation that the five retest fields lack an independent archived historical benchmark.
 - Do not close Module B or Gate 1 until independent review is complete and the project register is reconciled.
+
+
+## 2026-11-25 — Historical rerun and independent report review
+
+The reporting amendment at `939dad6783c37b0638c24ea7cf27e5713b68beff` completed successfully in GitHub Actions run [45639123024](https://github.com/islamomanpk-boop/okxtester/actions/runs/45639123024). The workflow ran all 19 synthetic tests successfully, completed the frozen historical run, passed the archive contract, uploaded the seven-file artifact, and committed the generated reports as `fe176e98a95470659a387d3547d4999e8c14cb48`.
+
+Verified run totals:
+- 1,592 primary events (932 BROAD_P40 and 660 nested STRICT_P25).
+- 1,537 prior-test links; 160 events have zero prior touch tests.
+- 6,368 event/horizon rows; all 6,368 matched the frozen forward archive across 18 archived fields per row.
+- 454 overlap clusters.
+- 569,125 common 1-minute timestamps across the five assets; zero common-timeline gaps.
+- Five lifecycle retest fields remain absent from the frozen forward archive and are not independently benchmarked.
+
+Independent output review:
+- Event CSV contains 1,592 rows; group-summary CSV contains 244 rows (61 group combinations for each of four horizons).
+- Event-level 12H totals independently agree with the group-summary 12H totals: 107 outside-retest same-bar-ordering ambiguities, 551 inside-retest same-bar-ordering ambiguities, and 630 inside retests confirmed after separation.
+- The group summary now has separate outside- and inside-retest ambiguity columns. Counts are horizon-scoped rather than copied unchanged across horizons; for example, the 15M/1H/4H outside ambiguity totals are 61/82/99, and the 15M/1H/4H inside ambiguity totals are 0/248/455.
+- The code keeps same-bar ambiguity distinct from a confirmed retest. The inside-retest ambiguous state does not receive a hold status; the confirmed-after-separation state remains separate.
+- The strict-later 15M close rule and both-direction same-bar ambiguity regression tests are present and passed in the 19-test run.
+
+This confirms the reporting amendment and the stated count propagation. It does **not** constitute final Module B acceptance. Remaining independent closeout checks include horizon-level lifecycle timestamp/censor propagation, a full event-to-horizon consistency review, and reconciliation of this evidence into the project research register/control center. Keep Module B and Gate 1 open until those checks and the formal closeout are complete. No strategy simulation, orders, fills, fees, funding, PnL, or profitability inference was performed.
