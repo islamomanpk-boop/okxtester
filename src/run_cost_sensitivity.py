@@ -46,7 +46,7 @@ def write_csv(path, rows, fields):
         writer.writerows(rows)
 
 
-def run_scenario(scenario, bars, funding, candidates, experiment):
+def run_scenario(scenario, bars, funding, candidates, experiment, funding_manifest_sha256):
     scenario_candidates = []
     for candidate in candidates:
         item = dict(candidate)
@@ -89,6 +89,8 @@ def run_scenario(scenario, bars, funding, candidates, experiment):
         "gross_pnl": result["total_gross_pnl"],
         "fees": result["total_fees"],
         "funding_pnl": result["total_funding_pnl"],
+        "funding_mark_price_mode": "candle_close_proxy",
+        "funding_manifest_sha256": funding_manifest_sha256,
     }
 
     output_dir = Path.home() / "okxtester/reports/cost_sensitivity"
@@ -107,7 +109,9 @@ def run_scenario(scenario, bars, funding, candidates, experiment):
     trade_fields = ["scenario_id"] + (
         list(result["trades"][0]) if result["trades"] else [
             "asset", "side", "entry_time", "exit_time", "gross_pnl",
-            "funding_pnl", "total_fees", "net_pnl", "exit_reason",
+            "funding_pnl", "funding_mark_price_mode", "funding_source_sha256",
+            "funding_instrument_name", "funding_schedule_id",
+            "funding_settlements_applied", "total_fees", "net_pnl", "exit_reason",
         ]
     )
     write_csv(
@@ -136,7 +140,9 @@ def run_scenario(scenario, bars, funding, candidates, experiment):
         "taker_fee_rate_per_side": scenario["taker_fee_rate"],
         "slippage_bps_per_side": scenario["slippage_bps"],
         "funding_data": "Historical asset-specific realized funding rates",
-        "funding_treatment": "Applied at funding timestamps; mark price when supplied, otherwise candle close proxy",
+        "funding_treatment": "Coverage-validated realized rates; explicit candle-close proxy marks (exact OKX settlement marks not verified)",
+        "funding_mark_price_mode": "candle_close_proxy",
+        "funding_manifest_sha256": funding_manifest_sha256,
         "equity_curve_storage": "summary-only",
         "risk_fraction": 0.005,
         "max_gross_leverage": 1.0,
@@ -162,7 +168,7 @@ def run_scenario(scenario, bars, funding, candidates, experiment):
 
 def main():
     print("Loading and aligning five-asset inputs...")
-    bars, funding, candidates, start_ts, end_ts = load_inputs()
+    bars, funding, candidates, start_ts, end_ts, funding_manifest_sha256 = load_inputs()
 
     experiment = build_baseline_experiments()[0]
 
@@ -174,7 +180,8 @@ def main():
     for scenario in COST_SCENARIOS:
         summaries.append(
             run_scenario(
-                scenario, bars, funding, candidates, experiment
+                scenario, bars, funding, candidates, experiment,
+                funding_manifest_sha256,
             )
         )
 
