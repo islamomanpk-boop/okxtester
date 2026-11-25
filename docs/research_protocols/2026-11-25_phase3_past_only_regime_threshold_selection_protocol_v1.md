@@ -120,3 +120,12 @@ The detector feature ledgers and the recovered breakout pipeline are distinct so
 - Rejection and breakout calibration results remain separate.
 - Failed-breakout reversal inherits the source breakout's regime context and therefore cannot be assigned a separate threshold until the breakout source context is causally verified.
 - If the source-specific reconstruction or exact event-to-snapshot join fails, stop that family and record the blocker. Do not generate candidates.
+
+
+### Expected timestamp relationship to the detector feature ledger
+
+The recovered breakout implementation labels 4H bars on their right edge and applies a one-row shift to the rolling 12-candle channel. Consequently, its context row labelled at time **T** uses the prior 12 completed 4H candles and corresponds to the detector feature-ledger row whose `available_at_ts_ms` is **T − 4 hours**. The expected cross-pipeline mapping is therefore:
+
+`breakout_context_snapshot_ts_ms = detector_feature_available_at_ts_ms + 14,400,000`
+
+This is a source-code-derived expected offset, not permission to force a join. The follow-up must verify the exact asset, upper/lower values, width formula and timestamp relation against reconstructed 1M-derived bars. Any mismatch beyond documented numeric tolerance, missing snapshot, or source-hash discrepancy is a stop condition. Do not mistake this deliberate one-4H context lag for a data error, and do not remove it to make the pipelines appear aligned.
