@@ -119,3 +119,16 @@ A line-by-line comparison against the frozen parent protocol found two acceptanc
 The production guards are now exposed as small validation helpers and called by the same historical workflow path. Two synthetic tests exercise both positive and negative cases. This is a test-coverage improvement, not a change to the frozen source population or event definitions.
 
 The update is committed in source/test commits `ce4027b0336bf770ec121eefea90045ce186f510` and `13c12c785c2473a84bf7459f12900fdc90a2b78a`. Workflow run [45644677445](https://github.com/islamomanpk-boop/okxtester/actions/runs/45644677445) is running against the updated source. The suite is expected to contain 23 tests, but no result is claimed until the workflow completes. Module B remains open.
+
+
+## 2026-11-25 — Full protocol regression run passed
+
+Workflow [45644799449](https://github.com/islamomanpk-boop/okxtester/actions/runs/45644799449) completed successfully on branch revision `d791361a7fea4aa448907de3dfb5d3559c194d60`. Every workflow step passed, including synthetic tests, frozen historical generation, archived-result validation, artifact upload and output-commit step.
+
+The checked-in test file at that exact revision contains **23 test methods**. The workflow's synthetic test step completed successfully, so the 23-test suite passed. The two new cases explicitly verify (1) strict-cohort nesting within broad and (2) duplicate immutable source-event identity rejection.
+
+The result metadata at the prior corrected run revision `52e89472bf5ea39044376f9f5535e8a07eaa3dcc` and this run revision `d791361a7fea4aa448907de3dfb5d3559c194d60` report identical SHA-256 hashes for all five principal CSV outputs. Event and horizon totals, plus the three ambiguity totals, are also identical. This is strong cross-revision output consistency evidence. It is not yet a strict same-revision rerun because the compared commits differ in source/test changes; a repeat run with unchanged analysis source/schema/input hashes is still required for the frozen deterministic gate.
+
+Latest artifact ID: `15036019010`; digest `sha256:3005665eab7908b4d4f8bed806be34eca3e89ceacbaa466748dc49820e8b3184`. The artifact ZIP digest is an archive-level property; the deterministic comparison above uses the five output-file SHA-256 values recorded in run metadata.
+
+**Disposition:** the newly identified test-coverage gaps are closed at the synthetic-test level. Module B is still not formally accepted: same-revision deterministic rerun, full protocol/source audit, lifecycle fields absent from the frozen forward archive, and Gate 0 execution/data readiness remain outstanding.
