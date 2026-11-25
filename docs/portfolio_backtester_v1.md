@@ -86,3 +86,7 @@ an approximation, not the exact exchange settlement mark.
 ## Risk-sizing clarification — 2026-11-25
 
 The portfolio implementation already passes a cost-adjusted `risk_per_unit` to the allocator. This documentation now reflects that code path. The standalone single-trade engine remains less complete; do not assume the two engines have identical sizing semantics.
+
+## Funding validation status — 2026-11-25
+
+The portfolio engine requires a mapping key for each asset and validates supplied events, but an empty list for an asset is accepted and produces no funding cashflows. There is no coverage metadata contract connecting supplied events to audited source files or the requested backtest date range. The 1m-close fallback is approximate, not an exchange settlement mark. Funding source completeness and strict-mode fail-closed validation remain open; see the Gate 0 audit for required remediation. A zero funding PnL is not evidence that funding data was complete.
