@@ -121,3 +121,5 @@ def main():
 if __name__=="__main__": main()
 
 # V10.9 execution trigger: workflow and test files are committed on price-action-v1.
+
+# Re-run after correcting CLI path normalization for GitHub Actions.
