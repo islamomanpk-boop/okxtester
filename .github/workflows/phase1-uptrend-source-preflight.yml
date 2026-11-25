@@ -1,0 +1,58 @@
+name: Phase 1 Uptrend Source Input Preflight
+on:
+  workflow_dispatch:
+  push:
+    branches: [price-action-v1]
+    paths:
+      - .github/workflows/phase1-uptrend-source-preflight.yml
+      - research/phase1_uptrend_data_preflight_v1.py
+      - tests/test_phase1_uptrend_data_preflight_v1.py
+permissions:
+  contents: write
+concurrency:
+  group: phase1-uptrend-source-preflight
+  cancel-in-progress: false
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: price-action-v1}
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip pandas numpy
+      - name: Compile and test
+        run: |
+          python -m py_compile research/phase1_uptrend_data_preflight_v1.py tests/test_phase1_uptrend_data_preflight_v1.py
+          python -m unittest discover -s tests -p 'test_phase1_uptrend_data_preflight_v1.py' -v
+      - name: Run five-asset Phase 1 input audit
+        run: |
+          python research/phase1_uptrend_data_preflight_v1.py \
+            --data-dir data/market_1m \
+            --output "$RUNNER_TEMP/phase1_uptrend_preflight"
+      - name: Permanently archive
+        run: |
+          archive=reports/phase1_uptrend_research_v1/data_preflight_v1
+          mkdir -p "$archive"
+          cp -R "$RUNNER_TEMP/phase1_uptrend_preflight/." "$archive/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$archive"
+          if ! git diff --cached --quiet; then
+            git commit -m "Archive Phase 1 uptrend source input preflight V1"
+            for attempt in 1 2 3; do
+              git pull --rebase origin price-action-v1
+              if git push origin HEAD:price-action-v1; then exit 0; fi
+              sleep 2
+            done
+            exit 1
+          fi
+      - name: Upload secondary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase1-uptrend-source-preflight-v1
+          path: ${{ runner.temp }}/phase1_uptrend_preflight/
+          if-no-files-found: error
+          retention-days: 14
