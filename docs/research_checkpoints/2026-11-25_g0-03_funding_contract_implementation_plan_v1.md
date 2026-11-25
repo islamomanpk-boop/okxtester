@@ -202,3 +202,25 @@ No strategy PnL backtest is authorized until the Gate 0 decision is formally upd
 ## 13. Local verification confirmation — 2026-11-25
 
 The user's Termux run returned `LOCAL FUNDING MANIFEST VERIFICATION: PASS` for BTC, ETH, SOL, DOGE, and AVAX (1,188 settlements each). All five source hashes matched the committed manifest; coverage was 2025-10-20 00:00 UTC through 2026-11-19 16:00 UTC. The CLI explicitly reported that no backtest was run. This closes the local reproducibility item in section 12. Remaining G0-03 items are formal mark-price policy and a fresh project-wide call-site audit.
+
+
+## 14. Fresh post-migration call-site audit — 2026-11-25
+
+The user ran the requested repository-wide Python source inventory from the updated Termux checkout after pulling `price-action-v1`:
+
+```bash
+grep -RIn --include='*.py' -E 'simulate_trade\(|run_portfolio_backtest\(|funding_events|funding_by_asset|funding_contract' src research tests
+```
+
+Review of the returned output:
+
+- Production `src/execution_engine.py::simulate_trade` declares and validates the explicit `funding_contract` input.
+- Production `src/portfolio_backtester.py::run_portfolio_backtest` receives `funding_by_asset` and routes it through the shared `validate_funding_contract` validator.
+- Production experiment and cost-sensitivity runners pass the contract mapping into the portfolio engine.
+- Remaining `funding_events` references are in `src/test_execution_engine.py` test adapter/test cases; the adapter converts the test events into a contract before calling the production function.
+- Remaining test-side `funding_by_asset` list fixtures are wrapped into coverage contracts before calling the production portfolio function.
+- No stale production call using the removed optional funding-event interface is visible in the supplied inventory.
+
+**Audit result:** PASS for the source-level call-site inventory supplied by the user. This is a grep-and-review audit, not a proof of every possible dynamic/runtime path. The existing focused 75-test CI result remains the separate behavioral test evidence.
+
+This closes the fresh call-site re-audit item in G0-03. The remaining G0-03 decision is the formal funding mark-price policy: the verified dataset currently uses the explicitly labelled `candle_close_proxy`, not exact OKX settlement marks. G0-03 and Gate 0 therefore remain OPEN / CONDITIONAL HOLD until that policy is explicitly accepted for the intended research use or an adequately validated exact settlement-price source is obtained. No strategy PnL backtest is authorized by this audit.
