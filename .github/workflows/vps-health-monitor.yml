@@ -1,0 +1,59 @@
+name: VPS Health Monitor
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vps-health-monitor
+  cancel-in-progress: false
+
+jobs:
+  health:
+    # Runs only on the VPS after its self-hosted runner is installed.
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 5
+    steps:
+      - name: Collect read-only VPS health report
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/vps-health-report.txt"
+          {
+            echo "VPS HEALTH REPORT"
+            echo "Generated UTC: $(date -u '+%Y-%m-%d %H:%M:%S')"
+            echo
+            echo "== HOST =="
+            hostname
+            uname -a
+            echo
+            echo "== MEMORY =="
+            free -h
+            echo
+            echo "== DISK =="
+            df -h /
+            echo
+            echo "== LOAD =="
+            uptime
+            echo
+            echo "== OKX DOWNLOADER PROCESS =="
+            pgrep -af 'python3 -u .*/okx_market_data_v1/download_okx.py' || true
+            echo
+            echo "== DOWNLOAD LOG (last 40 lines) =="
+            if [ -f "$HOME/okx_market_data_v1/reports/download.log" ]; then
+              tail -n 40 "$HOME/okx_market_data_v1/reports/download.log"
+            else
+              echo "Download log not found at expected researchadmin home path."
+            fi
+            echo
+            echo "== SQLITE FILES =="
+            find "$HOME/okx_market_data_v1/raw" -maxdepth 1 -type f -printf '%f %s bytes\n' 2>/dev/null || true
+          } | tee "$REPORT"
+          {
+            echo "## VPS health"
+            echo '```text'
+            cat "$REPORT"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
