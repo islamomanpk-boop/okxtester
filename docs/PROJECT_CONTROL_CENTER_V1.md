@@ -244,3 +244,7 @@ Continue content-level reconciliation of the Phase 3 archive and Gate 0 dependen
 5. Only after the above, issue an explicit Gate 0/Gate 1 decision and proceed to Gate 2 in order. No Phase 3 strategy PnL backtest is authorized while required gates remain open.
 
 **Project rule:** The assistant owns continuity, organization, and status tracking. The user should not have to remember filenames, completed studies, or governance rules.
+
+
+- Module B's latest protocol regression workflow [45644799449](https://github.com/islamomanpk-boop/okxtester/actions/runs/45644799449) passed on `d791361a7fea4aa448907de3dfb5d3559c194d60`; the 23-method synthetic suite passed and all five principal output CSV hashes matched the preceding corrected run. A strict same-revision rerun is still outstanding.
+- The supporting Gate 0 inventory script was enhanced at `okxtester_private@main` commit `1c64dcb82f6c61b0bd5016595b5942510054f540` to detect evidence keywords inside bounded source/config files and CSV headers without collecting snippets or secrets. The updated VPS audit has not yet run, so it supplies no new readiness evidence.
