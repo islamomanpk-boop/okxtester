@@ -10,7 +10,7 @@ class V1010Tests(unittest.TestCase):
         for cls,vals in ((CLASSES[0],[0.,1.,2.,3.,4.,5.]),(CLASSES[1],[0.,1.,2.,3.,4.,5.])):
             for i,v in enumerate(vals):
                 r={"event_id":f"{cls}-{i}","definition":"broad","sequence_class":cls,"asset":"BTC","direction":"upper"}
-                for c in COVARIATES:r[c]=v
+                for j,c in enumerate(COVARIATES):r[c]=v+(j*0.01)
                 rows.append(r)
         e=pd.DataFrame(rows)
         p=pd.DataFrame([
@@ -19,7 +19,8 @@ class V1010Tests(unittest.TestCase):
         return p,e
     def test_identical_classes_retain_matched_pairs(self):
         p,e=self.fixture();d,s=joint_support_audit(p,e)
-        self.assertEqual(len(d),len(COVARIATES))
+        self.assertEqual(len(d),1)
+        self.assertEqual(int(d.iloc[0].joint_support_dimensions),len(COVARIATES))
         self.assertEqual(int(d.iloc[0].pairs_both_endpoints_in_joint_support),2)
         self.assertEqual(float(s.iloc[0].matched_pair_joint_retention),1.0)
     def test_disjoint_dimension_means_no_joint_support(self):
