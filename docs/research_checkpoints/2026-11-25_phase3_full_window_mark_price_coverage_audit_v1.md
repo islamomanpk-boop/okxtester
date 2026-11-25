@@ -81,3 +81,19 @@ Official API reference: https://app.okx.com/docs-v5/en/ (Public Data → Get mar
 The public mark-price source is now fully coverage-audited for all 5,940 funding timestamps in the frozen historical window. This materially improves the evidence base for G0-03/G0-09 and identifies a preferred proxy candidate. It does **not** establish exact settlement marks, approve a proxy policy, implement the new engine mode, or complete the required real-input funding-engine acceptance checks.
 
 G0-03 and G0-09 remain **OPEN** pending explicit funding-price policy acceptance, engine integration/tests for the selected mode, and independent settlement validation if exact mode is claimed. Gate 0 remains **CONDITIONAL HOLD**. No Phase 3 candidate generation, Gate 2 execution-resolution comparison, strategy PnL backtest, or Phase 1 handoff is authorized by this audit.
+
+
+## 8. Immutable candidate snapshot archived in GitHub
+
+The full 5,940-row event-time mark-candle snapshot is now committed separately as a **candidate proxy input**:
+
+- Directory: `data/funding_mark_price_proxy_candidate_v1/`
+- CSV: `mark_price_at_funding_4h.csv`
+- Rows: 5,940 (1,188 per asset)
+- File size: 396,308 bytes
+- CSV SHA-256: `22e2894a8c467777f9ee90d5824deaf243a8b3d6e44ebff7f7d33b3e88c4cc82`
+- Git blob SHA-1: `7fa9f40cf189193fcd855578f5b7d89600e86e08`
+- Manifest: `data/funding_mark_price_proxy_candidate_v1/manifest.json`
+- Commit: `adaf25d7a27c1e01def1a14a011c99be99186c67`
+
+The main-repository workflow [45661716701](https://github.com/islamomanpk-boop/okxtester/actions/runs/45661716701) verified the CSV hash against the independent VPS-runner reproduction and committed the CSV, manifest, and README to `price-action-v1`. The manifest explicitly records `exact_settlement_mark_verified=false`, `funding_proxy_policy_accepted=false`, and `engine_mode_changed=false`. This is an additive, versioned public-data snapshot; it does not replace or modify the five canonical trade-candle datasets.
