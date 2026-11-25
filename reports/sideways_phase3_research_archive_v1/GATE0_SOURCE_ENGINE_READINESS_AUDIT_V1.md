@@ -274,3 +274,35 @@ The audit's 8-hour cadence and date endpoints are the explicit project audit sco
 Funding cashflow arithmetic exists, but source completeness is not enforced at the engine boundary and exact mark-price settlement is not demonstrated. Keep G0-03 **OPEN**, Gate 0 **CONDITIONAL HOLD**, and Phase 3 strategy PnL backtests **NOT AUTHORIZED** until remediation and independent validation pass. Do not change strategy conclusions based on this infrastructure audit.
 
 The 8-hour cadence and date endpoints remain the explicit scope of the current local source audit, not a universal assumption about every instrument or period.
+
+
+## 12. Funding engine fail-closed review — 2026-11-25
+
+The real-data coverage audit in Section 11 closes the current local-file availability and coverage-evidence items previously recorded as G0-01/G0-02. It does not close the engine integration blocker. A source review of `src/execution_engine.py`, `src/portfolio_backtester.py`, and their unit tests found:
+
+1. **Standalone engine — missing input can become zero funding.** `simulate_trade` declares `funding_events: Iterable = ()`. A caller can omit the argument; the engine then returns `funding_pnl = 0.0` without proving the funding input covers the trade's holding interval.
+2. **Portfolio engine — empty list accepted.** `_validate_funding` requires a mapping and a key for every asset, but accepts `[]` for any asset. It checks event shape, finite rate range, chronological order, and optional positive mark price; it does not verify that supplied events cover the full trade window or distinguish a complete no-settlement interval from missing records.
+3. **Mark-price fallback remains approximate.** Both engines use the close of the 1M candle at the funding timestamp when no explicit `mark_price` is supplied. This is a proxy, not the exchange's exact settlement mark price.
+4. **Existing tests are arithmetic tests, not coverage tests.** They verify positive/negative funding signs and that a settlement before entry is not charged. They do not test omitted input, empty funding over a period that should contain settlements, missing an interior settlement, missing marks under strict mode, or funding events outside declared coverage.
+
+### Required design before implementation
+
+Add explicit per-asset funding coverage metadata to the engine input contract. It must state verified coverage start/end, expected settlement timestamps or a schedule/version, source identity/hash, and mark-price mode. The engine must reject a trade whose complete holding interval is not covered and reject missing expected settlement timestamps. An empty event list is valid only when the declared schedule proves no settlement falls in the interval. Do not assume a universal 8-hour schedule: that is the verified cadence only for the audited historical scope, and schedule changes must be representable.
+
+For the single-trade engine, make funding input/coverage explicit rather than defaulting to an empty iterable. For the portfolio engine, validate coverage for every asset that can be traded, not merely the presence of a dictionary key. In exact-mark mode, missing settlement marks must fail. If proxy mode is retained for experiments, it must be explicitly selected and reported on every result.
+
+### Required deterministic tests
+
+- Omitted funding input fails before simulation.
+- Missing asset coverage metadata fails.
+- Empty event list with a declared interval containing an expected settlement fails.
+- Empty event list with no expected settlement in the interval can pass.
+- Missing one interior expected settlement fails.
+- Duplicate, out-of-order, invalid-rate, and non-finite events fail.
+- A trade beginning before coverage start or ending after coverage end fails.
+- Entry/exit timestamp settlement ordering is explicitly tested and documented.
+- Positive and negative rates have correct long/short cashflow signs and notional basis.
+- Exact-mark mode rejects missing marks; explicit proxy mode labels the proxy in trade/result metadata.
+- Portfolio and single-trade engines agree on identical position/event/mark inputs.
+
+**Current decision:** funding-data coverage (G0-01/G0-02) is verified for the audited Termux files. Engine fail-closed integration (G0-03) remains **OPEN / CRITICAL**. No Phase 3 strategy PnL backtest is authorized until this and the other Gate 0 blockers are resolved.
