@@ -78,3 +78,5 @@ This is deliberately a small coverage/timestamp probe, not a bulk downloader. If
 ### Current gate status
 
 The endpoint contract is now sufficiently specified to test pagination and timestamp alignment. Actual API responses for the five assets have not yet been inspected. Gate 0 / G0-03 remains OPEN; no PnL backtest is authorized by this reconnaissance alone.
+
+Implementation note: the probe scans each local 1-minute trade-candle CSV for only the three requested close values instead of loading all five large candle histories into memory. This keeps the first source check practical on the Termux/mobile environment.
