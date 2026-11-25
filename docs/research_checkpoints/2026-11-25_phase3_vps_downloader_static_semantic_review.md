@@ -82,3 +82,14 @@ Both semantic inspection attempts used Python AST parsing only. The successful r
 ## Next safe research step
 
 Complete the remaining static SQL review with a purpose-built redactor that preserves SQL structure and placeholder positions while removing all values. Specifically establish the `executemany` conflict clause, the export SELECT projection and confirmation predicate, and the exact timestamp serialization expression. Then compare the retained volume fields with the applicable OKX API field definitions. No runtime execution or database mutation is needed for that work.
+
+
+## Follow-up — SQL review and volume units resolved (2026-11-25)
+
+This follow-up supersedes the earlier open items above concerning SQL conflict semantics, CSV export selection, and volume-unit definitions.
+
+The subsequent SQL review established that duplicate `(inst_id, ts)` rows are updated with `ON CONFLICT ... DO UPDATE`, and that CSV export selects `ts, open, high, low, close, vol, vol_ccy, vol_ccy_quote, confirm` with `confirm=1` and `ts>=START_MS`, ordered ascending. See [the downloader SQL/export checkpoint](2026-11-25_phase3_vps_downloader_sql_export_update_semantics_v1.md).
+
+The current OKX V5 documentation defines derivative `vol` as contract count, `volCcy` as base-currency quantity, and `volCcyQuote` as quote-currency quantity. Exact Decimal reconciliation found that canonical Git `vol` equals VPS `volCcy` on every overlapping timestamp across all five instruments. The canonical field is therefore base-currency volume, not contracts. The execution-data audit now records explicit unit names and cross-asset normalization requirements. Full comparison: [canonical/VPS OHLCV reconciliation](2026-11-25_phase3_vps_canonical_ohlcv_reconciliation_v1.md).
+
+Remaining source-lineage limits are unchanged: the original historical Termux inputs lack contemporaneous hashes; the VPS database is mutable; and the historical SOL 2026-08-28 08:30 UTC candle remains `confirm=0` in both current API response and SQLite. Gate 0 remains CONDITIONAL HOLD.
