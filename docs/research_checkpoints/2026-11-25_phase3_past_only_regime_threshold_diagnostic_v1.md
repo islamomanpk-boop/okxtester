@@ -117,3 +117,36 @@ Accordingly:
 - Compare the breakout source's unique 4H context widths to the rejection detector feature ledger and explain any timestamp/value differences before candidate generation.
 
 This amendment narrows the interpretation of the original diagnostic; it does not invalidate the detector-feature calculations or change any accepted historical archive.
+
+
+## 11. Breakout event-to-feature provenance cross-check
+
+The recovered breakout source code labels its complete 4H context rows on the right edge and applies a one-row lag to the 12-candle channel. The resulting breakout event `snapshot` therefore maps to the detector feature row available four hours earlier:
+
+`feature.available_at_ts_ms = breakout.snapshot_ts_ms - 14,400,000`
+
+This expected relationship was tested against every row in the accepted breakout lifecycle event ledger, using the five asset-specific detector feature ledgers.
+
+| Asset | Breakout event rows | Exact feature matches | Boundary mismatches | Width mismatches |
+|---|---:|---:|---:|---:|
+| BTC | 349 | 349 | 0 | 0 |
+| ETH | 266 | 266 | 0 | 0 |
+| SOL | 361 | 361 | 0 | 0 |
+| DOGE | 276 | 276 | 0 | 0 |
+| AVAX | 340 | 340 | 0 | 0 |
+| **Total** | **1,592** | **1,592** | **0** | **0** |
+
+All 1,592 definition-labelled rows matched an exact detector feature row by asset and the documented four-hour timestamp offset. Upper boundary, lower boundary and channel-width percentage matched exactly (zero numeric mismatches). This provides strong cross-pipeline evidence for the frozen breakout boundary geometry in the accepted event ledger.
+
+The 1,592 rows represent 932 unique breakout signal keys: 660 strict-labelled rows are nested duplicates of signals also present in the 932 broad-labelled rows. Therefore the accepted source ledger has 932 unique signals, not 1,592 independent signals.
+
+A preliminary reclassification of only those 932 existing unique signals against the two past-only detector-feature policies produced:
+
+| Policy | Warm-up excluded | Strict eligible among existing signals | Broad eligible among existing signals |
+|---|---:|---:|---:|
+| Rolling-180 | 29 | 625 | 796 |
+| Expanding-prior | 29 | 755 | 876 |
+
+These are **not complete new breakout event counts**. The 932 source signals were originally discovered under retrospective full-sample P25/P40 filters. Signals excluded by that retrospective filter are absent and cannot be recovered by merely relabelling the existing ledger. A complete causal breakout cohort requires rebuilding the full completed-15M signal population from canonical 1M data and applying the past-only threshold at each eligible context snapshot. Do not present the figures above as the full population or as a candidate generator output.
+
+No forward outcomes, fills, fees, funding or PnL were inspected in this reclassification. The results only establish exact boundary-source mapping and show that threshold choice changes eligibility within the already selected historical event subset.
