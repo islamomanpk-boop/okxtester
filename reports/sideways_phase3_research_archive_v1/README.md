@@ -22,3 +22,15 @@ tables before interpreting outcome contrasts.
 
 
 - `pre_event_matched_controls_v5/`: outcome-blind target-caliper sensitivity grid around `signed_close_boundary_distance_width` (0.25, 0.50, 0.75, 1.00 robust-SD units), retaining V4's exact asset/direction strata, 30-day maximum timestamp gap, RMS distance limit 2.0, and overall per-covariate limit 1.5. This study does not load or inspect outcomes. Broad matching retained 21/35/46/56 pairs across the four thresholds; at 0.75 the target-covariate absolute SMD was 0.230 and the maximum absolute SMD across all covariates was 0.230. At 0.25, the target SMD improved to 0.028 but only 21 pairs remained and the maximum other-covariate SMD was 0.320. Strict matching retained 11/20/29/34 pairs; at 0.50 the target SMD was 0.139 and the maximum absolute SMD was 0.300. The strict 0.25 setting retained only 11 pairs and still had a maximum SMD of 0.594. There is no single threshold that clearly optimizes pair retention and balance for both cohorts. These are balance diagnostics only; V5 makes no outcome comparison and does not establish exchangeability or causality. Month is recorded for audit but is not a matching stratum.
+
+
+## V6–V10.11 matched-controls diagnostics and final disposition
+
+The V6 outcome-blind optimal matching cohort and its follow-up audits are retained for reproducibility:
+- `pre_event_matched_controls_v6/`: frozen matched-pair cohort and original balance summaries.
+- `matched_cohort_quality_audit_v7/`, `matched_cohort_common_support_audit_v8/`, `matched_cohort_feasibility_audit_v9/`, and `matched_cohort_covariate_audit_v10/`: cohort quality, common support, maximum feasible matching, and covariate diagnostics.
+- `covariate_correlation_diagnostic_v10_1/`, `covariate_redundancy_balance_audit_v10_2/`, `balance_retention_frontier_v10_3/`, `alternative_matching_sensitivity_v10_4/`, `asset_direction_balance_attribution_v10_5/`, `stable_stratum_balance_synthesis_v10_6/`, `minimum_subgroup_size_sensitivity_v10_7/`, `covariate_imbalance_persistence_v10_8/`, `distributional_overlap_audit_v10_9/`, `joint_common_support_retention_v10_10/`, and `joint_common_support_percentile_sensitivity_v10_11/`.
+
+V10.11 froze the V6 pair IDs and tested central 80%, 90%, 95%, and 98% common-support intervals. The central-90% output reproduces V10.10 exactly. Even central 98% retained at most 16 of 58 broad pairs and 11 of 34 strict pairs; no cohort was accepted for outcome comparison. **The V6 matched-controls branch is closed for this cohort.** No future outcomes were loaded or compared in V10.11.
+
+See [PHASE3_COMPLETION_DECISION_V1.md](PHASE3_COMPLETION_DECISION_V1.md) for the Phase 3 completion decision, research safeguards, and handoff to Phase 1 (Uptrend/Bullish). All historical scripts and rejected diagnostics remain preserved.
