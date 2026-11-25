@@ -294,7 +294,7 @@ class BreakoutLifecycleTests(unittest.TestCase):
 
     def test_first_completed_15m_failure_timestamp_is_bar_close_availability(self):
         signal = pd.Timestamp("2026-01-01T00:15:00Z")
-        rows = [(signal + pd.Timedelta(minutes=15), 99.9)]
+        rows = [(int((signal + pd.Timedelta(minutes=15)).value // 1_000_000), 99.9)]
         failure, reclaim = first_15m_failure_and_reclaim("UPPER", 100.0, rows)
         self.assertIsNone(reclaim)
         self.assertEqual(
