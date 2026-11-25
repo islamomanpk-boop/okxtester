@@ -3,24 +3,51 @@ from decimal import Decimal
 
 from phase3_funding_mark_price_full_coverage_v1 import (
     bps_difference,
+    build_funding_timestamps,
     distribution,
     evenly_spaced,
-    merge_funding_records,
-    month_range,
     percentile,
 )
 
 
 class Phase3FundingMarkPriceAuditTests(unittest.TestCase):
-    def test_month_range_includes_both_endpoints(self):
-        months = month_range("2025-10", "2026-02")
-        self.assertEqual(
-            months,
-            ["2025-10", "2025-11", "2025-12", "2026-01", "2026-02"],
-        )
+    def test_build_funding_timestamps_from_audited_manifest_record(self):
+        record = {
+            "rows": 4,
+            "first_timestamp_ms": 1000,
+            "last_timestamp_ms": 181000,
+            "expected_interval_ms": 60000,
+            "issues": [],
+            "gaps": [],
+            "irregular_intervals": [],
+        }
+        self.assertEqual(build_funding_timestamps(record), [1000, 61000, 121000, 181000])
 
-    def test_month_range_crosses_year_boundary(self):
-        self.assertEqual(month_range("2025-12", "2026-01"), ["2025-12", "2026-01"])
+    def test_build_funding_timestamps_rejects_gap_evidence(self):
+        record = {
+            "rows": 4,
+            "first_timestamp_ms": 1000,
+            "last_timestamp_ms": 181000,
+            "expected_interval_ms": 60000,
+            "issues": [],
+            "gaps": [{"timestamp_ms": 61000}],
+            "irregular_intervals": [],
+        }
+        with self.assertRaises(ValueError):
+            build_funding_timestamps(record)
+
+    def test_build_funding_timestamps_rejects_inconsistent_bounds(self):
+        record = {
+            "rows": 4,
+            "first_timestamp_ms": 1000,
+            "last_timestamp_ms": 181001,
+            "expected_interval_ms": 60000,
+            "issues": [],
+            "gaps": [],
+            "irregular_intervals": [],
+        }
+        with self.assertRaises(ValueError):
+            build_funding_timestamps(record)
 
     def test_bps_difference_uses_comparison_as_denominator(self):
         self.assertAlmostEqual(
@@ -47,21 +74,6 @@ class Phase3FundingMarkPriceAuditTests(unittest.TestCase):
 
     def test_evenly_spaced_caps_to_available_values(self):
         self.assertEqual(evenly_spaced([1, 2], 12), [1, 2])
-
-    def test_archive_api_merge_prefers_api_after_tolerance_check(self):
-        archive = {1: Decimal("0.0001"), 2: Decimal("0.0002")}
-        api = {2: Decimal("0.0002000000005"), 3: Decimal("-0.0001")}
-        merged, overlap = merge_funding_records(archive, api)
-        self.assertEqual(overlap, 1)
-        self.assertEqual(merged[1], Decimal("0.0001"))
-        self.assertEqual(merged[2], api[2])
-        self.assertEqual(merged[3], Decimal("-0.0001"))
-
-    def test_archive_api_merge_rejects_rate_conflict(self):
-        archive = {1: Decimal("0.0001")}
-        api = {1: Decimal("0.0002")}
-        with self.assertRaises(ValueError):
-            merge_funding_records(archive, api)
 
 
 if __name__ == "__main__":
