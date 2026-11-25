@@ -7,13 +7,14 @@ import pandas as pd
 ASSETS=("BTC","ETH","SOL","DOGE","AVAX")
 EXPECTED_ROWS={"BTC":569125,"ETH":569125,"SOL":569126,"DOGE":569126,"AVAX":569127}
 REQUIRED=("ts","open","high","low","close","vol")
-def audit_frame(df:pd.DataFrame,asset:str)->tuple[dict,set[int]]:
+def audit_frame(df:pd.DataFrame,asset:str,expected_rows:int|None=None)->tuple[dict,set[int]]:
  missing=set(REQUIRED)-set(df.columns)
  if missing: raise ValueError(f"{asset}: missing columns {sorted(missing)}")
  d=df[list(REQUIRED)].copy()
  ts=pd.to_numeric(d.ts,errors="coerce")
  if ts.isna().any() or (ts%1!=0).any(): raise ValueError(f"{asset}: invalid millisecond timestamps")
  ts=ts.astype("int64")
+ if (ts%60_000!=0).any(): raise ValueError(f"{asset}: timestamps are not aligned to the 1M epoch grid")
  if ts.duplicated().any(): raise ValueError(f"{asset}: duplicate timestamps")
  if not ts.is_monotonic_increasing: raise ValueError(f"{asset}: timestamps out of order")
  gaps=ts.diff().dropna()
@@ -23,7 +24,7 @@ def audit_frame(df:pd.DataFrame,asset:str)->tuple[dict,set[int]]:
  if not __import__("numpy").isfinite(vals).all(): raise ValueError(f"{asset}: non-finite OHLCV")
  if (d[["open","high","low","close"]]<=0).any().any() or (d.vol<0).any(): raise ValueError(f"{asset}: invalid price or volume")
  if (d.high<d[["open","low","close"]].max(axis=1)).any() or (d.low>d[["open","high","close"]].min(axis=1)).any(): raise ValueError(f"{asset}: inconsistent OHLC")
- if len(d)!=EXPECTED_ROWS[asset]: raise ValueError(f"{asset}: expected {EXPECTED_ROWS[asset]} rows, got {len(d)}")
+ if expected_rows is not None and len(d)!=expected_rows: raise ValueError(f"{asset}: expected {expected_rows} rows, got {len(d)}")
  info={"asset":asset,"rows":len(d),"first_ts_ms":int(ts.iloc[0]),"last_ts_ms":int(ts.iloc[-1]),"duplicates":0,"unexpected_intervals":0,"ohlcv_valid":True}
  return info,set(ts.tolist())
 def sha256(path:Path)->str:
@@ -36,7 +37,7 @@ def run(data_dir:Path,output:Path)->None:
  for asset in ASSETS:
   p=data_dir/f"{asset}_USDT_USDT_1m.csv"
   if not p.is_file(): raise FileNotFoundError(p)
-  info,times=audit_frame(pd.read_csv(p),asset);info["sha256"]=sha256(p)
+  info,times=audit_frame(pd.read_csv(p),asset,EXPECTED_ROWS[asset]);info["sha256"]=sha256(p)
   records.append(info);timelines[asset]=times
  union=set.union(*timelines.values());common=set.intersection(*timelines.values())
  if len(union)!=569127 or len(common)!=569125: raise ValueError(f"Cross-asset alignment changed: union={len(union)}, common={len(common)}")
