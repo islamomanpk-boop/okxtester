@@ -108,3 +108,14 @@ A file-level Git-tree comparison found that the two report snapshots differ in t
 **Disposition:** the latest run is a successful corrected workflow and its report outputs are archived. Deterministic byte-identical rerun on identical code, schema and inputs is **not yet independently demonstrated**. Do not describe this as a determinism pass. A second run of the same revision is still required if the frozen protocol requires byte-for-byte reproducibility. The differing artifact ZIP hashes alone are not evidence of a research-data mismatch because the compared report schemas differ.
 
 Module B remains open pending the remaining formal protocol closeout and same-revision reproducibility evidence. Gate 1 remains PARTIAL / OPEN; Gate 2 and strategy PnL backtests remain unauthorized.
+
+
+## 2026-11-25 — Protocol-to-test coverage gap identified
+
+A line-by-line comparison against the frozen parent protocol found two acceptance items that were enforced by the historical source-reconstruction code but did not yet have dedicated synthetic regression tests:
+- strict-cohort nesting inside the broad cohort;
+- rejection of duplicate immutable primary event identities.
+
+The production guards are now exposed as small validation helpers and called by the same historical workflow path. Two synthetic tests exercise both positive and negative cases. This is a test-coverage improvement, not a change to the frozen source population or event definitions.
+
+The update is committed in source/test commits `ce4027b0336bf770ec121eefea90045ce186f510` and `13c12c785c2473a84bf7459f12900fdc90a2b78a`. Workflow run [45644677445](https://github.com/islamomanpk-boop/okxtester/actions/runs/45644677445) is running against the updated source. The suite is expected to contain 23 tests, but no result is claimed until the workflow completes. Module B remains open.
