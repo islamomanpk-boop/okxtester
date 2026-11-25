@@ -105,3 +105,40 @@ The grep inventory in `2026-11-25_funding_coverage_and_engine_callsite_inventory
 ## 8. Gate decision
 
 The baseline workflow is now available and passing. G0-03 remains OPEN. No strategy PnL backtest is authorized until the shared contract, runner integration, and required tests are implemented and pass. Exact settlement mark-price availability remains a separate evidence requirement; the current verified funding-rate files do not provide it.
+
+
+## 9. Validator implementation checkpoint — 2026-11-25
+
+Implemented and committed:
+- `src/funding_coverage.py`
+- `src/test_funding_coverage.py`
+- Updated `.github/workflows/funding-engine-contract-tests.yml` to compile and run the new validator tests.
+
+The shared validator currently enforces:
+- Explicit per-asset `events` and `coverage` objects.
+- Instrument identity and SHA-256 format.
+- Coverage and event-window bounds.
+- Explicit schedule ID, start, interval, and end (no universal 8-hour constant).
+- Exact equality between expected and supplied settlement timestamps in the event window.
+- Strictly increasing unique timestamps, finite bounded rates, and mark-price mode validation.
+- Exact mode requires a positive finite mark price.
+- A trade-window helper checks source coverage and the expected settlements in `entry_time < funding_time <= exit_time`.
+
+GitHub Actions run: https://github.com/islamomanpk-boop/okxtester/actions/runs/45544624998
+
+Result: **PASS** — 68 tests across the new funding contract suite (13) and the existing standalone engine (12), portfolio backtester (15), experiment integration (4), trailing portfolio (5), allocator (15), and safety (4).
+
+One earlier test run failed because the test expected the wrong missing-settlement count (one instead of three). The assertion was corrected; the passing run above includes the correction.
+
+**Important boundary:** This is a validated standalone contract module, not yet integrated into `execution_engine.py`, `portfolio_backtester.py`, or the historical data loader. Existing engine APIs still have their old behaviour. G0-03 remains OPEN and strategy PnL backtesting remains unauthorized.
+
+## 10. Next implementation slice
+
+Integrate the shared contract into the standalone engine first, then the portfolio engine:
+1. Require explicit funding events and coverage metadata; omission must fail.
+2. Validate the actual completed trade's holding interval after its exit time is known.
+3. Ensure event timestamp ordering and mark-price mode are consistent with the contract.
+4. Add per-trade funding provenance fields.
+5. Migrate the portfolio runner and all fixtures/call sites to the same contract shape.
+6. Verify the local CSV SHA-256 values against the archived manifest in `run_exit_experiments.py`.
+7. Re-run the dedicated workflow and only then consider G0-03 closure.
