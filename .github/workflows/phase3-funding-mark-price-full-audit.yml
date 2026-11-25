@@ -8,7 +8,7 @@ on:
       - ".github/workflows/phase3-funding-mark-price-full-audit.yml"
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: phase3-funding-mark-price-full-audit
   cancel-in-progress: false
@@ -39,7 +39,98 @@ jobs:
             --samples-per-asset 12 \
             --output "$RUNNER_TEMP/phase3-funding-mark-price/summary.json" \
             --mark-output "$RUNNER_TEMP/phase3-funding-mark-price/mark_price_at_funding_4h.csv"
-      - name: Upload summary only
+      - name: Commit immutable mark-price proxy candidate snapshot
+        shell: bash
+        env:
+          EXPECTED_MARK_SHA256: "22e2894a8c467777f9ee90d5824deaf243a8b3d6e44ebff7f7d33b3e88c4cc82"
+          VPS_REPRO_RUN_ID: "45660812264"
+          VPS_REPRO_SHA256: "22e2894a8c467777f9ee90d5824deaf243a8b3d6e44ebff7f7d33b3e88c4cc82"
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/phase3-funding-mark-price"
+          DATA_DIR="data/funding_mark_price_proxy_candidate_v1"
+          CSV="$OUT/mark_price_at_funding_4h.csv"
+          SUMMARY="$OUT/summary.json"
+          ACTUAL_SHA="$(sha256sum "$CSV" | awk '{print $1}')"
+          test "$ACTUAL_SHA" = "$EXPECTED_MARK_SHA256"
+          python3 - "$SUMMARY" "$DATA_DIR" "$ACTUAL_SHA" "$VPS_REPRO_RUN_ID" "$VPS_REPRO_SHA256" <<'PY'
+          import csv, json, os, sys
+          from pathlib import Path
+          summary_path, data_dir, digest, vps_run_id, vps_digest = sys.argv[1:]
+          summary = json.loads(Path(summary_path).read_text(encoding="utf-8"))
+          snapshot = summary["mark_snapshot"]
+          if snapshot["rows"] != 5940 or snapshot["sha256"] != digest or not snapshot["all_confirmed"]:
+              raise SystemExit("Snapshot metadata failed the frozen acceptance checks")
+          csv_path = Path(summary_path).with_name("mark_price_at_funding_4h.csv")
+          asset_counts = {}
+          with csv_path.open(newline="", encoding="utf-8") as f:
+              for row in csv.DictReader(f):
+                  asset_counts[row["asset"]] = asset_counts.get(row["asset"], 0) + 1
+                  if row["confirm"] != "1" or row["bar"] != "4H":
+                      raise SystemExit("Unexpected candle confirmation or bar field")
+          expected = {"BTC": 1188, "ETH": 1188, "SOL": 1188, "DOGE": 1188, "AVAX": 1188}
+          if asset_counts != expected:
+              raise SystemExit(f"Unexpected per-asset row counts: {asset_counts}")
+          manifest = {
+              "dataset": "Phase 3 funding-time 4H mark-price candidate proxy V1",
+              "status": "CANDIDATE_PROXY_NOT_EXACT_SETTLEMENT_MARK",
+              "schema_version": 1,
+              "source_endpoint": snapshot["source_endpoint"],
+              "bar": "4H",
+              "candidate_price_field": "mark_open",
+              "diagnostic_fields": ["mark_high", "mark_low", "mark_close"],
+              "rows": snapshot["rows"],
+              "rows_by_asset": asset_counts,
+              "all_confirmed": snapshot["all_confirmed"],
+              "csv_sha256": digest,
+              "funding_manifest_sha256": summary["funding_manifest"]["sha256"],
+              "funding_window": summary["funding_window"],
+              "generated_at_utc": summary["generated_at_utc"],
+              "main_workflow_run_id": int(os.environ["GITHUB_RUN_ID"]),
+              "main_source_commit": os.environ["GITHUB_SHA"],
+              "independent_vps_reproduction": {
+                  "workflow_run_id": int(vps_run_id),
+                  "csv_sha256": vps_digest,
+                  "byte_identical": vps_digest == digest,
+              },
+              "exact_settlement_mark_verified": False,
+              "funding_proxy_policy_accepted": False,
+              "engine_mode_changed": False,
+          }
+          (Path(data_dir) / "manifest.json").parent.mkdir(parents=True, exist_ok=True)
+          (Path(data_dir) / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+          readme = """# Funding-time 4H mark-price candidate proxy V1
+
+          This immutable snapshot contains the 4H OKX mark-price candle at each of the 5,940 audited funding timestamps (1,188 per asset across BTC, ETH, SOL, DOGE, and AVAX USDT swaps).
+
+          - mark_open is the candidate public proxy price at the funding timestamp.
+          - mark_high, mark_low, and mark_close are diagnostic candle fields; do not substitute the 4H close as the funding price.
+          - All rows are confirmed 4H candles and have an exact funding-timestamp match.
+          - The CSV is byte-identical to an independent VPS-runner retrieval (recorded in manifest.json).
+
+          Important: this is a candle-derived proxy, not an independently verified exact OKX funding settlement mark. The engine has not adopted this mode and no strategy PnL backtest is authorized by this dataset. See docs/research/funding_price_fidelity_shared_v1.md and the full-window audit checkpoint for limits and policy status.
+          """
+          (Path(data_dir) / "README.md").write_text(readme, encoding="utf-8")
+          PY
+          if [ -f "$DATA_DIR/mark_price_at_funding_4h.csv" ]; then
+            EXISTING_SHA="$(sha256sum "$DATA_DIR/mark_price_at_funding_4h.csv" | awk '{print $1}')"
+            test "$EXISTING_SHA" = "$ACTUAL_SHA"
+          else
+            cp "$CSV" "$DATA_DIR/mark_price_at_funding_4h.csv"
+          fi
+          git fetch origin price-action-v1
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/price-action-v1)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DATA_DIR/mark_price_at_funding_4h.csv" "$DATA_DIR/manifest.json" "$DATA_DIR/README.md"
+          if git diff --cached --quiet; then
+            echo "Versioned mark-price candidate snapshot already matches; no commit required."
+          else
+            git commit -m "data: archive funding-time mark-price proxy candidate v1"
+            git push origin HEAD:refs/heads/price-action-v1
+          fi
+
+      - name: Upload summary and mark-price snapshot
         uses: actions/upload-artifact@v4
         with:
           name: phase3-funding-mark-price-full-audit
