@@ -91,3 +91,16 @@ This review closes the following **source-code understanding** questions: exact 
 It does **not** close VPS-to-canonical data lineage, immutable acquisition history, full timestamp/API provenance, volume-unit validation, funding-price fidelity, or real-input execution-engine acceptance. Gate 0 remains **CONDITIONAL HOLD**. No candidate generation, Gate 2 execution-resolution comparison, strategy PnL backtest, or Phase 1 handoff is authorized by this checkpoint.
 
 No downloader execution, API retrieval, SQLite read/write, VPS modification, service change, cleanup, or deletion occurred.
+
+
+## 7. Module-level source constants and exact CSV header
+
+A follow-up AST-only extraction captured the source constants without emitting arbitrary strings or filesystem paths. Supporting workflow [45654783334](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45654783334) completed successfully on `okxtester_private@main` commit `39f144b9549fa82041380208adb083d5e76530c3`; artifact `15040529786`, SHA-256 `d8075dba2d6d3685583fb634b3b24e65fef67c2564d128594741ed51ec1fd92c`. The inspected downloader source hash remained unchanged.
+
+The module constants establish:
+- Asset list: BTC, ETH, SOL, DOGE, AVAX.
+- Start boundary: `datetime(2025, 10, 20, tzinfo=timezone.utc)`.
+- Millisecond boundary: `START_MS = int(START.timestamp() * 1000)`.
+- Exact CSV header order: `ts, open, high, low, close, vol, volCcy, volCcyQuote, confirm`.
+
+The header names `volCcy` and `volCcyQuote` map to the database columns `vol_ccy` and `vol_ccy_quote` respectively; the export query projection and header order align positionally. The downloader's lower-bound date is the same UTC start timestamp recorded in the separate five-asset funding manifest. This is a useful cross-source boundary consistency check, not proof that the market CSVs begin at that exact timestamp or that VPS exports are byte-identical to canonical Git files.
