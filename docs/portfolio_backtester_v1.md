@@ -71,9 +71,18 @@ an approximation, not the exact exchange settlement mark.
   implemented yet.
 - Candidate generation from the actual signal and regime datasets is
   not implemented yet.
-- Position sizing currently uses stop distance and exposure capacity;
-  fees and slippage are charged in PnL but are not yet included in the
-  initial risk-size calculation.
+- Portfolio candidate sizing includes an effective per-unit risk estimate:
+  entry-to-adverse-stop-exit distance after modeled slippage, plus taker
+  fees on entry and stop exit. This cost-adjusted estimate is passed to the
+  portfolio allocator. It is still a planned stop-risk estimate, not a
+  maximum-loss guarantee: stop gaps, lot/tick rounding and fee-tier mismatch
+  can increase realized loss. The standalone single-trade engine has a
+  separate stop-distance-only sizing function.
 - Funding mark-price fallback is approximate.
 - This module is an integration foundation, not a strategy profitability
   result.
+
+
+## Risk-sizing clarification — 2026-11-25
+
+The portfolio implementation already passes a cost-adjusted `risk_per_unit` to the allocator. This documentation now reflects that code path. The standalone single-trade engine remains less complete; do not assume the two engines have identical sizing semantics.
