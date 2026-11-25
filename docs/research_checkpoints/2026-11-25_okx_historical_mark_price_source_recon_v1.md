@@ -63,7 +63,7 @@ Official endpoint documentation: https://my.okx.com/docs-v5/en/ (Public Data →
 
 Added `src/inspect_okx_mark_price_history.py`. It:
 1. Loads the five funding CSVs only after validating their hashes and metadata against the committed manifest.
-2. Selects first, middle, and last funding timestamps for each instrument (15 sample points total).
+2. Selects 12 evenly spaced funding timestamps per instrument by default (60 sample points total); use `--samples-per-asset` to change the bounded sample size.
 3. Requests the 1-minute historical mark-price candle page around each timestamp using the documented `after` cursor.
 4. Reports exact timestamp matches, nearest candle timestamp when absent, mark OHLC/confirmation, and the difference between mark-candle close and the local trade-candle close where both exist.
 5. Does not write or alter source data, does not label any OHLC field as the settlement mark, and does not run a backtest.
@@ -79,7 +79,7 @@ This is deliberately a small coverage/timestamp probe, not a bulk downloader. If
 
 The endpoint contract is now sufficiently specified to test pagination and timestamp alignment. Actual API responses for the five assets have not yet been inspected. Gate 0 / G0-03 remains OPEN; no PnL backtest is authorized by this reconnaissance alone.
 
-Implementation note: the probe scans each local 1-minute trade-candle CSV for only the three requested close values instead of loading all five large candle histories into memory. This keeps the first source check practical on the Termux/mobile environment.
+Implementation note: the probe scans each local 1-minute trade-candle CSV for only the requested sample close values instead of loading all five large candle histories into memory. This keeps the source check practical on the Termux/mobile environment.
 
 
 ## First live sample results (Termux, 2026-11-25)
@@ -107,9 +107,9 @@ Interpretation:
 - The sample does not establish full-window mark-candle coverage, pagination correctness over the full range, or exact settlement-price equivalence.
 
 Next validation:
-1. Expand to a bounded, evenly spaced sample across the full funding history for all five assets (for example, 12 settlements per asset, 60 requests).
-2. Record mark-candle open/high/low/close and compare both open and close with local trade-candle close only when the trade timestamp is within local file coverage.
-3. Report exact timestamp matches, duplicates, missing mark candles, confirmation status, boundary-excluded trade comparisons, and per-asset difference distributions.
+1. Run the expanded default sample: 12 evenly spaced settlements per asset (60 requests).
+2. Review mark-candle open/high/low/close and mark-close versus local trade-close differences only where local trade data covers the target timestamp.
+3. Review exact timestamp matches, duplicate rows, missing mark candles, confirmation status, boundary exclusions, and per-asset minimum/median/maximum difference summaries.
 4. Keep `candle_close_proxy` unchanged and Gate 0 / G0-03 OPEN until the broader evidence and settlement-price semantics are assessed.
 
 This section supersedes the earlier statement that actual API responses had not yet been inspected. It does not change the decision that no exact settlement-price source has been established and no PnL backtest is authorized by this reconnaissance.
