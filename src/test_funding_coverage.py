@@ -54,7 +54,8 @@ class FundingCoverageTests(unittest.TestCase):
             validate_funding_contract({"BTC": [1]}, {"BTC": contract([])})
 
     def test_empty_events_without_expected_settlement_passes(self):
-        item = contract([], event_window_start_ms=100, event_window_end_ms=100,\n                       schedule_start_ms=200, schedule_end_ms=200)
+        item = contract([], event_window_start_ms=100, event_window_end_ms=100,
+                       schedule_start_ms=200, schedule_end_ms=200)
         result = validate_funding_contract({"BTC": [1]}, {"BTC": item})
         self.assertEqual(result["BTC"]["expected_settlements"], [])
 
