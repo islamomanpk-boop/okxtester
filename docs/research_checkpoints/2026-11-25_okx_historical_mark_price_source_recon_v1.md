@@ -45,3 +45,36 @@ A second documentation pass on 2026-11-25 confirmed the following distinctions:
 The historical mark-price candle route is technically actionable for a controlled sample test, but it is still only a candidate proxy until validated. The account-bills route is a useful independent cross-check for actual account funding cashflows, not a replacement source for hypothetical strategy funding marks.
 
 No exact settlement-price source has yet been established. Keep Gate 0 / G0-03 open and keep PnL backtests blocked pending a documented decision on acceptable funding-price fidelity.
+
+## Endpoint parameters verified from the current official API guide
+
+The current official guide specifies:
+
+- Historical endpoint: `GET /api/v5/market/history-mark-price-candles`.
+- Required `instId`; optional `after`, `before`, `bar`, and `limit`.
+- Default bar is `1m`; the documented maximum page size is 100.
+- `after` paginates toward records earlier than the supplied candle timestamp; `before` paginates toward newer records.
+- The response candle schema is `[ts,o,h,l,c,confirm]`; `ts` is the candle opening timestamp, and `confirm` indicates whether the candle is complete.
+- The endpoint description says history is available "from recent years", but the guide does not specify a precise earliest timestamp or guarantee uninterrupted 1-minute coverage for every instrument.
+
+Official endpoint documentation: https://my.okx.com/docs-v5/en/ (Public Data → Get mark price candlesticks history).
+
+### Controlled sample probe added
+
+Added `src/inspect_okx_mark_price_history.py`. It:
+1. Loads the five funding CSVs only after validating their hashes and metadata against the committed manifest.
+2. Selects first, middle, and last funding timestamps for each instrument (15 sample points total).
+3. Requests the 1-minute historical mark-price candle page around each timestamp using the documented `after` cursor.
+4. Reports exact timestamp matches, nearest candle timestamp when absent, mark OHLC/confirmation, and the difference between mark-candle close and the local trade-candle close where both exist.
+5. Does not write or alter source data, does not label any OHLC field as the settlement mark, and does not run a backtest.
+
+Run from the repository root after syncing:
+```bash
+PYTHONPATH=src python src/inspect_okx_mark_price_history.py
+```
+
+This is deliberately a small coverage/timestamp probe, not a bulk downloader. If it passes, the next stage is a broader but still bounded sample across multiple funding times and all five assets, followed by explicit coverage and difference-distribution analysis. A full 1-minute history pull is not justified until the sample demonstrates that the endpoint returns usable, correctly aligned records.
+
+### Current gate status
+
+The endpoint contract is now sufficiently specified to test pagination and timestamp alignment. Actual API responses for the five assets have not yet been inspected. Gate 0 / G0-03 remains OPEN; no PnL backtest is authorized by this reconnaissance alone.
