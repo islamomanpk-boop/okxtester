@@ -89,10 +89,12 @@ def audit_distributional_overlap(pairs:pd.DataFrame, eligible:pd.DataFrame):
     return detail.sort_values(list(KEYS)+["asset","direction","covariate"]),summary
 
 def run(anatomy_path,sequence_path,feature_dir,minute_dir,pairs_path,output):
+    anatomy_path=Path(anatomy_path); sequence_path=Path(sequence_path)
+    feature_dir=Path(feature_dir); minute_dir=Path(minute_dir)
+    pairs_path=Path(pairs_path); output=Path(output)
     eligible=build_covariates(anatomy_path,sequence_path,feature_dir,minute_dir)
     pairs=pd.read_csv(pairs_path)
     detail,summary=audit_distributional_overlap(pairs,eligible)
-    output=Path(output)
     if output.exists() and any(output.iterdir()):
         raise FileExistsError(f"Refusing non-empty output directory: {output}")
     output.mkdir(parents=True,exist_ok=True)
