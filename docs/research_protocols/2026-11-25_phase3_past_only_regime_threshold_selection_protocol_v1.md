@@ -138,3 +138,37 @@ The 1,592 accepted lifecycle rows were successfully matched to detector feature 
 Those 932 unique signals were originally selected using retrospective full-sample P25/P40 filters. Reclassifying them under past-only thresholds is a useful provenance/sensitivity check, but it cannot recover signals that the retrospective filter excluded. It is not a complete causal breakout cohort.
 
 Before G0-04/G0-05 can close, rebuild the full completed-15M breakout signal population from the canonical common 1M source, apply the predeclared past-only regime threshold at each context snapshot, and preserve unique event identity independently of strict/broad labels. Reconcile the resulting full population against the 932 previously archived unique signals, reporting newly eligible, no-longer-eligible, unchanged and source-excluded signals separately. Never infer the complete new event universe from the selected historical ledger alone.
+
+
+## 11. Calibration time-basis clarification — common 4H context clock
+
+This clarification is mandatory before implementing the breakout population reconstruction. It resolves the otherwise ambiguous meaning of the 180-snapshot warm-up when comparing unique 4H observations with repeated joined 15M observations.
+
+### Shared clock and update cadence
+
+- The calibration clock is the ordered sequence of **completed, available 4H context snapshots**, not a raw row count from whichever population is being measured.
+- All three policies update only when a new 4H context snapshot becomes available. The threshold is frozen for all 15M observations assigned to that context snapshot.
+- For a current context snapshot at time T, the calibration sample may contain only observations assigned to context snapshots strictly earlier than T. No 15M row assigned to T may enter its threshold, even if its 15M close occurs later in the same 4H interval.
+- The 180-snapshot warm-up therefore means 180 prior completed 4H context snapshots (approximately 30 days) for both populations.
+
+### Population-specific weighting within the same historical window
+
+1. **UNIQUE_4H_FEATURE_ROWS:** one width observation per eligible prior 4H context snapshot.
+2. **JOINED_15M_ROWS:** every complete 15M observation assigned by the frozen backward-as-of join to those same eligible prior 4H context snapshots. Repeated context widths remain repeated observations in this population; do not deduplicate them. This deliberately tests the joined-15M weighting while keeping the same elapsed calibration history.
+
+For each current T, both populations must use the same set of prior 4H context snapshots:
+- Fixed-180: the first 180 completed context snapshots after feature warm-up; freeze their population-specific P25/P40 values for subsequent contexts.
+- Expanding-prior: all completed context snapshots available strictly before T, beginning after the common 180-snapshot warm-up.
+- Rolling-180: the immediately preceding 180 completed context snapshots, excluding T.
+
+The 15M population's effective row count will therefore be larger than the 4H population's, but its time span and 4H context history will be the same. Report actual prior context count, 15M row count, first/last context timestamp, and missing/partial context coverage for every calibration update or reproducible summary.
+
+### Stop conditions
+
+- Stop if the backward-as-of mapping assigns a 15M row to a context snapshot that was not available by that 15M close.
+- Stop if any current-context 15M rows enter the threshold used for that same context.
+- Stop if the two populations do not share the same eligible prior-context timestamp set.
+- Do not silently treat partial 4H intervals as complete or allow a gap to shorten the rolling window.
+- Do not reinterpret 180 as 180 raw 15M rows; that would be a different, approximately 45-hour calibration and is outside this protocol.
+
+This clarification changes no threshold values, selects no policy, and authorizes no candidate generation or outcome/PnL work. It only fixes the common time basis and the distinct observation weighting for the two predeclared breakout calibration populations.
