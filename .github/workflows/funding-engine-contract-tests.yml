@@ -8,6 +8,7 @@ on:
       - src/portfolio_backtester.py
       - src/funding_coverage.py
       - src/test_funding_coverage.py
+      - src/test_funding_loader.py
       - src/test_execution_engine.py
       - src/test_portfolio_backtester.py
       - src/test_experiment_portfolio.py
@@ -53,6 +54,7 @@ jobs:
           python -m py_compile \
             src/funding_coverage.py \
             src/test_funding_coverage.py \
+            src/test_funding_loader.py \
             src/execution_engine.py \
             src/portfolio_backtester.py \
             src/test_execution_engine.py \
@@ -67,6 +69,9 @@ jobs:
 
       - name: Run funding coverage contract tests
         run: python -m unittest discover -s src -p 'test_funding_coverage.py' -v
+
+      - name: Run funding manifest loader tests
+        run: python -m unittest discover -s src -p 'test_funding_loader.py' -v
 
       - name: Run standalone execution engine tests
         run: python -m unittest discover -s src -p 'test_execution_engine.py' -v
