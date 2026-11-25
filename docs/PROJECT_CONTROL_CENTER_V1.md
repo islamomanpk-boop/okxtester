@@ -290,3 +290,8 @@ The explicit VPS five-asset timestamp-set audit is complete: 578,021 common time
 ### Canonical Git vs VPS OHLCV reconciliation — 2026-11-25
 
 The five-asset overlap comparison is complete and saved in `docs/research_checkpoints/2026-11-25_phase3_vps_canonical_ohlcv_reconciliation_v1.md` and research register Section 12.24. Every matched timestamp has exact OHLC equality. Canonical Git `vol` equals VPS `volCcy` exactly on all matched timestamps for all five assets; OKX defines `volCcy` as base-currency volume for derivatives and VPS `vol` as contract quantity. The execution-data audit now records this mapping and requires explicit volume units. The only timestamp exception is the known SOL 2026-08-28 08:30 UTC row returned by OKX with `confirm=0`, present in SQLite and canonical Git but excluded from the confirmed-only VPS CSV. The VPS snapshot is a wider, later dataset; preserve both snapshots separately. Gate 0 remains CONDITIONAL HOLD.
+
+
+### Full-window funding mark-price coverage — 2026-11-25
+
+The full-window public mark-price audit is saved in `docs/research_checkpoints/2026-11-25_phase3_full_window_mark_price_coverage_audit_v1.md` and research register Section 12.25. All 5,940 audited funding timestamps matched exact 4H mark-candle opens; 2,375 candles per asset, all confirmed, no gaps. A 60-point 1M sample matched the 4H open exactly at every point. The 4H mark-open proxy is much closer to trade 1M open (pooled mean absolute 0.650 bps) than trade 1M close (7.514 bps). This is the best-supported public proxy candidate, not an exact settlement mark. No engine mode changed; G0-03/G0-09 remain OPEN and Gate 0 remains CONDITIONAL HOLD.
