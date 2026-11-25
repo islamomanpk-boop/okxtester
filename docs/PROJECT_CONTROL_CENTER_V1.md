@@ -18,7 +18,7 @@ The project is **Price Action V1**, a five-phase market-regime research programm
 4. **Phase 4 — Choppy / High Volatility**
 5. **Phase 5 — Transition / Expansion**
 
-The agreed research order is numerical: Phase 1, Phase 2, Phase 3, Phase 4, Phase 5. The current user-directed priority is to finish the remaining Phase 3 execution/trading-system research before handing off to Phase 1. The current phase order and handoff must not be changed casually.
+The agreed execution sequence is: complete the currently active Phase 3 fully first; then proceed Phase 1 → Phase 2 → Phase 4 → Phase 5. Phase 1 remains paused until Phase 3 is formally completed or explicitly rejected. After that handoff, continue the remaining numbered phases in order without skipping. Do not change this user-agreed sequence casually.
 
 Keep this project separate from older adaptive-bot, EMA-pullback, and unrelated trading projects.
 
@@ -85,6 +85,8 @@ These documents govern current Phase 3 work. Read them before starting or changi
 3. Phase 3 completion/scope decision: `reports/sideways_phase3_research_archive_v1/PHASE3_COMPLETION_DECISION_V1.md`
 4. Phase 3 execution/backtest roadmap: `docs/research_checkpoints/2026-11-25_phase3_execution_and_backtest_roadmap_v1.md`
 5. Phase 3 knowledge synthesis: `reports/sideways_phase3_research_archive_v1/PHASE3_KNOWLEDGE_SYNTHESIS_V1.md`
+6. Phase 3 boundary lifecycle closure protocol: `docs/research_checkpoints/2026-11-25_phase3_boundary_lifecycle_closure_protocol_v1.md`
+7. Evidence-backed repository research register: `docs/PROJECT_RESEARCH_REGISTER_V1.md`
 
 The Phase 3 execution roadmap has the single ordered gate sequence:
 
@@ -101,7 +103,7 @@ Do not renumber, skip, or silently redefine these gates. The earlier five-gate c
 
 ### Current gate decision
 
-**Gate 0: CONDITIONAL HOLD — not passed.** Existing research and infrastructure were found, but critical readiness items remain. In particular: verify and freeze the exact source/event ledger provenance; prove causal signal availability; reconcile actual funding inputs and engine integration; verify mark-price, instrument, and fee assumptions; and ensure missing funding fails closed. No Phase 3 strategy PnL backtest until the required gates permit it.
+**Gate 0: CONDITIONAL HOLD — not passed.** Funding source coverage/hash items G0-01/G0-02 passed for the five actual local files audited in Termux. The explicit fail-closed funding contracts are now integrated in both engines and the focused GitHub workflow passed; real-input integration and exact settlement-mark acceptance remain open. Critical G0-04/G0-05 work remains: freeze Phase 3 event provenance/availability and build the separate three-family range candidate generator. Fee/instrument assumptions, mark-price fidelity, contract rounding, and remaining execution realism are also open. No Phase 3 strategy PnL backtest until all required gates permit it.
 
 The latest detailed blocker register and evidence in the controlling roadmap/audit supersede informal chat summaries. When new evidence closes an item, update the relevant source document with commit/run/artifact references and tests before changing its status.
 
@@ -111,6 +113,11 @@ The latest detailed blocker register and evidence in the controlling roadmap/aud
 The evidence-backed repository and five-phase research index is `docs/PROJECT_RESEARCH_REGISTER_V1.md`. It records the canonical and supporting repository snapshots, Phase 3 workstream statuses, Gate 0–7 mapping, known unrelated legacy candidates, and the next reconciliation actions. It is an index, not a replacement for the underlying protocols, scripts, tests, reports, or source artifacts.
 
 Cleanup rule: do not delete ambiguous or historical provenance material. Explicit EMA-pullback files are flagged as candidates only; no deletion is authorized until dependencies are checked and the user approves the exact path list.
+
+
+### Newly frozen Gate 1 protocol
+
+`docs/research_checkpoints/2026-11-25_phase3_boundary_lifecycle_closure_protocol_v1.md` defines the two remaining descriptive lifecycle modules: rejection retest/cross lifecycle and breakout return-inside/reclaim/reversal lifecycle. It is frozen before implementation; no new historical outcomes have yet been run.
 
 ## 5. Mandatory research governance
 
