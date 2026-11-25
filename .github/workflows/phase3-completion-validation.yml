@@ -1,0 +1,66 @@
+name: Phase 3 Completion Archive Validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [price-action-v1]
+    paths:
+      - .github/workflows/phase3-completion-validation.yml
+      - reports/sideways_phase3_research_archive_v1/README.md
+      - reports/sideways_phase3_research_archive_v1/PHASE3_COMPLETION_DECISION_V1.md
+      - reports/sideways_phase3_research_archive_v1/joint_common_support_percentile_sensitivity_v10_11/**
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: price-action-v1}
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - name: Verify Phase 3 source archives
+        run: |
+          test -s reports/sideways_boundary_interaction_taxonomy_v1/run_metadata_v1.json
+          test -s reports/sideways_boundary_interaction_taxonomy_v1/candle_level_interactions_v1.csv
+          test -s reports/breakout_prior_test_count_v1/breakout_prior_test_group_counts_v1.csv
+          test -s reports/breakout_forward_outcome_v1/breakout_forward_group_summary_v1.csv
+          test -s reports/sideways_phase3_research_archive_v1/episode_retest_anatomy_v1/event_anatomy_v1.csv
+          test -s reports/sideways_phase3_research_archive_v1/early_path_followthrough_v1/event_sequence_v1.csv
+          test -s reports/sideways_phase3_research_archive_v1/sequence_block_bootstrap_v1/block_bootstrap_contrasts_v1.csv
+          test -s reports/sideways_phase3_research_archive_v1/asset_robustness_v1
+      - name: Validate V10.10 baseline and V10.11 sensitivity archive
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          root = Path("reports/sideways_phase3_research_archive_v1")
+          v10 = root / "joint_common_support_retention_v10_10" / "joint_support_summary_v10_10.csv"
+          v11 = root / "joint_common_support_percentile_sensitivity_v10_11"
+          summary = v11 / "joint_support_percentile_summary_v10_11.csv"
+          detail = v11 / "joint_support_percentile_detail_v10_11.csv"
+          metadata = v11 / "run_metadata_v10_11.json"
+          for p in (v10, summary, detail, metadata):
+              assert p.is_file() and p.stat().st_size > 0, f"Missing archive: {p}"
+          old = {(r["definition"], float(r["target_caliper_robust_sd"])): r
+                 for r in csv.DictReader(v10.open())}
+          new = {(r["definition"], float(r["target_caliper_robust_sd"])): r
+                 for r in csv.DictReader(summary.open())
+                 if r["range"] == "central_90"}
+          assert old.keys() == new.keys()
+          for key, a in old.items():
+              b = new[key]
+              for col in ("eligible_separation_events", "eligible_retest_events",
+                          "joint_support_separation_events", "joint_support_retest_events",
+                          "matched_pairs", "pairs_both_endpoints_in_joint_support"):
+                  assert int(a[col]) == int(b[col]), (key, col, a[col], b[col])
+          meta = json.loads(metadata.read_text())
+          assert meta["outcome_data_loaded"] is False
+          assert meta["outcomes_compared"] is False
+          assert len(list(csv.DictReader(summary.open()))) == 32
+          assert len(list(csv.DictReader(detail.open()))) == 320
+          print("Phase 3 archive integrity passed; V10.11 central-90 exactly reproduces V10.10.")
+          PY
+      - name: Verify closeout record
+        run: |
+          grep -q "Stop the V6 matched-controls branch" reports/sideways_phase3_research_archive_v1/PHASE3_COMPLETION_DECISION_V1.md
+          grep -q "Phase 1 — Uptrend / Bullish" reports/sideways_phase3_research_archive_v1/PHASE3_COMPLETION_DECISION_V1.md
