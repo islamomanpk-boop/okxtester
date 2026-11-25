@@ -71,3 +71,14 @@ Any inspection must avoid modifying the downloader, database, raw CSVs, service 
 - Candidate generation, Gate 2 execution-resolution comparison and strategy PnL backtests remain unauthorized.
 
 No VPS files, database rows, raw CSVs or services were modified by this review.
+
+
+## Follow-up — downloader and volume semantics now reviewed (2026-11-25)
+
+This section supersedes the earlier statements above that the downloader implementation and volume-unit semantics had not been reviewed.
+
+The VPS downloader source was fingerprinted and statically inspected; its exact instrument construction is `{asset}-USDT-SWAP` for BTC, ETH, SOL, DOGE, and AVAX. It maps OKX candle response positions 5, 6, and 7 to database fields `vol`, `vol_ccy`, and `vol_ccy_quote`, respectively. The exact SQLite conflict/update clause and confirmed-only CSV export projection/filter were subsequently established in [the SQL/export semantics checkpoint](2026-11-25_phase3_vps_downloader_sql_export_update_semantics_v1.md).
+
+The official OKX V5 schema defines derivative `vol` as contract quantity, `volCcy` as base-currency quantity, and `volCcyQuote` as quote-currency quantity. Exact Decimal comparison of all overlapping rows established that canonical Git `vol` equals VPS `volCcy` across all five assets. See [canonical/VPS OHLCV reconciliation](2026-11-25_phase3_vps_canonical_ohlcv_reconciliation_v1.md) and the updated `docs/execution_data_audit_v1.md`.
+
+Still unverified: original Termux 1M input byte identity because no contemporaneous hashes were recorded; complete historical acquisition/refresh lineage; and why OKX currently labels the old SOL 2026-08-28 08:30 UTC candle `confirm=0`. The VPS SQLite database is mutable, not an immutable acquisition ledger. These findings do not close all Gate 0 source provenance or authorize backtesting.
