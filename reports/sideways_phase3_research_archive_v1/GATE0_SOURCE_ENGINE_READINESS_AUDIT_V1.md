@@ -243,3 +243,34 @@ The five exact local source paths are recorded in the JSON manifest; they are ou
 **Interpretation and boundary:** G0-01 and G0-02 are closed for funding source availability, file identity, cadence, and cross-asset coverage in the audited Termux environment. This is not proof of mark-price coverage, exact mark-price usage, funding cashflow correctness inside either execution engine, or fail-closed behaviour when inputs are absent. G0-03 therefore remains open. Gate 0 remains **CONDITIONAL HOLD**; no Phase 3 strategy PnL backtest is authorized by this funding-data PASS.
 
 The audit's 8-hour cadence and date endpoints are the explicit project audit scope inherited from the prior OKX reconciliation, not a claim that every instrument or historical period universally settles on this schedule.
+
+## 12. Funding engine interface inspection — 2026-11-25
+
+**Status: PARTIAL IMPLEMENTATION; funding engine validation remains OPEN (G0-03).** Source inspected: src/execution_engine.py, src/portfolio_backtester.py, and their current unit tests.
+
+### What is implemented
+- Both engines calculate funding cashflows when events are supplied for a position open before settlement.
+- Sign convention is consistent: positive funding reduces long PnL and increases short PnL.
+- Portfolio engine requires a funding_by_asset mapping for every asset and validates event fields, finite rates in [-1, 1], chronological ordering, and supplied mark prices.
+- Both engines prefer supplied settlement mark price. If absent, they use the close of the 1-minute candle at the exact funding timestamp; this is a proxy, not the exchange settlement mark.
+- Existing tests cover positive-rate long/short direction, pre-entry events, and missing portfolio asset keys.
+
+### Material gaps found
+1. **Empty funding inputs can silently mean zero funding.** simulate_trade has funding_events=() by default. Portfolio validation accepts an empty list for every asset. Neither engine distinguishes a verified interval with no settlement from a missing/unloaded funding file based only on event lists.
+2. **No coverage contract reaches either engine.** They do not receive or verify the audited start/end, expected cadence, source identity/hash, or expected settlements relevant to the backtest interval. The local audit proves one set of files complete for its stated historical window; it does not bind those files to a later invocation.
+3. **Single-trade event validation is weaker.** It does not validate all supplied events up front for required keys, finite rates, timestamp ordering, or mark-price validity. Malformed events outside the active position interval may never be evaluated.
+4. **Mark-price proxy is not exact.** The 1-minute close fallback is not an exchange settlement mark. Reports must disclose proxy use; exact reconstruction requires aligned historical mark-price data.
+5. **No integration test binds the actual five-asset funding files to the engines.** Current unit tests use small synthetic events. The real-data audit is separate.
+
+### Required remediation before G0-03 can close
+- Define an explicit funding input/coverage object (or equivalent required metadata) containing validated asset universe, source identity/hash, coverage bounds, expected cadence, and settlement events. Require it in strict research-backtest mode.
+- Check each requested backtest interval against declared funding coverage and expected settlement timestamps. Fail closed for out-of-coverage periods or missing expected settlements. Permit an empty list only when declared coverage proves no settlement was due.
+- Validate all single-trade events before simulation: required fields, integer/ordered timestamps, finite bounded rates, and finite positive marks where supplied.
+- Make mark-price policy explicit: exact mark required for strict-cost profile, or separately labelled proxy mode.
+- Add deterministic tests for omitted input, empty-but-unverified input, out-of-coverage, missing middle settlement, invalid/NaN rate, unsorted/duplicate events, invalid mark, both funding signs and sides, position-open/close boundaries, and proxy-vs-exact mark calculations.
+- Add an integration test using a small fixture generated from the audited manifest and a reproducible local command verifying events reach portfolio PnL.
+
+### Current decision
+Funding cashflow arithmetic exists, but source completeness is not enforced at the engine boundary and exact mark-price settlement is not demonstrated. Keep G0-03 **OPEN**, Gate 0 **CONDITIONAL HOLD**, and Phase 3 strategy PnL backtests **NOT AUTHORIZED** until remediation and independent validation pass. Do not change strategy conclusions based on this infrastructure audit.
+
+The 8-hour cadence and date endpoints remain the explicit scope of the current local source audit, not a universal assumption about every instrument or period.
