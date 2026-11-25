@@ -87,3 +87,24 @@ Timestamp and horizon propagation checks:
 - No issues were found in these checks.
 
 This is an independent output-consistency audit, not an independent historical benchmark of the five lifecycle retest measurements. Those five fields remain absent from the frozen forward archive. Module B therefore remains open pending formal closeout and project-wide register reconciliation; Gate 1 remains PARTIAL / OPEN. The study remains descriptive only, with no orders, fills, fees, funding, PnL or profitability inference.
+
+
+## 2026-11-25 — Follow-up synthetic coverage and historical workflow
+
+The follow-up workflow [45643682550](https://github.com/islamomanpk-boop/okxtester/actions/runs/45643682550) completed successfully on commit `52e89472bf5ea39044376f9f5535e8a07eaa3dcc`.
+
+Verified job steps:
+- All **21/21** Module B synthetic tests passed. The two added regressions explicitly cover immediate adverse entry with incomplete 1H/4H/12H horizon censoring, and the availability timestamp of the first completed 15M failure bar.
+- Frozen historical lifecycle generation completed.
+- Archived result-contract validation passed: 1,592 events, 6,368 horizon rows and 454 overlap clusters.
+- Seven report files were uploaded as immutable artifact `phase3-breakout-lifecycle-v1-1` (artifact ID `15036347661`); the workflow's report-commit step found no further report changes.
+
+### Reproducibility comparison limitation
+
+The new artifact ZIP is 817,698 bytes with SHA-256 `079be5d846911d94a591dc260923468b78434872a73fe52fdef07e15275217e6`. The earlier artifact from run 45639123024 is also 817,698 bytes but has SHA-256 `93c3f83c36c1bb283ff05317c20142adc3752ce16ee190caab0090a786a40106`; therefore the ZIP archives are not byte-identical.
+
+A file-level Git-tree comparison found that the two report snapshots differ in three files: the group summary, horizon CSV, and run metadata. Inspection shows the newer report schema includes the separately scoped outside/inside same-bar ambiguity columns and records event-level ambiguity totals (107 outside, 551 inside, 630 confirmed inside retests). The event-level CSV, forward-crosscheck CSV and prior-link CSV retain their prior Git blob identities; the source inputs and principal cohort totals are unchanged. The old comparison run predates this report-schema/ambiguity-count addition, so it is **not** a same-code/same-schema deterministic rerun.
+
+**Disposition:** the latest run is a successful corrected workflow and its report outputs are archived. Deterministic byte-identical rerun on identical code, schema and inputs is **not yet independently demonstrated**. Do not describe this as a determinism pass. A second run of the same revision is still required if the frozen protocol requires byte-for-byte reproducibility. The differing artifact ZIP hashes alone are not evidence of a research-data mismatch because the compared report schemas differ.
+
+Module B remains open pending the remaining formal protocol closeout and same-revision reproducibility evidence. Gate 1 remains PARTIAL / OPEN; Gate 2 and strategy PnL backtests remain unauthorized.
