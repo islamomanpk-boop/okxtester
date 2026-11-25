@@ -1,0 +1,6 @@
+Phase 3 Rejection Lifecycle V1
+eligible_events=1992
+episodes=3028
+horizon_rows=7968
+market_gaps={'BTC': 0, 'ETH': 0, 'SOL': 0, 'DOGE': 0, 'AVAX': 0}
+No strategy simulation or PnL was performed.

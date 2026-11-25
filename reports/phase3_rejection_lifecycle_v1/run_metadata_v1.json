@@ -1,0 +1,72 @@
+{
+  "study": "Phase 3 Rejection Lifecycle V1",
+  "implementation_sha256": "d97a75daded38037a9758f8e68f09493ab39b9091b5ad18dcd3b22c242c61719",
+  "protocol": "docs/research_checkpoints/2026-11-25_phase3_boundary_lifecycle_closure_protocol_v1.md",
+  "status": "DESCRIPTIVE_RUN_COMPLETE_PENDING_INDEPENDENT_CLOSEOUT",
+  "assets": [
+    "BTC",
+    "ETH",
+    "SOL",
+    "DOGE",
+    "AVAX"
+  ],
+  "eligible_events": 1992,
+  "cohort_counts": {
+    "broad": 1154,
+    "strict": 838
+  },
+  "event_level_rows": 1992,
+  "episode_rows": 3028,
+  "horizon_rows": 7968,
+  "horizons_minutes": {
+    "15m": 15,
+    "1h": 60,
+    "4h": 240,
+    "24h": 1440
+  },
+  "confirmation_delay_ms": 900000,
+  "touch_band_fraction": 0.1,
+  "inward_separation_fraction": 0.2,
+  "source_git_blob_ids": {
+    "reports/sideways_boundary_events_historical_v1/boundary_tests_historical_v1.csv": "2af6f85cd60194019f903a17f16216841ae61f8c",
+    "reports/sideways_phase3_research_archive_v1/episode_retest_anatomy_v1/event_anatomy_v1.csv": "c58de65ec1936607790c2ee40b828897e6f726dc",
+    "reports/sideways_detector_original_v1/BTC_features_original_v1.csv": "e422073b993cf5d9d11050216509165277339710",
+    "reports/sideways_detector_original_v1/ETH_features_original_v1.csv": "c38641d3846931afd6e44a7f39318251fe3c5653",
+    "reports/sideways_detector_original_v1/SOL_features_original_v1.csv": "5ba90a99a33924f3de6bcbe9cd1d76aa0a9dd207",
+    "reports/sideways_detector_original_v1/DOGE_features_original_v1.csv": "5fb8cb621628e069b1e2500f8047eb908b031909",
+    "reports/sideways_detector_original_v1/AVAX_features_original_v1.csv": "06b6f7ee947ef5e62b8cf2b9cc64fb7caaa523e5",
+    "data/market_1m/BTC_USDT_USDT_1m.csv": "639f7b8a6d54747dd3eb3370dc133d53f6382bfd",
+    "data/market_1m/ETH_USDT_USDT_1m.csv": "3017d870fe1cb764e1acb8fdec04138592749d69",
+    "data/market_1m/SOL_USDT_USDT_1m.csv": "a850c2dc4a2c14b34b59737ccfbb2e4c59d97bf3",
+    "data/market_1m/DOGE_USDT_USDT_1m.csv": "2162df0f277bef6c04bd191b459a35d735c68f2d",
+    "data/market_1m/AVAX_USDT_USDT_1m.csv": "6e0cb0c55aa2aafb4118d62522826bcf1a2aeb62"
+  },
+  "market_source_rows": {
+    "BTC": 569125,
+    "ETH": 569125,
+    "SOL": 569126,
+    "DOGE": 569126,
+    "AVAX": 569127
+  },
+  "market_source_gap_counts": {
+    "BTC": 0,
+    "ETH": 0,
+    "SOL": 0,
+    "DOGE": 0,
+    "AVAX": 0
+  },
+  "output_sha256": {
+    "rejection_lifecycle_episodes_v1.csv": "8a25b0969e6e10483ac04c74b68c2e99ba657f0c7dbfd5cfd07027405a99b778",
+    "rejection_lifecycle_events_v1.csv": "aeb814797e5c17a6b9bd0929816cabd2194a41eec42e33042c1447f05b45a60f",
+    "rejection_lifecycle_group_summary_v1.csv": "9e67a8e504c9b6cd9481a43a86f09cc8006cadf836aa9117185cbada33834c00",
+    "rejection_lifecycle_horizons_v1.csv": "84096023c84bfc4cc4ab859fb6313b1313ccd09a80083542cf38851330e4d964"
+  },
+  "limitations": [
+    "Descriptive event/path study only; no entries, fills, PnL or profitability inference.",
+    "Strict cohort is nested within broad and is reported separately.",
+    "Overlapping event windows are dependent and are not independent samples.",
+    "Minute OHLC cannot establish intrabar ordering or executable fills.",
+    "Incomplete horizons are censored; no gap bridging or synthetic candles.",
+    "The 10% retest band and 20% separation line are inherited frozen definitions, not optimized thresholds."
+  ]
+}
