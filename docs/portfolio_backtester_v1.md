@@ -49,12 +49,12 @@ used for entry.
 - Different assets may be held simultaneously.
 - Market entries and exits use the configured taker fee and adverse
   slippage assumptions.
-- Funding data must be explicitly provided for every asset.
+- Every asset must receive an explicit `{events, coverage}` funding contract.
+- The shared validator requires complete expected settlements for the declared source window and verifies the source identity/hash, instrument, coverage bounds, schedule, rates, and mark-price mode.
+- Each completed trade's full holding interval must remain inside verified coverage and include every expected settlement.
 - Positive funding means longs pay and shorts receive.
-
-If a funding event has no explicit mark price, the close of the
-one-minute candle at the funding timestamp is used as a proxy. This is
-an approximation, not the exact exchange settlement mark.
+- `exact` mode requires a valid settlement mark on every event. `candle_close_proxy` mode explicitly permits the 1-minute candle close as an approximation and is labelled in trade/report metadata; it is not the exact exchange settlement mark.
+- Funding events inside the execution window must align to the 1-minute timeline. Full-source events outside the trimmed execution window remain in the contract for coverage validation but are not processed by that run.
 
 ## Conservative execution
 
@@ -87,6 +87,6 @@ an approximation, not the exact exchange settlement mark.
 
 The portfolio implementation already passes a cost-adjusted `risk_per_unit` to the allocator. This documentation now reflects that code path. The standalone single-trade engine remains less complete; do not assume the two engines have identical sizing semantics.
 
-## Funding validation status — 2026-11-25
+## Funding contract implementation — 2026-11-25
 
-The portfolio engine requires a mapping key for each asset and validates supplied events, but an empty list for an asset is accepted and produces no funding cashflows. There is no coverage metadata contract connecting supplied events to audited source files or the requested backtest date range. The 1m-close fallback is approximate, not an exchange settlement mark. Funding source completeness and strict-mode fail-closed validation remain open; see the Gate 0 audit for required remediation. A zero funding PnL is not evidence that funding data was complete.
+The portfolio engine now requires per-asset `{events, coverage}` contracts and uses the shared fail-closed validator. Empty event lists pass only when the explicit schedule proves no settlement is due. Completed trade rows record source hash, instrument, schedule ID, mark-price mode, and settlement count. The migrated historical runner verifies local funding CSV SHA-256 values against the archived manifest and currently selects explicitly labelled candle-close proxy mode. Real local-source loading and exact-mark policy acceptance remain G0-03 acceptance items; see `docs/research_checkpoints/2026-11-25_g0-03_funding_contract_implementation_plan_v1.md`.
