@@ -347,3 +347,12 @@ The event category was narrowed to explicit ledger/timestamp identifiers (`event
 G0-10 documentation correction: `docs/execution_data_audit_v1.md` now explicitly distinguishes its historical local-input snapshot from the current tracked canonical source. The five files under `data/market_1m/` are tracked in the canonical Git tree. Their exact paths, byte sizes, Git blob IDs and SHA-256 values are recorded in the corrected document and Module B run metadata. This closes the documentation contradiction only; VPS-to-canonical downloader lineage, refresh controls and runtime equivalence remain unverified. No source files were changed or deleted.
 
 Gate 0 remains CONDITIONAL HOLD. No Gate 2 execution comparison or strategy backtest is authorized.
+
+
+### 12.14 Phase 3 candidate availability/source timing audit — 2026-11-25
+
+Read-only source/timestamp audit committed at `docs/research_checkpoints/2026-11-25_phase3_candidate_availability_audit_v1.md` (commit `e3325daff6672f5aeede2ab0b47f30395ecbeb3f`). It confirms the accepted rejection lifecycle's 15-minute rejection-candle close convention (`first_strong_rejection_ts_ms + 900000`), 4H snapshot availability metadata, and the recovered breakout script's completed 15M close labels, completed 4H context, backward as-of join, and first eligible 1M bar opening at the 15M close timestamp.
+
+A material live-causality blocker is made explicit: `research/sideways_detector_original_v1.py:classify_asset()` calculates P25/P40/P50 channel-width thresholds across the **entire feature sample** and applies them retrospectively. The historical strict/broad labels and breakout cohorts therefore remain descriptive classifications, not live-knowable regime signals. A past-only threshold/calibration policy must be separately frozen before candidate generation. Failed-breakout reversal's proposed earliest confirmation is the completed 15M return-inside close, with opposite breakout direction; this remains a candidate-definition proposal, not an accepted trading rule.
+
+The checkpoint records a minimum candidate-record contract and seven pre-implementation decisions. G0-04/G0-05 remain OPEN / CRITICAL; no candidate generator, execution comparison or strategy backtest is authorized. This audit does not invalidate either accepted descriptive lifecycle closeout.
