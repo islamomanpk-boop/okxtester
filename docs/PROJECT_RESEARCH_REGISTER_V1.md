@@ -407,3 +407,12 @@ The historical SOL timestamp responsible for the single internal gap in the conf
 For SOL-USDT-SWAP at 2026-08-28 08:30:00 UTC (`1787905800000` ms), the API returned the exact row with HTTP 200 / API code 0 and `confirm=0`. OHLC, `vol`, `volCcy`, and `volCcyQuote` all matched the read-only SQLite row exactly; SQLite also had `confirm=0`. The gap in the confirmed-only CSV is therefore consistent with the exchange's current response and the downloader's `confirm=1` export filter. It is not a local missing row or a demonstrated downloader/export mismatch.
 
 The reason the exchange still marks this old candle unconfirmed is unknown. Preserve the source flag; do not relabel, impute, or modify the VPS row. The checkpoint's disposition is updated accordingly. Gate 0 remains CONDITIONAL HOLD; cross-asset timestamp alignment and the remaining source/execution readiness blockers remain open.
+
+
+### 12.23 VPS five-asset timestamp-set alignment — 2026-11-25
+
+The explicit streaming timestamp-set comparison is recorded in `docs/research_checkpoints/2026-11-25_phase3_vps_market_csv_snapshot_audit_v1.md`. Supporting workflow [45656654156](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45656654156) completed successfully on `okxtester_private@main` commit `93dd76ff5340e6d1a84d7c7ac1c7131f3eef48c5`; metadata-only artifact `15042707158`, SHA-256 `cd9538989b3a2bd97fd62c459844f421ad2ddfd5944e6b39792a89ed03fa446b`.
+
+The five VPS CSVs have a 578,021-timestamp intersection from 2025-10-20 00:00 UTC through 2026-11-25 09:41 UTC. Their union contains 578,141 timestamps; 120 timestamps lie outside the intersection. Per-asset non-common counts are BTC 1, ETH 30, SOL 59, DOGE 90, AVAX 120. These differences are fully explained by the historical SOL 2026-08-28 08:30 UTC candle that the exchange currently returns with `confirm=0`, plus staggered per-asset final timestamps. The common intersection therefore retains one explicit one-minute hole; no timestamp was imputed.
+
+This completes the timestamp-set characterization of the current VPS snapshot, not its adoption as the canonical research source. It remains a later, separately structured snapshot and still requires OHLCV-level reconciliation with canonical Git data and a versioned source-use decision. Gate 0 remains CONDITIONAL HOLD; no candidate generation, Gate 2 execution comparison, strategy PnL backtest, or Phase 1 handoff is authorized.
