@@ -21,7 +21,9 @@ class V1011Tests(unittest.TestCase):
   c=COVARIATES[0];e.loc[m,c]=e.loc[m,c]+8.5
   d,_=percentile_sensitivity(p,e);z=d.set_index("range")
   self.assertEqual(int(z.loc["central_98","nonoverlap_dimensions"]),0)
-  self.assertEqual(int(z.loc["central_98","pairs_both_endpoints_in_joint_support"]),1)
+  self.assertGreater(int(z.loc["central_98","joint_support_separation_n"]),0)
+  self.assertGreater(int(z.loc["central_98","joint_support_retest_n"]),0)
+  self.assertEqual(int(z.loc["central_98","pairs_both_endpoints_in_joint_support"]),0)
   self.assertEqual(int(z.loc["central_80","nonoverlap_dimensions"]),1)
   self.assertEqual(int(z.loc["central_80","pairs_both_endpoints_in_joint_support"]),0)
  def test_disjoint_dimension_empties_joint_support(self):
