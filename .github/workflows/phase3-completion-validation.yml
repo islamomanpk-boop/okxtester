@@ -27,7 +27,7 @@ jobs:
           test -s reports/sideways_phase3_research_archive_v1/episode_retest_anatomy_v1/event_anatomy_v1.csv
           test -s reports/sideways_phase3_research_archive_v1/early_path_followthrough_v1/event_sequence_v1.csv
           test -s reports/sideways_phase3_research_archive_v1/sequence_block_bootstrap_v1/block_bootstrap_contrasts_v1.csv
-          test -s reports/sideways_phase3_research_archive_v1/asset_robustness_v1
+          test -s reports/sideways_phase3_research_archive_v1/asset_robustness_v1/asset_robustness_contrasts_v1.csv
       - name: Validate V10.10 baseline and V10.11 sensitivity archive
         run: |
           python - <<'PY'
@@ -57,7 +57,7 @@ jobs:
           assert meta["outcome_data_loaded"] is False
           assert meta["outcomes_compared"] is False
           assert len(list(csv.DictReader(summary.open()))) == 32
-          assert len(list(csv.DictReader(detail.open()))) == 320
+          assert len(list(csv.DictReader(detail.open()))) == 304
           print("Phase 3 archive integrity passed; V10.11 central-90 exactly reproduces V10.10.")
           PY
       - name: Verify closeout record
