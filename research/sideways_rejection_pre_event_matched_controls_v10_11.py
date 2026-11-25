@@ -23,6 +23,7 @@ def percentile_sensitivity(pairs,eligible):
   ids=set(cohort.separation_event_id)|set(cohort.retest_event_id)
   if not ids.issubset(set(ev.index)): raise ValueError("Matched endpoint absent from frozen eligible cohort")
   sep=ev.loc[cohort.separation_event_id]; ret=ev.loc[cohort.retest_event_id]
+  if not (sep.sequence_class.eq(CLASSES[0]).all() and ret.sequence_class.eq(CLASSES[1]).all()): raise ValueError("Matched endpoints must belong to their designated event classes")
   if not ((sep.asset.to_numpy()==ret.asset.to_numpy()).all() and (sep.direction.to_numpy()==ret.direction.to_numpy()).all()): raise ValueError("Matched endpoint asset/direction mismatch")
   if not ((sep.definition.to_numpy()==definition).all() and (ret.definition.to_numpy()==definition).all()): raise ValueError("Matched endpoint definition mismatch")
   for (asset,direction),g in cohort.groupby(["asset","direction"],sort=True):
