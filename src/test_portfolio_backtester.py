@@ -2,7 +2,7 @@ import unittest
 
 from portfolio_backtester import (
     PortfolioBacktestConfig,
-    run_portfolio_backtest,
+    run_portfolio_backtest as _run_portfolio_backtest,
 )
 from performance_metrics import summarize_portfolio_metrics
 
@@ -49,6 +49,43 @@ def config(fee=0.0, slippage=0.0, record_equity_curve=True):
         taker_fee_rate=fee,
         slippage_bps=slippage,
         record_equity_curve=record_equity_curve,
+    )
+
+
+def funding_contract_for_test(bars, events=None):
+    events = list(events or [])
+    first_ts = int(bars[0]["ts"])
+    last_ts = int(bars[-1]["ts"])
+    interval = 28_800_000
+    schedule_start = int(events[0]["funding_time"]) if events else last_ts + interval
+    schedule_end = int(events[-1]["funding_time"]) if events else schedule_start
+    exact = bool(events) and all(event.get("mark_price") is not None for event in events)
+    return {
+        "events": events,
+        "coverage": {
+            "instrument_name": "BTC-USDT-SWAP",
+            "source_sha256": "a" * 64,
+            "coverage_start_ms": first_ts - 1,
+            "coverage_end_ms": last_ts,
+            "schedule_id": "test_schedule_v1",
+            "schedule_start_ms": schedule_start,
+            "schedule_interval_ms": interval,
+            "schedule_end_ms": schedule_end,
+            "event_window_start_ms": first_ts - 1,
+            "event_window_end_ms": last_ts,
+            "mark_price_mode": "exact" if exact else "candle_close_proxy",
+        },
+    }
+
+
+def run_portfolio_backtest(bars_by_asset, candidates, funding_by_asset, config):
+    contracts = {
+        asset: funding_contract_for_test(bars, funding_by_asset[asset])
+        for asset, bars in bars_by_asset.items()
+        if asset in funding_by_asset
+    }
+    return _run_portfolio_backtest(
+        bars_by_asset, candidates, contracts, config
     )
 
 
@@ -226,7 +263,7 @@ class PortfolioBacktesterTests(unittest.TestCase):
 
     def test_missing_funding_asset_is_rejected(self):
         bars = {"BTC": make_bars([(100, 100.2, 99.8, 100)] * 2)}
-        with self.assertRaisesRegex(ValueError, "Funding data key missing"):
+        with self.assertRaisesRegex(ValueError, "Funding contract missing"):
             run_portfolio_backtest(bars, [], {}, config())
 
     def test_unsynchronized_asset_timestamps_are_rejected(self):
