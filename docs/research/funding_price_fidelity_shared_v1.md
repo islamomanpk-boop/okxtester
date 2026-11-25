@@ -104,3 +104,29 @@ Any demo test must:
 - Treat a successful demo response strictly as an integration/authentication test, not as evidence that actual account funding bill `px` records are available or validated.
 
 The next meaningful production-settlement validation still requires a separate read-only real-account key or another independently sourced real account bill sample. Until then, the account-bill route remains a promising but unvalidated candidate and G0-03 remains OPEN.
+
+
+## Full-window public mark-candle coverage — 2026-11-25
+
+The full-window audit is recorded in [Phase 3 full-window mark-price coverage audit V1](../research_checkpoints/2026-11-25_phase3_full_window_mark_price_coverage_audit_v1.md). It used the committed PASS funding coverage manifest (1,188 events per asset, identical timestamps, no gaps or irregular intervals) and the public `history-mark-price-candles` endpoint.
+
+Results:
+- 5,940/5,940 funding timestamps matched exact 4H mark-candle opening timestamps.
+- 2,375 4H mark candles per asset; all confirmed; zero gaps and zero missing funding-time candles.
+- A 60-point 1M mark-candle sample (12 per asset) returned 60/60 exact rows, all confirmed. The 1M mark-candle open equalled the 4H mark-candle open exactly at all 60 timestamps.
+- The VPS 1M trade export covered all 1,188 funding timestamps per asset. The independent hosted-runner comparison using canonical Git trade data covered 1,185/1,188 per asset; the three omitted events per asset are canonical data-window boundaries, not missing mark candles.
+
+The pooled mark-4H-open versus trade-1M-open difference across 5,940 events had median -0.023 bps, p05 -2.073, p95 +1.072, p99 +2.122, and mean absolute difference 0.650 bps (observed range -8.236 to +5.563 bps). By comparison, mark-4H-open versus trade-1M-close had median 0.000 bps, p05 -16.217, p95 +15.428, p99 +29.380, and mean absolute difference 7.514 bps (observed range -190.710 to +363.923 bps). The trade 1M open is therefore much closer to the mark-open proxy than the trade 1M close in this sample. The 4H candle close is four hours later and must not be used as the settlement-time proxy.
+
+### Updated recommended policy direction (not yet accepted)
+
+The best-supported public candle-derived proxy candidate is the **4H mark-candle open at the exact funding timestamp**, equivalent to the 1M mark-candle open at the timestamp on the 60-point cross-resolution sample. It has full timestamp coverage in the audited window and is a mark-price series rather than a trade-price series.
+
+- Keep `exact` mode reserved for an independently supplied, verified settlement mark. A candle value must never be labelled exact.
+- Consider adding an explicit `mark_candle_open_proxy` mode for research use, with the proxy source and approximation disclosed in result metadata.
+- Retain the current `candle_close_proxy` as a legacy sensitivity comparator, not as an unlabelled exact mark.
+- Before strategy PnL backtests, test funding cashflows under both proxy modes and stress observed mark-vs-trade differences.
+
+This is a research recommendation only. The current engine contract has not been changed; `mark_candle_open_proxy` has not been implemented or accepted. Exact settlement-price equivalence remains unverified. The OKX account-bills `px` field for funding-fee bill subtypes 173/174 remains the best candidate for an independent real-account settlement cross-check; no production bills were accessed.
+
+G0-03/G0-09 remain OPEN, Gate 0 remains CONDITIONAL HOLD, and strategy PnL backtests remain unauthorized.
