@@ -236,19 +236,17 @@ The first cross-repository inventory and Gate 1 lifecycle reconciliation are rec
 
 ## 10. Immediate next action
 
-Continue content-level reconciliation of the Phase 3 archive and Gate 0 dependencies. In order:
-1. Resolve VPS source/event availability and provenance, and build/test the separate three-family Phase 3 range candidate generator.
-2. Reconcile VPS market/funding inputs with canonical sources; verify runtime funding integration and exact settlement mark-price policy.
-3. Verify fee schedules, instrument/contract specifications, lot/tick rounding and execution-engine real-input readiness.
-4. Close each Gate 0 blocker with reproducible evidence, then issue an explicit Gate 0 decision.
-5. Only after Gate 0 is formally passed may Gate 2 execution-resolution research begin. Gates 3–7 remain sequentially closed; no strategy PnL backtest is authorized.
+Continue Gate 0 evidence reconciliation; do not implement a candidate generator yet. The causal-timing audit has identified an unresolved live-regime calibration decision, and the existing descriptive labels are not eligible as live signals.
 
-**Project rule:** The assistant owns continuity, organization, and status tracking. The user should not have to remember filenames, completed studies, or governance rules.
+1. **Reconcile existing 1M-to-15M/4H aggregation evidence before repeating work.** The checkpoints `docs/research_checkpoints/2026-11-22_1m_to_15m_4h_aggregation_audit.md` and `docs/research_checkpoints/2026-11-23_termux_15m_4h_ohlcv_aggregation_pass.md` already report exact OHLCV matches for five assets (37,941 15M bars and 2,370 4H bars per asset) using epoch-anchored, left-closed, left-labelled complete buckets. This establishes aggregation equivalence for the files compared in those audits; it does not establish the original acquisition lineage, that the compared local files are byte-identical to every current canonical snapshot, or VPS runtime equivalence. Verify the audit inputs/manifests and preserve those scope limits.
+2. Resolve canonical 1M source acquisition provenance, original OKX instrument/volume semantics, and VPS downloader/runtime lineage. Do not infer provenance from matching asset names or matching OHLCV alone.
+3. Specify and compare past-only regime-threshold calibration policies without optimizing strategy PnL. Record the calibration window, warm-up, update cadence, availability timestamp and leakage tests. Freeze no policy until its rationale and validation criteria are documented.
+4. Resolve the remaining family-specific causal definitions and source-availability requirements for rejection, breakout continuation and failed-breakout reversal. Align immutable candidate IDs, regime versions, boundaries, confirmation/availability timestamps, first eligible 1M bars, expiry/invalidation and overlap/de-clustering.
+5. Reconcile VPS market/funding inputs with canonical sources; verify runtime funding integration and exact settlement mark-price policy.
+6. Verify fee schedules, instrument/contract specifications, lot/tick rounding and execution-engine real-input readiness.
+7. Close each Gate 0 blocker with reproducible evidence, then issue an explicit Gate 0 decision. Only after Gate 0 is formally passed may Gate 2 execution-resolution research begin. Gates 3–7 remain sequentially closed; no strategy PnL backtest is authorized.
 
-
-- Module B same-revision reproducibility is now confirmed: [workflow 45645349572](https://github.com/islamomanpk-boop/okxtester/actions/runs/45645349572) repeated the 23-test suite and frozen historical generation with analysis code, tests, inputs and schema unchanged; the output-commit step found no report changes. The formal closeout is now complete; the five unbenchmarked fields are explicitly descriptive-only. See register Section 12.12 and the closeout report.
-- The first enhanced Gate 0 scan was found to contain self-match/cross-category false positives and was explicitly invalidated in register Section 12.9. The corrected read-only audit [45647247070](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45647247070) passed all steps on `okxtester_private@main` `87e80fbb71d2ffae0d7498bf17384807aec7b356`. It found no candidate event data, signal timestamps, funding history, fees, provenance records or execution engine in the inspected VPS roots; SQLite integrity is OK with 2,890,411 candle rows. This is scoped inventory evidence only, not proof of global absence or Gate 0 acceptance. Gate 0 remains CONDITIONAL HOLD. Details: register Section 12.11.
-
+**Candidate-generation rule:** source/timing audits and protocol design may continue, but do not build or run the candidate generator until the past-only regime policy and three-family candidate contract are formally frozen and the Gate 0 governance permits implementation.
 
 ## Latest Gate 0 evidence update — 2026-11-25
 
