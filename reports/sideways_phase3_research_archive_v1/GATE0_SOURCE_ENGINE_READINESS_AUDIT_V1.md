@@ -306,3 +306,32 @@ For the single-trade engine, make funding input/coverage explicit rather than de
 - Portfolio and single-trade engines agree on identical position/event/mark inputs.
 
 **Current decision:** funding-data coverage (G0-01/G0-02) is verified for the audited Termux files. Engine fail-closed integration (G0-03) remains **OPEN / CRITICAL**. No Phase 3 strategy PnL backtest is authorized until this and the other Gate 0 blockers are resolved.
+
+
+## 13. Post-audit funding contract migration and focused CI acceptance — 2026-11-25
+
+**This section supersedes the earlier Sections 12 / 12 duplicate findings about optional empty funding inputs.** Those sections describe the pre-migration implementation and are retained as history, not as the current code state.
+
+Current source review confirms:
+- `src/execution_engine.py:simulate_trade(..., funding_contract)` now requires an explicit funding contract; there is no default empty funding-event iterable. Before simulation it calls `validate_funding_contract` and validates the trade holding window against declared coverage.
+- `src/portfolio_backtester.py:run_portfolio_backtest(..., funding_by_asset, ...)` requires explicit funding input. Its `_validate_funding` passes every asset contract through the shared coverage validator and checks settlement timestamps against the synchronized 1M execution timeline.
+- `src/funding_coverage.py` validates required coverage metadata, source SHA-256 format, instrument identity, coverage and event-window bounds, versioned schedule, expected settlement timestamps, ordered/unique events, finite bounded funding rates, explicit `exact` or `candle_close_proxy` mode, and positive finite marks when present. An empty event list is accepted only if the declared schedule proves no settlement is expected in the event window.
+- `src/run_exit_experiments.py` verifies each local funding CSV against the archived five-asset manifest (hash, instrument, row count, endpoints, ordering and rate checks), builds an explicit contract, and labels the current mark mode `candle_close_proxy`.
+- Focused workflow run **45624704814** completed successfully after the compile-command correction: https://github.com/islamomanpk-boop/okxtester/actions/runs/45624704814. The compile step and all seven focused test groups passed.
+
+### Revised blocker disposition
+
+| ID | Current disposition | Remaining evidence |
+|---|---|---|
+| G0-01 | **CLOSED** for the audited five local processed files | Actual Termux audit manifest and hashes in Section 11 |
+| G0-02 | **CLOSED** for the audited Termux execution environment | Actual five-file coverage audit; local files remain outside Git |
+| G0-03 | **PARTIALLY CLOSED / ACCEPTANCE OPEN** | Fail-closed contracts are integrated and focused CI passes. Still require a reproducible real-input integration check linking the archived local manifest/source hashes through the actual execution path, plus explicit acceptance of the mark-price mode. |
+| G0-04 | **OPEN / CRITICAL** | Frozen Phase 3 event ledger, stable event IDs, source provenance, de-clustering and end-to-end causal availability audit |
+| G0-05 | **OPEN / CRITICAL** | Separate three-family Phase 3 range candidate generator and tests; current Model A engine remains trend-only |
+| G0-06 | **OPEN / HIGH** | Limit/expiry/cancellation/partial/missed-fill support only after Gate 2/3 defines the needed order types |
+| G0-07 | **PARTIALLY CLOSED / OPEN** | Portfolio sizing includes estimated entry and stop-exit slippage plus entry/exit taker fees. Standalone single-trade sizing does not; contract lot/tick rounding and gap-through-stop risk remain unverified. |
+| G0-08 | **OPEN / HIGH** | Verify exact instrument multiplier, lot size, tick size, minimum order and applicable historical fee tier; current fees are scenario assumptions |
+| G0-09 | **OPEN / HIGH** | Historical mark-price candle probe exists, but exact settlement valuation is not established. Current candle-close mode is a proxy and must be disclosed/sensitivity-tested. |
+| G0-10 | **OPEN / MEDIUM** | Reconcile documentation that says market candles are local with the fact that five 1M CSVs are tracked in the canonical Git tree. |
+
+**Revised Gate 0 decision remains CONDITIONAL HOLD.** The former missing-funding-input vulnerability has been materially addressed in code and focused tests; it is no longer accurate to describe the current public engine signature as silently defaulting to an empty funding list. However, G0-03 is not fully accepted until the real-input integration and mark-policy evidence are complete. G0-04 and G0-05 remain critical, so Phase 3 strategy PnL backtests remain **NOT AUTHORIZED**.
