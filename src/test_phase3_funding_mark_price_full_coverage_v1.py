@@ -1,5 +1,8 @@
 import unittest
+import hashlib
+import tempfile
 from decimal import Decimal
+from pathlib import Path
 
 from phase3_funding_mark_price_full_coverage_v1 import (
     bps_difference,
@@ -7,6 +10,7 @@ from phase3_funding_mark_price_full_coverage_v1 import (
     distribution,
     evenly_spaced,
     percentile,
+    write_mark_snapshot,
 )
 
 
@@ -75,6 +79,26 @@ class Phase3FundingMarkPriceAuditTests(unittest.TestCase):
     def test_evenly_spaced_caps_to_available_values(self):
         self.assertEqual(evenly_spaced([1, 2], 12), [1, 2])
 
+
+    def test_write_mark_snapshot_creates_stable_csv_and_hash(self):
+        row = {
+            "asset": "BTC",
+            "inst_id": "BTC-USDT-SWAP",
+            "funding_time_ms": 1760918400000,
+            "mark_open": "100",
+            "mark_high": "101",
+            "mark_low": "99",
+            "mark_close": "100.5",
+            "confirm": 1,
+            "bar": "4H",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "mark.csv"
+            digest = write_mark_snapshot(path, [row])
+            self.assertTrue(path.is_file())
+            self.assertEqual(digest, hashlib.sha256(path.read_bytes()).hexdigest())
+            self.assertIn("funding_time_ms", path.read_text(encoding="utf-8"))
+            self.assertIn("BTC-USDT-SWAP", path.read_text(encoding="utf-8"))
 
 if __name__ == "__main__":
     unittest.main()
