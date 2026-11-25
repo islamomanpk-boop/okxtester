@@ -8,6 +8,7 @@ from portfolio_engine import PortfolioConfig, allocate_candidates
 from trailing_exit import validate_trailing_settings, update_trailing_state
 from exit_experiment_config import resolve_exit_prices
 from compact_bar_series import TimestampBarLookup
+from funding_coverage import validate_funding_contract, validate_trade_funding_window
 
 
 class PortfolioBacktestConfig:
@@ -123,33 +124,17 @@ def _validate_bars_by_asset(bars_by_asset):
     return reference
 
 
-def _validate_funding(bars_by_asset, funding_by_asset):
-    if not isinstance(funding_by_asset, dict):
-        raise ValueError("Explicit funding data is required for every asset")
-
-    for asset in bars_by_asset:
-        if asset not in funding_by_asset:
-            raise ValueError(f"Funding data key missing for {asset}")
-
-        previous = None
-        for event in funding_by_asset[asset]:
-            if "funding_time" not in event or "funding_rate" not in event:
-                raise ValueError(f"{asset} funding event is missing fields")
-
-            ts = int(event["funding_time"])
-            rate = float(event["funding_rate"])
-
-            if not math.isfinite(rate) or not -1 <= rate <= 1:
-                raise ValueError(f"{asset} has invalid funding rate")
-            if previous is not None and ts <= previous:
-                raise ValueError(f"{asset} funding events must be chronological")
-
-            if event.get("mark_price") is not None:
-                mark = float(event["mark_price"])
-                if not math.isfinite(mark) or mark <= 0:
-                    raise ValueError(f"{asset} has invalid funding mark price")
-
-            previous = ts
+def _validate_funding(bars_by_asset, funding_by_asset, timestamps):
+    """Validate explicit coverage contracts and the 1m settlement timeline."""
+    normalized = validate_funding_contract(bars_by_asset, funding_by_asset)
+    timeline = set(timestamps)
+    for asset, contract in normalized.items():
+        for event in contract["events"]:
+            if int(event["funding_time"]) not in timeline:
+                raise ValueError(
+                    f"{asset} funding settlement does not align with the 1m execution timeline"
+                )
+    return normalized
 
 
 def _validate_candidates(candidates, bars_by_asset, timestamps):
@@ -299,7 +284,9 @@ def run_portfolio_backtest(
     """
     config.validate()
     timestamps = _validate_bars_by_asset(bars_by_asset)
-    _validate_funding(bars_by_asset, funding_by_asset)
+    validated_funding = _validate_funding(
+        bars_by_asset, funding_by_asset, timestamps
+    )
 
     scheduled = _validate_candidates(
         candidates, bars_by_asset, timestamps
@@ -313,7 +300,7 @@ def run_portfolio_backtest(
 
     funding_at = {asset: {} for asset in assets}
     for asset in assets:
-        for event in funding_by_asset[asset]:
+        for event in validated_funding[asset]["events"]:
             funding_at[asset].setdefault(
                 int(event["funding_time"]), []
             ).append(event)
@@ -399,12 +386,19 @@ def run_portfolio_backtest(
             "exit_fee": exit_fee,
             "total_fees": position["entry_fee"] + exit_fee,
             "net_pnl": net_pnl,
+            "funding_mark_price_mode": validated_funding[asset]["coverage"]["mark_price_mode"],
+            "funding_source_sha256": validated_funding[asset]["coverage"]["source_sha256"],
+            "funding_instrument_name": validated_funding[asset]["coverage"]["instrument_name"],
+            "funding_schedule_id": validated_funding[asset]["coverage"]["schedule_id"],
+            "funding_settlements_applied": len(validate_trade_funding_window(
+                asset, position["entry_time"], int(exit_time), validated_funding[asset]
+            )),
             "exit_reason": reason,
         })
 
     for ts in timestamps:
         # 1. Apply funding to positions open before this settlement time.
-        # The candle close is a documented proxy if mark_price is absent.
+        # Proxy marks are used only when explicitly selected in coverage metadata.
         for asset in assets:
             position = positions.get(asset)
             if position is None or position["entry_time"] >= ts:
@@ -414,6 +408,8 @@ def run_portfolio_backtest(
             for event in funding_at[asset].get(ts, []):
                 mark = event.get("mark_price")
                 if mark is None:
+                    if validated_funding[asset]["coverage"]["mark_price_mode"] != "candle_close_proxy":
+                        raise ValueError(f"{asset} exact funding mark price is missing")
                     mark = float(bar["close"])
 
                 funding_pnl = (
