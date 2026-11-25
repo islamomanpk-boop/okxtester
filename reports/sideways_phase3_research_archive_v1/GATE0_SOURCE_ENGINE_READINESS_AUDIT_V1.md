@@ -104,7 +104,7 @@ Every candidate must carry a stable event ID, family, asset, side, boundary type
 
 Issues requiring resolution:
 - `simulate_trade(..., funding_events=())` permits funding to be omitted and then records zero funding PnL. This conflicts with the policy that missing funding must never be silently treated as zero.
-- Initial position sizing uses stop distance and leverage cap, but does not reserve for entry/exit fees or adverse slippage; realized loss can exceed the nominal 0.5% risk budget.
+- The single-trade `size_position` path sizes from stop distance and exposure cap only; it does not reserve for entry/exit fees or adverse slippage. The integrated portfolio path does include an effective per-unit risk term for entry/stop-exit slippage and both taker fees before allocation (see lines around the `effective_risk_per_unit` calculation in `src/portfolio_backtester.py`). Stop gaps can still make realized losses exceed the nominal risk budget.
 - No maker limit entry, order expiry, cancellation, partial fill, or missed-fill model exists in this engine.
 - Funding uses an exact mark only if supplied; otherwise it uses the 1M close at the settlement timestamp as a proxy. This must be labelled as an approximation and sensitivity-tested.
 - End-of-data liquidation at final close is a simulation convention; it must not hide incomplete trade horizons or data-end censoring.
@@ -115,7 +115,7 @@ Issues requiring resolution:
 
 The documentation and code inspection identify:
 - Limit orders, expiry and setup invalidation are not implemented.
-- Fees/slippage are charged in PnL but are not fully included in initial risk sizing.
+- The portfolio backtester currently calculates cost-adjusted `risk_per_unit` from entry and stop-exit slippage plus entry/exit taker fees and passes it to the allocator. This is stronger than the older documentation states. It still does not cover stop-gap losses, contract lot/tick rounding, or prove exchange-specific fee assumptions. The standalone single-trade engine remains stop-distance-only for sizing.
 - Funding mark-price fallback is a 1M close proxy.
 - Candidate generation from actual Phase 3 signal/regime data is not integrated.
 - Funding validation requires a mapping key for every asset but accepts an empty event list. A separate coverage validator is required to distinguish a genuinely complete interval with no settlement from missing funding data.
@@ -136,7 +136,7 @@ Before strategy results are trusted, test contract sizing/lot rounding, tick rou
 | G0-04 | Phase 3 event ledgers are descriptive; frozen live-knowable candidate schema/availability not yet proven end-to-end | Critical | Candidate protocol, source linkage, event IDs, causal timing audit |
 | G0-05 | Current candidate engine is trend-only and suppresses NO_TREND; it is not a range strategy generator | Critical | Separate Phase 3 three-family candidate generator and tests |
 | G0-06 | Limit orders, expiry, cancellation, partial/missed fills are not implemented | High | Implement only after Gate 2/3 establishes which entry rules need them |
-| G0-07 | Fees/slippage not included in initial risk sizing | High | Cost-aware quantity sizing and acceptance tests |
+| G0-07 | Portfolio path has cost-adjusted sizing, but standalone engine does not; gap loss and contract rounding remain unbounded/unverified | High | Add parity/acceptance tests, quantify gap risk, and apply contract constraints before accepting either path |
 | G0-08 | Exact fee tier, contract multiplier/lot size, tick size and minimum quantity not documented | High | Verified instrument/fee specification and frozen test assumptions |
 | G0-09 | Funding mark-price fallback is a close proxy | High | Exact mark-price source or explicitly approved conservative proxy/sensitivity |
 | G0-10 | Documentation says raw market data local, but 1M CSVs are tracked in Git | Medium | Reconcile storage/provenance/retention documentation |
@@ -182,3 +182,10 @@ A second inspection of `src/backtest_input_preflight.py` and the saved reports r
 Therefore, the reports are not proof of a same-run contradiction. The remaining issue is **current reproducibility and completeness**, not whether a later run once found files. The saved preflight does not record SHA-256 hashes and does not test the expected settlement cadence for gaps; the funding reconciliation report records 1,187 eight-hour intervals per asset, but its source CSVs remain outside Git. A fresh audit must run in the actual execution environment and produce hashes, exact file paths, instrument checks, duplicate checks, observed interval counts, and explicit missing-settlement analysis.
 
 The Gate 0 hold remains because (a) the files are local and cannot be confirmed from the Git tree alone, (b) the engine interfaces can accept empty funding inputs, and (c) the Phase 3 candidate and cost-aware risk issues remain open. This clarification does not authorize a backtest.
+
+
+## 9. Follow-up clarification — cost-aware portfolio sizing
+
+A deeper line-by-line inspection of `src/portfolio_backtester.py` and `src/portfolio_engine.py` refines the initial sizing finding. The portfolio backtester computes `effective_risk_per_unit` as the entry-to-adverse-stop-exit distance after slippage plus taker fees on entry and stop exit, then passes that as `risk_per_unit` to the allocator. The allocator uses this value to cap quantity against the configured 0.5% risk budget. Therefore, it is inaccurate to say the current portfolio path entirely omits fees/slippage from initial sizing.
+
+Remaining qualifications: the standalone `src/execution_engine.py:size_position` does not include fees/slippage; the portfolio calculation assumes the configured fee is appropriate and does not include exchange lot/tick rounding; and a gap through the stop can still exceed the planned cost-adjusted stop risk. Tests and documentation must distinguish planned stop-risk sizing from a hard maximum-loss guarantee.
