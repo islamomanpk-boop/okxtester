@@ -177,6 +177,20 @@ def fetch_funding_api(asset: str) -> dict[int, Decimal]:
     return records
 
 
+def merge_funding_records(
+    archive: dict[int, Decimal],
+    api: dict[int, Decimal],
+    tolerance: Decimal = Decimal("0.000000000001"),
+) -> tuple[dict[int, Decimal], int]:
+    overlap = set(archive) & set(api)
+    conflicts = [ts for ts in overlap if abs(archive[ts] - api[ts]) > tolerance]
+    if conflicts:
+        raise ValueError(f"{len(conflicts)} archive/API realized-rate conflicts")
+    combined = dict(archive)
+    combined.update(api)
+    return combined, len(overlap)
+
+
 def load_funding_events(asset: str, months: list[str]) -> tuple[list[int], dict]:
     archive: dict[int, Decimal] = {}
     archive_months_ok = 0
@@ -190,16 +204,7 @@ def load_funding_events(asset: str, months: list[str]) -> tuple[list[int], dict]
         time.sleep(0.15)
 
     api = fetch_funding_api(asset)
-    overlap = set(archive) & set(api)
-    mismatches = [
-        ts for ts in overlap
-        if abs(archive[ts] - api[ts]) > Decimal("0.000000000001")
-    ]
-    if mismatches:
-        raise ValueError(f"{asset}: {len(mismatches)} archive/API realized-rate conflicts")
-
-    combined = dict(archive)
-    combined.update(api)
+    combined, overlap_count = merge_funding_records(archive, api)
     events = sorted(combined)
     if len(events) != EXPECTED_ROWS:
         raise ValueError(f"{asset}: expected {EXPECTED_ROWS} funding events, found {len(events)}")
@@ -213,8 +218,8 @@ def load_funding_events(asset: str, months: list[str]) -> tuple[list[int], dict]
         "archive_months_downloaded": archive_months_ok,
         "archive_rows": len(archive),
         "api_rows_in_window": len(api),
-        "archive_api_overlap": len(overlap),
-        "rate_conflicts": len(mismatches),
+        "archive_api_overlap": overlap_count,
+        "rate_conflicts": 0,
         "merged_rows": len(events),
         "first_timestamp_ms": events[0],
         "last_timestamp_ms": events[-1],
