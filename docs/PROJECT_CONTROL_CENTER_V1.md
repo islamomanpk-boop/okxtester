@@ -224,8 +224,23 @@ After working:
 - Reconcile supporting-repository work into the canonical record without blindly copying.
 - Give the user a concise plain-language report: what changed, evidence, decision, limitations, and next step.
 
-## 9. Immediate next action
+## 9. Repository reconciliation status — 2026-11-25
 
-Do not start a new Phase 3 experiment yet. First complete a repository-wide reconciliation of the two known repositories and the Phase 3 archive against the eight-gate roadmap. Build an evidence-backed register of every existing study, script, test, report, workflow, artifact, status, limitations, and gate mapping. This will prevent duplicate work and replace informal progress estimates with a traceable project record.
+The first cross-repository inventory and Gate 1 lifecycle reconciliation are recorded in `docs/research_checkpoints/2026-11-25_repository_reconciliation_checkpoint_02.md` and `docs/research_checkpoints/2026-11-25_phase3_moduleB_independent_review_timing_finding.md`.
+
+- Canonical `okxtester@price-action-v1`: recursive tree inspected at commit `e025e1188c266b2c678b47de7953a65aa0a4ee30`; 1,360 tracked blobs (1,421 tree entries including 61 directories). Counts: 34 workflows, 48 research Python files, 38 test Python files, 1,001 report files, 163 docs, 68 shared source files, five tracked 1M market datasets, and one helper script.
+- Supporting `okxtester_private@main`: recursive tree inspected at `ad5aac7294f0650e800ad834a1642f335915a649`; 12 tracked blobs (three research scripts and nine workflows). It remains supporting VPS/data infrastructure, not a replacement for the canonical research archive.
+- Supporting Phase 3 range-measurement and Gate 0 inventory workflow results are linked in the register. Their successful execution is not a Gate 0 pass. The VPS inventory did not find event/signal timestamps, funding history, fee history or an execution engine in its inspected roots; the separate canonical Termux funding-file audit does not prove those inputs are installed or consumed by the VPS runtime.
+- Module B event/horizon and group-summary outputs have been independently reconciled. Formal Module B closeout remains open because the five lifecycle retest fields are absent from the frozen forward benchmark and need explicit closeout treatment.
+- The older master checklist and five-gate supporting checklist remain historical aids; the eight-gate roadmap is controlling.
+
+## 10. Immediate next action
+
+Continue content-level reconciliation of the Phase 3 archive and Gate 0 dependencies. In order:
+1. Audit the remaining Module B closeout protocol criteria and document whether the five unbenchmarked lifecycle fields can be accepted as descriptive-only evidence or require further source reconstruction.
+2. Reconcile the VPS aligned-dataset/download pipeline, SQLite schema and data provenance against canonical five-asset source hashes, timestamps, instrument identity and the separately audited Termux funding files. Do not assume the two runtime environments share files.
+3. Review the Phase 3 source/event ledger availability timestamps and three-family candidate-generation dependency.
+4. Continue the remaining Gate 0 fee, instrument, settlement-mark and execution-engine acceptance blockers.
+5. Only after the above, issue an explicit Gate 0/Gate 1 decision and proceed to Gate 2 in order. No Phase 3 strategy PnL backtest is authorized while required gates remain open.
 
 **Project rule:** The assistant owns continuity, organization, and status tracking. The user should not have to remember filenames, completed studies, or governance rules.

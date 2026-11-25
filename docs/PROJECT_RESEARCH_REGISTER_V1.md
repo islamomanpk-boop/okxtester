@@ -47,7 +47,7 @@ The following statuses reflect archived code, tests, reports, and the formal sco
 | P3-11 | Five-asset 1M source quality and alignment | Prior preflight completed; runtime/source provenance reconciliation remains part of G0 | `reports/1m_data_quality_audit_2026-11-20.md`, `reports/cross_asset_timestamp_alignment.*`, `research/phase1_uptrend_data_preflight_v1.py` and test | G0; current market-data blobs are in Git despite an older doc saying raw data is local. Resolve documentation/source-of-truth discrepancy and freeze hashes. |
 | P3-12 | Funding coverage and source manifest | **Local five-file audit passed; fail-closed engine contract implemented and focused CI passed; strict real-input/mark-price acceptance remains open** | `src/funding_coverage.py`, `src/funding_coverage_audit.py`, tests, `docs/research_checkpoints/2026-11-25_funding_coverage_and_engine_callsite_inventory_v1.md`, funding manifest/report archive | G0/G5; `simulate_trade` now requires an explicit coverage contract; portfolio validates schedule and coverage; workflow run 45624704814 passed compile plus seven focused test groups. CI uses synthetic fixtures. Exact settlement marks remain unverified; current experiment loader labels candle-close proxy. Keep G0-03 partially implemented until remaining real-input integration and mark policy are accepted. |
 | P3-13 | Comprehensive rejection lifecycle (continuation/pullback, signal-level retests, depth, hold/failure, repeated crosses, candle anatomy) | **ACCEPTED — descriptive Module A complete** | `research/phase3_rejection_lifecycle_v1_1.py`, `tests/test_phase3_rejection_lifecycle_v1_1.py`, `reports/phase3_rejection_lifecycle_v1_1/PHASE3_REJECTION_LIFECYCLE_CLOSEOUT_V1_1.md` | G1; 1,992 events, 3,028 retest episodes, 7,968 horizon rows, 380 overlap clusters; 12 synthetic tests passed. No strategy/PnL inference. The old 2,095-cohort 1M follow-up remains superseded preliminary work and must not be reused. |
-| P3-14 | Comprehensive failed-breakout / reversal lifecycle | **Descriptive historical run complete; independent closeout pending** | `research/phase3_breakout_lifecycle_v1_1.py`, `tests/test_phase3_breakout_lifecycle_v1_1.py`, workflow run [45639123024](https://github.com/islamomanpk-boop/okxtester/actions/runs/45639123024), and `reports/phase3_breakout_lifecycle_v1_1/` | G1; 1,592 events, 6,368 event/horizon rows, 244 group summaries, 454 overlap clusters; 19 synthetic tests passed. Independent audit found no event/horizon timestamp, membership, or group-total inconsistencies. Five retest fields are absent from the frozen forward benchmark; descriptive only and not independently benchmarked. No orders/fills/costs/PnL. Keep Module B open pending formal closeout and register reconciliation. |
+| P3-14 | Comprehensive failed-breakout / reversal lifecycle | **Descriptive historical run complete; formal closeout pending** | `research/phase3_breakout_lifecycle_v1_1.py`, `tests/test_phase3_breakout_lifecycle_v1_1.py`, workflow run [45639123024](https://github.com/islamomanpk-boop/okxtester/actions/runs/45639123024), and `reports/phase3_breakout_lifecycle_v1_1/` | G1; 1,592 events, 6,368 event/horizon rows, 244 group summaries, 454 overlap clusters; 19 synthetic tests passed. Independent audit found no event/horizon timestamp, membership, or group-total inconsistencies. Five retest fields are absent from the frozen forward benchmark; descriptive only and not independently benchmarked. No orders/fills/costs/PnL. Keep Module B open pending formal closeout. |
 | P3-15 | Same-signal execution resolution comparison (1M/3M/5M/15M) | Open | Controlling roadmap only | G2; same completed 15M cohort, first eligible execution bar at/after signal availability. |
 | P3-16 | Candidate entry definitions and realistic fill/miss rules | Open | Existing execution-engine foundations/specifications; no Phase 3 entry study closeout | G3; market-style, pullback/limit, retest, and lower-timeframe confirmation hypotheses. OHLC touch is not guaranteed fill. |
 | P3-17 | Stop, target, and trade management | Open | Existing generic engine/backtest docs and code are infrastructure only | G4; freeze structural/volatility stop and target/management hypotheses before outcome testing. |
@@ -87,19 +87,19 @@ No file in this 12-file supporting snapshot was classified as unrelated to Price
 
 ## 6. Canonical repository snapshot and file classification
 
-The canonical recursive Git tree was inspected at `42ab2ed...`; GitHub reported **1,325 tracked blobs and tree not truncated**.
+Historical snapshot: the canonical recursive Git tree was inspected at `42ab2ed...` and reported 1,325 tracked blobs. The updated 2026-11-25 inventory at commit `e025e1188c266b2c678b47de7953a65aa0a4ee30` is recorded in Section 12 below; use that newer snapshot for current counts.
 
 Top-level tracked inventory:
 
 | Area | Tracked files | Classification |
 |---|---:|---|
-| `.github/workflows/` | 31 | Price Action research, funding tests, Phase 1 preflight, archive checks, and VPS monitoring; retain pending workflow-by-workflow review. |
+| `.github/workflows/` | 34 | Price Action research, funding tests, Phase 1 preflight, archive checks, and VPS monitoring; retain pending workflow-by-workflow review. |
 | `data/market_1m/` | 5 | Five core asset source datasets; retain. |
-| `docs/` | 157 | Governance, specifications, research, provenance, and checkpoints. Includes some legacy-project provenance investigations; do not bulk-delete. |
-| `reports/` | 981 | Research evidence and archives. Includes some clearly named EMA-pullback outputs and large generic exit-experiment archives requiring provenance review before cleanup. |
-| `research/` | 45 | Phase 3 studies, breakout studies, matched-control audits, Phase 1 source preflight, and historical provenance scripts. |
+| `docs/` | 163 | Governance, specifications, research, provenance, and checkpoints. Includes some legacy-project provenance investigations; do not bulk-delete. |
+| `reports/` | 1,001 | Research evidence and archives. Includes some clearly named EMA-pullback outputs and large generic exit-experiment archives requiring provenance review before cleanup. |
+| `research/` | 48 | Phase 3 studies, breakout studies, matched-control audits, Phase 1 source preflight, and historical provenance scripts. |
 | `src/` | 68 | Shared Price Action structure, signal, funding, execution, portfolio and audit components, plus separately named EMA-pullback code. |
-| `tests/` | 35 | Tests for the above study and shared components. |
+| `tests/` | 38 | Tests for the above study and shared components. |
 | `scripts/` | 1 | Repository sync helper; inspect before changing. |
 | root files | 2 | `.gitignore`, `README.md`. |
 
@@ -232,3 +232,52 @@ The protocol freezes the source populations, time-zero/availability conventions,
 2. **Next:** reproduce and hash the accepted breakout classifications, links, original-source identity and minute candles.
 3. Build and test Module B in isolation.
 4. Run Module B under the frozen protocol, archive all event-level evidence, and issue the overall Gate 1 closeout. Do not advance to Gate 2 until Module B passes or is formally rejected.
+
+
+## 12. Cross-repository and Phase 3 inventory update — 2026-11-25
+
+### 12.1 Canonical repository snapshot
+
+The full recursive tree for `islamomanpk-boop/okxtester@price-action-v1` was read at commit `e025e1188c266b2c678b47de7953a65aa0a4ee30`; GitHub reported no tree truncation. It contains 1,421 tree entries: 1,360 tracked blobs and 61 directories.
+
+| Area | Current tracked files |
+|---|---:|
+| `.github/workflows/` | 34 |
+| `data/market_1m/` | 5 |
+| `docs/` | 163 |
+| `reports/` | 1,001 |
+| `research/` | 48 |
+| `scripts/` | 1 |
+| `src/` | 68 |
+| `tests/` | 38 |
+| Root files | 2 |
+| **Total blobs** | **1,360** |
+
+A broad Phase 3/sideways/breakout filename filter finds 43 research Python files, 36 test Python files, and 30 workflows. This is an inventory filter, not a count of 43 accepted studies: it includes historical diagnostics, matched-control versions, superseded scripts and provenance investigations. Do not treat every matching file as current evidence.
+
+### 12.2 Supporting repository snapshot and role
+
+The separate private repository `islamomanpk-boop/okxtester_private@main` was inspected at commit `ad5aac7294f0650e800ad834a1642f335915a649`; its recursive tree contains 12 tracked blobs and is not truncated:
+- Three research scripts: `PHASE3_REMAINING_RESEARCH_PROGRAMME.md`, `phase3_range_measurement.py`, and `phase3_readiness_audit.py`.
+- Nine workflows: aligned dataset build, download monitor, final data audit, Phase 3 range measurement, Phase 3 readiness audit, VPS data audit/health monitor, and two safe-cleanup variants.
+
+The private repository's programme document explicitly marks itself as a historical condensed five-gate checklist and defers to the canonical eight-gate roadmap. Keep it as supporting documentation; do not copy it over the canonical roadmap.
+
+### 12.3 Supporting workflow evidence and limits
+
+- Range measurement run [45613180053](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45613180053) succeeded. Its script calculates exploratory ATR, Bollinger-width, rolling-range and momentum distributions from aligned 1M inputs aggregated into completed 15M, 4H and 1D bars. It is not an event ledger, signal generator, causal entry study or Gate 1 pass.
+- Gate 0 read-only inventory run [45620563733](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45620563733) succeeded and uploaded artifact `okx-phase3-gate0-readiness-inventory`. The report status is inventory-only. It found one SQLite `candles` table with 2,890,411 rows and candle timestamps, but no signal/event timestamp field or signal/event table in the inspected database; no funding-history, fee-history/configuration or execution-engine candidate was found in the inspected VPS project/repository roots. This is scoped absence, not proof those resources do not exist elsewhere.
+- Aligned dataset build run [45612158710](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45612158710), final data alignment audit [45611757117](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45611757117), and download/VPS monitor [45636441925](https://github.com/islamomanpk-boop/okxtester_private/actions/runs/45636441925) succeeded. These support data-pipeline/operational provenance only; they do not certify the Phase 3 event definitions or execution inputs.
+- The canonical Termux funding-file audit closed G0-01/G0-02 for five audited local processed funding files. That evidence does not establish that the VPS runtime has the same files, nor does it close exact settlement-mark valuation, fee/instrument assumptions or engine-side real-input integration.
+
+### 12.4 Phase 3 lifecycle evidence reconciled
+
+P3-13 rejection Module A remains accepted as a descriptive study under its own closeout report. P3-14 breakout Module B's historical run and output-level independent audit are complete; formal closeout remains pending. The independent audit checkpoint records the exact event/horizon/group reconciliation and limitations. Gate 1 remains PARTIAL / OPEN. No Gate 2 execution-resolution study is authorized until the controlling Gate 0 and Gate 1 dependencies are accepted.
+
+### 12.5 Remaining reconciliation work
+
+1. Finish the formal Module B closeout against every frozen protocol criterion, including explicit disposition of the five lifecycle retest fields missing from the frozen forward benchmark.
+2. Reconcile VPS SQLite/data-generation provenance and exact five-asset source/instrument identity with canonical 1M sources; do not assume the VPS and Termux environments are interchangeable.
+3. Verify Phase 3 signal/event availability timestamps and the three-family candidate-generation design required by G0.
+4. Close the remaining G0 funding mark-price, fee, instrument, and real-input engine integration blockers.
+5. Complete the report-manifest and workflow/artifact provenance audit for the remaining Phase 3 studies. The 1,001-file reports directory has not been read file-by-file; this register is an evidence-backed index, not a claim that every archived report has been individually reviewed.

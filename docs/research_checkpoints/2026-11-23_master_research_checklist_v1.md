@@ -19,6 +19,8 @@ The project has useful five-asset data-quality, market-behaviour, sideways-detec
 
 **Current phase:** Phase 3 — Sideways / Range. Finish the agreed Phase 3 research before moving to Phase 1 — Bullish / Uptrend, Phase 2 — Bearish / Downtrend, Phase 4 — Choppy / High Volatility, and Phase 5 — Transition / Expansion.
 
+**Superseding status note — 2026-11-25:** This checklist is a historical consolidated checklist, not the controlling gate source. The current eight-gate sequence is in `docs/research_checkpoints/2026-11-25_phase3_execution_and_backtest_roadmap_v1.md`. Rejection lifecycle Module A (P3-13) is accepted. Breakout failed-lifecycle Module B (P3-14) has completed its descriptive run and independent output reconciliation, but formal closeout remains open. Gate 1 is PARTIAL / OPEN; Gate 0 remains CONDITIONAL HOLD; Gate 2 onward remain closed/not authorized. Phase 1 handoff remains paused. See `docs/PROJECT_RESEARCH_REGISTER_V1.md` and `docs/research_checkpoints/2026-11-25_repository_reconciliation_checkpoint_02.md`.
+
 **Current coordination gate:** reconcile the remaining Phase 3 questions and choose the next descriptive study from the open work in Sections 3–7 and 13.3. Matched-control V2 was attempted but failed its matching-balance audit; it is not accepted evidence and is not the automatic next experiment.
 
 No strategy backtest, exit sweep, parameter optimization, profitability claim, or live-trading conclusion is authorized by this checklist.
