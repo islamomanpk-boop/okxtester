@@ -20,6 +20,8 @@ on:
       - src/run_exit_experiment_batch.py
       - src/verify_local_funding_manifest.py
       - src/inspect_okx_mark_price_history.py
+      - src/phase3_funding_mark_price_full_coverage_v1.py
+      - src/test_phase3_funding_mark_price_full_coverage_v1.py
       - research/inspect_okx_demo_readonly_api.py
       - .github/workflows/funding-engine-contract-tests.yml
 
@@ -71,7 +73,12 @@ jobs:
             src/run_exit_experiment_batch.py \
             src/verify_local_funding_manifest.py \
             src/inspect_okx_mark_price_history.py \
+            src/phase3_funding_mark_price_full_coverage_v1.py \
+            src/test_phase3_funding_mark_price_full_coverage_v1.py \
             research/inspect_okx_demo_readonly_api.py
+
+      - name: Run full-window mark-price audit helper tests
+        run: python -m unittest discover -s src -p 'test_phase3_funding_mark_price_full_coverage_v1.py' -v
 
       - name: Run funding coverage contract tests
         run: python -m unittest discover -s src -p 'test_funding_coverage.py' -v
