@@ -450,12 +450,17 @@ def _close_inward(event, close):
 
 
 def _first_condition_ts(event, bars, condition):
+    failed = False
     for bar in bars:
         flags = _boundary_flags(event, bar)
-        if condition in ("retest", "separation") and flags["close_through"]:
-            return None
-        if flags[condition]:
+        if condition == "retest" and not failed and flags["retest"]:
             return bar["ts"]
+        if condition == "separation" and not failed and flags["separation"]:
+            return bar["ts"]
+        if condition == "close_through" and flags["close_through"]:
+            return bar["ts"]
+        if flags["close_through"]:
+            failed = True
     return None
 
 
