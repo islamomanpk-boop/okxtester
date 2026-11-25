@@ -1,0 +1,15 @@
+{
+  "study": "Phase 3 V10.8 covariate imbalance persistence",
+  "input": "minimum_sample_sensitivity_detail_v10_7.csv",
+  "minimum_pair_thresholds": [
+    3,
+    5,
+    8,
+    10
+  ],
+  "imbalance_threshold_abs_smd": 0.1,
+  "covariate_rows": 56,
+  "design_rows": 192,
+  "outcome_data_loaded": false,
+  "interpretation": "Outcome-blind descriptive ranking; repeated designs are not independent observations; no cohort accepted for outcome comparison."
+}\n
