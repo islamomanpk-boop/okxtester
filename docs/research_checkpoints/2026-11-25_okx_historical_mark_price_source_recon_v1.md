@@ -181,3 +181,26 @@ Current decision:
 - Treat the account-bill `px` field as a high-priority candidate for exact realized funding mark validation, not yet as a globally validated data source.
 - Keep the public mark-candle close as a candle-derived proxy.
 - Keep `candle_close_proxy` unchanged, Gate 0 / G0-03 OPEN, and authoritative hypothetical strategy PnL backtests blocked pending validation and an explicit funding-price fidelity policy.
+
+
+## Additional official funding-mechanism semantics (2026-11-25)
+
+The current OKX help article on the perpetual funding-fee mechanism states:
+
+- Funding assessment is performed within milliseconds and may take up to one minute to complete. A position opened at the nominal funding clock time may still be included if assessment has not finished.
+- The funding rate used for fee assessment is the most recent rate calculated in the preceding minute.
+- Funding fee is position value multiplied by funding rate.
+- For USDT/USDC-margined perpetuals, the documented position value is number of contracts × contract size × contract multiplier × mark price.
+- For crypto-margined perpetuals, the documented position value is number of contracts × contract size × contract multiplier ÷ mark price.
+
+Official reference: https://www.okx.com/help/perps-funding-fee-mechanism (published 2020-12-21, updated 2026-10-28).
+
+### Reconciliation implications
+
+1. A public funding-history timestamp is a nominal event marker, not proof of the exact per-account assessment instant.
+2. The bill `ts` is a balance-update completion timestamp. Do not require exact equality between it and the nominal funding timestamp or assume that the nearest bill is necessarily the correct one.
+3. The applied funding rate may be the prior-minute rate. Preserve the rate timestamp and verify which historical rate corresponds to the assessment.
+4. Reconcile `px`, `sz`, `pnl`, `balChg`, `posBalChg`, `ccy`, and instrument contract metadata (`ctVal`, `ctMult`, `ctType`, settlement currency). Use the linear or inverse position-value formula appropriate to the actual contract.
+5. If bill rows aggregate multiple positions/legs or cannot be uniquely associated with a public settlement, label them unresolved; do not force one-to-one matching.
+
+This strengthens the account-bill route for validating actual realized account funding marks, but does not make it a universal historical mark feed for hypothetical positions. No change to the funding engine or G0-03 gate is justified yet.
