@@ -76,3 +76,11 @@ The real-data audit was run in the user's Termux environment against the five pr
 - `funding_coverage_audit_v1/funding_coverage_manifest.json`
 
 The raw/processed CSVs remain local and are not committed. The manifest records their hashes so the audited inputs can be identified. This closes the current-file-availability and coverage-evidence items (G0-01/G0-02) for that execution environment only. It does **not** verify funding cashflow application, mark-price provenance, or fail-closed engine behaviour; Gate 0 remains CONDITIONAL HOLD and strategy backtesting remains unauthorized.
+
+
+### Shared funding and execution-engine evidence — 2026-11-25
+
+The funding-rate coverage audit and engine call-site inventory are shared infrastructure evidence, retained for reuse across Phase 3 and later phases:
+- [Funding coverage and engine call-site inventory](../../docs/research_checkpoints/2026-11-25_funding_coverage_and_engine_callsite_inventory_v1.md)
+
+The inventory records the exact grep scope/results, engine definitions, test fixtures, and research-runner integrations. It does not close G0-03; fail-closed funding coverage validation remains required in both engines.
