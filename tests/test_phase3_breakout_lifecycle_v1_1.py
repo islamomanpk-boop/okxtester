@@ -10,6 +10,7 @@ from research.phase3_breakout_lifecycle_v1_1 import (
     find_outside_retest,
     first_1m_return_inside,
     first_15m_failure_and_reclaim,
+    _first_15m_close_after,
     compare_with_forward_archive,
     FORWARD_ARCHIVE_METRIC_PAIRS,
     FORWARD_ARCHIVE_UNAVAILABLE_FIELDS,
@@ -53,6 +54,20 @@ class BreakoutLifecycleTests(unittest.TestCase):
         lower = first_1m_return_inside("LOWER", 90.0, [bar(0, 89.8, 90.1, 89.7, 90.0)])
         self.assertEqual(upper["available_ts_ms"], 60_000)
         self.assertEqual(lower["available_ts_ms"], 60_000)
+
+    def test_retest_hold_requires_a_strictly_later_fifteen_minute_close(self):
+        bars15 = pd.DataFrame(
+            {"close": [100.2, 100.3]},
+            index=pd.to_datetime([
+                "2026-01-01T00:15:00Z",
+                "2026-01-01T00:30:00Z",
+            ]),
+        )
+        result = _first_15m_close_after(
+            bars15, pd.Timestamp("2026-01-01T00:15:00Z")
+        )
+        self.assertEqual(result["close_ts_ms"], 1767227400000)
+        self.assertAlmostEqual(result["close"], 100.3)
 
     def test_completed_fifteen_minute_failure_then_reclaim(self):
         rows = [(900_000, 100.2), (1_800_000, 99.9), (2_700_000, 100.1)]

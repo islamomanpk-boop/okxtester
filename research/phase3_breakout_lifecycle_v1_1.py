@@ -346,7 +346,9 @@ def _time_ms_or_blank(value):
 
 
 def _first_15m_close_after(bars15: pd.DataFrame, minute_close_ts: pd.Timestamp):
-    candidates = bars15.loc[bars15.index >= minute_close_ts]
+    # The 15M close must be strictly later than the retest candle's close.
+    # Equality means both observations become available simultaneously.
+    candidates = bars15.loc[bars15.index > minute_close_ts]
     if candidates.empty:
         return None
     ts = candidates.index[0]
