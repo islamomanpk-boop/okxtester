@@ -7,6 +7,7 @@ on:
       - src/execution_engine.py
       - src/portfolio_backtester.py
       - src/funding_coverage.py
+      - src/test_funding_coverage.py
       - src/test_execution_engine.py
       - src/test_portfolio_backtester.py
       - src/test_experiment_portfolio.py
@@ -55,6 +56,9 @@ jobs:
             src/test_trailing_portfolio.py \
             src/test_portfolio_engine.py \
             src/test_portfolio_safety.py
+
+      - name: Run funding coverage contract tests
+        run: python -m unittest discover -s src -p 'test_funding_coverage.py' -v
 
       - name: Run standalone execution engine tests
         run: python -m unittest discover -s src -p 'test_execution_engine.py' -v
