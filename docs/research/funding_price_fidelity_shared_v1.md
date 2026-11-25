@@ -130,3 +130,14 @@ The best-supported public candle-derived proxy candidate is the **4H mark-candle
 This is a research recommendation only. The current engine contract has not been changed; `mark_candle_open_proxy` has not been implemented or accepted. Exact settlement-price equivalence remains unverified. The OKX account-bills `px` field for funding-fee bill subtypes 173/174 remains the best candidate for an independent real-account settlement cross-check; no production bills were accessed.
 
 G0-03/G0-09 remain OPEN, Gate 0 remains CONDITIONAL HOLD, and strategy PnL backtests remain unauthorized.
+
+
+### Immutable event-time proxy candidate snapshot archived
+
+The 5,940 event-time 4H mark-candle rows are now preserved under `data/funding_mark_price_proxy_candidate_v1/`:
+- CSV SHA-256: `22e2894a8c467777f9ee90d5824deaf243a8b3d6e44ebff7f7d33b3e88c4cc82`
+- 5,940 rows, 1,188 per asset; all confirmed.
+- Manifest explicitly states that exact settlement mark is unverified, proxy policy is not accepted, and the engine mode is unchanged.
+- Snapshot commit: `adaf25d7a27c1e01def1a14a011c99be99186c67`.
+
+The file is a reproducible candidate input for future engine-policy work, not an approved exact-price source. Do not silently substitute it into existing backtests or accounting.
