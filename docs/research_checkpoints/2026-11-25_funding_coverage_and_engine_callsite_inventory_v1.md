@@ -84,6 +84,6 @@ Section 2 is the **pre-migration snapshot** supplied by the user's grep output. 
 - `src/run_cost_sensitivity.py`: consumes the migrated contracts and includes manifest hash and proxy-mode provenance in output metadata.
 - `src/run_exit_experiment_batch.py`: continues to reuse the shared input tuple and now passes the migrated funding contracts through the single-experiment runner.
 
-The dedicated workflow compiles the engines, loader, cost-sensitivity runner, batch runner, and focused test files. Exact-commit workflow run: https://github.com/islamomanpk-boop/okxtester/actions/runs/45545547488 — **PASS, 75 tests**.
+The dedicated workflow compiles the engines, loader, cost-sensitivity runner, batch runner, and focused test files. Exact-commit workflow run: https://github.com/islamomanpk-boop/okxtester/actions/runs/45545754508 — **PASS, 75 tests**.
 
 This migration checklist is based on the captured grep inventory plus the focused workflow. A fresh repository-wide text-match audit should still be run before any future public API change. The local CSVs are not in GitHub, so CI's synthetic loader tests do not replace verification against the user's actual local source files.
