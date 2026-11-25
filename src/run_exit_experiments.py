@@ -2,6 +2,8 @@
 
 import argparse
 import csv
+import hashlib
+import json
 import math
 from bisect import bisect_left, bisect_right
 from datetime import datetime, timezone
@@ -43,38 +45,84 @@ def trim_series_to_window(bars, start_ts, end_ts):
     return bars
 
 
-def load_funding(path, start_ts, end_ts):
-    """Load only funding events inside the shared execution window."""
-    events = []
+def load_funding_contract(path, asset, manifest_asset):
+    """Load the complete audited funding history and verify its manifest hash."""
+    path = Path(path)
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    if digest != manifest_asset["sha256"]:
+        raise ValueError(f"{asset}: funding CSV SHA-256 does not match archived manifest")
 
-    with Path(path).open(newline="", encoding="utf-8") as handle:
+    events = []
+    with path.open(newline="", encoding="utf-8-sig") as handle:
         reader = csv.DictReader(handle)
-        required = {"funding_time", "funding_rate"}
+        required = {"instrument_name", "funding_time", "funding_rate"}
         if not reader.fieldnames or not required.issubset(reader.fieldnames):
             raise ValueError(f"{path}: missing funding columns")
 
-        for row in reader:
-            ts = int(float(row["funding_time"]))
-            rate = float(row["funding_rate"])
+        for row_number, row in enumerate(reader, start=2):
+            if row["instrument_name"].strip() != manifest_asset["instrument_name"]:
+                raise ValueError(f"{asset}: funding instrument mismatch at row {row_number}")
+            try:
+                ts = int(row["funding_time"])
+                rate = float(row["funding_rate"])
+            except (TypeError, ValueError) as exc:
+                raise ValueError(f"{asset}: invalid funding timestamp/rate at row {row_number}") from exc
+            if not math.isfinite(rate) or not -1 <= rate <= 1:
+                raise ValueError(f"{asset}: invalid funding rate at row {row_number}")
+            events.append({"funding_time": ts, "funding_rate": rate})
 
-            if not math.isfinite(rate):
-                raise ValueError(f"{path}: invalid funding rate")
+    if len(events) != int(manifest_asset["rows"]):
+        raise ValueError(f"{asset}: funding row count differs from archived manifest")
+    if not events:
+        raise ValueError(f"{asset}: funding source is empty")
+    if events[0]["funding_time"] != int(manifest_asset["first_timestamp_ms"]):
+        raise ValueError(f"{asset}: funding start differs from archived manifest")
+    if events[-1]["funding_time"] != int(manifest_asset["last_timestamp_ms"]):
+        raise ValueError(f"{asset}: funding end differs from archived manifest")
+    if any(events[i]["funding_time"] >= events[i + 1]["funding_time"]
+           for i in range(len(events) - 1)):
+        raise ValueError(f"{asset}: duplicate or out-of-order funding timestamps")
 
-            if start_ts <= ts <= end_ts:
-                events.append({
-                    "funding_time": ts,
-                    "funding_rate": rate,
-                })
+    first_ts = int(manifest_asset["first_timestamp_ms"])
+    last_ts = int(manifest_asset["last_timestamp_ms"])
+    interval = int(manifest_asset["expected_interval_ms"])
+    return {
+        "events": events,
+        "coverage": {
+            "instrument_name": manifest_asset["instrument_name"],
+            "source_sha256": digest,
+            "coverage_start_ms": first_ts,
+            "coverage_end_ms": last_ts,
+            "schedule_id": f"archived_manifest_v1:{asset}:{digest[:12]}",
+            "schedule_start_ms": first_ts,
+            "schedule_interval_ms": interval,
+            "schedule_end_ms": last_ts,
+            "event_window_start_ms": first_ts,
+            "event_window_end_ms": last_ts,
+            "mark_price_mode": "candle_close_proxy",
+        },
+    }
 
-    events.sort(key=lambda event: event["funding_time"])
 
-    if any(
-        events[i]["funding_time"] >= events[i + 1]["funding_time"]
-        for i in range(len(events) - 1)
-    ):
-        raise ValueError(f"{path}: duplicate funding timestamps")
-
-    return events
+def load_funding_manifest(repository_root):
+    """Load the committed audit manifest; never infer schedule from observed rows."""
+    path = Path(repository_root) / (
+        "reports/sideways_phase3_research_archive_v1/"
+        "funding_coverage_audit_v1/funding_coverage_manifest.json"
+    )
+    if not path.is_file():
+        raise FileNotFoundError(f"Archived funding manifest is missing: {path}")
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    if manifest.get("status") != "PASS":
+        raise ValueError("Archived funding manifest is not PASS")
+    assets = manifest.get("assets", [])
+    by_asset = {item.get("asset"): item for item in assets}
+    if set(by_asset) != set(ASSETS) or len(assets) != len(ASSETS):
+        raise ValueError("Archived funding manifest asset set is incomplete or duplicated")
+    for asset, item in by_asset.items():
+        if item.get("issues") or int(item.get("missing_settlement_count", -1)) != 0:
+            raise ValueError(f"{asset}: archived funding manifest contains audit issues")
+    return manifest, by_asset, hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def load_inputs(home=None):
@@ -115,11 +163,15 @@ def load_inputs(home=None):
                 f"{asset}: execution candles do not fully cover common window"
             )
 
+    repository_root = Path(__file__).resolve().parents[1]
+    funding_manifest, funding_manifest_assets, funding_manifest_sha256 = (
+        load_funding_manifest(repository_root)
+    )
     funding_by_asset = {}
     for asset in ASSETS:
         path = funding_dir / f"{asset}_USDT_SWAP_funding_rates.csv"
-        funding_by_asset[asset] = load_funding(
-            path, common_start, common_end
+        funding_by_asset[asset] = load_funding_contract(
+            path, asset, funding_manifest_assets[asset]
         )
 
     candidates = []
@@ -153,6 +205,7 @@ def load_inputs(home=None):
         candidates,
         common_start,
         common_end,
+        funding_manifest_sha256,
     )
 
 
@@ -191,6 +244,7 @@ def run_one_experiment_with_inputs(experiment, inputs, home=None):
         candidates,
         start_ts,
         end_ts,
+        funding_manifest_sha256,
     ) = inputs
 
     experiment_candidates = []
@@ -244,6 +298,8 @@ def run_one_experiment_with_inputs(experiment, inputs, home=None):
         "gross_pnl": result["total_gross_pnl"],
         "fees": result["total_fees"],
         "funding_pnl": result["total_funding_pnl"],
+        "funding_mark_price_mode": "candle_close_proxy",
+        "funding_manifest_sha256": funding_manifest_sha256,
         "taker_fee_rate_per_side": FEE_RATE,
         "slippage_bps_per_side": SLIPPAGE_BPS,
     }
@@ -275,7 +331,10 @@ def run_one_experiment_with_inputs(experiment, inputs, home=None):
         "trailing_tp_price", "trailing_tp_update_count",
         "trailing_tp_last_update_time", "max_favorable_price",
         "max_favorable_time", "max_favorable_excursion_r",
-        "signal_priority", "gross_pnl", "funding_pnl", "entry_fee",
+        "signal_priority", "gross_pnl", "funding_pnl",
+        "funding_mark_price_mode", "funding_source_sha256",
+        "funding_instrument_name", "funding_schedule_id",
+        "funding_settlements_applied", "entry_fee",
         "exit_fee", "total_fees", "net_pnl", "exit_reason",
     ]
     write_rows(
@@ -297,7 +356,9 @@ def run_one_experiment_with_inputs(experiment, inputs, home=None):
         "taker_fee_rate_per_side": FEE_RATE,
         "slippage_bps_per_side": SLIPPAGE_BPS,
         "funding_data": "Historical asset-specific realized funding rates",
-        "funding_treatment": "Applied at funding timestamps; mark price when supplied, otherwise candle close proxy",
+        "funding_treatment": "Coverage-validated realized rates; explicit candle-close proxy marks (exact OKX settlement marks not verified)",
+        "funding_mark_price_mode": "candle_close_proxy",
+        "funding_manifest_sha256": funding_manifest_sha256,
         "equity_curve_storage": "summary-only",
         "trade_telemetry_version": "trailing_exit_telemetry_v1",
         "risk_fraction": 0.005,
