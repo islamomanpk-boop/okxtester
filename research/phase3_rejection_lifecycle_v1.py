@@ -316,7 +316,7 @@ def analyze_event_path(event: dict, bars: list[dict], gap_after: bool = False):
 
         if first_wick_penetration is None and flags["wick_penetration"]:
             first_wick_penetration = bar["ts"]
-        if first_separation is None and flags["separation"]:
+        if first_separation is None and not close_through_seen and flags["separation"]:
             first_separation = bar["ts"]
         if first_close_through is None and flags["close_through"]:
             first_close_through = bar["ts"]
@@ -451,7 +451,10 @@ def _close_inward(event, close):
 
 def _first_condition_ts(event, bars, condition):
     for bar in bars:
-        if _boundary_flags(event, bar)[condition]:
+        flags = _boundary_flags(event, bar)
+        if condition in ("retest", "separation") and flags["close_through"]:
+            return None
+        if flags[condition]:
             return bar["ts"]
     return None
 
