@@ -264,3 +264,10 @@ The read-only audit in `docs/research_checkpoints/2026-11-25_phase3_candidate_av
 G0-04/G0-05 remain OPEN / CRITICAL. Before any candidate generator is implemented, a past-only regime-threshold/calibration policy and a single causal candidate contract covering rejection, breakout continuation and failed-breakout reversal must be specified and frozen. The failed-breakout return-inside 15-minute close is only a proposed confirmation point, not an accepted rule. No candidate generation, Gate 2 execution comparison or strategy PnL backtest is authorized.
 
 The next research step is to reconcile any available raw 15-minute source files against exact 15-minute aggregation from the five tracked canonical one-minute datasets, including hashes, bar counts, close-time labels and missing-bar handling. Do not claim source equivalence until those checks are reproducibly completed.
+
+
+### VPS downloader SQL and export semantics — 2026-11-25
+
+The static downloader review is now complete through the SQL/export layer. See `docs/research_checkpoints/2026-11-25_phase3_vps_downloader_sql_export_update_semantics_v1.md` and research register Section 12.19. The inspected source uses a SQLite upsert that **updates existing candle rows** on `(inst_id, ts)` conflicts; the operational DB is therefore mutable, not an immutable acquisition archive. The confirmed-only CSV export selects the timestamp, OHLC, all three volume fields and confirmation flag, filters `confirm=1` and `ts>=START_MS`, and sorts ascending. The timestamp remains an integer in the CSV; the source's one-minute gap check uses 60,000 timestamp units.
+
+This closes source-code understanding of the conflict clause and export filter, but not runtime snapshot identity, byte identity with canonical Git data, immutable history, timestamp provenance, or volume-unit validation. Gate 0 remains CONDITIONAL HOLD. The workflow was static-only; no downloader, API request, SQLite operation, VPS service change or data cleanup was performed.
