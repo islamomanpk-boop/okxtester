@@ -172,10 +172,10 @@ Implemented on `price-action-v1`:
 - Added engine-level tests for omitted standalone funding input, out-of-coverage trades, missing portfolio settlements, and portfolio holding intervals beyond coverage.
 - The workflow compiles the engines, loaders, batch runner, and focused tests. It now checks out the exact triggering commit (`${{ github.sha }}`) rather than the moving branch tip.
 
-Latest full focused run before the exact-checkout workflow adjustment:
-https://github.com/islamomanpk-boop/okxtester/actions/runs/45545448535
+Latest full focused run after the exact-checkout workflow adjustment:
+https://github.com/islamomanpk-boop/okxtester/actions/runs/45545547488
 
-Result: **PASS — 75 tests**:
+Result: **PASS — 75 tests on the exact triggering commit**:
 - Funding contract: 13
 - Funding manifest loader: 3
 - Standalone execution engine: 14
@@ -185,14 +185,12 @@ Result: **PASS — 75 tests**:
 - Portfolio allocator: 15
 - Portfolio safety: 4
 
-The workflow was then corrected to test the exact event commit; its new run is tracked here:
-https://github.com/islamomanpk-boop/okxtester/actions/runs/45545547488
 
 ## 12. Remaining G0-03 acceptance work
 
 G0-03 is still **OPEN**. The code-level contract and local-file loader are implemented, but do not close the gate until:
 
-1. The exact-commit workflow run above passes.
+1. The exact-commit workflow run above passes — **complete**.
 2. The real local five-asset processed CSVs are loaded by the migrated runner and their SHA-256 values match the archived manifest. Those CSVs are intentionally not in GitHub, so CI's synthetic loader tests cannot replace this local-source verification.
 3. The exact-mark versus proxy policy is formally accepted for the research objective. The current implementation explicitly supports proxy mode but does not claim exact settlement marks.
 4. All remaining project-wide funding call sites are re-audited after the API migration.
