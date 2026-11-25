@@ -34,7 +34,7 @@ def sha256(path):
 def main():
  started=datetime.now(timezone.utc).isoformat()
  run_id=os.environ.get("GITHUB_RUN_ID","local")
- revision=os.environ.get("GITHUB_SHA","unknown")
+ revision=os.environ.get("PHASE3_RESEARCH_SHA",os.environ.get("GITHUB_SHA","unknown"))
  m={"worker":"phase3_overnight_worker_v1","run_id":run_id,"workflow_revision":revision,
     "research_branch":"price-action-v1","started_utc":started,"source_files":[],
     "documents":[],"common_index":{},"status":"RUNNING",
