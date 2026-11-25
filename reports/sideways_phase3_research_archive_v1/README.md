@@ -33,4 +33,4 @@ The V6 outcome-blind optimal matching cohort and its follow-up audits are retain
 
 V10.11 froze the V6 pair IDs and tested central 80%, 90%, 95%, and 98% common-support intervals. The central-90% output reproduces V10.10 exactly. Even central 98% retained at most 16 of 58 broad pairs and 11 of 34 strict pairs; no cohort was accepted for outcome comparison. **The V6 matched-controls branch is closed for this cohort.** No future outcomes were loaded or compared in V10.11.
 
-See [PHASE3_COMPLETION_DECISION_V1.md](PHASE3_COMPLETION_DECISION_V1.md) for the Phase 3 completion decision, research safeguards, and handoff to Phase 1 (Uptrend/Bullish). All historical scripts and rejected diagnostics remain preserved.
+See [PHASE3_COMPLETION_DECISION_V1.md](PHASE3_COMPLETION_DECISION_V1.md) for the Phase 3 completion decision, research safeguards, and handoff to Phase 1 (Uptrend/Bullish). All historical scripts and rejected diagnostics remain preserved. The closeout archive is checked by the Phase 3 Completion Archive Validation workflow.
