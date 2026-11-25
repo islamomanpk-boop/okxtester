@@ -33,18 +33,19 @@ opening timestamp is at or after that availability timestamp.
 
 ## Funding
 
-Funding uses the actual historical `funding_rate` and `funding_time`.
-Positive funding means longs pay and shorts receive.
+Funding input is a required `funding_contract` containing explicit `events`
+and `coverage` metadata. The shared validator checks instrument identity,
+source SHA-256, coverage bounds, versioned settlement schedule, event
+completeness, chronological uniqueness, finite rates, and mark-price mode.
+The trade's complete holding interval is checked against verified coverage
+and expected settlements before a result is returned.
 
-Funding notional is calculated using:
-1. An explicitly supplied settlement `mark_price`, when available.
-2. Otherwise, the close of the one-minute candle timestamped at the
-   funding settlement time.
-
-The one-minute close is a proxy, not the exact exchange settlement mark.
-Exact funding-cost reconstruction requires historical mark-price data.
-If neither a mark price nor a candle at the funding timestamp is available,
-the engine fails instead of silently substituting entry price.
+Positive funding means longs pay and shorts receive. Funding notional uses
+quantity multiplied by the settlement price. `exact` mode requires a positive
+finite `mark_price` on every event. `candle_close_proxy` mode may use the
+settlement-minute candle close when an event has no mark; this is explicitly
+labelled in trade output and is not the exact OKX settlement mark. The current
+audited realized-rate CSVs do not contain exact settlement marks.
 
 ## Limitations
 
@@ -58,6 +59,6 @@ signal generation. These will be added and tested in later stages.
 
 The standalone `size_position` function sizes from stop distance and gross-exposure cap only. It does not include entry/exit fees or slippage in the initial quantity calculation. This differs from the integrated portfolio backtester, which calculates a cost-adjusted per-unit risk estimate before allocation. Treat this standalone function as a simpler baseline, not cost-adjusted risk sizing.
 
-## Funding validation status — 2026-11-25
+## Funding contract implementation — 2026-11-25
 
-Funding events are currently optional in the single-trade function (default empty iterable). The function calculates funding when events are supplied, but it does not bind them to a verified coverage manifest or distinguish a verified no-settlement interval from missing input. The 1m-close fallback is a proxy, not the exact exchange mark. Funding source completeness and strict-mode fail-closed validation remain open; see the Gate 0 audit for required remediation. Do not interpret zero funding PnL as proof that funding was absent or correctly loaded.
+The standalone engine now requires an explicit `funding_contract`; omission can no longer silently mean zero funding. Coverage and schedule validation are shared with the portfolio engine through `src/funding_coverage.py`. Trade output includes mark-price mode, source hash, instrument, schedule ID, and settlement count. The current runner uses explicitly labelled candle-close proxy marks. Real local CSV hash verification and exact-mark policy acceptance remain outstanding G0-03 acceptance items; see `docs/research_checkpoints/2026-11-25_g0-03_funding_contract_implementation_plan_v1.md`.
