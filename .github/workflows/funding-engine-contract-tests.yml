@@ -37,7 +37,7 @@ jobs:
       - name: Check out price-action-v1
         uses: actions/checkout@v4
         with:
-          ref: price-action-v1
+          ref: ${{ github.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
