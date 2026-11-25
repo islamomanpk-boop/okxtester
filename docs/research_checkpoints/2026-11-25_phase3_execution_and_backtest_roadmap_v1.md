@@ -147,3 +147,10 @@ For clarity, the shared control sequence is: **0 readiness audit → 1 descripti
 The fail-closed funding coverage audit code and deterministic unit tests have been added. See `src/funding_coverage_audit.py`, `src/test_funding_coverage_audit.py`, and `docs/funding_coverage_audit_v1.md`. The audit uses explicit expected window/cadence defaults from the prior reconciliation report, hashes each input, checks missing/irregular settlements and cross-asset timestamp equality, and produces a JSON manifest plus Markdown report.
 
 The automated GitHub workflow tests synthetic fixtures only. It does not have the local processed funding files and cannot certify them. Gate 0 remains on hold until the actual local audit passes and the real manifest is archived.
+
+
+## Actual funding-data verification — 2026-11-25
+
+The real local audit has now been executed successfully against the five processed OKX realized-rate CSVs in the user's Termux environment. It found 1,188 rows per asset (5,940 total), identical timestamps across assets, coverage from 2025-10-20 00:00 UTC through 2026-11-19 16:00 UTC, 1,187 expected 8-hour intervals per asset, zero missing settlements, and no gaps or irregular intervals. Per-file SHA-256 hashes are permanently recorded in `reports/sideways_phase3_research_archive_v1/funding_coverage_audit_v1/funding_coverage_manifest.json`, alongside the human-readable report.
+
+This closes the funding-file availability/hash/coverage evidence items G0-01 and G0-02 for the audited Termux environment. It does **not** close engine-side funding validation/application, exact mark-price provenance, fee/instrument assumptions, or the Phase 3 candidate-generation blockers. **Gate 0 remains CONDITIONAL HOLD; Gate 6 backtesting is still not authorized.** Raw funding CSVs remain local and are not committed.
