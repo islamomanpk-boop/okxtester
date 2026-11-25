@@ -119,12 +119,12 @@ Cleanup rule: do not delete ambiguous or historical provenance material. Explici
 
 ### Newly frozen Gate 1 protocol
 
-`docs/research_checkpoints/2026-11-25_phase3_boundary_lifecycle_closure_protocol_v1.md` defines the two remaining descriptive lifecycle modules: rejection retest/cross lifecycle and breakout return-inside/reclaim/reversal lifecycle. It is frozen before implementation; no new historical outcomes have yet been run.
+`docs/research_checkpoints/2026-11-25_phase3_boundary_lifecycle_closure_protocol_v1.md` defines the two descriptive lifecycle modules: rejection retest/cross lifecycle and breakout return-inside/reclaim/reversal lifecycle. It was frozen before implementation. Rejection Module A has been accepted; breakout Module B's descriptive historical run is complete and independently reviewed at the event/horizon output level, but formal closeout remains open.
 
 
 ### Gate 1 progress
 
-Rejection lifecycle Module A is accepted as a descriptive study: 1,992 events, 3,028 retest episodes, 7,968 horizon rows, and 380 overlap clusters; 12 synthetic tests passed. See `reports/phase3_rejection_lifecycle_v1_1/PHASE3_REJECTION_LIFECYCLE_CLOSEOUT_V1_1.md`. Breakout failed-lifecycle Module B remains open, so Gate 1 overall remains PARTIAL / OPEN and Gate 2 remains closed.
+Rejection lifecycle Module A is accepted as a descriptive study: 1,992 events, 3,028 retest episodes, 7,968 horizon rows, and 380 overlap clusters; 12 synthetic tests passed. See `reports/phase3_rejection_lifecycle_v1_1/PHASE3_REJECTION_LIFECYCLE_CLOSEOUT_V1_1.md`. Breakout failed-lifecycle Module B's historical run and 19-test workflow passed; independent audit reconciled all 1,592 event rows, 6,368 horizon rows and 244 group-summary rows, with no event-to-horizon timing/membership or group-total inconsistencies. Module B remains open pending formal closeout and reconciliation of the five retest fields that are absent from the frozen historical benchmark. Gate 1 remains PARTIAL / OPEN and Gate 2 remains closed.
 
 ## 5. Mandatory research governance
 

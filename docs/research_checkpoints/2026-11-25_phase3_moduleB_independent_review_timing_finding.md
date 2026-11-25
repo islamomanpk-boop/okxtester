@@ -60,3 +60,30 @@ Independent output review:
 - The strict-later 15M close rule and both-direction same-bar ambiguity regression tests are present and passed in the 19-test run.
 
 This confirms the reporting amendment and the stated count propagation. It does **not** constitute final Module B acceptance. Remaining independent closeout checks include horizon-level lifecycle timestamp/censor propagation, a full event-to-horizon consistency review, and reconciliation of this evidence into the project research register/control center. Keep Module B and Gate 1 open until those checks and the formal closeout are complete. No strategy simulation, orders, fills, fees, funding, PnL, or profitability inference was performed.
+
+
+## 2026-11-25 — Independent event-to-horizon closeout audit
+
+A second, programmatic audit read the committed event, horizon, and group-summary CSV blobs directly and parsed the CSV records with quoted-field handling. The audit independently recomputed the output relationships rather than relying only on the workflow's archive-contract step.
+
+Verified structural reconciliation:
+- 1,592 event rows and 1,592 unique event IDs.
+- 6,368 horizon rows and 6,368 unique event/horizon keys; every event has exactly one row for each of 15M, 1H, 4H and 12H.
+- Each horizon contains 1,592 rows; all 1,592 are marked complete in each horizon.
+- 244 group-summary rows; all group event counts and both ambiguity totals reconcile exactly to their underlying horizon rows.
+- Independent horizon totals:
+  - 15M: 831 outside retests, 61 outside same-bar ambiguities; no confirmed inside retests or inside ambiguities.
+  - 1H: 1,155 outside retests, 82 outside ambiguities; 303 confirmed inside retests and 248 inside ambiguities.
+  - 4H: 1,312 outside retests, 99 outside ambiguities; 519 confirmed inside retests and 455 inside ambiguities.
+  - 12H: 1,395 outside retests, 107 outside ambiguities; 630 confirmed inside retests and 551 inside ambiguities.
+
+Timestamp and horizon propagation checks:
+- Recomputed outside-retest membership from event-level retest candle timestamps against each horizon end; all 6,368 horizon rows agree.
+- Recomputed confirmed inside-retest and inside same-bar-ambiguity membership using the event-level status and candle-availability time; all rows agree.
+- Recomputed outside/inside hold-close visibility against each horizon end; all rows agree.
+- All observed outside and inside hold-close timestamps are strictly later than the corresponding retest candle close.
+- No ambiguous inside retest has an assigned event-level hold status.
+- Breakout-side reclaim timestamps, where present, are later than the corresponding 15M failure-confirmation timestamps.
+- No issues were found in these checks.
+
+This is an independent output-consistency audit, not an independent historical benchmark of the five lifecycle retest measurements. Those five fields remain absent from the frozen forward archive. Module B therefore remains open pending formal closeout and project-wide register reconciliation; Gate 1 remains PARTIAL / OPEN. The study remains descriptive only, with no orders, fills, fees, funding, PnL or profitability inference.
