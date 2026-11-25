@@ -90,3 +90,17 @@ Official mechanism reference: https://www.okx.com/help/perps-funding-fee-mechani
 ### Consequence for validation
 
 Do not join account bills to funding history on exact timestamp equality. Build a bounded candidate window around each public settlement, retain original timestamps, and inspect the bill's `instId`, `subType`, `px`, `sz`, `pnl`, `balChg`, `posBalChg`, `ccy`, and `mgnMode`. Reconcile sign, amount, and currency using the contract's `ctVal`, `ctMult`, `ctType`, and settlement currency. Preserve ambiguous or aggregated rows as unresolved rather than forcing a one-to-one mapping.
+
+
+## Demo API access boundary (2026-11-25)
+
+The user currently has demo-only OKX API access. This is suitable for testing authentication, the demo request header, read-only permissions, response parsing, and safe local handling. It cannot validate historical funding settlements from the user's real account, and demo bills may contain no funding events or may not represent production accounting behavior.
+
+Any demo test must:
+- Use a demo API key with **Read** permission only; do not enable Trade or Withdraw.
+- Send `x-simulated-trading: 1` on demo private REST requests.
+- Make read-only GET requests only; do not place orders or modify demo balances for this source-validation task.
+- Keep API key, secret, and passphrase on the user's device; never paste them into chat, commit them, or include them in logs/reports.
+- Treat a successful demo response strictly as an integration/authentication test, not as evidence that actual account funding bill `px` records are available or validated.
+
+The next meaningful production-settlement validation still requires a separate read-only real-account key or another independently sourced real account bill sample. Until then, the account-bill route remains a promising but unvalidated candidate and G0-03 remains OPEN.
