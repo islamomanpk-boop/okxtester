@@ -18,6 +18,7 @@ on:
       - src/run_exit_experiments.py
       - src/run_cost_sensitivity.py
       - src/run_exit_experiment_batch.py
+      - src/verify_local_funding_manifest.py
       - .github/workflows/funding-engine-contract-tests.yml
 
 permissions:
@@ -65,7 +66,8 @@ jobs:
             src/test_portfolio_safety.py \
             src/run_exit_experiments.py \
             src/run_cost_sensitivity.py \
-            src/run_exit_experiment_batch.py
+            src/run_exit_experiment_batch.py \
+            src/verify_local_funding_manifest.py
 
       - name: Run funding coverage contract tests
         run: python -m unittest discover -s src -p 'test_funding_coverage.py' -v
