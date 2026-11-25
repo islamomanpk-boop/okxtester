@@ -59,3 +59,19 @@ These SHA-256 values are the source hashes recorded by the deterministic Module 
 **Retention and canonical-source rule:** the tracked `data/market_1m/` files are the canonical repository snapshot for the cited Module B run. Do not silently replace them, rewrite history, or delete them. Any refreshed market data must be introduced as a separately versioned source snapshot with its own immutable manifest (instrument IDs, acquisition/source metadata, byte size, row count, timestamp bounds, Git blob ID and SHA-256), and downstream studies must pin that snapshot explicitly. Raw/private funding CSVs remain outside Git; their separate Termux manifest is not evidence of VPS runtime presence.
 
 **G0-10 disposition:** the documentation contradiction is corrected for the current canonical repository snapshot. The remaining source-provenance issue is the VPS-to-canonical lineage and refresh/retention process, not whether the five cited CSVs are tracked.
+
+
+## Volume-field semantics — reconciled against the VPS export (2026-11-25)
+
+The generic `vol` column in the canonical Git 1-minute files is **base-currency volume**, not contract count. This was established by an exact Decimal comparison of every overlapping timestamp against the five audited VPS CSVs: canonical `vol` equals VPS `volCcy` for every matched row across BTC, ETH, SOL, DOGE, and AVAX. All matched OHLC fields also agree exactly.
+
+The VPS downloader preserves the three distinct OKX candle volume fields:
+- `vol` → contract quantity for derivatives.
+- `volCcy` → base-currency quantity for derivatives.
+- `volCcyQuote` → quote-currency quantity (USDT for these USDT swaps).
+
+Official OKX V5 candlestick field definitions: https://app.okx.com/docs-v5/en/ (Market Data → Candlesticks / Historical Candlesticks).
+
+For analysis, use explicit unit labels rather than an unqualified `vol`: `volume_contracts`, `volume_base_ccy`, and `volume_quote_ccy`. The canonical Git `vol` column maps to `volume_base_ccy`. Do not compare raw base-currency volume across assets as if it were common notional; any cross-asset volume feature must state its normalization or use a consistently defined quote-notional measure.
+
+Full five-asset reconciliation evidence is in [the canonical/VPS OHLCV checkpoint](research_checkpoints/2026-11-25_phase3_vps_canonical_ohlcv_reconciliation_v1.md). The result establishes overlapping value equality, not byte identity with the original historical Termux files or complete downloader acquisition lineage.
