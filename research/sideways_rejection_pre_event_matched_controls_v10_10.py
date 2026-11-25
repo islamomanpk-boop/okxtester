@@ -126,3 +126,5 @@ def main():
     for arg in ("anatomy","sequence","feature-dir","minute-dir","pairs","output"):p.add_argument("--"+arg,required=True)
     a=p.parse_args();run(a.anatomy,a.sequence,a.feature_dir,a.minute_dir,a.pairs,a.output)
 if __name__=="__main__":main()
+
+# Trigger the committed V10.10 workflow on the research branch.
