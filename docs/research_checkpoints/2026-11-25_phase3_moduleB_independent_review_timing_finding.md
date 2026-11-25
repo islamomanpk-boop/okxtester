@@ -25,6 +25,13 @@ The frozen V1.1 amendment requires the first completed 15-minute close **strictl
 
 The implementation is corrected to require a strictly later 15-minute close, and a regression test covers the equality boundary. This aligns implementation with the already-frozen amendment; it does not change the research definition or retest distance.
 
+
+## Additional same-bar ambiguity finding
+
+A second review check found that an inside retest can begin with a failure-confirmation close already inside the boundary band. If the next 1-minute candle both closes beyond the inner edge (moving away) and its range also reaches back into the band, OHLC cannot establish whether the move-away preceded the touch. The prior implementation skipped this candle and could miss the ambiguity.
+
+The state machine now records `SAME_BAR_AMBIGUOUS` for this case on both UPPER and LOWER directions. It does not count the ambiguous candle as a definite inside retest and does not assign a subsequent 15-minute hold result to it. Event and horizon outputs expose an explicit ambiguity flag. Synthetic tests cover both directions and preserve the separate move-away-then-later-retest case.
+
 ## Remaining review gates
 
 - Re-run the complete synthetic suite and historical workflow after the correction.

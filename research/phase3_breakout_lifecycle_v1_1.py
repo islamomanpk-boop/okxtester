@@ -239,9 +239,27 @@ def find_inside_retest(direction, boundary, failure_close, bars):
     previous_close = failure_close
     for offset, bar in enumerate(bars):
         if not away:
-            if direction == "UPPER" and bar["close"] < band_low:
-                away = True
-            elif direction == "LOWER" and bar["close"] > band_high:
+            if direction == "UPPER":
+                moved_away = bar["close"] < band_low
+                same_bar_touch = bar["high"] >= band_low
+                ambiguous_depth = max(0.0, (bar["high"] - band_low) / boundary * 100.0)
+                crossed = bar["high"] >= boundary
+            else:
+                moved_away = bar["close"] > band_high
+                same_bar_touch = bar["low"] <= band_high
+                ambiguous_depth = max(0.0, (band_high - bar["low"]) / boundary * 100.0)
+                crossed = bar["low"] <= boundary
+            if moved_away and same_bar_touch:
+                return {
+                    "status": "SAME_BAR_AMBIGUOUS",
+                    "initially_in_band": initially_in_band,
+                    "offset": offset, "bar_open_ts_ms": bar["ts_ms"],
+                    "depth_pct_of_boundary": ambiguous_depth,
+                    "boundary_crossed": bool(crossed),
+                    "bar_open": bar["open"], "bar_high": bar["high"],
+                    "bar_low": bar["low"], "bar_close": bar["close"],
+                }
+            if moved_away:
                 away = True
             previous_close = bar["close"]
             continue
@@ -458,7 +476,7 @@ def analyze_event(event, minute: pd.DataFrame, bars15: pd.DataFrame):
                 "high": float(row.high), "low": float(row.low), "close": float(row.close),
             } for ts, row in failure_window.iterrows()]
             inside_retest = find_inside_retest(direction, boundary, failure15["close"], failure_bars)
-            if inside_retest.get("offset") is not None:
+            if inside_retest.get("status") == "RETEST_AFTER_MOVING_AWAY" and inside_retest.get("offset") is not None:
                 retest_ts = pd.to_datetime(inside_retest["bar_open_ts_ms"], unit="ms", utc=True)
                 hold = _first_15m_close_after(bars15, retest_ts + pd.Timedelta(minutes=1))
                 if hold is None:
@@ -536,6 +554,7 @@ def analyze_event(event, minute: pd.DataFrame, bars15: pd.DataFrame):
         "post_retest_continuation_minutes": outside_retest.get("post_retest_continuation_minutes", "") if outside_retest else "",
         "post_retest_adverse_width_pct": outside_retest.get("post_retest_adverse_width_pct", "") if outside_retest else "",
         "inside_retest_status": inside_retest["status"] if inside_retest else "NO_15M_FAILURE_CONFIRMATION",
+        "inside_retest_same_bar_ambiguous": bool(inside_retest and inside_retest.get("status") == "SAME_BAR_AMBIGUOUS"),
         "inside_retest_initially_in_band_at_failure_confirmation": inside_retest.get("initially_in_band", "") if inside_retest else "",
         "inside_retest_bar_open_ts_ms": inside_retest.get("bar_open_ts_ms", "") if inside_retest else "",
         "inside_retest_depth_pct_of_boundary": inside_retest.get("depth_pct_of_boundary", "") if inside_retest else "",
@@ -621,7 +640,15 @@ def analyze_event(event, minute: pd.DataFrame, bars15: pd.DataFrame):
             "first_1m_return_inside_available_ts_ms": first_1m_inside["available_ts_ms"] if first_1m_inside and first_1m_inside["available_ts_ms"] <= horizon_end_ts else "",
             "first_15m_return_inside_close_ts_ms": failure15["close_ts_ms"] if failure15 and failure15["close_ts_ms"] <= horizon_end_ts else "",
             "breakout_side_reclaim_close_ts_ms": reclaim15["close_ts_ms"] if reclaim15 and reclaim15["close_ts_ms"] <= horizon_end_ts else "",
-            "inside_retest": bool(inside_retest and inside_retest.get("offset") is not None and inside_retest["bar_open_ts_ms"] + MINUTE_MS <= horizon_end_ts),
+            "inside_retest": bool(
+                inside_retest and inside_retest.get("status") == "RETEST_AFTER_MOVING_AWAY"
+                and inside_retest.get("offset") is not None
+                and inside_retest["bar_open_ts_ms"] + MINUTE_MS <= horizon_end_ts
+            ),
+            "inside_retest_same_bar_ambiguous": bool(
+                inside_retest and inside_retest.get("status") == "SAME_BAR_AMBIGUOUS"
+                and inside_retest.get("bar_open_ts_ms", horizon_end_ts + MINUTE_MS) + MINUTE_MS <= horizon_end_ts
+            ),
             "inside_retest_hold": (
                 inside_retest.get("hold_status") == "HELD_INSIDE"
                 if inside_retest and inside_retest.get("hold_close_ts_ms")

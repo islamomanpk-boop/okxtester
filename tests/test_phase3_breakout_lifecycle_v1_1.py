@@ -104,13 +104,31 @@ class BreakoutLifecycleTests(unittest.TestCase):
 
     def test_already_in_band_then_move_away_and_retest(self):
         bars = [
-            bar(0, 99.95, 99.97, 99.8, 99.85),
+            bar(0, 99.95, 99.89, 99.8, 99.85),
             bar(60_000, 99.85, 99.95, 99.8, 99.92),
         ]
         result = find_inside_retest("UPPER", 100.0, 99.95, bars)
         self.assertEqual(result["status"], "RETEST_AFTER_MOVING_AWAY")
         self.assertTrue(result["initially_in_band"])
         self.assertEqual(result["bar_open_ts_ms"], 60_000)
+
+    def test_same_bar_move_away_and_retest_is_ambiguous_upper(self):
+        result = find_inside_retest(
+            "UPPER", 100.0, 99.95,
+            [bar(0, 99.95, 99.96, 99.8, 99.85)],
+        )
+        self.assertEqual(result["status"], "SAME_BAR_AMBIGUOUS")
+        self.assertEqual(result["bar_open_ts_ms"], 0)
+        self.assertTrue(result["initially_in_band"])
+
+    def test_same_bar_move_away_and_retest_is_ambiguous_lower(self):
+        result = find_inside_retest(
+            "LOWER", 90.0, 90.05,
+            [bar(0, 90.05, 90.2, 90.04, 90.15)],
+        )
+        self.assertEqual(result["status"], "SAME_BAR_AMBIGUOUS")
+        self.assertEqual(result["bar_open_ts_ms"], 0)
+        self.assertTrue(result["initially_in_band"])
 
     def test_lower_inside_retest_is_symmetric(self):
         bars = [
