@@ -171,12 +171,12 @@ Implemented on `price-action-v1`:
 ### Integration tests and workflow
 - Added `src/test_funding_loader.py` for manifest hash mismatch, instrument mismatch, and successful contract construction.
 - Added engine-level tests for omitted standalone funding input, out-of-coverage trades, missing portfolio settlements, and portfolio holding intervals beyond coverage.
-- The workflow compiles the engines, loaders, batch runner, and focused tests. It now checks out the exact triggering commit (`${{ github.sha }}`) rather than the moving branch tip.
+- The workflow compiles the engines, loaders, batch runner, local verification CLI, and focused tests. It checks out the exact triggering commit (`${{ github.sha }}`), not the moving branch tip.
 
 Latest full focused run after the exact-checkout workflow adjustment:
-https://github.com/islamomanpk-boop/okxtester/actions/runs/45545547488
+https://github.com/islamomanpk-boop/okxtester/actions/runs/45545754508
 
-Result: **PASS — 75 tests on the exact triggering commit**:
+Result: **PASS — 75 tests on the exact triggering commit**, including compilation of the local verification CLI:
 - Funding contract: 13
 - Funding manifest loader: 3
 - Standalone execution engine: 14
