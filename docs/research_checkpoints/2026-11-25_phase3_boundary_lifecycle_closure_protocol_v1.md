@@ -95,6 +95,8 @@ Use the accepted geometry:
 
 A retest episode begins at the first post-confirmation 1-minute bar whose relevant extreme reaches the 10% band. Consecutive bars that continue to intersect the band belong to the same episode; they are not separate tests.
 
+Record approach depth using the most boundary-ward extreme within the episode: for upper rejection, signed distance is `(U - episode_max_high) / W`; for lower rejection, `(episode_min_low - L) / W`. Negative values indicate wick penetration beyond the frozen boundary. Separately record penetration magnitude as `max(0, (episode_max_high-U)/W)` for upper and `max(0, (L-episode_min_low)/W)` for lower.
+
 An episode is considered resolved only when one of these observable states occurs:
 1. **INWARD_SEPARATION:** a completed 1-minute close reaches the existing 20% inward-separation line;
 2. **CLOSE_THROUGH_BOUNDARY:** a completed 1-minute close is strictly outside the frozen boundary;
@@ -142,7 +144,7 @@ Record the following first-passage events independently; more than one may occur
 1. **OUTSIDE_CONTINUATION:** closes remain beyond the broken boundary in the breakout direction.
 2. **OUTSIDE_RETEST:** first 1-minute bar whose range reaches the 10% band around the broken boundary from the outside. For UPPER, the bar low reaches or falls below (U+0.10W); for LOWER, the bar high reaches or exceeds (L-0.10W). Record whether the bar closes outside or back inside.
 3. **ONE_MINUTE_RETURN_INSIDE:** first completed 1-minute close at or inside the broken boundary. UPPER: close (le U); LOWER: close (ge L). This is a descriptive first passage, not yet a 15-minute confirmed failed-breakout signal.
-4. **FIFTEEN_MINUTE_RETURN_INSIDE_CONFIRMATION:** first completed 15-minute close at or inside the boundary after the breakout. Its close timestamp is the confirmation/availability timestamp for the descriptive failed-breakout state.
+4. **FIFTEEN_MINUTE_RETURN_INSIDE_CONFIRMATION:** first completed 15-minute close at or inside the boundary after the breakout. Build subsequent 15-minute bars only from exactly 15 consecutive 1-minute candles aligned to UTC quarter-hour boundaries; require all 15 bars and valid OHLC. The close timestamp is the 15-minute bar open timestamp plus 900,000 ms and is the confirmation/availability timestamp for the descriptive failed-breakout state. Do not use a partial 15-minute bar.
 5. **BREAKOUT_SIDE_RECLAIM:** after a 15-minute return-inside confirmation, first subsequent completed 15-minute close back beyond the original boundary in the breakout direction. Record its availability timestamp.
 6. **INSIDE_RETEST_AFTER_FAILURE:** after the 15-minute return-inside confirmation, first 1-minute bar whose range revisits the 10% band from inside. Record whether the completed 15-minute close remains inside or reclaims the breakout side; same-bar ordering remains ambiguous.
 7. **REVERSAL_DIRECTION_PATH:** after the 15-minute return-inside confirmation, measure the adverse-to-breakout / reversal-direction excursion and time to its extremes over the remaining original horizon. This is a descriptive path, not a trade return.
