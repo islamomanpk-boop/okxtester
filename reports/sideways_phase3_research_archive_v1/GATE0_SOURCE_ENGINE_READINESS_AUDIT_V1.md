@@ -47,11 +47,11 @@ The repository contains `reports/funding_data_audit.md`, which records a reconci
 - First settlement: 2025-10-20 00:00 UTC; last settlement: 2026-11-19 16:00 UTC.
 - The merge code uses OKX `realizedRate`, not predicted `fundingRate`.
 
-`reports/backtest_input_preflight.md` also records 1,188 funding rows for each asset. But `reports/execution_data_audit.md` says funding files were not found and funding must not be assumed to be zero. That older report is inconsistent with the later funding reconciliation/preflight evidence.
+`reports/backtest_input_preflight.md` also records 1,188 funding rows for each asset. But `reports/execution_data_audit.md` says funding files were not found and funding must not be assumed to be zero. That older report is a historical snapshot and is superseded for availability-at-run-time by the later preflight; it should not be treated as the current funding status.
 
 The processed funding CSVs are not present in the current Git tree; the collection documentation says raw and processed funding files are local and excluded from normal Git history. Therefore, the report proves a prior reconciliation was recorded, but this repository snapshot alone does not prove the exact local funding files are currently available to the runtime that will execute a backtest.
 
-**Required resolution:** locate the five current processed funding CSVs in the intended execution environment; verify schema, instrument IDs, timestamp uniqueness/order, first/last coverage, missing settlements, and checksums; link the resulting audit to the exact market-data hashes. Re-run the execution-data audit so it no longer contradicts the funding reconciliation report. Do not replace missing settlements with zero.
+**Required resolution:** locate the five current processed funding CSVs in the intended execution environment; verify schema, instrument IDs, timestamp uniqueness/order, first/last coverage, missing settlements, and checksums; link the resulting audit to the exact market-data hashes. Update the older execution-data audit so it is clearly labelled as a historical pre-funding snapshot, and extend the current audit to validate funding coverage rather than merely file presence. Do not replace missing settlements with zero.
 
 ### 2.3 Instrument and fee provenance
 
@@ -130,7 +130,7 @@ Before strategy results are trusted, test contract sizing/lot rounding, tick rou
 
 | ID | Blocker | Severity | Required evidence to close |
 |---|---|---|---|
-| G0-01 | Funding audit contradiction: old audit says not found; newer audit/preflight say 1,188 rows per asset | Critical | Re-run one current audit against the exact five local processed files; update stale report |
+| G0-01 | Funding evidence is from different audit runs; later preflight reports 1,188 rows/asset, but no current file hashes or settlement-gap proof | Critical | Re-run current audit against the exact five processed files; update stale snapshot and publish hashes/coverage |
 | G0-02 | Funding files are not in the Git tree; runtime availability and hashes not verified in this audit | Critical | Confirm files in execution environment, hash and schema/coverage audit |
 | G0-03 | Single-trade engine defaults to empty funding events; portfolio engine accepts empty per-asset funding lists | Critical | Fail-closed funding coverage validation and tests |
 | G0-04 | Phase 3 event ledgers are descriptive; frozen live-knowable candidate schema/availability not yet proven end-to-end | Critical | Candidate protocol, source linkage, event IDs, causal timing audit |
@@ -169,3 +169,16 @@ Before strategy results are trusted, test contract sizing/lot rounding, tick rou
 7. Reissue Gate 0 pass/hold decision with linked manifests and passing deterministic tests.
 
 No strategy parameters, stops, targets, or profitability claims are selected by this audit.
+
+
+## 8. Follow-up clarification — funding report chronology
+
+A second inspection of `src/backtest_input_preflight.py` and the saved reports refines the initial funding finding:
+
+- `reports/execution_data_audit.md` is an older snapshot reporting no funding files found at that time.
+- `reports/backtest_input_preflight.md` is later evidence that the five funding files were available to its run: 1,188 rows per asset, expected instrument name, increasing timestamps, and finite funding rates; it records PASS.
+- `reports/funding_data_audit.md` records archive/API reconciliation using OKX `realizedRate`, with 219 overlapping timestamps per asset and no conflicting rates.
+
+Therefore, the reports are not proof of a same-run contradiction. The remaining issue is **current reproducibility and completeness**, not whether a later run once found files. The saved preflight does not record SHA-256 hashes and does not test the expected settlement cadence for gaps; the funding reconciliation report records 1,187 eight-hour intervals per asset, but its source CSVs remain outside Git. A fresh audit must run in the actual execution environment and produce hashes, exact file paths, instrument checks, duplicate checks, observed interval counts, and explicit missing-settlement analysis.
+
+The Gate 0 hold remains because (a) the files are local and cannot be confirmed from the Git tree alone, (b) the engine interfaces can accept empty funding inputs, and (c) the Phase 3 candidate and cost-aware risk issues remain open. This clarification does not authorize a backtest.
