@@ -37,11 +37,12 @@ jobs:
           python src/phase3_funding_mark_price_full_coverage_v1.py \
             --trade-dir data/market_1m \
             --samples-per-asset 12 \
-            --output "$RUNNER_TEMP/phase3-funding-mark-price/summary.json"
+            --output "$RUNNER_TEMP/phase3-funding-mark-price/summary.json" \
+            --mark-output "$RUNNER_TEMP/phase3-funding-mark-price/mark_price_at_funding_4h.csv"
       - name: Upload summary only
         uses: actions/upload-artifact@v4
         with:
           name: phase3-funding-mark-price-full-audit
-          path: ${{ runner.temp }}/phase3-funding-mark-price/summary.json
+          path: ${{ runner.temp }}/phase3-funding-mark-price/*
           if-no-files-found: error
           retention-days: 90
