@@ -118,7 +118,7 @@ A line-by-line comparison against the frozen parent protocol found two acceptanc
 
 The production guards are now exposed as small validation helpers and called by the same historical workflow path. Two synthetic tests exercise both positive and negative cases. This is a test-coverage improvement, not a change to the frozen source population or event definitions.
 
-The update is committed in source/test commits `ce4027b0336bf770ec121eefea90045ce186f510` and `13c12c785c2473a84bf7459f12900fdc90a2b78a`. Workflow run [45644677445](https://github.com/islamomanpk-boop/okxtester/actions/runs/45644677445) is running against the updated source. The suite is expected to contain 23 tests, but no result is claimed until the workflow completes. Module B remains open.
+The update is committed in source/test commits `ce4027b0336bf770ec121eefea90045ce186f510` and `13c12c785c2473a84bf7459f12900fdc90a2b78a`. The initial source-helper workflow [45644677445](https://github.com/islamomanpk-boop/okxtester/actions/runs/45644677445) and the latest-branch workflow [45644799449](https://github.com/islamomanpk-boop/okxtester/actions/runs/45644799449) both completed successfully. The latter ran on revision `d791361a7fea4aa448907de3dfb5d3559c194d60`; the checked-in suite contains 23 tests and its test step passed. See the full-run record below. Module B remains open.
 
 
 ## 2026-11-25 — Full protocol regression run passed
