@@ -290,3 +290,10 @@ The corrected Module B workflow run [45643682550](https://github.com/islamomanpk
 The two artifact ZIPs from runs 45639123024 and 45643682550 have different SHA-256 digests. A file-level comparison found expected schema changes in the group-summary, horizon and metadata files: the newer version includes horizon-scoped outside/inside same-bar ambiguity columns and event-level totals (107 outside ambiguities, 551 inside ambiguities, 630 confirmed inside retests). The event-level, forward-crosscheck and prior-link report blobs retained their identities. Since the older run predates this schema amendment, this is not a same-code/same-schema determinism comparison. Byte-identical reproducibility on identical code/schema/inputs remains unproven and is a formal closeout item; do not call this a determinism pass.
 
 The follow-up tests specifically add incomplete-horizon censoring and completed-15M failure-close availability coverage. The detailed checkpoint is `docs/research_checkpoints/2026-11-25_phase3_moduleB_independent_review_timing_finding.md`. Module B remains open; Gate 1 remains PARTIAL / OPEN; Gate 2 and strategy PnL backtests remain unauthorized.
+
+
+### 12.7 Module B protocol regression run — 2026-11-25
+
+Workflow [45644799449](https://github.com/islamomanpk-boop/okxtester/actions/runs/45644799449) passed all workflow stages on `d791361a7fea4aa448907de3dfb5d3559c194d60`. The checked-in test file contains 23 test methods and its synthetic-test step passed, including the added strict-within-broad nesting and duplicate source-event identity tests. Frozen historical generation, archive-contract validation, artifact upload and output-commit step also passed. Artifact ID `15036019010`.
+
+All five principal output CSV SHA-256 values in run metadata match exactly between the corrected historical run at `52e89472bf5ea39044376f9f5535e8a07eaa3dcc` and this run. Cohort totals and ambiguity totals match. This demonstrates cross-revision output consistency, not yet a same-revision deterministic rerun; the latter remains an explicit closeout requirement. Module B and Gate 1 remain open, and no strategy PnL backtest is authorized.
