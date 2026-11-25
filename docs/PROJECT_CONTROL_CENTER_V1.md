@@ -274,3 +274,8 @@ This closes source-code understanding of the conflict clause and export filter, 
 
 
 A follow-up safe-constant extraction also confirmed the VPS downloader's lower bound is 2025-10-20 00:00:00 UTC and its exact CSV headers are `ts, open, high, low, close, vol, volCcy, volCcyQuote, confirm`. This start date matches the separate funding manifest's first timestamp, but does not prove the market CSVs begin there or that VPS exports are byte-identical to canonical Git data. See research register Section 12.20 and the same downloader checkpoint.
+
+
+### VPS market CSV snapshot reconciliation — 2026-11-25
+
+A read-only manifest audit of the five actual VPS CSV exports and targeted SQLite checks is recorded in `docs/research_checkpoints/2026-11-25_phase3_vps_market_csv_snapshot_audit_v1.md` and research register Section 12.21. All five exports begin at 2025-10-20 00:00 UTC and their row counts match the SQLite `confirm=1` counts exactly. The CSVs have different final timestamps (BTC 09:41 through AVAX 11:40 UTC on 2026-11-25), so the VPS snapshot still needs explicit cross-asset alignment. One internal SOL CSV gap is explained by a historical SQLite row at 2026-08-28 08:30 UTC with `confirm=0`; it is present in the database but excluded by the confirmed-only export filter. Do not impute or change this row. First compare its current OKX history-candles confirmation flag, then complete five-asset timestamp alignment. Gate 0 remains CONDITIONAL HOLD; no strategy PnL backtest is authorized.
