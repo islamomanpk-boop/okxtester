@@ -289,10 +289,29 @@ def utc_string(ts: int | None) -> str | None:
     return datetime.fromtimestamp(ts / 1000, timezone.utc).isoformat()
 
 
-def run_audit(trade_dir: Path, funding_manifest: Path, samples_per_asset: int = 12) -> dict:
+def write_mark_snapshot(path: Path, rows: list[dict]) -> str:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    columns = [
+        "asset", "inst_id", "funding_time_ms", "mark_open", "mark_high",
+        "mark_low", "mark_close", "confirm", "bar",
+    ]
+    with path.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=columns, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def run_audit(
+    trade_dir: Path,
+    funding_manifest: Path,
+    samples_per_asset: int = 12,
+    mark_output: Path | None = None,
+) -> dict:
     events_by_asset, funding_meta = load_funding_manifest(funding_manifest)
     all_timestamps = {asset: set(events_by_asset[asset]) for asset in ASSETS}
     asset_results = {}
+    mark_snapshot_rows = []
     pooled = {
         "mark_4h_open_vs_trade_1m_close_bps": [],
         "mark_4h_close_vs_trade_1m_close_bps": [],
@@ -309,6 +328,18 @@ def run_audit(trade_dir: Path, funding_manifest: Path, samples_per_asset: int = 
         print(f"[{asset}] Fetching full-window 4H mark-price candles...", flush=True)
         mark_4h, mark_meta = fetch_mark_candles(asset, start_ms, end_ms, "4H")
         event_mark_rows = {ts: mark_4h[ts] for ts in events if ts in mark_4h}
+        for ts, candle in event_mark_rows.items():
+            mark_snapshot_rows.append({
+                "asset": asset,
+                "inst_id": f"{asset}-USDT-SWAP",
+                "funding_time_ms": ts,
+                "mark_open": str(candle["open"]),
+                "mark_high": str(candle["high"]),
+                "mark_low": str(candle["low"]),
+                "mark_close": str(candle["close"]),
+                "confirm": candle["confirm"],
+                "bar": "4H",
+            })
         missing_mark = [ts for ts in events if ts not in mark_4h]
         incomplete_mark = [ts for ts, candle in event_mark_rows.items() if candle["confirm"] != 1]
 
@@ -416,6 +447,19 @@ def run_audit(trade_dir: Path, funding_manifest: Path, samples_per_asset: int = 
     cross_asset_equal = all(all_timestamps[a] == reference for a in ASSETS[1:])
     first_ts = events_by_asset[ASSETS[0]][0]
     last_ts = events_by_asset[ASSETS[0]][-1]
+    mark_snapshot_meta = None
+    if mark_output is not None:
+        mark_snapshot_rows.sort(key=lambda row: (row["asset"], row["funding_time_ms"]))
+        snapshot_hash = write_mark_snapshot(mark_output, mark_snapshot_rows)
+        mark_snapshot_meta = {
+            "filename": mark_output.name,
+            "rows": len(mark_snapshot_rows),
+            "sha256": snapshot_hash,
+            "bar": "4H",
+            "source_endpoint": MARK_BASE,
+            "all_confirmed": all(row["confirm"] == 1 for row in mark_snapshot_rows),
+        }
+
     return {
         "status": "COMPLETE",
         "inspection": "public mark-candle coverage against the previously audited funding manifest; canonical trade CSVs read-only; no credentials or source data writes",
@@ -425,6 +469,7 @@ def run_audit(trade_dir: Path, funding_manifest: Path, samples_per_asset: int = 
             "sha256": funding_meta["sha256"],
             "status": funding_meta["status"],
         },
+        "mark_snapshot": mark_snapshot_meta,
         "funding_window": {
             "start_ms": first_ts,
             "end_ms": last_ts,
@@ -453,11 +498,12 @@ def main() -> None:
     parser.add_argument("--trade-dir", type=Path, default=Path("data/market_1m"))
     parser.add_argument("--funding-manifest", type=Path, default=DEFAULT_FUNDING_MANIFEST)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--mark-output", type=Path)
     parser.add_argument("--samples-per-asset", type=int, default=12)
     args = parser.parse_args()
     if args.samples_per_asset < 1 or args.samples_per_asset > 50:
         raise SystemExit("--samples-per-asset must be between 1 and 50")
-    result = run_audit(args.trade_dir, args.funding_manifest, args.samples_per_asset)
+    result = run_audit(args.trade_dir, args.funding_manifest, args.samples_per_asset, args.mark_output)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(f"Summary written to {args.output}", flush=True)
