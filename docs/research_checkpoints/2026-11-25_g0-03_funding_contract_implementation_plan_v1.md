@@ -1,0 +1,107 @@
+# G0-03 Funding Contract Implementation Plan V1
+
+**Date:** 2026-11-25  
+**Branch:** `price-action-v1`  
+**Status:** Design checkpoint; implementation not yet accepted.
+
+## 1. Baseline verification
+
+A dedicated push-triggered workflow was added at `.github/workflows/funding-engine-contract-tests.yml`.
+
+Baseline run: https://github.com/islamomanpk-boop/okxtester/actions/runs/45544206451
+
+Result: **PASS**. The workflow compiled the engines and ran 55 existing tests:
+- Standalone execution engine: 12
+- Portfolio backtester: 15
+- Portfolio experiment integration: 4
+- Trailing portfolio integration: 5
+- Portfolio allocator: 15
+- Portfolio safety: 4
+
+This is a pre-change baseline, not evidence that funding coverage is already safe.
+
+## 2. Source findings confirmed
+
+- `src/execution_engine.py`: `simulate_trade` currently defaults `funding_events` to an empty iterable. A caller can omit funding and silently receive zero funding PnL.
+- `src/portfolio_backtester.py`: `_validate_funding` validates mapping keys, event fields, rates, chronological order, and optional mark-price values. It does not require coverage metadata or compare events with an expected settlement schedule; an empty list is accepted.
+- Both engines apply the convention `entry_time < funding_time <= exit_time`.
+- Both engines may use the settlement-minute candle close if an explicit mark price is absent.
+- `src/run_exit_experiments.py` loads the funding CSVs and passes rate events into the portfolio engine. Its reports currently describe candle-close fallback as a proxy.
+- The audited funding manifest contains per-asset instrument identity, SHA-256, coverage endpoints, expected interval, row count, and PASS status. The current audit is 8-hour cadence for the audited historical scope; this must not become a universal hard-coded assumption.
+
+## 3. Contract to implement
+
+Introduce one shared funding contract/validator used by both execution engines.
+
+Each traded asset must have:
+- A non-empty instrument identity (for example, `BTC-USDT-SWAP`).
+- Verified coverage start and end timestamps in milliseconds.
+- A source identifier and 64-character SHA-256 hash.
+- An explicit schedule identifier/version and an explicit ordered list of expected settlement timestamps. The schedule list must be derived from verified source metadata, not inferred from the observed events alone.
+- An explicit mark-price mode: `exact` or `candle_close_proxy`.
+
+The actual event list must:
+- Be explicitly supplied, including when it is empty.
+- Have strictly increasing, unique timestamps.
+- Contain finite rates in the accepted range.
+- Match the expected settlement timestamp set for the verified source coverage. Missing and extra settlements fail closed.
+- Carry a positive finite `mark_price` for every event in `exact` mode.
+- Permit a missing mark only in `candle_close_proxy` mode, with proxy mode visible in trade and report metadata.
+
+Every completed trade must have its full holding interval inside verified funding coverage. For the trade interval `entry_time < settlement_time <= exit_time`, every expected settlement must be applied exactly once. Empty events are valid only when the expected schedule contains no settlement in the charged interval.
+
+## 4. Event timing and execution semantics
+
+Preserve and explicitly test:
+- A settlement at the entry timestamp is not charged.
+- A settlement at the exit timestamp is charged.
+- Positive funding rates make longs pay and shorts receive.
+- Negative rates reverse those signs.
+- Funding notional is quantity multiplied by the settlement mark price.
+- Portfolio funding must be applied before processing exits at a timestamp, matching the existing boundary convention.
+
+The portfolio engine currently processes funding on its one-minute execution timeline. The implementation must explicitly reject a settlement schedule/event that cannot be represented on that timeline rather than silently skipping it. Exact marks remove the need to infer settlement price from candle close, but do not remove the need to process the settlement event at the correct timestamp.
+
+## 5. Runner and report integration
+
+Update the historical runner to:
+- Load and verify the archived funding manifest.
+- Recompute each local CSV SHA-256 and compare it with the archived hash.
+- Validate instrument identity and coverage metadata.
+- Supply the complete verified funding event history plus the expected schedule to the engine; do not construct the schedule solely from the events found in the file.
+- Keep the current candle-close proxy explicit until exact OKX settlement mark data is obtained and verified.
+
+Record the mark-price mode and source/coverage identity in per-trade outputs, experiment summaries, and performance-report metadata. Do not label proxy pricing as exact.
+
+## 6. Required tests
+
+- Omitted funding input fails in the standalone engine.
+- Missing per-asset coverage metadata fails in both engines.
+- Empty events plus an expected settlement fails.
+- Empty events plus no expected settlement passes.
+- A missing interior expected settlement fails.
+- Duplicate, out-of-order, invalid, and non-finite rates fail.
+- A trade before coverage start or after coverage end fails closed.
+- Entry-time settlement is excluded; exit-time settlement is included.
+- Positive/negative rates for long and short positions have correct signs and notional.
+- Exact mode rejects a missing mark price.
+- Proxy mode works only when explicitly selected and is labelled in outputs.
+- Standalone and portfolio funding arithmetic agree for equivalent trades.
+- Portfolio rejects expected settlement timestamps that do not align with its execution timeline.
+
+## 7. Migration scope
+
+The signature/contract migration must update:
+- `src/execution_engine.py` and `src/test_execution_engine.py`
+- `src/portfolio_backtester.py` and `src/test_portfolio_backtester.py`
+- `src/test_experiment_portfolio.py`
+- `src/test_trailing_portfolio.py`
+- `src/run_exit_experiments.py`
+- `src/run_cost_sensitivity.py`
+- All focused workflow paths and test commands as needed.
+
+The grep inventory in `2026-11-25_funding_coverage_and_engine_callsite_inventory_v1.md` is the migration checklist. Re-run it after changes to detect missed integrations.
+
+## 8. Gate decision
+
+The baseline workflow is now available and passing. G0-03 remains OPEN. No strategy PnL backtest is authorized until the shared contract, runner integration, and required tests are implemented and pass. Exact settlement mark-price availability remains a separate evidence requirement; the current verified funding-rate files do not provide it.
