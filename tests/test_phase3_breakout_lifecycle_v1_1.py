@@ -13,6 +13,7 @@ from research.phase3_breakout_lifecycle_v1_1 import (
     _first_15m_close_after,
     compare_with_forward_archive,
     build_group_summary,
+    analyze_event,
     FORWARD_ARCHIVE_METRIC_PAIRS,
     FORWARD_ARCHIVE_UNAVAILABLE_FIELDS,
 )
@@ -238,6 +239,70 @@ class BreakoutLifecycleTests(unittest.TestCase):
         self.assertEqual(mapping["a"]["overlap_cluster_size"], 3)
         self.assertEqual(summary["total"], 3)
         self.assertEqual(summary["largest_cluster_size"], 3)
+
+    def test_immediate_adverse_entry_and_horizon_censoring_are_explicit(self):
+        signal = pd.Timestamp("2026-01-01T00:15:00Z")
+        index = pd.date_range(signal - pd.Timedelta(minutes=1), periods=31, freq="min")
+        frame = pd.DataFrame({
+            "open": [100.2] * len(index),
+            "high": [100.3] * len(index),
+            "low": [100.1] * len(index),
+            "close": [100.2] * len(index),
+        }, index=index)
+        frame.iloc[0, :] = [99.8, 99.9, 99.7, 99.8]
+        frame.iloc[1, :] = [99.8, 100.3, 99.7, 100.2]
+        frame.loc[signal + pd.Timedelta(minutes=14), ["open", "high", "low", "close"]] = [100.2, 100.3, 99.8, 99.9]
+        bars15 = pd.DataFrame(
+            {
+                "open": [100.2, 100.2],
+                "high": [100.3, 100.3],
+                "low": [100.1, 99.8],
+                "close": [100.2, 99.9],
+            },
+            index=pd.DatetimeIndex([signal, signal + pd.Timedelta(minutes=15)]),
+        )
+        event = {
+            "event_id": "synthetic-upper-censored",
+            "asset": "BTC",
+            "definition": "BROAD_P40",
+            "direction": "UPPER",
+            "signal_time": signal,
+            "boundary": 100.0,
+            "upper": 100.0,
+            "lower": 90.0,
+            "channel_width_price": 10.0,
+            "pre_breakout_group": 0,
+        }
+
+        event_result, horizons = analyze_event(event, frame, bars15)
+        self.assertTrue(event_result["entry_open_already_through_boundary"])
+        self.assertEqual(
+            event_result["first_15m_return_inside_close_ts_ms"],
+            int((signal + pd.Timedelta(minutes=15)).value // 1_000_000),
+        )
+        self.assertEqual(
+            event_result["first_1m_return_inside_available_ts_ms"],
+            int((signal + pd.Timedelta(minutes=15)).value // 1_000_000),
+        )
+        self.assertEqual(horizons[0]["horizon"], "15M")
+        self.assertTrue(horizons[0]["complete"])
+        self.assertFalse(horizons[1]["complete"])
+        self.assertEqual(horizons[1]["horizon_status"], "INCOMPLETE")
+        self.assertEqual(horizons[1]["observed_bars"], 30)
+        self.assertFalse(horizons[2]["complete"])
+        self.assertFalse(horizons[3]["complete"])
+
+    def test_first_completed_15m_failure_timestamp_is_bar_close_availability(self):
+        signal = pd.Timestamp("2026-01-01T00:15:00Z")
+        rows = [(signal + pd.Timedelta(minutes=15), 99.9)]
+        failure, reclaim = first_15m_failure_and_reclaim("UPPER", 100.0, rows)
+        self.assertIsNone(reclaim)
+        self.assertEqual(
+            failure["close_ts_ms"],
+            int((signal + pd.Timedelta(minutes=15)).value // 1_000_000),
+        )
+        self.assertGreater(failure["close_ts_ms"], int(signal.value // 1_000_000))
+
 
     def test_touching_half_open_windows_do_not_overlap(self):
         rows = [
