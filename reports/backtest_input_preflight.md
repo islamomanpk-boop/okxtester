@@ -57,3 +57,8 @@ Raw market and funding files remain local.
 None detected.
 
 ## Result: PASS
+
+
+## Scope and reproducibility limitations
+
+This PASS is evidence that the five local funding CSVs were available and passed the checks implemented by this script at the time of that run. It does not record SHA-256 checksums, does not prove the files remain available in a later runtime, and does not check for missing expected funding settlements between the first and last timestamps. The separate funding reconciliation report records 1,188 rows and 1,187 observed 480-minute intervals per asset, but the processed files remain outside Git. Before Phase 3 backtesting, rerun a strengthened audit against the exact files and archive their hashes and settlement-gap results. This preflight PASS is not a strategy-backtest approval.
