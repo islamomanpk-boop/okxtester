@@ -70,3 +70,20 @@ The grep command covered Python files under `src`, `research`, and `tests`. This
 This inventory is supporting evidence for the shared execution-engine readiness work (G0-03). It does not close G0-03. Gate 0 remains CONDITIONAL HOLD until coverage-aware, fail-closed behaviour is implemented and tested in both engines. Phase 3 strategy PnL backtesting remains unauthorized until all Gate 0 blockers are resolved.
 
 Because the engine and funding contract are shared infrastructure, retain this evidence for later phases; do not assume later phases are exempt from the same safeguards.
+
+
+## 5. Post-migration call-site disposition — 2026-11-25
+
+Section 2 is the **pre-migration snapshot** supplied by the user's grep output. The relevant call paths have since been migrated:
+
+- `src/execution_engine.py`: public `simulate_trade` now requires `funding_contract`; the optional empty `funding_events` default has been removed.
+- `src/test_execution_engine.py`: legacy event-list fixtures are converted to explicit contracts for arithmetic tests; dedicated tests call the engine directly to verify omitted contracts and out-of-coverage trades fail.
+- `src/portfolio_backtester.py`: `run_portfolio_backtest` now validates per-asset contracts and returns normalized coverage metadata for accounting.
+- `src/test_portfolio_backtester.py`, `src/test_experiment_portfolio.py`, and `src/test_trailing_portfolio.py`: fixtures are migrated to explicit contracts. Direct integration tests cover missing expected settlements and holding intervals beyond coverage.
+- `src/run_exit_experiments.py`: the local funding loader now reads the archived manifest, verifies CSV SHA-256, instrument, row count, endpoints, ordering and rates, and builds the contract from the manifest's explicit schedule.
+- `src/run_cost_sensitivity.py`: consumes the migrated contracts and includes manifest hash and proxy-mode provenance in output metadata.
+- `src/run_exit_experiment_batch.py`: continues to reuse the shared input tuple and now passes the migrated funding contracts through the single-experiment runner.
+
+The dedicated workflow compiles the engines, loader, cost-sensitivity runner, batch runner, and focused test files. Exact-commit workflow run: https://github.com/islamomanpk-boop/okxtester/actions/runs/45545547488 — **PASS, 75 tests**.
+
+This migration checklist is based on the captured grep inventory plus the focused workflow. A fresh repository-wide text-match audit should still be run before any future public API change. The local CSVs are not in GitHub, so CI's synthetic loader tests do not replace verification against the user's actual local source files.
