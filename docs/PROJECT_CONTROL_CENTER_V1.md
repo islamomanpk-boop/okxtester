@@ -105,6 +105,13 @@ Do not renumber, skip, or silently redefine these gates. The earlier five-gate c
 
 The latest detailed blocker register and evidence in the controlling roadmap/audit supersede informal chat summaries. When new evidence closes an item, update the relevant source document with commit/run/artifact references and tests before changing its status.
 
+
+## 4A. Repository reconciliation and research register
+
+The evidence-backed repository and five-phase research index is `docs/PROJECT_RESEARCH_REGISTER_V1.md`. It records the canonical and supporting repository snapshots, Phase 3 workstream statuses, Gate 0–7 mapping, known unrelated legacy candidates, and the next reconciliation actions. It is an index, not a replacement for the underlying protocols, scripts, tests, reports, or source artifacts.
+
+Cleanup rule: do not delete ambiguous or historical provenance material. Explicit EMA-pullback files are flagged as candidates only; no deletion is authorized until dependencies are checked and the user approves the exact path list.
+
 ## 5. Mandatory research governance
 
 The full standard is `docs/RESEARCH_GOVERNANCE_RULES_V1.md`. Its rules are mandatory for every phase and study.
