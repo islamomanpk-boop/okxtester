@@ -67,3 +67,12 @@ The Gate 0 report was refined after inspecting the underlying preflight and engi
 ### Funding coverage audit tool added
 
 The local funding audit implementation is available at [funding coverage audit documentation](../../docs/funding_coverage_audit_v1.md), with code in `src/funding_coverage_audit.py`. It hashes each file, checks the expected coverage/cadence, detects missing/irregular settlements, and compares all five asset timestamp sets. Its GitHub workflow tests synthetic fixtures only. Gate 0 stays on hold until the actual local funding files are audited and the generated manifest is archived.
+
+
+### Actual local funding coverage audit — 2026-11-25
+
+The real-data audit was run in the user's Termux environment against the five processed OKX `realizedRate` CSVs. It **PASSED**: 1,188 rows per instrument (5,940 total), identical coverage from 2025-10-20 00:00 UTC through 2026-11-19 16:00 UTC, expected 8-hour cadence, zero missing settlements, no gaps/irregular intervals, and matching timestamp sets across all five assets. SHA-256 hashes and exact local source paths are preserved in:
+- `funding_coverage_audit_v1/funding_coverage_audit.md`
+- `funding_coverage_audit_v1/funding_coverage_manifest.json`
+
+The raw/processed CSVs remain local and are not committed. The manifest records their hashes so the audited inputs can be identified. This closes the current-file-availability and coverage-evidence items (G0-01/G0-02) for that execution environment only. It does **not** verify funding cashflow application, mark-price provenance, or fail-closed engine behaviour; Gate 0 remains CONDITIONAL HOLD and strategy backtesting remains unauthorized.
