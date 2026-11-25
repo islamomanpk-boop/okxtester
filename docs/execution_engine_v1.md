@@ -52,3 +52,8 @@ This is the single-trade execution foundation, not the complete portfolio
 backtester. It does not yet implement maker limit orders, multiple
 simultaneous positions, portfolio-wide capital allocation, or strategy
 signal generation. These will be added and tested in later stages.
+
+
+## Risk-sizing limitation clarification — 2026-11-25
+
+The standalone `size_position` function sizes from stop distance and gross-exposure cap only. It does not include entry/exit fees or slippage in the initial quantity calculation. This differs from the integrated portfolio backtester, which calculates a cost-adjusted per-unit risk estimate before allocation. Treat this standalone function as a simpler baseline, not cost-adjusted risk sizing.
