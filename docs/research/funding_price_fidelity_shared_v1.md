@@ -75,3 +75,18 @@ The 60-sample probe and focused funding/execution CI workflow passed on commit `
 - Do not change `exact` mode or claim exact funding from candle timestamp alignment.
 - Gate 0 / G0-03 remains **OPEN**. Authoritative strategy PnL backtests remain blocked pending a documented funding-price fidelity decision.
 - Any future change must update this shared document, the detailed checkpoint, relevant tests, and the common engine contract before any phase consumes it.
+
+
+## Additional settlement-timing and contract-formula findings (2026-11-25)
+
+A review of the current OKX funding-fee mechanism explanation adds two important constraints to the account-bill reconciliation:
+
+- Funding assessment is performed within milliseconds; OKX says the actual assessment may take up to a minute. A position opened shortly after the nominal clock time can still be assessed if the assessment process has not finished.
+- The funding rate applied during assessment is the most recent rate calculated in the previous minute. Therefore, the public funding-history timestamp, the rate record timestamp, and the account-bill balance-update timestamp must not be assumed to be the same instant.
+- OKX describes funding fee as position value multiplied by the funding rate. For USDT/USDC-margined contracts, position value is contracts × contract size × contract multiplier × mark price. For crypto-margined contracts, position value is contracts × contract size × contract multiplier ÷ mark price. Contract metadata and settlement currency are therefore essential to any reconciliation.
+
+Official mechanism reference: https://www.okx.com/help/perps-funding-fee-mechanism. These published formulas are a reconciliation starting point, not proof that a particular account bill's `pnl` can be reconstructed without considering the account's actual position/leg structure and bill semantics.
+
+### Consequence for validation
+
+Do not join account bills to funding history on exact timestamp equality. Build a bounded candidate window around each public settlement, retain original timestamps, and inspect the bill's `instId`, `subType`, `px`, `sz`, `pnl`, `balChg`, `posBalChg`, `ccy`, and `mgnMode`. Reconcile sign, amount, and currency using the contract's `ctVal`, `ctMult`, `ctType`, and settlement currency. Preserve ambiguous or aggregated rows as unresolved rather than forcing a one-to-one mapping.
