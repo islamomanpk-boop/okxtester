@@ -817,7 +817,7 @@ def run(root: Path, output_dir: Path):
             "prior_touch_test_count": declared,
             "prior_confirmed_rejection_count": int(source.prior_confirmed_rejection_count),
             "prior_contact_only_test_count": int(source.prior_contact_only_test_count),
-            "pre_breakout_group": source.pre_breakout_group,
+            "pre_breakout_group": source.prior_rejection_group,
             "prior_segment_id": int(source.prior_segment_id),
             "prior_test_link_count": len(prior_links),
         }
