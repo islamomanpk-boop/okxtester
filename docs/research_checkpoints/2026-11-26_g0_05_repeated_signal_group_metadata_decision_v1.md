@@ -86,3 +86,13 @@ Group cardinality from the artifact:
 - Failed-breakout reversal: 932 rows, 663 inherited source groups; largest group size 5.
 
 These are metadata group counts, not independent-event counts. No rows are removed, merged, filtered or relabelled because of group membership.
+
+
+## 7. Independent minute check after repeated-signal group attachment
+
+- Workflow [45804440391](https://github.com/islamomanpk-boop/okxtester/actions/runs/45804440391) — SUCCESS; job `139855835626`.
+- Artifact ID `15107699460`.
+- ZIP SHA-256 `17d863a3148686894c26700a113474d5643ef966c9a3b8314d470b69ba26de5e`, independently recomputed after download.
+- Result `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; 2,857/2,857 eligible timestamps and all five raw source hashes/grids pass.
+
+This confirms the repeated-signal group fields did not alter source populations or eligible-minute semantics.
