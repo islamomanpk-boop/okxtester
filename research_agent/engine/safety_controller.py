@@ -6,11 +6,12 @@ All missing, malformed, stale, or conflicting policy data results in DENY.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
 from pathlib import Path
 from typing import Any
+
+from .report_builder import task_definition_digest as _canonical_hash
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG_DIR = ROOT / "research_agent" / "config"
@@ -116,13 +117,6 @@ def _load_json(path: Path) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise PermissionConfigError(f"Configuration must be a JSON object: {path.name}")
     return value
-
-
-def _canonical_hash(value: Any) -> str:
-    encoded = json.dumps(
-        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False
-    ).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
 
 
 def _deny(reason: str) -> dict[str, Any]:
