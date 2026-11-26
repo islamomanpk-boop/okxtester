@@ -565,3 +565,16 @@ Evidence:
 - Complete manifest SHA-256 / row `source_sha256_manifest_id`: `82bce2b7549efb959a2805641cfda46c1ea6a158e8e6c7d24cd8f3795ca80bbb`; recomputed from the exact JSON bytes and matched every row.
 
 This supersedes the earlier seven-file-only manifest. The independent minute verifier is being rerun against this complete-manifest artifact. Canonical candidate generation remains unauthorized.
+
+
+## 28. Complete manifest, per-row lineage and independent verification — 2026-11-26
+
+Current source-only lineage evidence:
+- Source audit [45806239609](https://github.com/islamomanpk-boop/okxtester/actions/runs/45806239609) — SUCCESS; artifact ID `15109506588`; ZIP SHA-256 `c87808aaac2be5d7013d42d3f93fcbb0ed44d1602470c030642fcf6ffc75efcb`.
+- Complete manifest V2 SHA-256 / per-row ID: `82bce2b7549efb959a2805641cfda46c1ea6a158e8e6c7d24cd8f3795ca80bbb`; verified against exact manifest bytes and all 4,947 disposition rows.
+- Independent minute verifier [45806451121](https://github.com/islamomanpk-boop/okxtester/actions/runs/45806451121) — SUCCESS; artifact ID `15110066577`; ZIP SHA-256 `fdbd4121aa14d047b4b0a83239860bf6ef3f097b0626ba7de63eedc8812f630c`; 2,857/2,857 eligible timestamps pass.
+- Synthetic contract suite [45806726332](https://github.com/islamomanpk-boop/okxtester/actions/runs/45806726332) — SUCCESS; **103/103 tests passed**.
+
+The source-only ledger now includes family-specific file paths, Git blob IDs, a complete source manifest ID, exact signal/confirmation timing, confirmation status, OHLC ambiguity, expiry metadata, overlap clusters and repeated-signal groups. It remains a source-disposition artifact, not a canonical candidate ledger.
+
+**Remaining G0-05 work:** materialize snapshot/threshold/feature values per row, canonical candidate and source-event IDs, source breakout candidate IDs, final version labels and complete family-specific schema validation; then independently review and deterministically reproduce the canonical candidate output. No canonical candidates, execution simulation, strategy backtests, PnL or phase transition are authorized.
