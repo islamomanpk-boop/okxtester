@@ -550,6 +550,58 @@ def confirmation_ambiguity_flag(direction: str, boundary: float, bar: dict) -> s
     return "NONE"
 
 
+def canonical_snapshot_provenance(asset: str, snapshot_ms: int, next_snapshot_ms,
+                                   feature: dict, threshold: dict | None,
+                                   causal_cohort: str) -> dict:
+    """Materialize exact frozen snapshot, feature and causal-threshold provenance."""
+    snapshot = int(snapshot_ms)
+    if ms(feature.get("available_at_ts_ms", ""), "feature snapshot availability") != snapshot:
+        raise ValueError("feature snapshot is not an exact match for candidate context")
+    if next_snapshot_ms not in (None, "") and int(next_snapshot_ms) <= snapshot:
+        raise ValueError("snapshot validity endpoint must be after snapshot availability")
+    if causal_cohort == "WARMUP" and threshold is not None:
+        raise ValueError("warm-up cohort cannot have a causal threshold row")
+    if threshold is None:
+        percentile = ""
+        threshold_value = ""
+        calibration_start = ""
+        calibration_end = ""
+        prior_count = ""
+    else:
+        percentile = 25 if causal_cohort == "CAUSAL_STRICT" else 40
+        threshold_value = float(threshold["p25"] if percentile == 25 else threshold["p40"])
+        calibration_start = ms(threshold["first_prior_context_ms"], "threshold calibration start")
+        calibration_end = ms(threshold["last_prior_context_ms"], "threshold calibration end")
+        prior_count = int(threshold["prior_context_count"])
+        if calibration_end >= snapshot or prior_count < 180:
+            raise ValueError("threshold calibration is not prior-only or has insufficient history")
+    return {
+        "instrument_id": f"{asset}-USDT-SWAP",
+        "regime_definition_version": "SIDEWAYS_DETECTOR_ORIGINAL_V1",
+        "candidate_rule_version": "G0_05_CANDIDATE_RULE_V1",
+        "source_pipeline_version": "G0_04_CAUSAL_RECONSTRUCTION_V1+MODULE_A_V1_1+MODULE_B_V1_1",
+        "snapshot_id": f"{asset}|{snapshot}",
+        "snapshot_available_at_ts_ms": snapshot,
+        "snapshot_valid_from_ts_ms": snapshot,
+        "snapshot_valid_until_ts_ms": "" if next_snapshot_ms in (None, "") else int(next_snapshot_ms),
+        "frozen_upper_boundary": float(feature["upper"]),
+        "frozen_lower_boundary": float(feature["lower"]),
+        "channel_width_pct": float(feature["channel_width_pct"]),
+        "efficiency_value": float(feature["directional_efficiency"]),
+        "efficiency_limit": 0.30,
+        "overlap_value": float(feature["mean_overlap"]),
+        "overlap_minimum": 0.70,
+        "threshold_policy_id": "EXPANDING_PRIOR",
+        "threshold_population_id": "UNIQUE_4H_FEATURE_ROWS",
+        "threshold_value": threshold_value,
+        "threshold_percentile": percentile,
+        "threshold_calibration_start_ts_ms": calibration_start,
+        "threshold_calibration_end_ts_ms": calibration_end,
+        "threshold_prior_observation_count": prior_count,
+        "causal_cohort_label": causal_cohort,
+    }
+
+
 def make_repeated_signal_group_id(family: str, asset: str, direction: str,
                                   snapshot_key: str | int, segment_id: str | int | None = None,
                                   source_group_id: str | None = None) -> str:
