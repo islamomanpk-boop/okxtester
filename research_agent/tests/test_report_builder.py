@@ -399,7 +399,7 @@ class ReportBuilderTests(unittest.TestCase):
             tampered_files["artifact_manifest.json"] = (
                 json.dumps(tampered_manifest, sort_keys=True, indent=2) + "\n"
             )
-            with self.assertRaisesRegex(ValueError, "identity does not match"):
+            with self.assertRaisesRegex(ValueError, "repository does not match trusted"):
                 report_builder.verify_artifact_files(
                     tampered_files, tampered_manifest,
                     actual_artifact_name=bundle["artifact_name"],
