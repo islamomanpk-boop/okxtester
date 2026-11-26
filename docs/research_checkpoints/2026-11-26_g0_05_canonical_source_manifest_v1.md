@@ -119,13 +119,11 @@ The descriptive lifecycle metadata records 1,592 events (932 broad, 660 strict),
 - Rejection lifecycle V1.1 source: `research/phase3_rejection_lifecycle_v1_1.py`, current Git blob `e47c9d60f3af019f84ccb82699d990e5a34e9709`.
 - Breakout lifecycle V1.1 source: `research/phase3_breakout_lifecycle_v1_1.py`, current Git blob `f272b90344320c884f84b5c13752377f74a5eb99`.
 
-## 6. Remaining provenance blockers
+## 6. Provenance and causal source-audit status
 
-1. Preserve the verified SHA-256 and Git blob manifest for the seven rejection-family inputs.
-2. Preserve the Module B event/horizon SHA-256 values and verify them again in the read-only audit report.
-3. Expand reconciliation to candidate-specific causal threshold eligibility and exact snapshot lookup, without emitting candidate records.
+All source-manifest and source-only causal-threshold checks listed above have passed in workflow [45782827341](https://github.com/islamomanpk-boop/okxtester/actions/runs/45782827341). The latest report verifies the seven rejection-family Git blob/SHA-256 pairs, Module B event/horizon hashes, 15,594 G0-04 event/threshold recomputations, 262 explicit breakout warm-up exclusions, and the 1,154 unique physical rejection dispositions.
 
-**No canonical candidate generation is authorized until these blockers are closed.**
+**Remaining G0-05 work is now the row-level source-disposition dry-run, exact first-eligible-minute checks, and full source disposition accounting. No canonical candidate generation is authorized yet.**
 
 
 ## 7. G0-05 source-audit execution evidence
