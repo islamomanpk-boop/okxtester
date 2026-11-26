@@ -1117,9 +1117,28 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             status, minute_reason=minute_check(asset,signal)
             if minute_reason:
                 reason=minute_reason
+        feature=feature_by_timestamp[asset].get(snap)
+        if feature is None:
+            fail(f"breakout has no exact detector feature snapshot: {source_key}")
+        next_snapshot=next_feature_snapshot[asset].get(snap, "")
+        threshold=exact_threshold_for_snapshot(
+            thresholds,asset,snap,"EXPANDING_PRIOR","UNIQUE_4H_FEATURE_ROWS")
+        for raw_field, feature_field in (
+            ("channel_width_pct","channel_width_pct"),
+            ("efficiency","directional_efficiency"),
+            ("overlap","mean_overlap"),
+            ("upper","upper"),("lower","lower"),
+        ):
+            if not math.isclose(float(r[raw_field]),float(feature[feature_field]),rel_tol=0.0,abs_tol=1e-9):
+                fail(f"G0-04 raw crossing {raw_field} differs from exact feature snapshot: {source_key}")
+        snapshot_fields=canonical_snapshot_provenance(
+            asset,snap,next_snapshot,feature,threshold,cohort)
         source_event_key=f"{asset}|{r['direction']}|{signal}|{snap}"
         cluster=breakout_cluster_map[source_event_key]
-        breakout_rows.append({"asset":asset,"source_event_key":source_event_key,
+        breakout_rows.append({**snapshot_fields,
+            "source_event_id":source_event_key,
+            "source_event_row_ids":source_event_key,
+            "asset":asset,"source_event_key":source_event_key,
             "direction":r["direction"],"family":"BREAKOUT_CONTINUATION",
             "family_direction":"LONG" if r["direction"]=="UPPER" else "SHORT",
             "signal_time_ms":signal,"signal_candle_open_ts_ms":signal-900000,
