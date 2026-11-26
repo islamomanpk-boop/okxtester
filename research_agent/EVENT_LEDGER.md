@@ -37,4 +37,4 @@ The current repository has no trusted persistence adapter or dispatcher. This mo
 
 ## Validation
 
-Twelve regression tests are authored in `tests/test_event_ledger.py`; they have not been executed. Runtime validation remains deferred while the current Phase 3 G0-05 handoff prohibits relevant code/test execution.
+Thirteen regression tests are authored in `tests/test_event_ledger.py`; they have not been executed. Runtime validation remains deferred while the current Phase 3 G0-05 handoff prohibits relevant code/test execution.
