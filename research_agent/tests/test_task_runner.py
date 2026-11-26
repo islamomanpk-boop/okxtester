@@ -54,6 +54,14 @@ class TaskRunnerTests(unittest.TestCase):
         self.assertFalse(result["authorized"])
         self.assertFalse(result["execution_performed"])
 
+    def test_rejects_allow_result_without_a_reason(self):
+        queue = {"tasks": [{"task_id": "P3-RO-001", "status": "queued"}]}
+        incomplete = {"decision": "ALLOW_READ_ONLY", "authorized": True, "reason": ""}
+        with patch.object(task_runner, "authorize_task", return_value=incomplete):
+            result = task_runner._preflight_task_with_queue("P3-RO-001", queue)
+        self.assertEqual(result["decision"], "DENY")
+        self.assertFalse(result["authorized"])
+
     def test_does_not_trust_inconsistent_authorizer_decision(self):
         queue = {"tasks": [{"task_id": "P3-RO-001", "status": "queued"}]}
         inconsistent = {
