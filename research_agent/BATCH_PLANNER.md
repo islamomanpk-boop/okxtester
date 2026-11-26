@@ -21,6 +21,7 @@ a trusted dispatch boundary.
 - Caps each proposed batch at 10 tasks (default 5).
 - Reports denied queued tasks separately with their reason.
 - Leaves blocked later-phase tasks untouched.
+- Runtime planning loads the trusted queue once and derives every per-task preflight result from that same in-memory snapshot, avoiding a queue reload between planning and preflight. The lower-level planner uses the same rule when it must obtain its own preflight summary.
 - Returns `PLAN_ONLY`, `authorized: false`, and
   `execution_performed: false` unconditionally.
 
