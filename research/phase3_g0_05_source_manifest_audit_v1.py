@@ -19,7 +19,8 @@ if PROJECT_ROOT not in sys.path:
 
 from research.phase3_g0_05_candidate_contract_v1 import (
     exact_threshold_for_snapshot, validate_source_key_join, validate_disposition_reason,
-    rejection_physical_identity,
+    rejection_physical_identity, CANONICAL_REQUIRED_FIELDS,
+    validate_canonical_candidate_record, validate_canonical_candidate_ledger,
 )
 
 EXPECTED_BLOBS = {
@@ -1540,6 +1541,13 @@ def main() -> None:
         "row_level_disposition_dry_run": dry_run,
         "source_manifest": dry_run["source_manifest"],
         "source_sha256_manifest_id": dry_run["source_sha256_manifest_id"],
+        "canonical_candidate_schema": {
+            "status": "IMPLEMENTED_AND_SYNTHETICALLY_TESTED_NOT_APPLIED_TO_SOURCE_DISPOSITION_ROWS",
+            "required_field_count": len(CANONICAL_REQUIRED_FIELDS),
+            "row_validator_available": callable(validate_canonical_candidate_record),
+            "ledger_validator_available": callable(validate_canonical_candidate_ledger),
+            "canonical_candidate_generation_authorized": False,
+        },
     }
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir / "source_audit_report.json").write_text(
