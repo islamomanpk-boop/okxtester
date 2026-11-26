@@ -110,3 +110,10 @@ The new docs/THREAT_MODEL_AND_FAILURE_INJECTION_MATRIX.md records protected asse
 The analysis identifies atomic state/event/idempotency/checkpoint persistence, operation-boundary approval, authenticated delivery, anti-rollback recovery, and trust-root separation as critical design blockers. It distinguishes worker-claim validation, evidence-byte integrity, task disposition, and phase-gate authority.
 
 This is a documentation-level risk analysis and future test plan only. Likelihood and residual-risk acceptance are not asserted. No failure injection, tests, scripts, or workflows were run. The current G0-05 handoff remains controlling; no activation or protected-branch change is authorized.
+
+
+## 11. Security control gap audit
+
+`docs/SECURITY_CONTROL_GAP_AUDIT_2026-11-26.md` maps the threat register to inspected pure modules and lifecycle proposals. It distinguishes present source-level restrictions from partial caller-supplied verification, design-only trust controls, and unestablished operational components. The main blockers are independent trust roots, atomic durable registry transactions, retained package digests, authenticated operation-boundary approval, authenticated dispatch/delivery/return, and anti-rollback recovery.
+
+This was a bounded static source/document review, not an exhaustive workflow or deployment audit. No tests, scripts, workflows, or failure injections were run. G0-05 remains controlling; the agent remains non-operational.
