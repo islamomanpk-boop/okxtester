@@ -8,10 +8,13 @@ from research.phase3_g0_05_candidate_contract_v1 import (
     causal_regime_eligible, validate_strict_broad_nesting,
     exact_first_minute_disposition, failed_breakout_horizon_disposition,
     rejection_physical_identity, collapse_rejection_cohort_rows, causal_rejection_disposition,
+    exact_threshold_for_snapshot, validate_source_key_join, validate_disposition_reason,
+    REJECTED_REASON_CODES, EXPIRED_REASON_CODES, CENSORED_REASON_CODES,
 )
 
 from research.phase3_g0_05_source_manifest_audit_v1 import (
     first_eligible_minute_or_blank, validate_module_b_horizons,
+    validate_disposition_ledger,
 )
 
 
@@ -240,6 +243,121 @@ class G005ContractTests(unittest.TestCase):
         rows = [{"b": 2, "a": 1}]
         self.assertEqual(deterministic_json(rows), deterministic_json([{"a": 1, "b": 2}]))
 
+
+
+class G005ExpandedGateTests(unittest.TestCase):
+    def test_exact_threshold_lookup_uses_exact_snapshot_only(self):
+        row = {"last_prior_context_ms": 900, "prior_context_count": 180}
+        index = {("BTC", 1000, "EXPANDING_PRIOR", "UNIQUE_4H_FEATURE_ROWS"): row}
+        self.assertIs(exact_threshold_for_snapshot(
+            index, "BTC", 1000, "EXPANDING_PRIOR", "UNIQUE_4H_FEATURE_ROWS"), row)
+        self.assertIsNone(exact_threshold_for_snapshot(
+            index, "BTC", 1001, "EXPANDING_PRIOR", "UNIQUE_4H_FEATURE_ROWS"))
+
+    def test_exact_threshold_lookup_rejects_current_or_future_calibration(self):
+        index = {("BTC", 1000, "EXPANDING_PRIOR", "UNIQUE_4H_FEATURE_ROWS"):
+                 {"last_prior_context_ms": 1000, "prior_context_count": 180}}
+        with self.assertRaisesRegex(ValueError, "strictly before"):
+            exact_threshold_for_snapshot(
+                index, "BTC", 1000, "EXPANDING_PRIOR", "UNIQUE_4H_FEATURE_ROWS")
+
+    def test_exact_threshold_lookup_requires_180_prior_contexts(self):
+        index = {("BTC", 1000, "EXPANDING_PRIOR", "UNIQUE_4H_FEATURE_ROWS"):
+                 {"last_prior_context_ms": 900, "prior_context_count": 179}}
+        with self.assertRaisesRegex(ValueError, "180 prior"):
+            exact_threshold_for_snapshot(
+                index, "BTC", 1000, "EXPANDING_PRIOR", "UNIQUE_4H_FEATURE_ROWS")
+
+    def test_exact_source_key_join_accepts_exact_match(self):
+        self.assertTrue(validate_source_key_join(["a", "b"], ["b", "a"], exact=True))
+
+    def test_exact_source_key_join_rejects_missing_key(self):
+        with self.assertRaisesRegex(ValueError, "missing=1"):
+            validate_source_key_join(["a", "b"], ["a"], exact=True)
+
+    def test_exact_source_key_join_rejects_extra_key(self):
+        with self.assertRaisesRegex(ValueError, "extra=1"):
+            validate_source_key_join(["a"], ["a", "b"], exact=True)
+
+    def test_source_key_subset_join_allows_unrelated_raw_events(self):
+        self.assertTrue(validate_source_key_join(["selected"], ["selected", "other"], exact=False))
+
+    def test_source_key_subset_join_rejects_unmatched_source(self):
+        with self.assertRaisesRegex(ValueError, "missing=1"):
+            validate_source_key_join(["selected", "missing"], ["selected", "other"], exact=False)
+
+    def test_source_key_join_rejects_duplicate_expected_or_observed_keys(self):
+        with self.assertRaisesRegex(ValueError, "duplicate expected"):
+            validate_source_key_join(["a", "a"], ["a"], exact=True)
+        with self.assertRaisesRegex(ValueError, "duplicate observed"):
+            validate_source_key_join(["a"], ["a", "a"], exact=True)
+
+    def test_all_frozen_disposition_reason_codes_are_classified(self):
+        self.assertEqual(REJECTED_REASON_CODES, frozenset({
+            "CAUSAL_THRESHOLD_WARMUP", "CAUSAL_REGIME_NOT_ELIGIBLE",
+            "SNAPSHOT_NOT_AVAILABLE_AT_SIGNAL", "SOURCE_HASH_MISMATCH",
+            "MISSING_SOURCE_IDENTITY", "SOURCE_JOIN_UNMATCHED",
+            "DUPLICATE_SOURCE_IDENTITY", "DUPLICATE_CANDIDATE_ID",
+            "INVALID_SOURCE_SCHEMA", "INVALID_FEATURE_VALUES",
+            "FUTURE_CONTEXT_ASSIGNED", "DIRECTION_MAPPING_MISMATCH",
+            "NO_VALID_SOURCE_BREAKOUT", "INCOMPLETE_CONFIRMATION_BAR",
+        }))
+        self.assertEqual(EXPIRED_REASON_CODES, frozenset({
+            "EXPIRED_NO_RETURN_INSIDE_WITHIN_12H", "SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION",
+        }))
+        self.assertEqual(CENSORED_REASON_CODES, frozenset({
+            "MISSING_OR_GAPPED_MINUTES", "INCOMPLETE_15M_CONFIRMATION",
+            "SOURCE_END_BEFORE_RESOLUTION", "AMBIGUOUS_CONFIRMATION_UNRESOLVED",
+        }))
+        for reason in REJECTED_REASON_CODES:
+            self.assertTrue(validate_disposition_reason("REJECTED", reason))
+        for reason in EXPIRED_REASON_CODES:
+            self.assertTrue(validate_disposition_reason("EXPIRED", reason))
+        for reason in CENSORED_REASON_CODES:
+            self.assertTrue(validate_disposition_reason("CENSORED", reason, reason))
+
+    def test_snapshot_expiry_reason_is_expired_not_rejected(self):
+        self.assertTrue(validate_disposition_reason(
+            "EXPIRED", "SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION"))
+        with self.assertRaisesRegex(ValueError, "rejected row"):
+            validate_disposition_reason("REJECTED", "SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION")
+
+    def test_eligible_disposition_requires_none_reason(self):
+        self.assertTrue(validate_disposition_reason(
+            "ELIGIBLE_FOR_FURTHER_VALIDATION", "NONE"))
+        with self.assertRaisesRegex(ValueError, "exclusion_reason=NONE"):
+            validate_disposition_reason("ELIGIBLE_FOR_FURTHER_VALIDATION", "")
+
+    def test_censored_disposition_requires_matching_censoring_reason(self):
+        with self.assertRaisesRegex(ValueError, "matching"):
+            validate_disposition_reason("CENSORED", "SOURCE_END_BEFORE_RESOLUTION", "")
+
+    def test_disposition_ledger_requires_exact_population_and_unique_ids(self):
+        rows = [
+            {"source_event_key": "a", "disposition": "ELIGIBLE_FOR_FURTHER_VALIDATION"},
+            {"source_event_key": "b", "disposition": "REJECTED"},
+        ]
+        result = validate_disposition_ledger(rows, "source_event_key", 2)
+        self.assertEqual(result["rows"], 2)
+        self.assertEqual(sum(result["dispositions"].values()), 2)
+
+    def test_disposition_ledger_rejects_missing_source_rows(self):
+        rows = [{"source_event_key": "a", "disposition": "ELIGIBLE_FOR_FURTHER_VALIDATION"}]
+        with self.assertRaisesRegex(RuntimeError, "row count"):
+            validate_disposition_ledger(rows, "source_event_key", 2)
+
+    def test_disposition_ledger_rejects_duplicate_source_identity(self):
+        rows = [
+            {"source_event_key": "a", "disposition": "ELIGIBLE_FOR_FURTHER_VALIDATION"},
+            {"source_event_key": "a", "disposition": "REJECTED"},
+        ]
+        with self.assertRaisesRegex(RuntimeError, "duplicate"):
+            validate_disposition_ledger(rows, "source_event_key", 2)
+
+    def test_disposition_ledger_rejects_unknown_status(self):
+        rows = [{"source_event_key": "a", "disposition": "MAYBE"}]
+        with self.assertRaisesRegex(RuntimeError, "invalid status"):
+            validate_disposition_ledger(rows, "source_event_key", 1)
 
 
 class G005SourceAuditTests(unittest.TestCase):
