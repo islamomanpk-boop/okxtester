@@ -201,3 +201,15 @@ The latest source-only artifact now materializes the family-specific exact snaps
 Source audit [45808007422](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808007422) passed with artifact ID `15110482845`; ZIP SHA-256 `f29bf78c7dbcaaca05f51ca10a5fc688f334664262debee6d37b7b657d390f2b`; complete manifest ID `f851f6c65214f18a6f24cd7424cad0dedba26c2c2a1210dda269ddef84bc81d2`. Synthetic suite [45808027261](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808027261) passed **111/111 tests**.
 
 The only candidate-schema IDs intentionally not materialized are `candidate_id` and `source_breakout_candidate_id`; generating those IDs belongs to the final canonical candidate build, which remains unauthorized.
+
+
+## 17. Independent minute verification after snapshot/threshold materialization
+
+The independent verifier was rerun against source-audit run `45808007422` / artifact `15110482845`:
+
+- Workflow [45808232768](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808232768) — SUCCESS; job `139868998574`.
+- Artifact ID `15109374812`.
+- ZIP SHA-256 `6ba631e255aa433a50e00a708e4d4e05475e4fb35c10e058eab825c46c98bc4a`, independently recomputed after download.
+- Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; 2,857/2,857 eligible timestamps present, 2,090 non-eligible rows have blank first-eligible timestamps, and all five raw market hashes/grids pass.
+
+This independent result confirms that the exact snapshot/threshold field materialization did not alter eligible-minute membership.
