@@ -1094,6 +1094,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
         module_b_observed[event_key]=observed
     raw_cluster_events=[]
     breakout_group_by_key={}
+    leading_legacy_contexts={asset:set() for asset in ASSETS}
     for raw in raw_rows:
         asset=raw["asset"]
         signal=ms(raw["signal_time_ms"],"raw breakout signal for overlap")
@@ -1111,6 +1112,8 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "signal_time_ms":signal,
             "observed_bars_12h":observed,
         })
+    if any(len(snapshots)>1 for snapshots in leading_legacy_contexts.values()):
+        fail("G0-04 raw crossings reference more than one expected leading legacy context per asset")
     breakout_cluster_map, breakout_cluster_summary = assign_interval_graph_clusters(
         raw_cluster_events, asset_field="asset", event_id_field="event_id",
         start_field="signal_time_ms", observed_bars_field="observed_bars_12h",
@@ -1136,6 +1139,8 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
                 reason=minute_reason
         reference_feature_snapshot,reference_feature,reference_feature_match_status=resolve_lagged_feature_reference(
             feature_by_timestamp,asset,snap)
+        if reference_feature_match_status=="EXPECTED_LEADING_LEGACY_BOUNDARY":
+            leading_legacy_contexts[asset].add(snap)
         if reference_feature is not None:
             for raw_field, feature_field in (
                 ("channel_width_pct","channel_width_pct"),
