@@ -159,3 +159,15 @@ Evidence:
 - All 4,947 disposition rows have exactly one identical manifest ID; per-row source paths correctly select the matching asset's feature and 1m market file.
 
 This supersedes the earlier incomplete source manifest. The independent minute verifier is being rerun against this complete-manifest artifact.
+
+
+## 14. Independent minute verification against complete manifest V2
+
+The independent verifier consumed the source-only disposition artifact produced with the complete manifest V2:
+
+- Workflow [45806451121](https://github.com/islamomanpk-boop/okxtester/actions/runs/45806451121) — SUCCESS; job `139862911450`.
+- Artifact ID `15110066577`.
+- ZIP SHA-256 `fdbd4121aa14d047b4b0a83239860bf6ef3f097b0626ba7de63eedc8812f630c`, independently recomputed after download.
+- Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; all five raw market files re-hashed and checked for strict ordering, minute alignment and continuity; 2,857/2,857 eligible timestamps present; 2,090 non-eligible rows have blank first-eligible timestamps.
+
+The manifest ID in the source audit rows remains `82bce2b7549efb959a2805641cfda46c1ea6a158e8e6c7d24cd8f3795ca80bbb`, and the independent minute check did not alter source populations.
