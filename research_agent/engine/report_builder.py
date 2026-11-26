@@ -406,6 +406,76 @@ def build_artifact_bundle(
     }
 
 
+def verify_artifact_files(files: dict[str, str], manifest: dict[str, Any]) -> None:
+    """Verify a downloaded/in-memory artifact file map against its manifest.
+
+    The caller supplies file contents obtained from the artifact being checked.
+    This validates completeness, report identity, and byte hashes; it does not
+    authenticate the artifact service or who uploaded the files.
+    """
+    if not isinstance(files, dict) or set(files) != {
+        "report.json", "report.md", "artifact_manifest.json"
+    }:
+        raise ValueError("Artifact must contain exactly the three expected files.")
+    if not all(isinstance(name, str) and isinstance(content, str) for name, content in files.items()):
+        raise TypeError("Artifact file names and contents must be strings.")
+    if not isinstance(manifest, dict) or set(manifest) != {
+        "schema_version", "artifact_name", "task_id", "phase", "run_id",
+        "run_attempt", "commit_sha", "files", "limitations",
+    }:
+        raise ValueError("Artifact manifest schema is invalid.")
+    if type(manifest["schema_version"]) is not int or manifest["schema_version"] != 1:
+        raise ValueError("Unsupported artifact manifest schema version.")
+    for name in ("run_id", "run_attempt"):
+        if not isinstance(manifest[name], str) or not re.fullmatch(r"[1-9][0-9]*", manifest[name]):
+            raise ValueError(f"Artifact manifest {name} is invalid.")
+    expected_name = f"okx-research-agent-{manifest['run_id']}-{manifest['run_attempt']}"
+    if manifest["artifact_name"] != expected_name:
+        raise ValueError("Artifact name does not match its trusted run identifiers.")
+    if not isinstance(manifest["task_id"], str) or not manifest["task_id"].strip():
+        raise ValueError("Artifact manifest task_id is invalid.")
+    if not isinstance(manifest["phase"], str) or not manifest["phase"].strip():
+        raise ValueError("Artifact manifest phase is invalid.")
+    if not isinstance(manifest["commit_sha"], str) or not _COMMIT_RE.fullmatch(manifest["commit_sha"]):
+        raise ValueError("Artifact manifest commit SHA is invalid.")
+    if not isinstance(manifest["limitations"], list) or not all(
+        isinstance(item, str) and item.strip() for item in manifest["limitations"]
+    ):
+        raise ValueError("Artifact manifest limitations are invalid.")
+    entries = manifest["files"]
+    if not isinstance(entries, list) or len(entries) != 2:
+        raise ValueError("Artifact manifest must declare exactly two report files.")
+    expected_paths = {"report.json", "report.md"}
+    seen: set[str] = set()
+    for entry in entries:
+        if not isinstance(entry, dict) or set(entry) != {"path", "sha256"}:
+            raise ValueError("Artifact file manifest entry is invalid.")
+        path = entry["path"]
+        digest = entry["sha256"]
+        if path not in expected_paths or path in seen:
+            raise ValueError("Artifact manifest contains a missing, duplicate, or unexpected path.")
+        if not isinstance(digest, str) or not _SHA256_RE.fullmatch(digest):
+            raise ValueError("Artifact file hash is malformed.")
+        seen.add(path)
+        actual = hashlib.sha256(files[path].encode("utf-8")).hexdigest()
+        if actual != digest:
+            raise ValueError(f"Artifact file hash mismatch: {path}")
+    if seen != expected_paths:
+        raise ValueError("Artifact manifest does not cover every expected report file.")
+    try:
+        report = json.loads(files["report.json"])
+    except (TypeError, json.JSONDecodeError) as exc:
+        raise ValueError("Artifact report.json is not valid JSON.") from exc
+    validate_report(report)
+    if (
+        report["task_id"] != manifest["task_id"]
+        or report["phase"] != manifest["phase"]
+        or report["run_id"] != manifest["run_id"]
+        or report["commit_sha"] != manifest["commit_sha"]
+    ):
+        raise ValueError("Artifact report identity does not match its manifest.")
+
+
 def report_digest(report: dict[str, Any]) -> str:
     """Hash the canonical JSON representation of a report."""
     return hashlib.sha256(render_json(report).encode("utf-8")).hexdigest()
