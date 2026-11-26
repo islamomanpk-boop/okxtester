@@ -612,3 +612,13 @@ The latest source-only audit emits the frozen cohort enum values (`STRICT_P25`, 
 - Synthetic suite [45809254233](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809254233) — SUCCESS; **120/120 tests passed**.
 
 The pure candidate identity validator now checks deterministic candidate IDs and the final failed-breakout source identity composition and link. All tests use synthetic IDs; real candidate IDs remain unmaterialized. Independent minute verification against this latest source-audit artifact is running.
+
+
+## 32. Independent minute verification after schema normalization — 2026-11-26
+
+The independent verifier was rerun against the source-only artifact with normalized cohort labels and explicit side/boundary-side fields.
+
+- Workflow [45809422866](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809422866) — SUCCESS; artifact ID `15110639152`; ZIP SHA-256 `5836d3212c56cfc72ab31db17d6704e03c1413d8c783c6f9049c4be083361798`.
+- Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; 2,857/2,857 eligible timestamps present; 2,090 non-eligible timestamps blank; all five raw files re-hashed and minute grids validated.
+
+This preserves the prior source population and minute-membership conclusions. G0-05 remains open and candidate IDs remain unmaterialized.
