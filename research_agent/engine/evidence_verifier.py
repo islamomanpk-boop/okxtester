@@ -18,7 +18,7 @@ _EVIDENCE_FIELDS = {"path", "sha256", "source_ref", "description"}
 def _safe_path(value: Any) -> bool:
     if not isinstance(value, str) or not value:
         return False
-    if value.startswith(("/", "\\\\")) or "\\\\" in value:
+    if value.startswith(("/", "\\")) or "\\" in value:
         return False
     if re.match(r"^[A-Za-z]:", value):
         return False
