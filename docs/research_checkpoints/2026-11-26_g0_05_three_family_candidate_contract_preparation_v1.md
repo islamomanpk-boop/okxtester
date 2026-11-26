@@ -642,4 +642,13 @@ Evidence:
 - Source-audit report confirms 60 required fields, both validators available, and canonical generation unauthorized.
 - Synthetic suite [45810463442](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810463442) — SUCCESS; **125/125 tests passed**.
 
-No real candidate IDs or canonical candidate rows were generated. The independent minute verifier is being rerun against this latest source-audit artifact.
+No real candidate IDs or canonical candidate rows were generated. The independent minute verifier [45810782593](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810782593) also passed against this latest source-audit artifact; artifact ID `15112426887`; ZIP SHA-256 `da386f639b49c4188bf2927f0c9edb8305abed08f542e3ef6cffa988df449d04`; 2,857/2,857 eligible timestamps present.
+
+
+## 34. Independent minute verification after full schema-validator integration — 2026-11-26
+
+- Workflow [45810782593](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810782593) — SUCCESS; artifact ID `15112426887`.
+- ZIP SHA-256: `da386f639b49c4188bf2927f0c9edb8305abed08f542e3ef6cffa988df449d04`.
+- Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; 2,857/2,857 eligible timestamps present, 2,090 non-eligible rows blank, all five raw minute files re-hashed and grids validated.
+
+The latest source-audit report also confirms the 60-field row and ledger validators are available, while canonical candidate generation remains explicitly unauthorized.
