@@ -99,11 +99,11 @@ Additional flags require a versioned contract amendment before emission.
 
 ## 9. Source manifest identifier
 
-`source_sha256_manifest_id` is the SHA-256 of the exact `source_manifest.json` bytes included in the source-audit artifact. For the complete source-audit manifest V2 in run 45806239609 / artifact 15109506588, the value is:
+`source_sha256_manifest_id` is the SHA-256 of the exact `source_manifest.json` bytes included in the source-audit artifact. For the latest complete source-audit manifest V2 in run 45808007422 / artifact 15110482845, the value is:
 
-`82bce2b7549efb959a2805641cfda46c1ea6a158e8e6c7d24cd8f3795ca80bbb`
+`f851f6c65214f18a6f24cd7424cad0dedba26c2c2a1210dda269ddef84bc81d2`
 
-This is the SHA-256 of the exact `source_manifest.json` bytes. The earlier 7-file-only manifest ID is superseded. Every later source-audit run must use its own computed hash; never reuse this ID after the manifest or source-audit revision changes.
+This is the SHA-256 of the exact `source_manifest.json` bytes. Earlier 7-file-only and prior V2 run IDs are superseded. Every later source-audit run must use its own computed hash; never reuse this ID after the manifest or source-audit revision changes.
 
 ## 10. Remaining implementation checks
 
@@ -170,7 +170,7 @@ The independent verifier consumed the source-only disposition artifact produced 
 - ZIP SHA-256 `fdbd4121aa14d047b4b0a83239860bf6ef3f097b0626ba7de63eedc8812f630c`, independently recomputed after download.
 - Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; all five raw market files re-hashed and checked for strict ordering, minute alignment and continuity; 2,857/2,857 eligible timestamps present; 2,090 non-eligible rows have blank first-eligible timestamps.
 
-The manifest ID in the source audit rows remains `82bce2b7549efb959a2805641cfda46c1ea6a158e8e6c7d24cd8f3795ca80bbb`, and the independent minute check did not alter source populations.
+The latest source audit rows use manifest ID `f851f6c65214f18a6f24cd7424cad0dedba26c2c2a1210dda269ddef84bc81d2`; later source-audit runs will have their own manifest IDs.
 
 
 ## 15. One-4H-lagged breakout context mapping correction
@@ -189,3 +189,15 @@ Correct family mapping:
 - Breakout/failed-breakout context validity ends at the next 4H context snapshot (`context_snapshot_ms + 14,400,000`), subject to the source's complete 4H grid.
 
 The source audit now performs this lagged channel cross-check and preserves `reference_feature_snapshot_ts_ms` plus `reference_feature_match_status` (`MATCHED_ONE_4H_LAG` or `EXPECTED_LEADING_LEGACY_BOUNDARY`). At most one distinct leading context per asset is permitted. It no longer incorrectly compares historical-context efficiency/overlap to same-time detector values.
+
+
+## 16. Snapshot/threshold source-only materialization evidence
+
+The latest source-only artifact now materializes the family-specific exact snapshot, threshold and feature values and deterministic `source_event_id`:
+- Rejection: original detector feature at exact snapshot; `SIDEWAYS_DETECTOR_ORIGINAL_V1`.
+- Breakout/failed breakout: G0-04 historical breakout context; `HISTORICAL_BREAKOUT_CONTEXT_V1`; channel cross-check uses the detector feature one 4H bar earlier; raw context efficiency/overlap are preserved.
+- All rows carry exact instrument IDs, version labels, threshold calibration boundaries/counts where available, source paths/blob IDs and complete manifest ID.
+
+Source audit [45808007422](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808007422) passed with artifact ID `15110482845`; ZIP SHA-256 `f29bf78c7dbcaaca05f51ca10a5fc688f334664262debee6d37b7b657d390f2b`; complete manifest ID `f851f6c65214f18a6f24cd7424cad0dedba26c2c2a1210dda269ddef84bc81d2`. Synthetic suite [45808027261](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808027261) passed **111/111 tests**.
+
+The only candidate-schema IDs intentionally not materialized are `candidate_id` and `source_breakout_candidate_id`; generating those IDs belongs to the final canonical candidate build, which remains unauthorized.
