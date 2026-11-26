@@ -224,7 +224,9 @@ def old_events(root):
  if any(c not in d.columns for c in source_keys): stop("historical classification ledger missing classification-key columns")
  if d.duplicated(source_keys).any(): stop("historical classification ledger contains duplicate full classification rows")
  if set(d.definition.dropna().unique())!={"STRICT_P25","BROAD_P40"}: stop("historical classification ledger has unexpected definitions")
- if set(pd.to_numeric(d.zone_pct_of_channel,errors="coerce").dropna().unique())!={5.0,10.0,15.0}: stop("historical classification ledger has unexpected zone levels")
+ zone_values=pd.to_numeric(d.zone_pct_of_channel,errors="coerce")
+ if zone_values.isna().any(): stop("historical classification ledger contains null/invalid zone levels")
+ if set(zone_values.unique())!={5.0,10.0,15.0}: stop("historical classification ledger has unexpected zone levels")
  identities=d[KEYS].drop_duplicates()
  return identities.assign(was_historical_selected=True)
 
