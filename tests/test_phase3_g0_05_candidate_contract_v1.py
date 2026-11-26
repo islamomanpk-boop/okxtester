@@ -14,7 +14,7 @@ from research.phase3_g0_05_candidate_contract_v1 import (
 
 from research.phase3_g0_05_source_manifest_audit_v1 import (
     first_eligible_minute_or_blank, validate_module_b_horizons,
-    validate_disposition_ledger, grouped_disposition_counts,
+    validate_disposition_ledger, grouped_disposition_counts, historical_membership_label,
 )
 
 
@@ -436,6 +436,31 @@ class G005SourceAuditTests(unittest.TestCase):
         self.assertEqual(first_eligible_minute_or_blank("REJECTED", 123000), "")
         self.assertEqual(first_eligible_minute_or_blank("EXPIRED", None), "")
         self.assertEqual(first_eligible_minute_or_blank("CENSORED", 123000), "")
+
+    def test_historical_breakout_membership_maps_both_nested_cohorts(self):
+        self.assertEqual(
+            historical_membership_label("true", {"BROAD_P40", "STRICT_P25"}),
+            "BROAD_P40;STRICT_P25",
+        )
+
+    def test_historical_breakout_membership_maps_broad_only(self):
+        self.assertEqual(
+            historical_membership_label("true", {"BROAD_P40"}),
+            "BROAD_P40",
+        )
+
+    def test_unselected_breakout_has_no_historical_cohort_membership(self):
+        self.assertEqual(historical_membership_label("false", set()), "NONE")
+
+    def test_historical_selected_flag_must_match_cohort_membership(self):
+        with self.assertRaisesRegex(RuntimeError, "disagrees"):
+            historical_membership_label("true", set())
+        with self.assertRaisesRegex(RuntimeError, "disagrees"):
+            historical_membership_label("false", {"BROAD_P40"})
+
+    def test_historical_strict_membership_requires_broad(self):
+        with self.assertRaisesRegex(RuntimeError, "not nested"):
+            historical_membership_label("true", {"STRICT_P25"})
 
     def test_grouped_disposition_counts_are_deterministic_and_reconcile(self):
         rows = [
