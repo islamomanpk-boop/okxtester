@@ -1,0 +1,57 @@
+name: Phase 3 G0-05 Independent Exact-Minute Verification
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - price-action-v1
+    paths:
+      - research/phase3_g0_05_independent_minute_verification_v1.py
+      - .github/workflows/phase3-g0-05-independent-minute-verification.yml
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: phase3-g0-05-independent-minute-verification
+  cancel-in-progress: false
+
+jobs:
+  independent-minute-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout frozen research branch
+        uses: actions/checkout@v4
+        with:
+          ref: price-action-v1
+          persist-credentials: false
+
+      - name: Download source-audit disposition ledgers
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 45799690941 \
+            --repo "${{ github.repository }}" \
+            --name phase3-g0-05-source-audit-45799690941 \
+            --dir source_audit_artifact
+
+      - name: Compile independent verifier
+        run: python -m py_compile research/phase3_g0_05_independent_minute_verification_v1.py
+
+      - name: Independently re-hash raw files and verify exact minute membership
+        run: |
+          python research/phase3_g0_05_independent_minute_verification_v1.py \
+            --repo-root . \
+            --audit-dir source_audit_artifact \
+            --output independent_minute_output/independent_minute_verification.json
+
+      - name: Upload independent verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3-g0-05-independent-minute-verification-${{ github.run_id }}
+          path: independent_minute_output/
+          if-no-files-found: warn
+          retention-days: 14
