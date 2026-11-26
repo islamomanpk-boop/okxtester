@@ -546,3 +546,22 @@ The independent minute verifier was rerun against the source-audit artifact cont
 - Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; 2,857/2,857 eligible timestamps present and all five raw source hashes/grids pass.
 
 This confirms the new group metadata did not alter eligible timestamps or disposition counts.
+
+
+## 27. Complete source manifest V2 and per-row lineage — 2026-11-26
+
+The source-only disposition audit now emits a complete source manifest spanning:
+- seven pinned repository input files;
+- the frozen G0-04 artifact identity, ZIP SHA-256, code revision and eight artifact member hashes;
+- Module A event output and run metadata;
+- Module B event, horizon and run-metadata files;
+- all five raw 1-minute market files with SHA-256, Git blob SHA-1 and row counts;
+- source-audit code revision and Actions run identity.
+
+Every one of the 4,947 source-only disposition rows carries the exact manifest ID, family/asset-specific source file paths, and corresponding Git blob IDs for repository files. G0-04 artifact members are mapped by path and SHA-256 in the manifest.
+
+Evidence:
+- Source audit [45806239609](https://github.com/islamomanpk-boop/okxtester/actions/runs/45806239609) — SUCCESS; artifact ID `15109506588`; ZIP SHA-256 `c87808aaac2be5d7013d42d3f93fcbb0ed44d1602470c030642fcf6ffc75efcb`.
+- Complete manifest SHA-256 / row `source_sha256_manifest_id`: `82bce2b7549efb959a2805641cfda46c1ea6a158e8e6c7d24cd8f3795ca80bbb`; recomputed from the exact JSON bytes and matched every row.
+
+This supersedes the earlier seven-file-only manifest. The independent minute verifier is being rerun against this complete-manifest artifact. Canonical candidate generation remains unauthorized.
