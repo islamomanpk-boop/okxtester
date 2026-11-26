@@ -211,5 +211,51 @@ class TaskRunnerTests(unittest.TestCase):
         self.assertFalse(result["execution_performed"])
         self.assertIn("failed unexpectedly", result["reason"])
 
+
+    def test_preflight_all_tasks_is_summary_only_and_never_authorizes_queue(self):
+        queue = {
+            "tasks": [
+                {"task_id": "P3-RO-001", "status": "queued"},
+                {"task_id": "P1-RO-001", "status": "blocked"},
+            ]
+        }
+        per_task = [
+            {"task_id": "P3-RO-001", "authorized": False, "execution_performed": False},
+            {"task_id": "P1-RO-001", "authorized": False, "execution_performed": False},
+        ]
+        with patch.object(task_runner, "load_queue", return_value=queue), patch.object(
+            task_runner, "_preflight_task_with_queue", side_effect=per_task
+        ) as preflight:
+            result = task_runner.preflight_all_tasks()
+        self.assertEqual(result["decision"], "SUMMARY_ONLY")
+        self.assertFalse(result["authorized"])
+        self.assertFalse(result["execution_performed"])
+        self.assertEqual(result["task_count"], 2)
+        self.assertEqual(result["allow_count"], 0)
+        self.assertEqual(result["deny_count"], 2)
+        self.assertEqual(len(result["tasks"]), 2)
+        self.assertEqual(preflight.call_count, 2)
+
+    def test_preflight_all_tasks_fails_closed_on_malformed_rows(self):
+        with patch.object(
+            task_runner, "load_queue",
+            return_value={"tasks": [{"task_id": "P3-RO-001"}, "malformed"]},
+        ):
+            result = task_runner.preflight_all_tasks()
+        self.assertEqual(result["decision"], "DENY")
+        self.assertFalse(result["authorized"])
+        self.assertFalse(result["execution_performed"])
+        self.assertEqual(result["tasks"], [])
+
+    def test_preflight_all_tasks_reports_queue_load_failure(self):
+        with patch.object(task_runner, "load_queue", side_effect=OSError("missing")):
+            result = task_runner.preflight_all_tasks()
+        self.assertEqual(result["decision"], "DENY")
+        self.assertFalse(result["authorized"])
+        self.assertFalse(result["execution_performed"])
+        self.assertEqual(result["task_count"], 0)
+        self.assertEqual(result["tasks"], [])
+
+
 if __name__ == "__main__":
     unittest.main()
