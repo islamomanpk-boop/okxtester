@@ -357,6 +357,8 @@ def build_artifact_bundle(
     expected file is absent. Run identifiers must come from trusted workflow
     context, not task or report content.
     """
+    if not isinstance(report, dict):
+        raise TypeError("Report must be a JSON object.")
     for name, value in (("run_id", run_id), ("run_attempt", run_attempt)):
         if not isinstance(value, str) or not re.fullmatch(r"[1-9][0-9]*", value):
             raise ValueError(f"{name} must be a positive decimal workflow identifier.")
@@ -406,7 +408,12 @@ def build_artifact_bundle(
     }
 
 
-def verify_artifact_files(files: dict[str, str], manifest: dict[str, Any]) -> None:
+def verify_artifact_files(
+    files: dict[str, str],
+    manifest: dict[str, Any],
+    *,
+    actual_artifact_name: str,
+) -> None:
     """Verify a downloaded/in-memory artifact file map against its manifest.
 
     The caller supplies file contents obtained from the artifact being checked.
@@ -425,6 +432,8 @@ def verify_artifact_files(files: dict[str, str], manifest: dict[str, Any]) -> No
         raise ValueError("artifact_manifest.json is not valid JSON.") from exc
     if embedded_manifest != manifest:
         raise ValueError("Supplied artifact manifest does not match artifact_manifest.json.")
+    if not isinstance(actual_artifact_name, str) or not actual_artifact_name.strip():
+        raise ValueError("Actual downloaded artifact name must be supplied.")
     if not isinstance(manifest, dict) or set(manifest) != {
         "schema_version", "artifact_name", "task_id", "phase", "run_id",
         "run_attempt", "commit_sha", "files", "limitations",
@@ -436,7 +445,7 @@ def verify_artifact_files(files: dict[str, str], manifest: dict[str, Any]) -> No
         if not isinstance(manifest[name], str) or not re.fullmatch(r"[1-9][0-9]*", manifest[name]):
             raise ValueError(f"Artifact manifest {name} is invalid.")
     expected_name = f"okx-research-agent-{manifest['run_id']}-{manifest['run_attempt']}"
-    if manifest["artifact_name"] != expected_name:
+    if manifest["artifact_name"] != expected_name or actual_artifact_name != expected_name:
         raise ValueError("Artifact name does not match its trusted run identifiers.")
     if not isinstance(manifest["task_id"], str) or not manifest["task_id"].strip():
         raise ValueError("Artifact manifest task_id is invalid.")
@@ -473,6 +482,8 @@ def verify_artifact_files(files: dict[str, str], manifest: dict[str, Any]) -> No
     except (TypeError, json.JSONDecodeError) as exc:
         raise ValueError("Artifact report.json is not valid JSON.") from exc
     validate_report(report)
+    if render_json(report) != files["report.json"] or render_markdown(report) != files["report.md"]:
+        raise ValueError("Artifact report representations are not canonical or mutually consistent.")
     if (
         report["task_id"] != manifest["task_id"]
         or report["phase"] != manifest["phase"]
