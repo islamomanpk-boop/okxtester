@@ -124,3 +124,12 @@ This was a bounded static source/document review, not an exhaustive workflow or 
 `docs/TRUSTED_REGISTRY_BACKEND_INTERFACE_SPEC.md` now consolidates the minimum future backend semantics: immutable record model; authenticated read ports; atomic lifecycle command ports; global and per-assignment concurrency tokens; replay-before-stale-check idempotency; exact operation-bound approval/revocation; provider idempotency/queryability; return/review/human-authority separation; error taxonomy; and independent anti-rollback recovery evidence.
 
 This is a contract for later design/implementation review, not a backend choice or implementation. It does not resolve repository topology, identity/approval provider, canonicalization vectors, provider selection, or checkpoint witness. No code, tests, workflows, dispatch, or protected-branch changes were made. G0-05 remains controlling and the agent remains non-operational.
+
+
+## 13. Idempotency identity reconciliation
+
+A focused cross-document review found that the store-adapter and assignment-registry drafts described the provider-delivery identity as `(source_namespace, delivery_id)`, while the v2/unified lifecycle contract requires `(source_namespace, delivery_id, event_role)` for event-level replay where one delivery can produce multiple legitimate lifecycle events. These are complementary identity levels, not competing alternatives.
+
+The documents are now aligned: the pair is the unique authenticated provider-delivery identity; the triple is the unique event-level idempotency identity with a closed schema-defined role. Each derived event ID is based on the event-level tuple. The provider-delivery record links its per-role event receipts, and replay checks complete normalized facts before stale-checkpoint rejection. A fixed single role may be used where one delivery maps to exactly one event.
+
+This is a documentation-level consistency correction only. No event schema, hash, code, test, workflow, dispatch, or research artifact was changed or executed. G0-05 remains controlling.
