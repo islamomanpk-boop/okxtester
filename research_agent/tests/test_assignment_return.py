@@ -88,7 +88,7 @@ class AssignmentReturnTests(unittest.TestCase):
 
     def test_tampered_digest_is_rejected(self):
         tampered = dict(self.package, task_definition_sha256="0" * 64)
-        with self.assertRaisesRegex(ValueError, "task_definition_sha256"):
+        with self.assertRaisesRegex(ValueError, "canonical trusted package"):
             self.review(tampered)
 
     def test_tampered_worker_action_allowlist_is_rejected(self):
