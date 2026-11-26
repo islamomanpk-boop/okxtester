@@ -6,6 +6,7 @@ from bisect import bisect_left
 import csv
 import hashlib
 import math
+import os
 import json
 import sys
 from collections import Counter
@@ -53,6 +54,28 @@ def sha256_bytes(data: bytes) -> str:
 def git_blob_sha1(data: bytes) -> str:
     header = f"blob {len(data)}\0".encode("ascii")
     return hashlib.sha1(header + data).hexdigest()
+
+
+def file_manifest_entry(path: Path, root: Path) -> dict:
+    """Stream SHA-256 and Git blob SHA-1 for a source file."""
+    size = path.stat().st_size
+    sha256 = hashlib.sha256()
+    blob_sha1 = hashlib.sha1()
+    blob_sha1.update(f"blob {size}\\0".encode("ascii"))
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            sha256.update(chunk)
+            blob_sha1.update(chunk)
+    try:
+        relative_path = str(path.relative_to(root))
+    except ValueError:
+        relative_path = str(path)
+    return {
+        "path": relative_path,
+        "bytes": size,
+        "sha256": sha256.hexdigest(),
+        "git_blob_sha1": blob_sha1.hexdigest(),
+    }
 
 
 def read_csv(path: Path) -> tuple[list[str], list[dict[str, str]]]:
