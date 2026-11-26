@@ -77,7 +77,7 @@ def review_worker_submission(
         issues.append("Submission task-definition digest does not match the trusted queue task.")
 
     status = submission.get("status")
-    if status not in _ALLOWED_WORKER_STATUSES:
+    if not isinstance(status, str) or status not in _ALLOWED_WORKER_STATUSES:
         issues.append("Worker status must be completed, partial, or blocked.")
     if not _nonempty_string(submission.get("summary")):
         issues.append("Submission summary must be a non-empty string.")
