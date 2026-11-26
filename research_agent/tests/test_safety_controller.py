@@ -40,6 +40,14 @@ def policy_fixture(task, *, phase_order=None, phase_rules=None, lock=False):
         if phase_name in phase_rules:
             phase_rules[phase_name].setdefault("priority", index)
     queued_task = dict(task)
+    queued_task.setdefault("title", "Read-only policy fixture task")
+    queued_task.setdefault("scope", ["Inspect existing repository evidence only"])
+    queued_task.setdefault("prohibited", [
+        "execute_scripts", "execute_tests", "trigger_workflows",
+        "modify_code", "modify_research_data", "create_candidates",
+        "run_backtests", "make_pnl_claims", "select_strategies", "close_gates",
+    ])
+    queued_task.setdefault("completion_authority", "human_only")
     queue = {
         "queue_policy": {
             "phase_order": phase_order,
@@ -278,6 +286,57 @@ class SafetyControllerTests(unittest.TestCase):
         }
         with self.assertRaises(TypeError):
             authorize_task(task, allowlist={"approved_tasks": []})
+
+    def test_denies_task_missing_mandatory_prohibition_even_if_rehashed(self):
+        task = {
+            "task_id": "P3-MISSING-PROHIBITION",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        queued["prohibited"].remove("execute_tests")
+        allowlist["approved_tasks"][0]["task_sha256"] = digest(queued)
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("mandatory safety restrictions", result["reason"])
+
+    def test_denies_task_with_unsupported_contract_field_even_if_rehashed(self):
+        task = {
+            "task_id": "P3-EXTRA-FIELD",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        queued["shell_command"] = "unsafe"
+        allowlist["approved_tasks"][0]["task_sha256"] = digest(queued)
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("unsupported contract fields", result["reason"])
+
+    def test_denies_non_human_task_completion_authority_even_if_rehashed(self):
+        task = {
+            "task_id": "P3-AUTO-COMPLETE",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        queued["completion_authority"] = "agent"
+        allowlist["approved_tasks"][0]["task_sha256"] = digest(queued)
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("human_only", result["reason"])
 
     def test_denies_g0_05_while_global_lock_is_active(self):
         result = self.evaluate(
