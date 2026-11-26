@@ -578,3 +578,16 @@ Current source-only lineage evidence:
 The source-only ledger now includes family-specific file paths, Git blob IDs, a complete source manifest ID, exact signal/confirmation timing, confirmation status, OHLC ambiguity, expiry metadata, overlap clusters and repeated-signal groups. It remains a source-disposition artifact, not a canonical candidate ledger.
 
 **Remaining G0-05 work:** materialize snapshot/threshold/feature values per row, canonical candidate and source-event IDs, source breakout candidate IDs, final version labels and complete family-specific schema validation; then independently review and deterministically reproduce the canonical candidate output. No canonical candidates, execution simulation, strategy backtests, PnL or phase transition are authorized.
+
+
+## 29. Snapshot/threshold provenance and independent verification — 2026-11-26
+
+The latest source-only disposition artifact now includes exact snapshot/threshold/feature provenance, family-specific regime versions, instrument IDs and deterministic source-event IDs. Breakout and failed-breakout rows preserve G0-04's one-4H-lagged historical context; the detector feature row one 4H bar earlier is used only for the documented channel cross-check. The expected leading legacy boundary is explicitly marked.
+
+Evidence:
+- Source audit [45808007422](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808007422) — SUCCESS; artifact ID `15110482845`; ZIP SHA-256 `f29bf78c7dbcaaca05f51ca10a5fc688f334664262debee6d37b7b657d390f2b`.
+- Complete manifest ID: `f851f6c65214f18a6f24cd7424cad0dedba26c2c2a1210dda269ddef84bc81d2`; exact-byte SHA-256 independently recomputed and matched all 4,947 rows.
+- Synthetic suite [45808027261](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808027261) — SUCCESS; **111/111 tests passed**.
+- Independent minute verification [45808232768](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808232768) — SUCCESS; artifact ID `15109374812`; ZIP SHA-256 `6ba631e255aa433a50e00a708e4d4e05475e4fb35c10e058eab825c46c98bc4a`; 2,857/2,857 eligible timestamps present.
+
+**Remaining:** final candidate IDs and failed-breakout source-breakout candidate IDs are deliberately not materialized. The remaining work is deterministic ID/schema validation, full canonical serialization design, and independent review. G0-05 remains open; no canonical candidate generation, execution simulation, strategy backtests, PnL or phase transition is authorized.
