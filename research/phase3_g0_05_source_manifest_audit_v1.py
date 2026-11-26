@@ -15,7 +15,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from research.phase3_g0_05_candidate_contract_v1 import (
-    exact_threshold_for_snapshot, validate_source_key_join,
+    exact_threshold_for_snapshot, validate_source_key_join, validate_disposition_reason,
 )
 
 EXPECTED_BLOBS = {
@@ -491,6 +491,15 @@ def validate_disposition_ledger(rows: list[dict[str, str]],
     invalid = sorted(set(dispositions) - allowed)
     if invalid or any(not value for value in dispositions):
         fail(f"disposition ledger has invalid status values: {invalid}")
+    for row in rows:
+        try:
+            validate_disposition_reason(
+                row.get("disposition", ""),
+                row.get("reason_code", ""),
+                row.get("censoring_reason", ""),
+            )
+        except ValueError as exc:
+            fail(f"disposition reason contract violation: {exc}")
     counts = Counter(dispositions)
     if sum(counts.values()) != expected_rows:
         fail("disposition totals do not equal the source population")
@@ -621,27 +630,38 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
                                          "EXPANDING_PRIOR", "UNIQUE_4H_FEATURE_ROWS")
         confirm = ms(broad["first_strong_rejection_ts_ms"],"rejection open") + 900000
         next_available = ms(broad["snapshot_next_available_at_ts_ms"],"next snapshot")
+        causal_cohort = "NOT_EVALUATED"
         if confirm >= next_available:
             status, reason = "EXPIRED","SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION"
         elif threshold is None:
             status, reason = "REJECTED","CAUSAL_THRESHOLD_WARMUP"
+            causal_cohort = "WARMUP"
         else:
             width,eff,ov = (float(feature[k]) for k in ("channel_width_pct","directional_efficiency","mean_overlap"))
             strict = width <= float(threshold["p25"]) and eff <= .30 and ov >= .70
             broad_ok = width <= float(threshold["p40"]) and eff <= .30 and ov >= .70
-            if strict: status,reason="ELIGIBLE_FOR_FURTHER_VALIDATION",""
-            elif broad_ok: status,reason="ELIGIBLE_FOR_FURTHER_VALIDATION","CAUSAL_BROAD_ONLY"
-            else: status,reason="REJECTED","CAUSAL_REGIME_NOT_ELIGIBLE"
+            if strict:
+                status,reason="ELIGIBLE_FOR_FURTHER_VALIDATION","NONE"
+                causal_cohort = "CAUSAL_STRICT"
+            elif broad_ok:
+                status,reason="ELIGIBLE_FOR_FURTHER_VALIDATION","NONE"
+                causal_cohort = "CAUSAL_BROAD_ONLY"
+            else:
+                status,reason="REJECTED","CAUSAL_REGIME_NOT_ELIGIBLE"
+                causal_cohort = "NOT_ELIGIBLE"
         if status=="ELIGIBLE_FOR_FURTHER_VALIDATION":
             status, minute_reason = minute_check(asset, confirm)
-            reason = reason or minute_reason
+            if minute_reason:
+                reason = minute_reason
         rejection_rows.append({
             "asset":asset,"source_event_row_ids":";".join(sorted(item["event_ids"])),
             "historical_cohort_memberships":";".join(sorted({r["definition"].upper() for r in item["members"]})),
+            "causal_cohort":causal_cohort,
             "direction":direction,"family":"SUPPORT_REJECTION" if direction.lower()=="lower" else "RESISTANCE_REJECTION",
             "family_direction":"LONG" if direction.lower()=="lower" else "SHORT",
             "confirmation_ts_ms":confirm,"first_eligible_1m_open_ts_ms":first_eligible_minute_or_blank(status, confirm),
-            "disposition":status,"reason_code":reason})
+            "disposition":status,"reason_code":reason,
+            "censoring_reason":reason if status=="CENSORED" else ""})
     # Raw breakout crossings: retain one row per raw source crossing.
     raw_rows = g004_data["raw_rows"]
     breakout_rows = []
@@ -657,14 +677,17 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             eligible=False; cohort="CAUSAL_THRESHOLD_WARMUP" if not any(
                 (asset,snap,pol,pop) in thresholds for pol in ("FIXED_180","EXPANDING_PRIOR","ROLLING_180") for pop in ("UNIQUE_4H_FEATURE_ROWS","JOINED_15M_ROWS")) else "CAUSAL_REGIME_NOT_ELIGIBLE"
         status="ELIGIBLE_FOR_FURTHER_VALIDATION" if eligible else "REJECTED"
-        reason=cohort if not eligible or cohort=="CAUSAL_BROAD_ONLY" else ""
+        reason="NONE" if eligible else cohort
         if eligible:
-            status, minute_reason=minute_check(asset,signal); reason=reason or minute_reason
+            status, minute_reason=minute_check(asset,signal)
+            if minute_reason:
+                reason=minute_reason
         breakout_rows.append({"asset":asset,"source_event_key":f"{asset}|{r['direction']}|{signal}|{snap}",
             "direction":r["direction"],"family":"BREAKOUT_CONTINUATION",
             "family_direction":"LONG" if r["direction"]=="UPPER" else "SHORT",
             "signal_time_ms":signal,"first_eligible_1m_open_ts_ms":first_eligible_minute_or_blank(status, signal),
-            "causal_cohort":cohort,"disposition":status,"reason_code":reason})
+            "causal_cohort":cohort,"disposition":status,"reason_code":reason,
+            "censoring_reason":reason if status=="CENSORED" else ""})
     # Every G0-04 raw crossing must appear exactly once in the continuation ledger.
     expected_breakout_keys = [
         f"{r['asset']}|{r['direction']}|{ms(r['signal_time_ms'], 'raw signal')}|{ms(r['context_snapshot_ms'], 'raw snapshot')}"
@@ -700,10 +723,10 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             fail(f"Module B event missing raw crossing: {key}")
         if raw[tag+"__strict"].lower()=="true": source_ok=True; source_cohort="CAUSAL_STRICT"
         elif raw[tag+"__broad"].lower()=="true": source_ok=True; source_cohort="CAUSAL_BROAD_ONLY"
-        else: source_ok=False; source_cohort="SOURCE_BREAKOUT_NOT_CAUSALLY_ELIGIBLE"
+        else: source_ok=False; source_cohort="NOT_ELIGIBLE"
         confirmation=next(iter(confirmations)) if confirmations else None
         if not source_ok:
-            status,reason="REJECTED",source_cohort
+            status,reason="REJECTED","NO_VALID_SOURCE_BREAKOUT"
         elif confirmation is None:
             if next(iter(complete)):
                 status,reason="EXPIRED","EXPIRED_NO_RETURN_INSIDE_WITHIN_12H"
@@ -713,13 +736,16 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             if confirmation<=signal or confirmation>signal+43200000:
                 fail(f"Module B failure confirmation outside 12h horizon: {key}")
             status,reason=minute_check(asset,confirmation)
+            if not reason:
+                reason="NONE"
         failed_rows.append({"asset":asset,"source_event_key":f"{asset}|{direction}|{signal}|{snapshot}",
             "source_event_row_ids":";".join(sorted(x["event_id"] for x in members)),
             "historical_cohort_memberships":";".join(sorted({x["definition"] for x in members})),"direction":direction,
             "family":"FAILED_BREAKOUT_REVERSAL","family_direction":"SHORT" if direction=="UPPER" else "LONG","signal_time_ms":signal,
             "confirmation_ts_ms":confirmation or "",
             "first_eligible_1m_open_ts_ms":first_eligible_minute_or_blank(status, confirmation),
-            "causal_source_cohort":source_cohort,"disposition":status,"reason_code":reason})
+            "causal_source_cohort":source_cohort,"disposition":status,"reason_code":reason,
+            "censoring_reason":reason if status=="CENSORED" else ""})
     out.mkdir(parents=True,exist_ok=True)
     files={"rejection_source_dispositions.csv":rejection_rows,
            "breakout_source_dispositions.csv":breakout_rows,
