@@ -100,9 +100,9 @@ Additional flags require a versioned contract amendment before emission.
 
 ## 9. Source manifest identifier
 
-`source_sha256_manifest_id` is the SHA-256 of the exact `source_manifest.json` bytes included in the source-audit artifact. For the latest complete source-audit manifest V2 in run 45809114333 / artifact 15109854146, the value is:
+`source_sha256_manifest_id` is the SHA-256 of the exact `source_manifest.json` bytes included in the source-audit artifact. For the latest complete source-audit manifest V2 in run 45810599246 / artifact 15113820073, the value is:
 
-`dcc2bc9b6af890a81f0ecf109d34843fcc34b2a8431116b766aa97acdfc7082f`
+`d9c9878005eefa4de13671d7e68dc67859a2ee213524c3f5884e60cc1422d228`
 
 This is the SHA-256 of the exact `source_manifest.json` bytes. Earlier 7-file-only and prior V2 run IDs are superseded. Every later source-audit run must use its own computed hash; never reuse this ID after the manifest or source-audit revision changes.
 
@@ -256,3 +256,20 @@ The independent minute verifier consumed source-audit run `45809114333` / artifa
 - Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; 2,857/2,857 eligible timestamps present, 2,090 non-eligible rows blank, all five raw files re-hashed and minute grids validated.
 
 The schema-normalized cohort and side fields did not change raw-minute membership or disposition counts.
+
+
+## 21. Full 60-field canonical schema validator integrated and reported
+
+The candidate contract now provides:
+- a row-level validator for all **60 required canonical fields**;
+- a full-ledger validator for deterministic candidate IDs, family/source identity uniqueness, exact failed-breakout source-candidate links, failed-event identity composition and 12-hour expiry reconciliation;
+- family-specific side, regime-version, threshold-causality, timestamp, ambiguity, disposition, invalidation and source-lineage checks.
+
+The source audit imports and reports validator readiness but deliberately does not apply the canonical validator to source-only disposition rows or generate real candidate IDs.
+
+- Source audit [45810599246](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810599246) — SUCCESS; artifact ID `15113820073`; ZIP SHA-256 `1f5cf8b095834dda03b8c4615babb86e96ed9232838551cb1d2e7a7b0822a149`.
+- Complete manifest SHA-256 / row ID: `d9c9878005eefa4de13671d7e68dc67859a2ee213524c3f5884e60cc1422d228`; independently recomputed and matched.
+- Report confirms `required_field_count=60`, row validator available, ledger validator available, and `canonical_candidate_generation_authorized=false`.
+- Synthetic suite [45810463442](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810463442) — SUCCESS; **125/125 tests passed**.
+
+This completes the schema-validator implementation/preflight step without generating any real candidate IDs or canonical candidate rows.
