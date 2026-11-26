@@ -2,6 +2,8 @@
 """Pure G0-05 causal candidate contract primitives; no market-data generation."""
 from __future__ import annotations
 import hashlib
+import math
+import re
 import json
 
 MINUTE_MS = 60_000
@@ -46,6 +48,50 @@ CENSORED_REASON_CODES = frozenset({
 })
 DISPOSITION_STATUSES = frozenset({
     "ELIGIBLE_FOR_FURTHER_VALIDATION", "REJECTED", "EXPIRED", "CENSORED",
+})
+\nCANONICAL_REQUIRED_FIELDS = frozenset({
+    "candidate_id", "source_event_id", "source_event_row_ids", "family",
+    "instrument_id", "asset", "side", "boundary_side",
+    "regime_definition_version", "candidate_rule_version", "source_pipeline_version",
+    "historical_cohort_memberships", "causal_cohort_label",
+    "overlap_cluster_id", "overlap_cluster_size", "overlap_window_start_ts_ms",
+    "overlap_window_end_ts_ms", "repeated_signal_group_id",
+    "snapshot_id", "snapshot_available_at_ts_ms", "snapshot_valid_from_ts_ms",
+    "snapshot_valid_until_ts_ms", "frozen_upper_boundary", "frozen_lower_boundary",
+    "channel_width_pct", "threshold_policy_id", "threshold_population_id",
+    "threshold_value", "threshold_percentile", "threshold_calibration_start_ts_ms",
+    "threshold_calibration_end_ts_ms", "threshold_prior_observation_count",
+    "efficiency_value", "efficiency_limit", "overlap_value", "overlap_minimum",
+    "source_file_paths", "source_git_blob_ids", "source_sha256_manifest_id",
+    "signal_candle_open_ts_ms", "signal_candle_close_ts_ms",
+    "signal_available_at_ts_ms", "confirmation_rule_id",
+    "confirmation_bar_interval_ms", "confirmation_status",
+    "first_eligible_execution_bar_open_ts_ms", "event_observed_at_ts_ms",
+    "ambiguity_flags", "decluster_policy_id", "candidate_status",
+    "exclusion_reason", "censoring_reason", "invalidation_reference_type",
+    "invalidation_reference_value", "invalidation_reference_ts_ms",
+    "expiry_rule_id", "expiry_ts_ms", "source_breakout_candidate_id",
+    "source_reconciliation_status", "source_join_cardinality",
+})
+
+COHORT_LABELS = frozenset({
+    "STRICT_P25", "BROAD_ONLY", "NOT_ELIGIBLE", "WARMUP", "NOT_APPLICABLE",
+})
+CONFIRMATION_STATUSES = frozenset({
+    "CONFIRMED", "NOT_CONFIRMED", "CENSORED", "NOT_APPLICABLE",
+})
+SOURCE_RECONCILIATION_STATUSES = frozenset({
+    "EXACT_SOURCE_MATCH", "EXACT_PHYSICAL_EVENT_COLLAPSE",
+    "DECLARED_SUBSET_MATCH", "EXACT_LINKED_SOURCE_BREAKOUT",
+})
+SOURCE_JOIN_CARDINALITIES = frozenset({
+    "ONE_RAW_CROSSING_TO_ONE_DISPOSITION",
+    "ONE_PHYSICAL_EVENT_TO_ONE_OR_TWO_COHORT_ROWS",
+    "ONE_FAILED_BREAKOUT_TO_ONE_SOURCE_BREAKOUT",
+})
+AMBIGUITY_FLAGS = frozenset({
+    "NONE", "CONFIRMATION_CANDLE_OPEN_OUTSIDE_CLOSE_INSIDE",
+    "CONFIRMATION_CANDLE_WICK_OUTSIDE_CLOSE_INSIDE",
 })
 
 
@@ -198,6 +244,184 @@ def candidate_id(source_identity: str, family: str, rule_version: str) -> str:
         raise ValueError("candidate identity inputs must be non-empty")
     payload = "\x1f".join((source_identity, family, rule_version)).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
+
+
+def _finite_number(value, field: str, allow_none: bool = False) -> bool:
+    if value is None and allow_none:
+        return True
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)):
+        raise ValueError(f"{field} must be a finite number")
+    return True
+
+
+def validate_canonical_candidate_record(row: dict) -> None:
+    """Validate one fully serialized canonical G0-05 candidate/disposition record."""
+    missing = CANONICAL_REQUIRED_FIELDS - set(row)
+    if missing:
+        raise ValueError(f"canonical candidate missing required fields: {sorted(missing)}")
+    family = row["family"]
+    family_sides = {
+        "SUPPORT_REJECTION": ("LOWER", "LONG"),
+        "RESISTANCE_REJECTION": ("UPPER", "SHORT"),
+        "BREAKOUT_CONTINUATION": None,
+        "FAILED_BREAKOUT_REVERSAL": None,
+    }
+    if family not in family_sides:
+        raise ValueError("unknown canonical candidate family")
+    asset = row["asset"]
+    if asset not in {"BTC", "ETH", "SOL", "DOGE", "AVAX"}:
+        raise ValueError("unknown candidate asset")
+    if row["instrument_id"] != f"{asset}-USDT-SWAP":
+        raise ValueError("instrument_id does not match frozen OKX asset mapping")
+    side = row["side"]
+    boundary = row["boundary_side"]
+    expected_pairs = {
+        "SUPPORT_REJECTION": {("LOWER", "LONG")},
+        "RESISTANCE_REJECTION": {("UPPER", "SHORT")},
+        "BREAKOUT_CONTINUATION": {("UPPER", "LONG"), ("LOWER", "SHORT")},
+        "FAILED_BREAKOUT_REVERSAL": {("UPPER", "SHORT"), ("LOWER", "LONG")},
+    }
+    if (boundary, side) not in expected_pairs[family]:
+        raise ValueError("family, boundary_side and side mapping mismatch")
+    expected_regime = (
+        "SIDEWAYS_DETECTOR_ORIGINAL_V1"
+        if family in {"SUPPORT_REJECTION", "RESISTANCE_REJECTION"}
+        else "HISTORICAL_BREAKOUT_CONTEXT_V1"
+    )
+    if row["regime_definition_version"] != expected_regime:
+        raise ValueError("regime_definition_version does not match family")
+    if row["candidate_rule_version"] != "G0_05_CANDIDATE_RULE_V1":
+        raise ValueError("candidate_rule_version mismatch")
+    if row["source_pipeline_version"] != "G0_04_CAUSAL_RECONSTRUCTION_V1+MODULE_A_V1_1+MODULE_B_V1_1":
+        raise ValueError("source_pipeline_version mismatch")
+    if row["causal_cohort_label"] not in COHORT_LABELS:
+        raise ValueError("invalid causal_cohort_label")
+    if not isinstance(row["source_event_row_ids"], list) or not row["source_event_row_ids"]:
+        raise ValueError("source_event_row_ids must be a non-empty list")
+    if len(set(row["source_event_row_ids"])) != len(row["source_event_row_ids"]):
+        raise ValueError("source_event_row_ids contain duplicates")
+    if not set(row["historical_cohort_memberships"]).issubset({"BROAD_P40", "STRICT_P25"}):
+        raise ValueError("invalid historical_cohort_memberships")
+    if not row["source_event_id"] or not row["candidate_id"]:
+        raise ValueError("candidate/source event identity is blank")
+    if row["candidate_id"] != candidate_id(
+        row["source_event_id"], family, row["candidate_rule_version"]):
+        raise ValueError("candidate_id does not match deterministic identity")
+    if row["snapshot_id"] != f"{asset}|{int(row['snapshot_available_at_ts_ms'])}":
+        raise ValueError("snapshot_id does not match asset and availability timestamp")
+    for field in ("snapshot_available_at_ts_ms", "snapshot_valid_from_ts_ms",
+                  "snapshot_valid_until_ts_ms", "signal_candle_open_ts_ms",
+                  "signal_candle_close_ts_ms", "signal_available_at_ts_ms",
+                  "event_observed_at_ts_ms", "overlap_window_start_ts_ms",
+                  "overlap_window_end_ts_ms"):
+        value = row[field]
+        if value is not None and (isinstance(value, bool) or not isinstance(value, int)):
+            raise ValueError(f"{field} must be an integer timestamp or null")
+    if row["snapshot_valid_from_ts_ms"] != row["snapshot_available_at_ts_ms"]:
+        raise ValueError("snapshot_valid_from must equal snapshot availability")
+    if row["snapshot_valid_until_ts_ms"] <= row["snapshot_available_at_ts_ms"]:
+        raise ValueError("snapshot validity interval must be positive")
+    for field in ("frozen_upper_boundary", "frozen_lower_boundary", "channel_width_pct",
+                  "efficiency_limit", "overlap_minimum"):
+        _finite_number(row[field], field)
+    if row["frozen_upper_boundary"] <= row["frozen_lower_boundary"]:
+        raise ValueError("frozen upper boundary must exceed lower boundary")
+    if row["channel_width_pct"] < 0 or row["efficiency_limit"] != 0.30 or row["overlap_minimum"] != 0.70:
+        raise ValueError("invalid frozen feature limits")
+    _finite_number(row["efficiency_value"], "efficiency_value", allow_none=True)
+    _finite_number(row["overlap_value"], "overlap_value", allow_none=True)
+    if row["threshold_policy_id"] != "EXPANDING_PRIOR" or row["threshold_population_id"] != "UNIQUE_4H_FEATURE_ROWS":
+        raise ValueError("threshold policy/population mismatch")
+    threshold_fields = (
+        row["threshold_value"], row["threshold_percentile"],
+        row["threshold_calibration_start_ts_ms"], row["threshold_calibration_end_ts_ms"],
+        row["threshold_prior_observation_count"],
+    )
+    if row["threshold_value"] is None:
+        if any(value is not None for value in threshold_fields[1:]):
+            raise ValueError("null threshold value requires all threshold metadata null")
+    else:
+        _finite_number(row["threshold_value"], "threshold_value")
+        if row["threshold_percentile"] not in (25, 40):
+            raise ValueError("threshold_percentile must be 25 or 40")
+        if not isinstance(row["threshold_calibration_start_ts_ms"], int) or not isinstance(row["threshold_calibration_end_ts_ms"], int):
+            raise ValueError("threshold calibration bounds must be integer timestamps")
+        if row["threshold_calibration_end_ts_ms"] >= row["snapshot_available_at_ts_ms"]:
+            raise ValueError("threshold calibration must end before snapshot")
+        if not isinstance(row["threshold_prior_observation_count"], int) or row["threshold_prior_observation_count"] < 180:
+            raise ValueError("threshold prior observation count must be at least 180")
+    for field in ("source_file_paths", "source_git_blob_ids"):
+        values = row[field]
+        if not isinstance(values, list) or not values or any(not isinstance(v, str) or not v for v in values):
+            raise ValueError(f"{field} must be a non-empty list of strings")
+        if len(set(values)) != len(values):
+            raise ValueError(f"{field} contains duplicates")
+    if not re.fullmatch(r"[0-9a-f]{64}", str(row["source_sha256_manifest_id"])):
+        raise ValueError("source_sha256_manifest_id must be a SHA-256 hex digest")
+    if row["confirmation_bar_interval_ms"] != FIFTEEN_MIN_MS:
+        raise ValueError("confirmation bar interval must be 15 minutes")
+    if row["confirmation_status"] not in CONFIRMATION_STATUSES:
+        raise ValueError("invalid confirmation_status")
+    expected_confirmation_rule = {
+        "SUPPORT_REJECTION": "STRONG_REJECTION_15M_CLOSE_V1",
+        "RESISTANCE_REJECTION": "STRONG_REJECTION_15M_CLOSE_V1",
+        "BREAKOUT_CONTINUATION": "BOUNDARY_CROSSING_15M_CLOSE_V1",
+        "FAILED_BREAKOUT_REVERSAL": "RETURN_INSIDE_15M_CLOSE_V1",
+    }[family]
+    if row["confirmation_rule_id"] != expected_confirmation_rule:
+        raise ValueError("confirmation_rule_id does not match family")
+    if row["signal_candle_open_ts_ms"] is None:
+        if family != "FAILED_BREAKOUT_REVERSAL" or row["confirmation_status"] not in {"NOT_CONFIRMED", "CENSORED"}:
+            raise ValueError("only unresolved failed-breakout rows may omit confirmation candle timestamps")
+        if row["signal_candle_close_ts_ms"] is not None or row["signal_available_at_ts_ms"] is not None:
+            raise ValueError("unconfirmed failed-breakout row must omit all signal candle timestamps")
+    else:
+        if row["signal_candle_close_ts_ms"] - row["signal_candle_open_ts_ms"] != FIFTEEN_MIN_MS:
+            raise ValueError("signal candle must be exactly 15 minutes")
+        if row["signal_available_at_ts_ms"] != row["signal_candle_close_ts_ms"]:
+            raise ValueError("signal availability must equal completed 15m close")
+    if not isinstance(row["ambiguity_flags"], list) or not set(row["ambiguity_flags"]).issubset(AMBIGUITY_FLAGS):
+        raise ValueError("invalid ambiguity_flags")
+    if "NONE" in row["ambiguity_flags"] and len(row["ambiguity_flags"]) != 1:
+        raise ValueError("NONE cannot be combined with ambiguity flags")
+    if not isinstance(row["overlap_cluster_size"], int) or row["overlap_cluster_size"] < 1:
+        raise ValueError("overlap_cluster_size must be a positive integer")
+    if row["overlap_window_end_ts_ms"] <= row["overlap_window_start_ts_ms"]:
+        raise ValueError("overlap cluster window must have positive duration")
+    if not row["overlap_cluster_id"] or not row["repeated_signal_group_id"]:
+        raise ValueError("dependence metadata IDs must be non-empty")
+    if row["decluster_policy_id"] != "G0_05_INTERVAL_GRAPH_METADATA_V1":
+        raise ValueError("decluster_policy_id mismatch")
+    status = row["candidate_status"]
+    reason = row["exclusion_reason"]
+    if status not in DISPOSITION_STATUSES:
+        raise ValueError("invalid candidate_status")
+    if status == "ELIGIBLE_FOR_FURTHER_VALIDATION":
+        if reason != "NONE" or row["first_eligible_execution_bar_open_ts_ms"] != row["signal_available_at_ts_ms"]:
+            raise ValueError("eligible candidate requires NONE reason and exact first eligible minute")
+    elif reason == "NONE" or reason not in REJECTED_REASON_CODES | EXPIRED_REASON_CODES | CENSORED_REASON_CODES:
+        raise ValueError("non-eligible candidate requires a controlled exclusion reason")
+    censor = row["censoring_reason"]
+    if status == "CENSORED":
+        if censor != reason or censor not in CENSORED_REASON_CODES:
+            raise ValueError("censored candidate requires matching controlled censoring reason")
+    elif censor not in (None, ""):
+        raise ValueError("censoring_reason must be blank unless status is CENSORED")
+    if row["invalidation_reference_type"] != "NOT_APPLICABLE" or row["invalidation_reference_value"] != "NOT_APPLICABLE" or row["invalidation_reference_ts_ms"] != "NOT_APPLICABLE":
+        raise ValueError("G0-05 point events must not invent invalidation references")
+    if family == "FAILED_BREAKOUT_REVERSAL":
+        if row["expiry_rule_id"] != "SOURCE_BREAKOUT_12H_RETURN_INSIDE_V1" or not isinstance(row["expiry_ts_ms"], int):
+            raise ValueError("failed-breakout row requires its source 12-hour expiry")
+        if not row["source_breakout_candidate_id"] or row["source_breakout_candidate_id"] == "NOT_APPLICABLE":
+            raise ValueError("failed-breakout row requires source_breakout_candidate_id")
+    elif row["expiry_rule_id"] != "NOT_APPLICABLE" or row["expiry_ts_ms"] != "NOT_APPLICABLE":
+        raise ValueError("rejection/continuation expiry fields must be NOT_APPLICABLE")
+    if family != "FAILED_BREAKOUT_REVERSAL" and row["source_breakout_candidate_id"] != "NOT_APPLICABLE":
+        raise ValueError("non-failed-breakout row must not link a source breakout candidate")
+    if row["source_reconciliation_status"] not in SOURCE_RECONCILIATION_STATUSES:
+        raise ValueError("invalid source_reconciliation_status")
+    if row["source_join_cardinality"] not in SOURCE_JOIN_CARDINALITIES:
+        raise ValueError("invalid source_join_cardinality")
 
 
 def validate_candidate_identity_links(records: list[dict]) -> dict:
