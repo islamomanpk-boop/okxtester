@@ -156,6 +156,22 @@ def _authorize_task_impl(
     if not all(isinstance(item, dict) for item in (agent, phases, queue, trusted_allowlist)):
         return _deny("One or more policy documents are malformed.")
 
+    if agent.get("repository_access") != "read_only_by_default":
+        return _deny("Repository access must remain read_only_by_default.")
+    branch_policy = agent.get("branch_policy")
+    if not isinstance(branch_policy, dict):
+        return _deny("Branch policy is missing or malformed.")
+    required_branch_policy = {
+        "working_branch": "agent/okx-research-agent-v1",
+        "research_branch": "price-action-v1",
+        "automatic_merge": False,
+        "automatic_commit_to_research_branch": False,
+    }
+    if any(branch_policy.get(key) != value for key, value in required_branch_policy.items()):
+        return _deny("Branch policy differs from the isolated, no-merge research policy.")
+    scheduling = agent.get("scheduling")
+    if not isinstance(scheduling, dict) or scheduling.get("enabled") is not False:
+        return _deny("Scheduling must remain explicitly disabled during pre-activation.")
     execution = agent.get("execution")
     if not isinstance(execution, dict):
         return _deny("Agent execution configuration is missing or malformed.")
