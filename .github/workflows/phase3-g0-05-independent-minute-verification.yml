@@ -28,13 +28,20 @@ jobs:
           ref: price-action-v1
           persist-credentials: false
 
-      - name: Download source-audit disposition ledgers
+      - name: Download latest corrected source-audit disposition ledgers
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh run download 45799690941 \
+          set -euo pipefail
+          RUN_JSON="$(gh run list --repo "${{ github.repository }}" \
+            --workflow phase3-g0-05-source-audit.yml \
+            --branch price-action-v1 --status success --limit 20 \
+            --json databaseId,headSha,status,conclusion)"
+          RUN_ID="$(python -c 'import json,sys; rows=json.load(sys.stdin); expected="7406bd52d93d10128bc8ea18416366917223b5dc"; matches=[r for r in rows if r.get("headSha")==expected and r.get("conclusion")=="success"]; print(matches[0]["databaseId"] if matches else "")' <<< "$RUN_JSON")"
+          test -n "$RUN_ID"
+          gh run download "$RUN_ID" \
             --repo "${{ github.repository }}" \
-            --name phase3-g0-05-source-audit-45799690941 \
+            --name "phase3-g0-05-source-audit-$RUN_ID" \
             --dir source_audit_artifact
 
       - name: Compile independent verifier
