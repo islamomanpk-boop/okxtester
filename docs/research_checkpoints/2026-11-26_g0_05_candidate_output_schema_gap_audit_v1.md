@@ -22,7 +22,7 @@ The current artifact is explicitly a source-only disposition dry-run. Its rows m
 | Family / subfamily | Support/resistance family present | Continuation family present | Reversal family present |
 | Direction / LONG-SHORT mapping | Present | Present | Present |
 | Physical/source identity | Source row IDs and source collapse identity represented | Exact raw source key present | Exact source key and Module B row IDs present |
-| Historical cohort memberships | Present | Not yet preserved as a distinct historical membership field | Present |
+| Historical cohort memberships | Present | Now joined from Module B by exact raw-crossing identity and preserved | Present |
 | Causal strict/broad cohort | Present after reason-contract correction | Present | Present |
 | Signal/confirmation timestamp | Confirmation present | Signal availability present | Signal and confirmation present |
 | First eligible 1-minute timestamp | Eligible-only; independently verified | Eligible-only; independently verified | Eligible-only; independently verified |
@@ -116,4 +116,19 @@ Evidence:
 
 This closes the previously noted absence of asset/family/side/causal-cohort/reason grouped disposition summaries in the source-audit report. The summary is descriptive and does not alter or collapse source rows.
 
-Remaining reporting gaps include historical strict/broad membership detail for the raw breakout family, overlap-cluster/repeated-signal metadata and cluster-size reporting. Their construction convention must be frozen without removing overlapping events or using future outcomes. The canonical candidate fields listed in Sections 2–3 above remain unmaterialized.
+Remaining reporting gaps include overlap-cluster/repeated-signal metadata and cluster-size reporting. The raw breakout historical membership gap has been closed by exact-key reconciliation to Module B; its implementation evidence is recorded below. The canonical candidate fields listed in Sections 2–3 above remain unmaterialized.
+
+
+## 8. Raw breakout historical cohort membership reconciled — 2026-11-26
+
+The G0-04 raw crossing ledger contains a `was_historical_selected` boolean but does not itself expose per-event strict/broad cohort labels. The source-only audit now reconciles that flag to Module B's event rows by exact (asset, direction, signal timestamp, snapshot timestamp) identity and preserves the resulting `BROAD_P40` / `STRICT_P25` memberships in each breakout disposition row.
+
+Implementation commit: `3f906768028ff686a526e43182dd8a3d2a672c13`.
+
+Evidence:
+- Source audit [45802913642](https://github.com/islamomanpk-boop/okxtester/actions/runs/45802913642) — SUCCESS; artifact ID `15108411917`; ZIP SHA-256 `181b395393c9f7d012c282b64d862f10f83639f974543acf3b139a20e7d7f6e5`, independently recomputed after download.
+- Synthetic tests [45802929770](https://github.com/islamomanpk-boop/okxtester/actions/runs/45802929770) — SUCCESS; **86/86 tests passed**.
+- The 2,861 raw crossing rows reconcile to 1,929 with no historical selected cohort, 272 broad-only, and 660 with both BROAD_P40 and STRICT_P25. No strict-only row exists.
+- The raw selected flag must agree with the exact-key Module B membership; unknown labels and strict-without-broad fail closed.
+
+Historical cohort membership is separate from causal eligibility. The 932 historically selected events are not treated as the only causally eligible events, and causal strict/broad classifications are not overwritten by historical cohort labels.
