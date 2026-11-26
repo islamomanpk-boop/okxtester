@@ -434,3 +434,19 @@ The previously recorded independent-review limitation concerning separate re-has
 The first independent run [45801067586](https://github.com/islamomanpk-boop/okxtester/actions/runs/45801067586) intentionally failed closed because it consumed a stale artifact predating the eligible-only timestamp correction. The workflow was amended to select the successful source-audit artifact at the exact correction commit; the subsequent independent run passed. Both runs and the correction are retained in the evidence record.
 
 **Updated status:** The raw 1-minute hash/grid/membership limitation is closed. This does not close all G0-05 acceptance criteria. Complete contract review, remaining source/schema/reporting requirements, deterministic candidate-ledger implementation and its review remain open. Canonical candidate generation remains unauthorized; no execution simulation, strategy backtest, PnL or phase transition is authorized.
+
+
+## 19. Frozen disposition reason-code enforcement — 2026-11-26
+
+A further contract review found that the source-only ledger's reason labels were not fully aligned with the frozen status/reason enum. Eligible broad-only rows had been using `CAUSAL_BROAD_ONLY` as a reason, and failed-breakout source-ineligible rows used an unapproved reason string. The source audit also did not apply the shared reason validator to every row.
+
+The issue is corrected in source-audit commit `253f187b0da75f76c585fed6f4ec416cd28c5ddc`. Every row is now validated against the frozen status/reason/censoring contract. Cohort labels remain in separate fields; eligible rows use `reason_code=NONE`; source-ineligible failed-breakout rows use `NO_VALID_SOURCE_BREAKOUT`.
+
+Evidence:
+- Source audit [45802145534](https://github.com/islamomanpk-boop/okxtester/actions/runs/45802145534) — SUCCESS; artifact ID `15106714247`; ZIP SHA-256 `ef08831a8ad5bbb6326d4847b842b2e229cee4cdd174e4292cddbc45c96aa5bb`.
+- Synthetic tests [45802241180](https://github.com/islamomanpk-boop/okxtester/actions/runs/45802241180) — SUCCESS; **80/80 tests passed**.
+- Independent minute verifier [45802348522](https://github.com/islamomanpk-boop/okxtester/actions/runs/45802348522) — SUCCESS; artifact ID `15107686762`; ZIP SHA-256 `cf5d687ec36d0a6d906cb81f26becbca01e68553297ff422ab59ca69f9004c62`. It reran all five raw source hash/grid checks and all 2,857 exact eligible-minute memberships against the reason-validated source-audit artifact.
+
+The earlier failed synthetic run [45802163583](https://github.com/islamomanpk-boop/okxtester/actions/runs/45802163583) exposed one stale test fixture without reason fields; the fixture was corrected and the succeeding 80-test run is the controlling test evidence.
+
+**Updated status:** G0-05 source identity, causal-threshold, horizon, row-level disposition, exact-minute, and reason-code audits have passed their recorded checks. The canonical candidate schema/output, complete family/asset/side/overlap reporting, full independent review, deterministic candidate-output rerun, and formal G0-05 closeout remain open. No canonical candidates or trading tests have been authorized.
