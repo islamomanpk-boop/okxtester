@@ -1,5 +1,5 @@
 name: Phase 3 G0-05 Candidate Contract Synthetic Tests
-# Contract-only validation; canonical market data is never loaded.
+# Contract-only validation; canonical market data is never loaded. Corrected import regression rerun.
 
 on:
   workflow_dispatch:
