@@ -607,8 +607,8 @@ Remaining gate work is the full family-specific candidate-record schema validato
 
 The latest source-only audit emits the frozen cohort enum values (`STRICT_P25`, `BROAD_ONLY`, `NOT_ELIGIBLE`, `WARMUP`, `NOT_APPLICABLE`) and explicit `side` / `boundary_side` fields with the correct family mappings.
 
-- Source audit [45809114333](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809114333) — SUCCESS; artifact ID `15109854146`; ZIP SHA-256 `256dd55f22f0dc6c17732a4462c7cf88229af6ec57e42ec2becbc2fea9d6c85d`.
-- Complete manifest ID: `dcc2bc9b6af890a81f0ecf109d34843fcc34b2a8431116b766aa97acdfc7082f`; all 4,947 rows carry it and all source-event IDs are unique.
+- Source audit [45810599246](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810599246) — SUCCESS; artifact ID `15113820073`; ZIP SHA-256 `1f5cf8b095834dda03b8c4615babb86e96ed9232838551cb1d2e7a7b0822a149`.
+- Complete manifest ID: `d9c9878005eefa4de13671d7e68dc67859a2ee213524c3f5884e60cc1422d228`; all 4,947 rows carry it and all source-event IDs are unique.
 - Synthetic suite [45809254233](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809254233) — SUCCESS; **120/120 tests passed**.
 
 The pure candidate identity validator now checks deterministic candidate IDs and the final failed-breakout source identity composition and link. All tests use synthetic IDs; real candidate IDs remain unmaterialized. Independent minute verification against this latest source-audit artifact is running.
@@ -622,3 +622,24 @@ The independent verifier was rerun against the source-only artifact with normali
 - Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; 2,857/2,857 eligible timestamps present; 2,090 non-eligible timestamps blank; all five raw files re-hashed and minute grids validated.
 
 This preserves the prior source population and minute-membership conclusions. G0-05 remains open and candidate IDs remain unmaterialized.
+
+
+## 33. Full 60-field canonical schema validator implemented — 2026-11-26
+
+The candidate contract now contains a row-level validator for all **60 required canonical fields** and a full-ledger validator for:
+- deterministic candidate IDs and uniqueness;
+- source-event identity uniqueness within family;
+- family/side/boundary and regime-version mapping;
+- prior-only threshold calibration and snapshot validity;
+- signal/confirmation timing and first-eligible-minute semantics;
+- disposition, censoring, expiry and invalidation rules;
+- source manifest/path/blob lineage;
+- failed-breakout source-candidate linkage, final source-event identity composition and 12-hour expiry reconciliation.
+
+Evidence:
+- Source audit [45810599246](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810599246) — SUCCESS; artifact ID `15113820073`; ZIP SHA-256 `1f5cf8b095834dda03b8c4615babb86e96ed9232838551cb1d2e7a7b0822a149`.
+- Manifest ID: `d9c9878005eefa4de13671d7e68dc67859a2ee213524c3f5884e60cc1422d228`.
+- Source-audit report confirms 60 required fields, both validators available, and canonical generation unauthorized.
+- Synthetic suite [45810463442](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810463442) — SUCCESS; **125/125 tests passed**.
+
+No real candidate IDs or canonical candidate rows were generated. The independent minute verifier is being rerun against this latest source-audit artifact.
