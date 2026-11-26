@@ -148,7 +148,7 @@ The source-only ledgers now carry:
 
 Failed-breakout confirmation candles are rebuilt from 15 exact component 1m OHLC records. The current audit found 756 confirmed return-inside events, all with OPEN_OUTSIDE_CLOSE_INSIDE; 176 events had no return-inside confirmation. See source audit [45805545548](https://github.com/islamomanpk-boop/okxtester/actions/runs/45805545548), artifact ID `15109271179`, and tests [45805565739](https://github.com/islamomanpk-boop/okxtester/actions/runs/45805565739), 102/102 passed.
 
-Still to materialize in the final canonical candidate ledger: `candidate_id` and `source_breakout_candidate_id`. The source-only disposition ledgers now carry `source_event_id`, instrument/version labels, per-row snapshot/threshold/feature provenance, manifest/path/blob lineage, source breakout source-event identity, and all invalidation reference columns (type/value/timestamp) as NOT_APPLICABLE.
+Still to materialize in the final canonical candidate ledger: `candidate_id` and `source_breakout_candidate_id`. The source-only disposition ledgers now carry `source_event_id`, instrument/version labels, schema-normalized cohort labels, explicit side/boundary-side, per-row snapshot/threshold/feature provenance, manifest/path/blob lineage, source breakout source-event identity, and all invalidation reference columns (type/value/timestamp) as NOT_APPLICABLE.
 
 
 ## 12. Complete source lineage now emitted per source-only row
@@ -191,10 +191,23 @@ Family-specific context:
 - The expected leading legacy context before the detector feature ledger is explicitly labelled; only one distinct leading context per asset is allowed.
 
 Evidence:
-- Source audit [45808007422](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808007422) — SUCCESS; artifact ID `15110482845`; ZIP SHA-256 `f29bf78c7dbcaaca05f51ca10a5fc688f334664262debee6d37b7b657d390f2b`.
-- Complete manifest SHA-256 / row ID: `f851f6c65214f18a6f24cd7424cad0dedba26c2c2a1210dda269ddef84bc81d2`; independently recomputed from exact manifest bytes and matched the report.
+- Source audit [45809114333](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809114333) — SUCCESS; artifact ID `15109854146`; ZIP SHA-256 `256dd55f22f0dc6c17732a4462c7cf88229af6ec57e42ec2becbc2fea9d6c85d`.
+- Complete manifest SHA-256 / row ID: `dcc2bc9b6af890a81f0ecf109d34843fcc34b2a8431116b766aa97acdfc7082f`; independently recomputed from exact manifest bytes and matched the report.
 - Synthetic suite [45808027261](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808027261) — SUCCESS; **111/111 tests passed**.
 - Source rows: rejection 1,154; breakout 2,861; failed breakout 932. All 4,947 have unique source_event_id values and one manifest ID.
 - The independent minute verifier is running against this latest artifact.
 
 Only final candidate IDs and the failed-breakout `source_breakout_candidate_id` remain intentionally unmaterialized. No canonical candidate ledger has been generated.
+
+
+## 15. Schema enum and side normalization
+
+The source-only audit now emits the exact schema cohort enum values and explicit `side` / `boundary_side`:
+- `STRICT_P25`, `BROAD_ONLY`, `NOT_ELIGIBLE`, `WARMUP`, `NOT_APPLICABLE`.
+- Rejection lower/LONG and upper/SHORT.
+- Breakout upper/LONG and lower/SHORT.
+- Failed breakout upper/SHORT and lower/LONG.
+
+Evidence: source audit [45809114333](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809114333), artifact `15109854146`, manifest ID `dcc2bc9b6af890a81f0ecf109d34843fcc34b2a8431116b766aa97acdfc7082f`; all 4,947 source-event IDs unique. Synthetic suite [45809254233](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809254233) passed **120/120 tests**.
+
+The final canonical failed-breakout `source_event_id` will use the linked source breakout candidate ID + confirmation timestamp (or `NO_CONFIRMATION`) + rule version. The source-only ledger's current failed-breakout identity remains provisional.
