@@ -86,3 +86,17 @@ Independent recomputation from the downloaded artifact confirmed:
 - All 20 baseline counts and the five-asset cross-pipeline/coverage checks remain as recorded above.
 
 No code or artifact defect was identified in this second-pass scope. This check is performed by the same assistant workflow and must not be represented as an independent human/reviewer sign-off. The formal reviewer must still verify the source and artifact against the frozen controls and record their own disposition. Until then, G0-04 remains technically passed but formally pending; G0-05 implementation/candidate generation remains blocked, Gate 0 remains CONDITIONAL HOLD, and no strategy backtest is authorized.
+
+
+## Corrected source-validation execution — 2026-11-26
+
+**Disposition:** CORRECTED CANONICAL EXECUTION SUCCESS; FORMAL G0-04 ACCEPTANCE STILL PENDING INDEPENDENT REVIEW.
+
+- Workflow run: [45752717022](https://github.com/islamomanpk-boop/okxtester/actions/runs/45752717022), attempt 1; job 139684635786 completed SUCCESS on branch `price-action-v1`.
+- Exact checked-out source revision: `8326c1edea66c11391ab614b9ce4afa9be5bc1fd`.
+- Dependency installation, Python compilation, synthetic contract tests, full fail-closed descriptive reconstruction, and artifact upload all completed successfully.
+- The historical source ledger is a classification matrix: signal identities intentionally repeat across the two definitions (STRICT_P25/BROAD_P40) and three zone levels (5/10/15%). The corrected validator checks uniqueness at the full classification-row grain before collapsing to the 932 distinct signal identities. It also rejects null/invalid timestamps before integer conversion.
+- Artifact: [phase3-g0-04-causal-reconstruction-45752717022](https://github.com/islamomanpk-boop/okxtester/actions/runs/45752717022/artifacts/15085744573), artifact ID 15085744573; ZIP SHA-256 `11f6908b191d3b66bd4d17ef5a3e5d05f7f37050f9565ceeea05f4abc4571bfe`.
+- Artifact metadata reports `DESCRIPTIVE_RECONSTRUCTION_COMPLETE_BASELINE_20_OF_20`, code revision `8326c1e...`, and exact common 1-minute index 569,125.
+- Independent artifact inspection confirmed all 20/20 historical baseline counts; 65,310 threshold rows; 2,861 raw crossing events; 120 reconciliation dimensions; zero raw-source mismatches; and all seven output SHA-256 hashes match the manifest. Five-asset detector checks each matched 2,358 contexts; historical lag checks each matched 2,357 contexts, with the documented two boundary rows and final partial 15-minute context exception.
+- Scope remains descriptive only. This run does not authorize candidate generation, execution simulation, strategy backtesting or PnL. The previous assistant-side review is not an independent reviewer sign-off. G0-04 formal acceptance remains pending; G0-05 implementation remains blocked; Gate 0 remains CONDITIONAL HOLD.
