@@ -40,7 +40,7 @@ def sha256_bytes(data: bytes) -> str:
 
 
 def git_blob_sha1(data: bytes) -> str:
-    header = f"blob {len(data)}\\0".encode("ascii")
+    header = f"blob {len(data)}\0".encode("ascii")
     return hashlib.sha1(header + data).hexdigest()
 
 
@@ -317,9 +317,9 @@ def main() -> None:
     }
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir / "source_audit_report.json").write_text(
-        json.dumps(report, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (args.output_dir / "source_manifest.json").write_text(
-        json.dumps(manifest, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(report["status"])
     print(json.dumps({"raw_crossings": g004["raw_rows"],
         "rejection_rows": rejection["rejection_rows_with_confirmation"],
