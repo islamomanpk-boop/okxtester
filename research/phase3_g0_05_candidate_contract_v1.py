@@ -42,6 +42,22 @@ def first_eligible_minute(signal_available_ms: int, observed_minute_opens: list[
     return observed_minute_opens[0]
 
 
+def causal_regime_eligible(channel_width_pct: float, threshold_pct: float,
+                           efficiency: float, overlap: float) -> bool:
+    """Apply the frozen same-snapshot sideways detector conditions."""
+    values = (channel_width_pct, threshold_pct, efficiency, overlap)
+    if not all(map(lambda x: isinstance(x, (int, float)) and x == x and abs(x) != float("inf"), values)):
+        raise ValueError("regime features and threshold must be finite numeric values")
+    return channel_width_pct <= threshold_pct and efficiency <= 0.30 and overlap >= 0.70
+
+
+def validate_strict_broad_nesting(strict_flags: list[bool], broad_flags: list[bool]) -> None:
+    if len(strict_flags) != len(broad_flags):
+        raise ValueError("strict and broad populations must have equal lengths")
+    if any(strict and not broad for strict, broad in zip(strict_flags, broad_flags)):
+        raise ValueError("strict cohort is not nested within broad cohort")
+
+
 def family_side(family: str) -> tuple[str, str]:
     try:
         return FAMILY_SIDE[family]
