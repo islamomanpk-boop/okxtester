@@ -172,5 +172,18 @@ class ReportBuilderTests(unittest.TestCase):
                 report_builder.sha256_file(outside)
 
 
+    def test_markdown_metadata_and_manifest_cannot_break_inline_code_context(self):
+        report = valid_report()
+        report["task_id"] = "task`\n## forged heading"
+        report["branch"] = "branch` [click](https://example.invalid)"
+        report["input_manifest"] = [
+            {"path": "docs/`[x].md", "sha256": "c" * 64}
+        ]
+        rendered = report_builder.render_markdown(report)
+        self.assertEqual(rendered.count("`"), 0)
+        self.assertIn("\\`", rendered)
+        self.assertNotIn("[click](", rendered)
+        self.assertNotIn("## forged heading", rendered)
+
 if __name__ == "__main__":
     unittest.main()
