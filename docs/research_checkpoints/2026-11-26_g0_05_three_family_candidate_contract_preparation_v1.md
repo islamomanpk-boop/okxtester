@@ -280,3 +280,52 @@ The null/invalid historical zone-level validator repair is complete. Corrected s
 The implementation checkpoint now records additional direct checks against the five raw 1-minute files: all five SHA-256 values independently match metadata; 569,125 common timestamps are identical across assets; source cadence/OHLCV checks show no defects; a separate raw-data recomputation reproduces all 20 historical counts and all 10 quantiles; and all five detector ledgers match 2,358 rebuilt contexts each within (10^{-9}). The actual historical classification ledger has 4,776 rows and 932 distinct identities, with no null zones or duplicate full-grain classifications.
 
 These checks materially close the evidence gaps raised in the preliminary Kimi review, but they are documented as a separate assistant-side audit and do not change Kimi's own INCONCLUSIVE report. Formal G0-04 acceptance still requires an explicit project-owner disposition under the review standard. Therefore this G0-05 document remains PREPARATION ONLY: implementation and candidate generation are blocked; Gate 0 remains CONDITIONAL HOLD; no execution simulation, backtesting or PnL is authorized.
+
+
+## 13. Authoritative G0-04/G0-05 status and superseding decisions — 2026-11-26
+
+This section supersedes any earlier sentence in this preparation document that says G0-04 acceptance is pending, that G0-05 remains blocked pending G0-04, or that the threshold/family timing decisions remain deferred. Earlier status paragraphs are retained as historical chronology, not current instructions.
+
+### 13.1 G0-04 disposition
+
+G0-04 was accepted by delegated project-owner technical disposition on 2026-11-26. The decision and limitations are recorded in `2026-11-26_g0_04_acceptance_decision_v1.md`. Kimi's original AI-review verdict remains INCONCLUSIVE; no human review is claimed. The acceptance is based on the combined reproducibility and raw-source audit recorded in the implementation checkpoint and acceptance decision.
+
+For clarity, run 45752717022 (checked-out revision `8326c1e...`) and run 45756061179 (validator correction at `86b4959...`) are separate G0-04 executions. The latter's job/artifact and digest are pinned in the acceptance decision. Do not conflate their source revisions or artifacts.
+
+### 13.2 Decisions now frozen for G0-05 contract work
+
+The controlling decisions are:
+- `2026-11-26_g0_05_threshold_policy_population_decision_v1.md`: primary `EXPANDING_PRIOR + UNIQUE_4H_FEATURE_ROWS`, 180 prior completed contexts for warm-up, with FIXED_180, ROLLING_180 and JOINED_15M_ROWS retained as sensitivity variants.
+- `2026-11-26_g0_05_rejection_snapshot_validity_audit_v1.md`: snapshot validity is half-open; rejection confirmation must be strictly before the next snapshot availability. Preserve 40 broad / 29 nested strict expired-at-confirmation source classifications with explicit exclusion dispositions.
+- `2026-11-26_g0_05_family_timing_contract_decisions_v1.md`: frozen family direction mappings and confirmation timing, including completed-15-minute failed-breakout return-inside confirmation linked to a valid causal source breakout.
+
+### 13.3 Candidate event lifecycle semantics
+
+G0-05 creates a point-in-time candidate-availability/disposition ledger, not a persistent order or position simulator. Therefore:
+- Support/resistance rejection and breakout continuation are point events. They do not remain active as executable orders; order expiry/invalidation is NOT APPLICABLE at this gate. Preserve source test-rank/repeated-cross identity and overlap-cluster metadata. Do not drop overlapping source events or invent a de-clustering rule that removes observations.
+- Rejection repeated tests remain distinct according to the accepted source identity (asset, definition, direction, snapshot index, segment ID, test rank, test-start timestamp). Existing source protocol separation and test-rank fields are retained; G0-05 adds no second independent rejection episode detector.
+- Breakout continuation uses each unique raw G0-04 crossing identity. A subsequent distinct raw crossing remains a distinct source event; preserve overlap-cluster metadata and do not collapse it into one candidate.
+- Failed-breakout reversal is a child event linked to a valid causal breakout candidate. It can confirm only on a completed 15-minute close back inside the original frozen boundary, no later than 12 hours after source breakout signal availability. If no confirmation occurs by the horizon, disposition `EXPIRED_NO_RETURN_INSIDE_WITHIN_12H`; if a data gap/incomplete bar prevents resolution, use an explicit censored disposition. The source breakout boundary is immutable through the failure lifecycle.
+- The candidate first-eligible-minute field is an availability timestamp, not an order instruction or fill.
+
+### 13.4 Contract implementation and test workflow
+
+The pure, data-independent contract primitives are implemented in `research/phase3_g0_05_candidate_contract_v1.py`, with synthetic tests in `tests/test_phase3_g0_05_candidate_contract_v1.py`. Workflow `phase3-g0-05-candidate-contract-tests.yml` compiles and runs those tests only. This workflow does not read canonical market data and does not generate candidate records.
+
+The initial test suite covers snapshot endpoint validity, rejection close timing, exact first eligible minute, minute-gap rejection, direction mappings, complete 15-minute confirmation, failed-breakout source linkage, inside-close confirmation, 12-hour expiry, deterministic candidate IDs, explicit dispositions, and deterministic serialization.
+
+### 13.5 Current authorization boundary
+
+**Authorized now:** contract/test refinement, source inventory, source-key/schema/hash validation design, and synthetic CI tests.
+
+**Not yet authorized:** canonical source joins that emit candidate records, candidate counts as research findings, orders, fills, execution simulation, PnL, strategy backtesting, or any Gate 2+ work.
+
+Canonical candidate generation remains blocked until:
+1. Exact canonical G0-04 artifact contents are available and independently inspected for the raw crossing ledger and threshold table.
+2. All rejection, detector-feature, market-data and Module B source blob IDs/schemas/row counts are frozen and their required joins are proven one-to-one or explicitly one-to-many.
+3. The candidate output schema and all event disposition values are finalized.
+4. The complete synthetic edge-case matrix passes in CI.
+5. A source-only dry-run proves every input row receives a deterministic disposition without writing candidate outputs.
+6. Reproducibility and row-level reconciliation checks are specified and reviewed.
+
+**Current status:** G0-04 ACCEPTED. G0-05 CONTRACT IMPLEMENTATION / SOURCE INVENTORY IN PROGRESS. CANONICAL CANDIDATE GENERATION NOT AUTHORIZED. Gate 0 remains CONDITIONAL HOLD. No execution simulation, strategy backtest, or PnL work is authorized.
