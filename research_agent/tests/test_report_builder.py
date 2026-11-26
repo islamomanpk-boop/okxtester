@@ -29,6 +29,21 @@ def valid_report():
 
 
 class ReportBuilderTests(unittest.TestCase):
+    def test_rejects_completion_claim_statuses_without_executor(self):
+        for status in ("completed", "success", "successful", "research_complete", "approved"):
+            report = valid_report()
+            report["status"] = status
+            with self.subTest(status=status):
+                with self.assertRaisesRegex(ValueError, "non-completion states"):
+                    report_builder.validate_report(report)
+
+    def test_accepts_only_supported_non_completion_statuses(self):
+        for status in ("preflight_only", "blocked", "skipped", "not_run"):
+            report = valid_report()
+            report["status"] = status
+            with self.subTest(status=status):
+                report_builder.validate_report(report)
+
     def test_valid_report_renders_deterministically(self):
         report = valid_report()
         first = report_builder.render_json(report)
