@@ -79,6 +79,20 @@ class EventLedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unsupported ledger event type"):
             self.make_event(event_type="execute_task")
 
+    def test_timestamp_fraction_must_use_shortest_canonical_form(self):
+        # Equivalent instants must not have multiple accepted text encodings.
+        for timestamp in (
+            "2026-11-26T12:00:00.0Z",
+            "2026-11-26T12:00:00.000000Z",
+            "2026-11-26T12:00:00.100000Z",
+        ):
+            with self.subTest(timestamp=timestamp):
+                with self.assertRaisesRegex(ValueError, "canonical UTC timestamp formatting"):
+                    self.make_event(occurred_at_utc=timestamp)
+
+        canonical = self.make_event(occurred_at_utc="2026-11-26T12:00:00.1Z")
+        self.assertTrue(validate_event_ledger(canonical["ledger"])["valid"])
+
     def test_non_json_payload_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "strict JSON"):
             self.make_event(payload={"bad": object()})
