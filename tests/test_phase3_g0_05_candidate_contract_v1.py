@@ -507,6 +507,21 @@ class G005SourceAuditTests(unittest.TestCase):
         self.assertEqual(result["efficiency_value"], 0.4)
         self.assertEqual(result["overlap_value"], 0.6)
 
+    def test_canonical_snapshot_provenance_preserves_unavailable_warmup_metrics(self):
+        feature = {
+            "available_at_ts_ms": "1000000", "upper": "110", "lower": "90",
+            "channel_width_pct": "20", "directional_efficiency": "",
+            "mean_overlap": "",
+        }
+        result = canonical_snapshot_provenance(
+            "BTC", 1000000, 15000000, feature, None,
+            "CAUSAL_THRESHOLD_WARMUP",
+            regime_definition_version="HISTORICAL_BREAKOUT_CONTEXT_V1")
+        self.assertEqual(result["efficiency_value"], "")
+        self.assertEqual(result["overlap_value"], "")
+        self.assertEqual(result["threshold_value"], "")
+        self.assertEqual(result["threshold_percentile"], "")
+
     def test_canonical_snapshot_provenance_rejects_nonexact_snapshot(self):
         feature = {
             "available_at_ts_ms": "1000001", "upper": "110", "lower": "90",
