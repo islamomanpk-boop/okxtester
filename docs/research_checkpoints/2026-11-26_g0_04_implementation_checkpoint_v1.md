@@ -66,3 +66,23 @@ A successful workflow run would only produce descriptive causal-eligibility evid
 - Artifact: [phase3-g0-04-causal-reconstruction-45749524341](https://github.com/islamomanpk-boop/okxtester/actions/runs/45749524341/artifacts/15086205202), artifact ID 15086205202; ZIP SHA-256 `ad9087acfcf71d17125b503fc2cd6aeeab06a486d57be1d742dfc0a65528dab6`.
 
 **Review limitations / next gate:** This is a descriptive reconstruction, not a selected causal threshold policy and not an execution or profitability test. The expected partial-tail coverage exception is documented, not silently discarded. The independent review must still inspect the complete output semantics and confirm the frozen controls before formal G0-04 acceptance. G0-05 implementation/candidate generation remains blocked until that acceptance. Gate 0 remains CONDITIONAL HOLD; no strategy backtest, orders, fills, execution simulation or PnL work is authorized.
+
+
+## Second-pass artifact/code audit — 2026-11-26
+
+**Disposition:** ASSISTANT-SIDE TECHNICAL AUDIT PASSED; THIS IS NOT THE REQUIRED INDEPENDENT REVIEW OR FORMAL G0-04 ACCEPTANCE.
+
+The reconstruction source and canonical artifact were reviewed again after the successful run. The review checked the source's fail-closed input hash/schema/continuity checks; complete right-labelled bar construction; separation of detector and historical one-bar-lag contexts; backward-only as-of assignment; baseline-before-output sequencing; 180-prior-completed-context threshold clock; exclusion of partial contexts from calibration; unique raw event keys; strict/broad nesting; historical identity reconciliation; and output manifest semantics.
+
+Independent recomputation from the downloaded artifact confirmed:
+- 65,310 threshold rows, with unique asset/snapshot/policy/population keys.
+- Every calibration endpoint is strictly earlier than its classified snapshot.
+- Fixed-180 and Rolling-180 rows use exactly 180 prior contexts; Expanding-Prior rows use at least 180.
+- Joined-15M calibration counts equal exactly 16 rows per prior context.
+- All P25 values are no greater than corresponding P40 values.
+- 2,861 raw crossing identities are unique; all 12 strict/broad variant labels are populated.
+- Exactly 932 raw events are marked as historical selected identities.
+- The 120 reconciliation dimensions (5 assets × 2 directions × 3 policies × 2 populations × 2 definitions) are present, with zero historical raw-source mismatches.
+- All 20 baseline counts and the five-asset cross-pipeline/coverage checks remain as recorded above.
+
+No code or artifact defect was identified in this second-pass scope. This check is performed by the same assistant workflow and must not be represented as an independent human/reviewer sign-off. The formal reviewer must still verify the source and artifact against the frozen controls and record their own disposition. Until then, G0-04 remains technically passed but formally pending; G0-05 implementation/candidate generation remains blocked, Gate 0 remains CONDITIONAL HOLD, and no strategy backtest is authorized.
