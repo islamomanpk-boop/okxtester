@@ -200,6 +200,63 @@ def candidate_id(source_identity: str, family: str, rule_version: str) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
+def validate_candidate_identity_links(records: list[dict]) -> dict:
+    """Validate deterministic candidate IDs and failed-breakout source-candidate links."""
+    if not records:
+        raise ValueError("candidate ledger must not be empty")
+    candidate_ids = set()
+    family_source_ids = set()
+    versions = set()
+    family_counts = {}
+    for row in records:
+        source_identity = str(row.get("source_event_id", "")).strip()
+        family = str(row.get("family", "")).strip()
+        rule_version = str(row.get("candidate_rule_version", "")).strip()
+        supplied_id = str(row.get("candidate_id", "")).strip()
+        if not source_identity or not family or not rule_version or not supplied_id:
+            raise ValueError("candidate identity record is missing a required field")
+        expected_id = candidate_id(source_identity, family, rule_version)
+        if supplied_id != expected_id:
+            raise ValueError("candidate_id does not match its deterministic source identity")
+        if supplied_id in candidate_ids:
+            raise ValueError("duplicate candidate_id")
+        source_key = (family, source_identity)
+        if source_key in family_source_ids:
+            raise ValueError("duplicate family/source_event_id")
+        candidate_ids.add(supplied_id)
+        family_source_ids.add(source_key)
+        versions.add(rule_version)
+        family_counts[family] = family_counts.get(family, 0) + 1
+    if len(versions) != 1:
+        raise ValueError("candidate ledger mixes candidate_rule_version values")
+
+    for row in records:
+        family = row["family"]
+        linked = row.get("source_breakout_candidate_id")
+        if family == "FAILED_BREAKOUT_REVERSAL":
+            source_breakout_identity = str(row.get("source_breakout_source_event_id", "")).strip()
+            if not source_breakout_identity or not linked:
+                raise ValueError("failed-breakout row is missing its source breakout link")
+            expected_link = candidate_id(
+                source_breakout_identity, "BREAKOUT_CONTINUATION", row["candidate_rule_version"])
+            if linked != expected_link:
+                raise ValueError("source_breakout_candidate_id does not match the exact source breakout identity")
+            if expected_link not in candidate_ids:
+                raise ValueError("source_breakout_candidate_id does not resolve to a source breakout candidate row")
+        elif linked not in (None, "", "NOT_APPLICABLE"):
+            raise ValueError("non-failed-breakout row must not carry a source breakout candidate link")
+
+    return {
+        "candidate_rows": len(records),
+        "candidate_ids_unique": True,
+        "source_event_ids_unique_within_family": True,
+        "candidate_rule_version": next(iter(versions)),
+        "family_counts": dict(sorted(family_counts.items())),
+        "failed_breakout_source_links_validated": sum(
+            1 for row in records if row["family"] == "FAILED_BREAKOUT_REVERSAL"),
+    }
+
+
 def classify_disposition(snapshot_available_ms: int, snapshot_next_ms: int,
                          confirmation_ms: int) -> str:
     return ("ELIGIBLE_FOR_FURTHER_VALIDATION"
