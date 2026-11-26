@@ -2,6 +2,7 @@
 """Read-only G0-05 source provenance and identity reconciliation; emits no candidates."""
 from __future__ import annotations
 import argparse
+from bisect import bisect_left
 import csv
 import hashlib
 import json
@@ -474,6 +475,33 @@ def validate_module_b_horizons(events: list[dict[str, str]],
         "twelve_hour_confirmations": confirmations,
         "twelve_hour_completion_and_confirmation_match": True,
     }
+
+
+def observed_window_bars(minute_index: list[int], start_ms: int, max_bars: int) -> int:
+    """Count contiguous observed 1m opens from an exact event start, capped at max_bars."""
+    if max_bars <= 0:
+        raise ValueError("maximum observed window must be positive")
+    index = bisect_left(minute_index, int(start_ms))
+    if index >= len(minute_index) or minute_index[index] != int(start_ms):
+        raise ValueError(f"missing exact 1m open at overlap-window start {start_ms}")
+    observed = 0
+    for stamp in minute_index[index:index + max_bars]:
+        if stamp != int(start_ms) + observed * 60000:
+            break
+        observed += 1
+    if observed <= 0:
+        raise ValueError(f"overlap window has no observed bars at {start_ms}")
+    return observed
+
+
+def consistent_physical_cluster(event_ids: list[str], cluster_by_event: dict) -> tuple:
+    """Require all cohort-row identities for one physical event to share cluster metadata."""
+    if not event_ids or any(event_id not in cluster_by_event for event_id in event_ids):
+        raise ValueError("physical event has missing overlap-cluster source identity")
+    values = {tuple(cluster_by_event[event_id]) for event_id in event_ids}
+    if len(values) != 1:
+        raise ValueError("cohort rows for one physical event disagree on overlap-cluster metadata")
+    return next(iter(values))
 
 
 def assign_interval_graph_clusters(events: list[dict], *, asset_field: str,
