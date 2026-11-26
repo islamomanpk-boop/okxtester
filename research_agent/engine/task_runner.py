@@ -101,6 +101,7 @@ def _preflight_task_with_queue(task_id: str, current_queue: dict[str, Any]) -> d
     valid_reason = decision.get("reason")
     if (
         type(authorized_flag) is not bool
+        or not isinstance(decision_code, str)
         or decision_code not in {"ALLOW_READ_ONLY", "DENY"}
         or not isinstance(valid_reason, str)
         or not valid_reason.strip()
