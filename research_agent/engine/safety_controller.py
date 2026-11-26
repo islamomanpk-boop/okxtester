@@ -161,7 +161,14 @@ def _authorize_task_impl(
         "automatic_merge": False,
         "automatic_commit_to_research_branch": False,
     }
-    if any(branch_policy.get(key) != value for key, value in required_branch_policy.items()):
+    if (
+        set(branch_policy) != set(required_branch_policy)
+        or any(
+            type(branch_policy.get(key)) is not type(value)
+            or branch_policy.get(key) != value
+            for key, value in required_branch_policy.items()
+        )
+    ):
         return _deny("Branch policy differs from the isolated, no-merge research policy.")
     scheduling = agent.get("scheduling")
     if not isinstance(scheduling, dict) or scheduling.get("enabled") is not False:
@@ -260,7 +267,11 @@ def _authorize_task_impl(
         return _deny("Exactly one research phase must be marked active.")
     for index, phase_name in enumerate(phase_order, start=1):
         rule = phase_rules.get(phase_name)
-        if not isinstance(rule, dict) or rule.get("priority") != index:
+        if (
+            not isinstance(rule, dict)
+            or type(rule.get("priority")) is not int
+            or rule.get("priority") != index
+        ):
             return _deny("Phase priorities must match the declared sequential phase order.")
     if phase not in phase_order or phase not in phase_rules:
         return _deny("Unknown phase; no permission is granted.")
