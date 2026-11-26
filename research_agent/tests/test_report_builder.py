@@ -76,7 +76,7 @@ class ReportBuilderTests(unittest.TestCase):
         report["findings"] = ["# Forged heading\n[click](https://example.invalid)"]
         rendered = report_builder.render_markdown(report)
         self.assertIn("Forged heading [click]", rendered)
-        self.assertIn("\\\\#", rendered)
+        self.assertIn("\\#", rendered)
         self.assertNotIn("## Forged heading", rendered)
         self.assertNotIn("[click](", rendered)
     def test_manifest_hashing_rejects_paths_outside_repository(self):
