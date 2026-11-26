@@ -39,7 +39,7 @@ The final version identifiers must be reviewed with the full schema before the c
 | `overlap_cluster_id` | Accepted Module A 24H interval-graph ID | G0-05 raw crossing 12H interval-graph ID | Inherit exact source breakout cluster |
 | `repeated_signal_group_id` | Frozen asset/direction/snapshot-index/segment group | Frozen asset/direction/context-snapshot group | Inherit exact source breakout group |
 
-The source-only disposition artifact now emits all fields in this section except canonical `candidate_id`, `source_event_id` in the final schema form, `instrument_id`, and final version labels.
+The source-only disposition artifact now emits family, side, historical/causal cohort, overlap cluster and repeated-signal group fields. Canonical `candidate_id`, final `source_event_id`, `instrument_id` and version labels remain to be materialized.
 
 ## 3. Snapshot and threshold provenance
 
@@ -87,7 +87,7 @@ Family source paths:
 - Breakout continuation: G0-04 artifact `unique_raw_crossing_events_with_six_variants.csv`; per-asset detector feature file; G0-04 threshold artifact; exact raw 1-minute file. Module B `breakout_lifecycle_events_v1_1.csv` supplies historical cohort membership only, not the primary breakout source population.
 - Failed breakout: Module B `breakout_lifecycle_events_v1_1.csv` and `breakout_lifecycle_horizons_v1_1.csv`; exact G0-04 source breakout key; raw 1-minute source; inherited detector snapshot and threshold provenance.
 
-The canonical row should retain the family-relevant paths and Git blob IDs from the manifest, not a hand-written list of guessed hashes.
+The canonical row should retain the family-relevant paths and Git blob IDs from the manifest, not a hand-written list of guessed hashes. The manifest hash itself is frozen in the field-value decision document.
 
 ## 5. Signal, confirmation and availability
 
@@ -109,7 +109,7 @@ The first eligible 1-minute open is a timestamp only. It is not an order, fill o
 | `candidate_status` | Exact source-only `disposition`. |
 | `exclusion_reason` | Exact `reason_code`; eligible rows must be `NONE`. |
 | `censoring_reason` | Exact validated source-only `censoring_reason`; non-empty only for CENSORED. |
-| `ambiguity_flags` | **Join/implementation still required:** preserve signal/confirmation-candle OHLC-path ambiguity using all 15 component 1m bars. Do not use later retest ambiguity fields as a substitute for confirmation-bar ambiguity. |
+| `ambiguity_flags` | Source-only ledger now emits NONE for rejection/breakout and exact OPEN_OUTSIDE_CLOSE_INSIDE or WICK_OUTSIDE_CLOSE_INSIDE flags for failed-breakout confirmation candles, rebuilt from 15 component 1m OHLC bars. |
 | `decluster_policy_id` | `G0_05_INTERVAL_GRAPH_METADATA_V1`; retain the family-specific 24H rejection and 12H raw-breakout algorithm/version in metadata. |
 | `invalidation_reference_type/value/ts_ms` | NOT_APPLICABLE for G0-05 point-event availability; do not invent a stop or trade invalidation. |
 | `expiry_rule_id` | NOT_APPLICABLE for rejection/continuation; `SOURCE_BREAKOUT_12H_RETURN_INSIDE_V1` for failed breakout. |
@@ -131,3 +131,19 @@ The first eligible 1-minute open is a timestamp only. It is not an order, fill o
 ## 8. Boundary
 
 This matrix is a mapping and gap analysis only. It does not create candidate rows, orders, fills, execution simulation, PnL, strategy backtests or phase transitions.
+
+
+## 11. Source-only timing and ambiguity fields now emitted — 2026-11-26
+
+The source-only ledgers now carry:
+- signal candle open, close and availability timestamps;
+- family-specific confirmation rule ID, 900,000 ms bar interval and confirmation status;
+- event-observed timestamp;
+- ambiguity flags;
+- expiry rule/endpoint for failed-breakout reversal;
+- NOT_APPLICABLE invalidation reference type;
+- source reconciliation status and join cardinality.
+
+Failed-breakout confirmation candles are rebuilt from 15 exact component 1m OHLC records. The current audit found 756 confirmed return-inside events, all with OPEN_OUTSIDE_CLOSE_INSIDE; 176 events had no return-inside confirmation. See source audit [45805545548](https://github.com/islamomanpk-boop/okxtester/actions/runs/45805545548), artifact ID `15109271179`, and tests [45805565739](https://github.com/islamomanpk-boop/okxtester/actions/runs/45805565739), 102/102 passed.
+
+Still to materialize: canonical candidate IDs/source-event IDs, instrument/version labels, per-row snapshot/threshold/feature provenance, manifest/path/blob lineage, source breakout candidate IDs, and all invalidation reference columns (type/value/timestamp) in the final canonical output.
