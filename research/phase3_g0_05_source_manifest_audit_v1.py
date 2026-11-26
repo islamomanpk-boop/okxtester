@@ -5,9 +5,14 @@ import argparse
 import csv
 import hashlib
 import json
+import sys
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
+
+PROJECT_ROOT = str(Path(__file__).resolve().parents[1])
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 from research.phase3_g0_05_candidate_contract_v1 import (
     exact_threshold_for_snapshot, validate_source_key_join,
