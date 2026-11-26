@@ -117,6 +117,49 @@ class OrchestrationCoordinatorTests(unittest.TestCase):
                 queue=queue, preflight_summary=preflight, max_tasks=True
             )
 
+    def test_denied_phase_three_prevents_allowed_phase_one_from_being_packaged(self):
+        queue, preflight = fixture(False)
+        phase_one = {
+            "task_id": "P1-TEST-001",
+            "phase": "phase1_uptrend_bullish",
+            "operation": "repository_inspection",
+            "handoff_id": "P1_HANDOFF",
+            "title": "Later phase inspection",
+            "status": "queued",
+            "scope": ["Read existing documentation"],
+            "prohibited": ["execute_scripts", "modify_research_data"],
+            "completion_authority": "human_only",
+        }
+        queue["tasks"].append(phase_one)
+        preflight["tasks"].append({
+            "task_id": "P1-TEST-001",
+            "queue_status": "queued",
+            "decision": "ALLOW_READ_ONLY",
+            "authorized": True,
+            "reason": "Test-only later-phase allowance.",
+            "execution_performed": False,
+            "mode": "preflight_only",
+        })
+        preflight["task_count"] = 2
+        preflight["allow_count"] = 1
+        preflight["deny_count"] = 1
+
+        result = build_orchestration_snapshot(
+            queue=queue, preflight_summary=preflight
+        )
+
+        self.assertIsNone(result["phase"])
+        self.assertEqual(result["planned_task_count"], 0)
+        self.assertEqual(
+            [item["task_id"] for item in result["assignment_packages"]],
+            ["P3-TEST-001"],
+        )
+        self.assertEqual(
+            result["assignment_packages"][0]["package"]["assignment_status"],
+            "blocked_preflight",
+        )
+        self.assertFalse(result["dispatch_permitted"])
+
     def test_unknown_recovery_task_is_rejected(self):
         queue, preflight = fixture(False)
         with self.assertRaises(ValueError):
