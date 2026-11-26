@@ -34,10 +34,15 @@ def preflight_task(task_id: str, queue: dict[str, Any] | None = None) -> dict[st
     except (OSError, json.JSONDecodeError, ValueError) as exc:
         return {"decision": "DENY", "reason": f"Cannot load task queue: {exc}"}
 
+    if not isinstance(current_queue, dict):
+        return {"decision": "DENY", "reason": "Task queue must be a JSON object."}
     tasks = current_queue.get("tasks")
     if not isinstance(tasks, list):
         return {"decision": "DENY", "reason": "Task queue entries are malformed."}
-    matches = [task for task in tasks if isinstance(task, dict) and task.get("task_id") == task_id]
+    matches = [
+        task for task in tasks
+        if isinstance(task, dict) and task.get("task_id") == task_id
+    ]
     if len(matches) != 1:
         return {"decision": "DENY", "reason": "Task ID must match exactly one queue entry."}
 
