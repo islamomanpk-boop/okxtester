@@ -164,6 +164,74 @@ def preflight_task(task_id: str) -> dict[str, Any]:
     return _preflight_task_with_queue(task_id, trusted_queue)
 
 
+
+def preflight_all_tasks() -> dict[str, Any]:
+    """Return a bounded, non-executing preflight summary for the trusted queue.
+
+    This is an operator visibility aid only. It never authorizes the queue as a
+    whole, changes task status, or invokes a task executor.
+    """
+    try:
+        trusted_queue = load_queue()
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        return {
+            "mode": "queue_preflight_only",
+            "decision": "DENY",
+            "authorized": False,
+            "execution_performed": False,
+            "task_count": 0,
+            "allow_count": 0,
+            "deny_count": 0,
+            "reason": f"Cannot load task queue ({type(exc).__name__}); denied.",
+            "tasks": [],
+        }
+
+    tasks = trusted_queue.get("tasks")
+    if not isinstance(tasks, list) or not all(isinstance(task, dict) for task in tasks):
+        return {
+            "mode": "queue_preflight_only",
+            "decision": "DENY",
+            "authorized": False,
+            "execution_performed": False,
+            "task_count": 0,
+            "allow_count": 0,
+            "deny_count": 0,
+            "reason": "Every task queue entry must be a JSON object; denied.",
+            "tasks": [],
+        }
+
+    task_ids = [task.get("task_id") for task in tasks]
+    if any(not isinstance(task_id, str) or not task_id.strip() for task_id in task_ids):
+        return {
+            "mode": "queue_preflight_only",
+            "decision": "DENY",
+            "authorized": False,
+            "execution_performed": False,
+            "task_count": len(tasks),
+            "allow_count": 0,
+            "deny_count": len(tasks),
+            "reason": "Every queued task must have a non-empty string task ID; denied.",
+            "tasks": [],
+        }
+
+    results = [
+        _preflight_task_with_queue(task_id, trusted_queue)
+        for task_id in task_ids
+    ]
+    allow_count = sum(result.get("authorized") is True for result in results)
+    return {
+        "mode": "queue_preflight_only",
+        "decision": "SUMMARY_ONLY",
+        "authorized": False,
+        "execution_performed": False,
+        "task_count": len(results),
+        "allow_count": allow_count,
+        "deny_count": len(results) - allow_count,
+        "reason": "Per-task preflight results only; this summary is not queue-wide authorization.",
+        "tasks": results,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Preflight a queued research task. This tool never executes tasks."
