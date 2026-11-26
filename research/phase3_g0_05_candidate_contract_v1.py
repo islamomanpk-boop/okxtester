@@ -215,11 +215,11 @@ def validate_candidate_identity_links(records: list[dict]) -> dict:
         supplied_id = str(row.get("candidate_id", "")).strip()
         if not source_identity or not family or not rule_version or not supplied_id:
             raise ValueError("candidate identity record is missing a required field")
+        if supplied_id in candidate_ids:
+            raise ValueError("duplicate candidate_id")
         expected_id = candidate_id(source_identity, family, rule_version)
         if supplied_id != expected_id:
             raise ValueError("candidate_id does not match its deterministic source identity")
-        if supplied_id in candidate_ids:
-            raise ValueError("duplicate candidate_id")
         source_key = (family, source_identity)
         if source_key in family_source_ids:
             raise ValueError("duplicate family/source_event_id")
