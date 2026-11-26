@@ -1,4 +1,7 @@
 import unittest
+import hashlib
+import tempfile
+from pathlib import Path
 
 from research.phase3_g0_05_candidate_contract_v1 import (
     MINUTE_MS, FIFTEEN_MIN_MS, FAILURE_HORIZON_MS,
