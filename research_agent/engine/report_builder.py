@@ -121,6 +121,21 @@ def task_definition_digest(task: dict[str, Any]) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+def verify_report_task_binding(report: dict[str, Any], trusted_task: dict[str, Any]) -> None:
+    """Require report identity and digest to match the exact trusted queue task."""
+    validate_report(report)
+    if not isinstance(trusted_task, dict):
+        raise TypeError("Trusted task definition must be a JSON object.")
+    task_id = trusted_task.get("task_id")
+    phase = trusted_task.get("phase")
+    if task_id != report["task_id"]:
+        raise ValueError("Report task_id does not match the trusted task definition.")
+    if phase != report["phase"]:
+        raise ValueError("Report phase does not match the trusted task definition.")
+    if task_definition_digest(trusted_task) != report["task_definition_sha256"]:
+        raise ValueError("Report task-definition hash does not match the trusted task definition.")
+
+
 def validate_report(report: dict[str, Any]) -> None:
     """Reject incomplete or malformed reports instead of inventing metadata."""
     required = {
