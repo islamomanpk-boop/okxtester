@@ -766,36 +766,31 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
     # Reuse accepted Module A 24H interval-graph clusters, then recount at physical-event grain.
     module_a_base = root / "reports/phase3_rejection_lifecycle_v1_1"
     module_a_meta = json.loads((module_a_base / "run_metadata_v1.json").read_text(encoding="utf-8"))
-    module_a_episode_path = module_a_base / "rejection_lifecycle_episodes_v1.csv"
+    module_a_event_path = module_a_base / "rejection_lifecycle_events_v1.csv"
     if module_a_meta.get("status") != "ACCEPTED_DESCRIPTIVE_MODULE_A":
         fail("Module A rejection lifecycle is not in its accepted descriptive state")
-    if git_blob_sha1(module_a_episode_path.read_bytes()) != "6486e89d5d40d2f1471f1fe1819cc44cbd969682":
-        fail("Module A episode cluster source blob mismatch")
-    if sha256_bytes(module_a_episode_path.read_bytes()) != "27c39aed94bbd9354603bce24ef6095d3f02eb5da20c48b514d453571db6d9af":
-        fail("Module A episode cluster source SHA-256 mismatch")
-    if sha256_bytes(module_a_episode_path.read_bytes()) != module_a_meta["output_sha256"]["rejection_lifecycle_episodes_v1.csv"]:
-        fail("Module A episode cluster source differs from its run metadata")
-    _, module_a_episodes = read_csv(module_a_episode_path)
-    if len(module_a_episodes) != 3028:
-        fail(f"Module A episode row count mismatch: {len(module_a_episodes)}")
+    if git_blob_sha1(module_a_event_path.read_bytes()) != "34df10455b47294cc5d017e3e17fa4c59d3da7c8":
+        fail("Module A event cluster source blob mismatch")
+    if sha256_bytes(module_a_event_path.read_bytes()) != "56d48f52a6b2eeaa62f0e8696c62802a2a3a0839d6e6bd4038f5dfdc8de60f65":
+        fail("Module A event cluster source SHA-256 mismatch")
+    if sha256_bytes(module_a_event_path.read_bytes()) != module_a_meta["output_sha256"]["rejection_lifecycle_events_v1.csv"]:
+        fail("Module A event cluster source differs from its run metadata")
+    _, module_a_events = read_csv(module_a_event_path)
+    if len(module_a_events) != 1992:
+        fail(f"Module A event row count mismatch: {len(module_a_events)}")
     module_a_cluster_by_event = {}
-    module_a_episode_ids = set()
-    for episode in module_a_episodes:
-        episode_id = (episode.get("episode_id") or "").strip()
-        event_id = (episode.get("event_id") or "").strip()
-        if not episode_id or episode_id in module_a_episode_ids or not event_id:
-            fail("Module A episode cluster source has blank/duplicate identity")
-        module_a_episode_ids.add(episode_id)
+    for event in module_a_events:
+        event_id = (event.get("event_id") or "").strip()
+        if not event_id or event_id in module_a_cluster_by_event:
+            fail("Module A event cluster source has blank/duplicate identity")
         cluster = (
-            episode["overlap_cluster_id"],
-            int(episode["overlap_cluster_size"]),
-            ms(episode["overlap_cluster_start_ts_ms"], "Module A cluster start"),
-            ms(episode["overlap_cluster_end_exclusive_ts_ms"], "Module A cluster end"),
+            event["overlap_cluster_id"],
+            int(event["overlap_cluster_size"]),
+            ms(event["overlap_cluster_start_ts_ms"], "Module A cluster start"),
+            ms(event["overlap_cluster_end_exclusive_ts_ms"], "Module A cluster end"),
         )
         if not cluster[0] or cluster[1] <= 0 or cluster[3] <= cluster[2]:
             fail(f"Module A invalid overlap cluster metadata: {event_id}")
-        if event_id in module_a_cluster_by_event and module_a_cluster_by_event[event_id] != cluster:
-            fail(f"Module A episodes disagree on event cluster: {event_id}")
         module_a_cluster_by_event[event_id] = cluster
     physical_event_ids = {event_id for item in physical.values() for event_id in item["event_ids"]}
     if set(module_a_cluster_by_event) != physical_event_ids or len(module_a_cluster_by_event) != 1992:
