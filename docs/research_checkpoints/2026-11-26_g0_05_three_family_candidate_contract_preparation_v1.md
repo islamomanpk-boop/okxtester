@@ -3,7 +3,7 @@
 **Date:** 2026-11-26  
 **Project:** OKX Price Action V1 — Phase 3 Sideways / Range  
 **Sequence:** Gate 0, task G0-05 (after G0-04)  
-**Status:** PREPARATION ONLY — BLOCKED ON FORMAL G0-04 ACCEPTANCE  
+**Status:** G0-04 ACCEPTED BY DELEGATED PROJECT-OWNER DISPOSITION; G0-05 CONTRACT FINALIZATION AUTHORIZED — CANDIDATE GENERATION NOT YET AUTHORIZED  
 **Authority:** Controlling Phase 3 roadmap and the 2026-11-25 candidate-availability/source-timing audit  
 **Execution status:** No candidate generator has been run or authorized by this document. No candidates, orders, fills, outcomes, PnL, or strategy results are produced.
 
@@ -11,7 +11,7 @@
 
 This is **G0-05**, not a replacement for or parallel execution of G0-04. The ordered work sequence remains:
 
-1. **G0-04 — causal breakout reconstruction and past-only threshold comparison.** Corrected canonical GitHub Actions execution passed on 2026-11-26 (run 45752717022, attempt 1; checked-out revision `8326c1edea66c11391ab614b9ce4afa9be5bc1fd`). The 20/20 historical baseline, 932 historical identity reconciliation, feature/context alignment, output hashes, and corrected classification-matrix uniqueness validation have been checked. The execution evidence is recorded in `2026-11-26_g0_04_implementation_checkpoint_v1.md`. The independent reviewer packet is `2026-11-26_g0_04_independent_review_packet_v1.md`; formal independent review/acceptance remains pending, so G0-05 remains blocked.
+1. **G0-04 — causal breakout reconstruction and past-only threshold comparison.** Corrected canonical GitHub Actions execution passed on 2026-11-26 (run 45752717022, attempt 1; checked-out revision `8326c1edea66c11391ab614b9ce4afa9be5bc1fd`). The 20/20 historical baseline, 932 historical identity reconciliation, feature/context alignment, output hashes, and corrected classification-matrix uniqueness validation have been checked. The execution evidence is recorded in `2026-11-26_g0_04_implementation_checkpoint_v1.md`. The independent reviewer packet is `2026-11-26_g0_04_independent_review_packet_v1.md`; formal G0-04 acceptance was recorded by delegated project-owner disposition on 2026-11-26; see `2026-11-26_g0_04_acceptance_decision_v1.md`. G0-05 contract finalization is now authorized, but candidate generation remains blocked until the deferred policy and family-specific rules are explicitly frozen.
 2. **G0-05 — freeze and implement the causal three-family candidate contract.** This document is preparation only. It does not pre-empt G0-04 results.
 3. **Remaining Gate 0 blockers and formal Gate 0 decision.** G0-05 acceptance alone does not close Gate 0. Funding/mark-price and other source/engine blockers recorded in the controlling register remain subject to their own acceptance.
 4. Only after a documented Gate 0 pass may the project proceed to Gate 2, then Gate 3, Gate 4, Gate 5, Gate 6, and Gate 7 in that order.
@@ -263,7 +263,7 @@ If any critical item fails, status remains OPEN / BLOCKED or CONDITIONAL HOLD. D
 4. Record G0-04 acceptance or failure with exact evidence.
 5. Only after acceptance, finalize the deferred G0-05 decisions and implement the generator/tests/workflow as the next numbered task.
 
-**Current disposition:** G0-05 specification preparation recorded; implementation and candidate generation remain blocked on G0-04 acceptance. Gate 0 remains CONDITIONAL HOLD. No strategy backtest or PnL work is authorized.
+**Current disposition:** G0-04 is accepted by delegated project-owner disposition with review limitations preserved. G0-05 contract finalization and synthetic-test design are authorized. Canonical candidate generation remains blocked until the selected threshold policy/population, snapshot semantics, rejection/de-clustering/invalidation/expiry rules, and all family-specific confirmation rules are frozen in a dated decision record. Gate 0 remains CONDITIONAL HOLD. No execution simulation, strategy backtest, or PnL work is authorized.
 
 
 ## G0-04 execution status update — 2026-11-26
