@@ -1072,6 +1072,11 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
         observed_window=next(iter(observed_windows))
         if observed_window<=0 or observed_window>720:
             fail(f"Module B invalid observed 12H bars: {key}")
+        confirmation_bar=None
+        if confirmation is not None:
+            if confirmation<=signal or confirmation>signal+43200000:
+                fail(f"Module B failure confirmation outside 12h horizon: {key}")
+            confirmation_bar=aggregate_completed_15m_bar(minute_bars[asset],confirmation)
         if not source_ok:
             status,reason="REJECTED","NO_VALID_SOURCE_BREAKOUT"
         elif confirmation is None:
@@ -1079,19 +1084,12 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
                 status,reason="EXPIRED","EXPIRED_NO_RETURN_INSIDE_WITHIN_12H"
             else:
                 status,reason="CENSORED","SOURCE_END_BEFORE_RESOLUTION"
+        elif confirmation_bar is None:
+            status,reason="CENSORED","INCOMPLETE_15M_CONFIRMATION"
         else:
-            if confirmation<=signal or confirmation>signal+43200000:
-                fail(f"Module B failure confirmation outside 12h horizon: {key}")
-            confirmation_bar=aggregate_completed_15m_bar(minute_bars[asset],confirmation)
-            if confirmation_bar is None:
-                if source_ok:
-                    status,reason="CENSORED","INCOMPLETE_15M_CONFIRMATION"
-                else:
-                    fail(f"Module B confirmation has incomplete component bars for rejected source {key}")
-            else:
-                status,reason=minute_check(asset,confirmation)
-                if not reason:
-                    reason="NONE"
+            status,reason=minute_check(asset,confirmation)
+            if not reason:
+                reason="NONE"
         source_event_key=f"{asset}|{direction}|{signal}|{snapshot}"
         cluster=breakout_cluster_map[source_event_key]
         if confirmation is not None and confirmation_bar is not None:
