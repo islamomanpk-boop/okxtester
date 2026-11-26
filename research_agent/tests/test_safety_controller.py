@@ -8,6 +8,7 @@ import unittest
 
 from research_agent.engine.safety_controller import (
     _authorize_task_with_policy,
+    _unique_json_object,
     authorize_task,
 )
 
@@ -188,6 +189,11 @@ class SafetyControllerTests(unittest.TestCase):
         )
         self.assertFalse(result["authorized"])
         self.assertIn("unique, non-empty phase names", result["reason"])
+
+    def test_rejects_duplicate_keys_in_policy_json_objects(self):
+        with self.assertRaisesRegex(Exception, "Duplicate JSON object key"):
+            json.loads('{"execution":{"enabled":false,"enabled":true}}',
+                       object_pairs_hook=_unique_json_object)
 
 
     def test_public_runtime_authorizer_rejects_policy_injection(self):
