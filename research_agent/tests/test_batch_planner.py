@@ -1,7 +1,8 @@
 """Batch planner tests; authored but not executed under the active handoff."""
 import unittest
+from unittest.mock import patch
 
-from research_agent.engine.batch_planner import build_batch_plan, EXPECTED_PHASE_ORDER
+from research_agent.engine.batch_planner import build_batch_plan, build_runtime_batch_plan, EXPECTED_PHASE_ORDER
 
 
 def make_queue():
@@ -47,6 +48,28 @@ def make_summary(queue, allowed_ids=()):
 
 
 class BatchPlannerTests(unittest.TestCase):
+    @patch("research_agent.engine.batch_planner.preflight_all_tasks")
+    @patch("research_agent.engine.batch_planner.load_queue")
+    def test_runtime_planner_uses_fixed_queue_and_preflight_sources(self, mock_load, mock_preflight):
+        queue = make_queue()
+        summary = make_summary(queue)
+        mock_load.return_value = queue
+        mock_preflight.return_value = summary
+
+        result = build_runtime_batch_plan()
+
+        mock_load.assert_called_once_with()
+        mock_preflight.assert_called_once_with()
+        self.assertFalse(result["authorized"])
+        self.assertFalse(result["execution_performed"])
+        self.assertEqual(result["planned_task_count"], 0)
+
+    def test_runtime_planner_rejects_invalid_batch_size_before_loading(self):
+        with patch("research_agent.engine.batch_planner.load_queue") as mock_load:
+            with self.assertRaises(ValueError):
+                build_runtime_batch_plan(max_tasks=0)
+            mock_load.assert_not_called()
+
     def test_denied_earliest_phase_stops_without_skipping_to_phase_one(self):
         queue = make_queue()
         result = build_batch_plan(queue=queue, preflight_summary=make_summary(queue))
