@@ -78,7 +78,7 @@ Do not recompute thresholds in the candidate builder. The source audit already p
 
 The current G0-05 source manifest is `source_manifest.json` from source-audit run [45804274324](https://github.com/islamomanpk-boop/okxtester/actions/runs/45804274324), artifact ID `15107399743`. Its SHA-256 is:
 
-`abd869c9c11a31f42ae916bc56492977dce79dd18f5e2c9c9b1f1b9f23584629a440`
+`abd869c9c11a31f42ae916bc56492977dce79dd18f5e2c9c9b1f23584629a440`
 
 Use this value as the current `source_sha256_manifest_id` only for that exact manifest version. A later source manifest must receive a new ID.
 
