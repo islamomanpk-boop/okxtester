@@ -196,7 +196,7 @@ def render_markdown(report: dict[str, Any]) -> str:
     """Render a concise audit report from validated report data."""
     validate_report(report)
     manifest_lines = [
-        f"- `{_markdown_safe(entry['path'])}` — SHA-256 `{_markdown_safe(entry['sha256'])}`"
+        f"- Path: {_markdown_safe(entry['path'])} — SHA-256: {_markdown_safe(entry['sha256'])}"
         for entry in report["input_manifest"]
     ]
     if not manifest_lines:
@@ -205,15 +205,15 @@ def render_markdown(report: dict[str, Any]) -> str:
     sections = [
         "# OKX Research Agent Report",
         "",
-        f"- **Task:** `{_markdown_safe(report['task_id'])}`",
-        f"- **Phase:** `{_markdown_safe(report['phase'])}`",
+        f"- **Task:** {_markdown_safe(report['task_id'])}",
+        f"- **Phase:** {_markdown_safe(report['phase'])}",
         f"- **Status:** {_markdown_safe(report['status'])}",
-        f"- **Agent:** `{_markdown_safe(report['agent_name'])}`",
-        f"- **Repository:** `{_markdown_safe(report['repository'])}`",
-        f"- **Branch:** `{_markdown_safe(report['branch'])}`",
-        f"- **Commit SHA:** `{_markdown_safe(report['commit_sha'])}`",
-        f"- **Run ID:** `{_markdown_safe(report['run_id'])}`",
-        f"- **Timestamp (UTC):** `{_markdown_safe(report['timestamp_utc'])}`",
+        f"- **Agent:** {_markdown_safe(report['agent_name'])}",
+        f"- **Repository:** {_markdown_safe(report['repository'])}",
+        f"- **Branch:** {_markdown_safe(report['branch'])}",
+        f"- **Commit SHA:** {_markdown_safe(report['commit_sha'])}",
+        f"- **Run ID:** {_markdown_safe(report['run_id'])}",
+        f"- **Timestamp (UTC):** {_markdown_safe(report['timestamp_utc'])}",
         "",
         "## Findings",
         _as_bullets(report["findings"]),
