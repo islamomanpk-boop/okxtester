@@ -536,3 +536,13 @@ Evidence:
 - Failed-breakout: 663 inherited source groups across 932 rows.
 
 These counts describe metadata groups only; they are not independent-event counts and are not used to remove or merge rows. The separate overlap-cluster IDs remain the dependence-window grouping.
+
+
+## 26. Independent verification after repeated-signal groups — 2026-11-26
+
+The independent minute verifier was rerun against the source-audit artifact containing repeated-signal group IDs:
+- Workflow [45804440391](https://github.com/islamomanpk-boop/okxtester/actions/runs/45804440391) — SUCCESS.
+- Artifact ID `15107699460`; ZIP SHA-256 `17d863a3148686894c26700a113474d5643ef966c9a3b8314d470b69ba26de5e`, independently recomputed after download.
+- Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; 2,857/2,857 eligible timestamps present and all five raw source hashes/grids pass.
+
+This confirms the new group metadata did not alter eligible timestamps or disposition counts.
