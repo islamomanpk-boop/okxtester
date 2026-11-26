@@ -97,3 +97,18 @@ The grouped-summary source audit at commit `a1ef8721f3f770fb46079c09ea039da75a7e
 - Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; 2,857/2,857 eligible timestamps present, all five raw source hashes and timestamp grids pass, all 2,090 non-eligible first-minute fields blank.
 
 This is the current controlling independent minute-verification run because it consumes the latest source-audit artifact containing the reason-code validator and grouped disposition summaries.
+
+
+## 9. Independent minute verification against breakout-membership artifact
+
+The latest source-audit artifact at commit `3f906768028ff686a526e43182dd8a3d2a672c13`, which now includes exact breakout historical-cohort reconciliation, was independently checked:
+
+- Workflow [45803028375](https://github.com/islamomanpk-boop/okxtester/actions/runs/45803028375) — SUCCESS.
+- Job: `139850895093`.
+- Workflow commit: `9641926a991d5c735fffad4ab4e2ea65be111025`.
+- Artifact ID: `15107712661`.
+- ZIP SHA-256: `f4be33a3abc238c2d972e89f8ba0a8a9eca846b3036b531e4d66898f0fbdb9ab`, independently recomputed after download.
+- JSON SHA-256: `b2ab8bf00572c54a60cb3548c3131dcd986ed020639a6b762ce9328187b1e679`.
+- Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; all 2,857 eligible timestamps and all five raw source hash/grid checks passed.
+
+This is the latest exact-minute verification. It consumes the source audit with the reason-code contract, grouped summaries, and breakout historical cohort membership checks.
