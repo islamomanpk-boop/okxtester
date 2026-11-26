@@ -19,6 +19,7 @@ if PROJECT_ROOT not in sys.path:
 
 from research.phase3_g0_05_candidate_contract_v1 import (
     exact_threshold_for_snapshot, validate_source_key_join, validate_disposition_reason,
+    rejection_physical_identity,
 )
 
 EXPECTED_BLOBS = {
