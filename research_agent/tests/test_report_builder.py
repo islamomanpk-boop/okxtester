@@ -78,6 +78,12 @@ class ReportBuilderTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unsupported fields"):
             report_builder.validate_report(report)
 
+    def test_rejects_boolean_schema_version(self):
+        report = valid_report()
+        report["schema_version"] = True
+        with self.assertRaisesRegex(ValueError, "schema version"):
+            report_builder.validate_report(report)
+
     def test_rejects_windows_style_manifest_paths(self):
         report = valid_report()
         report["input_manifest"][0]["path"] = r"docs\\source.md"
