@@ -476,6 +476,18 @@ def validate_module_b_horizons(events: list[dict[str, str]],
     }
 
 
+def grouped_disposition_counts(rows: list[dict[str, str]], fields: tuple[str, ...]) -> list[dict]:
+    """Return deterministic grouped row counts without changing source identities."""
+    grouped = Counter(
+        tuple((row.get(field) or "NOT_APPLICABLE").strip() for field in fields)
+        for row in rows
+    )
+    return [
+        {**dict(zip(fields, key)), "rows": count}
+        for key, count in sorted(grouped.items())
+    ]
+
+
 def validate_disposition_ledger(rows: list[dict[str, str]],
                                  identity_field: str, expected_rows: int) -> dict:
     """Require one unique physical source identity and one valid disposition per row."""
@@ -760,6 +772,19 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
         if not rows: fail(f"empty row disposition output {name}")
         identity_field, expected_rows = identity_fields[name]
         counts[name] = validate_disposition_ledger(rows, identity_field, expected_rows)
+        for field, keys in (
+            ("by_asset_disposition", ("asset", "disposition")),
+            ("by_family_side_disposition_reason", ("family", "family_direction", "disposition", "reason_code")),
+            ("by_source_direction_disposition", ("direction", "disposition")),
+        ):
+            counts[name][field] = grouped_disposition_counts(rows, keys)
+        cohort_rows = [
+            {**row, "causal_cohort_summary": row.get("causal_cohort") or row.get("causal_source_cohort") or "NOT_APPLICABLE"}
+            for row in rows
+        ]
+        counts[name]["by_causal_cohort_disposition"] = grouped_disposition_counts(
+            cohort_rows, ("causal_cohort_summary", "disposition"))
+        counts[name]["by_reason_code"] = grouped_disposition_counts(rows, ("reason_code",))
         with (out/name).open("w",encoding="utf-8",newline="") as h:
             writer=csv.DictWriter(h,fieldnames=list(rows[0]))
             writer.writeheader(); writer.writerows(rows)
