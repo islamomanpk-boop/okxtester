@@ -363,6 +363,8 @@ class ReportBuilderTests(unittest.TestCase):
             report_builder.verify_artifact_files(
                 bundle["files"], bundle["manifest"],
                 actual_artifact_name=bundle["artifact_name"],
+                expected_run_id="12345",
+                expected_run_attempt="2",
             )
 
     def test_artifact_verifier_rejects_downloaded_name_mismatch(self):
@@ -389,6 +391,8 @@ class ReportBuilderTests(unittest.TestCase):
                 report_builder.verify_artifact_files(
                     bundle["files"], bundle["manifest"],
                     actual_artifact_name="wrong-artifact-name",
+                    expected_run_id="12345",
+                    expected_run_attempt="1",
                 )
 
     def test_artifact_verifier_rejects_tampered_report_bytes(self):
@@ -428,7 +432,60 @@ class ReportBuilderTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(ValueError, "exactly the three"):
             report_builder.verify_artifact_files(
-                files, {}, actual_artifact_name="okx-research-agent-1-1"
+                files, {}, actual_artifact_name="okx-research-agent-1-1",
+                expected_run_id="1", expected_run_attempt="1"
+            )
+
+    def test_artifact_verifier_rejects_untrusted_run_identifier_claim(self):
+        with tempfile.TemporaryDirectory(dir=report_builder.REPOSITORY_ROOT) as temporary:
+            path = Path(temporary) / "evidence.txt"
+            path.write_text("artifact evidence", encoding="utf-8")
+            relative = path.relative_to(report_builder.REPOSITORY_ROOT).as_posix()
+            task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
+            report = valid_report()
+            report["run_id"] = "12345"
+            report["task_definition_sha256"] = report_builder.task_definition_digest(task)
+            report["input_manifest"] = report_builder.build_input_manifest([relative])
+            bundle = report_builder.build_artifact_bundle(
+                report, task,
+                expected_repository=report["repository"],
+                expected_branch=report["branch"],
+                expected_commit_sha=report["commit_sha"],
+                actual_head_sha=report["commit_sha"],
+                checkout_clean=True,
+                run_id="12345",
+                run_attempt="2",
+            )
+            with self.assertRaisesRegex(ValueError, "trusted workflow context"):
+                report_builder.verify_artifact_files(
+                    bundle["files"], bundle["manifest"],
+                    actual_artifact_name=bundle["artifact_name"],
+                    expected_run_id="99999",
+                    expected_run_attempt="2",
+                )
+
+    def test_artifact_verifier_rejects_duplicate_manifest_json_keys(self):
+        files = {
+            "report.json": "{}",
+            "report.md": "report",
+            "artifact_manifest.json": '{"schema_version":1,"schema_version":1}',
+        }
+        with self.assertRaisesRegex(ValueError, "strict JSON"):
+            report_builder.verify_artifact_files(
+                files, {}, actual_artifact_name="okx-research-agent-1-1",
+                expected_run_id="1", expected_run_attempt="1",
+            )
+
+    def test_artifact_verifier_rejects_nonstandard_json_constants(self):
+        files = {
+            "report.json": '{"value":NaN}',
+            "report.md": "report",
+            "artifact_manifest.json": "{}",
+        }
+        with self.assertRaisesRegex(ValueError, "strict JSON"):
+            report_builder.verify_artifact_files(
+                files, {}, actual_artifact_name="okx-research-agent-1-1",
+                expected_run_id="1", expected_run_attempt="1",
             )
 
     def test_artifact_bundle_rejects_run_id_mismatch(self):
