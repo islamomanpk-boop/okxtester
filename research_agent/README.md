@@ -14,6 +14,7 @@
 - The safety controller, task queue, and report builder have not been runtime-tested; no scripts, tests, or workflows have been run as part of this setup.
 - The safety controller binds approvals to the SHA-256 hash of the exact queued task definition; changing its phase, operation, scope, or restrictions invalidates that approval.
 - Trusted policy JSON loading rejects duplicate object keys rather than accepting the parser's last-value-wins behavior.
+- The safety controller validates every queue entry and rejects duplicate queue IDs, malformed allowlist hashes, and duplicate allowlist approvals.
 - The public runtime authorization function loads policy only from fixed repository configuration paths; policy injection is isolated to a private test seam.
 - Markdown report rendering flattens line breaks and escapes Markdown control characters in untrusted findings and metadata.
 - Report validation enforces a strict top-level schema, string-only narrative lists, canonical UTC timestamps ending in `Z`, normalized safe manifest paths, and finite JSON values.
@@ -45,7 +46,7 @@ A missing, ambiguous, malformed, or conflicting permission means **deny**. The t
 - `engine/safety_controller.py` — fail-closed evaluator that requires an exact queue match, a trusted SHA-256 approval, an active phase, and read-only permission; it never executes tasks.
 - `engine/task_runner.py` — preflight-only queue dispatcher; it selects an exact queue entry and asks the safety controller for a decision, but has no subprocess, script, test, workflow, or research executor.
 - `engine/report_builder.py` — deterministic JSON/Markdown report formatting, repository-contained input SHA-256 manifests with symlink rejection, escaped untrusted Markdown values, strict report validation, and report digest; not runtime-tested.
-- Regression coverage authored but not executed: 10 safety-controller tests, 13 report-builder tests, and 5 task-runner tests (28 total).
+- Regression coverage authored but not executed: 12 safety-controller tests, 13 report-builder tests, and 5 task-runner tests (30 total).
 - `.github/workflows/` — no agent-specific workflow is installed yet. The first future workflow must be manual-dispatch only and preflight/report-only; event-driven and scheduled triggers require separate validation and approval.
 
 ## Validation and activation gates
