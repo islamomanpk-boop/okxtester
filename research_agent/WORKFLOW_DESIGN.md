@@ -73,14 +73,18 @@ The 26 write-permission findings are a static regex census of explicit permissio
 
 ### Artifact handling
 
-- Upload only the deterministic report output and its provenance manifest.
-- Use a unique artifact name containing the workflow run ID.
+- Use the report builder's in-memory artifact bundle, which returns exactly `report.json`, `report.md`, and `artifact_manifest.json` only after task, checkout, commit, and input-manifest provenance checks pass.
+- The artifact manifest contains the fixed artifact name (run ID plus run attempt), task/phase/commit identifiers, and SHA-256 hashes for the JSON and Markdown report bytes. It deliberately does not self-hash.
+- Upload the three expected files together as one artifact. Do not upload a partial directory; fail if any file is missing, unexpected files are present, or uploaded bytes do not match the artifact manifest.
+- Use the exact artifact name returned by the bundle builder; it includes the trusted workflow run ID and run attempt. Never use task/report-supplied values to construct the artifact name.
 - Set a short, explicit retention period (initial proposal: 7 days).
 - Fail if the expected report is missing; do not silently upload an empty or partial directory.
 - Never execute, source, or trust files recovered from an artifact.
 - Record repository, branch, commit SHA, task ID, canonical task-definition SHA-256 (computed from the exact trusted queue object), UTC generation time, and input-manifest hashes in the report. The report schema checks hash format; provenance still requires the workflow to compute it from the trusted queue entry and bind it to the checked-out commit/run.
 - The workflow must derive expected repository/ref/commit from trusted GitHub workflow context (never dispatch inputs or report fields), verify actual checked-out `HEAD` equals the expected commit, and independently confirm a clean working tree before calling the report provenance verifier. It must check out the exact event commit SHA, not a moving branch name.
 - The provenance verifier checks report repository, branch, and commit against those trusted runtime values; checks `HEAD == expected commit`; requires the caller's clean-checkout assertion to be exactly `True`; binds the report to the exact trusted task; and rechecks every manifest file against current checkout bytes. The function does not itself query Git or authenticate its caller, so the workflow is responsible for obtaining these runtime facts safely.
+- The bundle builder only creates in-memory strings; it does not write or upload files. Upload completeness and artifact-service behavior remain the workflow's responsibility.
+- Artifact SHA-256 values detect byte changes but do not authenticate the uploader or GitHub artifact service.
 - Artifact output is evidence for review, not authorization to advance a gate.
 
 ## Pre-installation review checklist
@@ -94,6 +98,7 @@ The 26 write-permission findings are a static regex census of explicit permissio
 - [ ] Actions are pinned to full commit SHAs or avoided.
 - [ ] Timeout, concurrency, path validation, and artifact retention are bounded.
 - [ ] Artifact content is deterministic and provenance-complete.
+- [ ] The workflow uploads exactly `report.json`, `report.md`, and `artifact_manifest.json` as one artifact, validates each uploaded file hash, and fails closed on missing or unexpected files.
 - [ ] Workflow checks out the exact event commit SHA; derives expected repository/ref/SHA only from trusted workflow context; independently verifies `HEAD` equality and a clean working tree; then invokes `verify_report_provenance()` with those facts.
 - [ ] Runtime safety tests are permitted and pass.
 - [ ] A human reviewer authorizes the exact workflow and task scope.
