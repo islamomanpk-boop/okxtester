@@ -531,6 +531,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "asset":asset,"source_event_row_ids":";".join(sorted(item["event_ids"])),
             "historical_cohort_memberships":";".join(sorted({r["definition"].upper() for r in item["members"]})),
             "direction":direction,"family":"SUPPORT_REJECTION" if direction.lower()=="lower" else "RESISTANCE_REJECTION",
+            "family_direction":"LONG" if direction.lower()=="lower" else "SHORT",
             "confirmation_ts_ms":confirm,"first_eligible_1m_open_ts_ms":confirm,
             "disposition":status,"reason_code":reason})
     # Raw breakout crossings: retain one row per raw source crossing.
@@ -553,6 +554,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             status, minute_reason=minute_check(asset,signal); reason=reason or minute_reason
         breakout_rows.append({"asset":asset,"source_event_key":f"{asset}|{r['direction']}|{signal}|{snap}",
             "direction":r["direction"],"family":"BREAKOUT_CONTINUATION",
+            "family_direction":"LONG" if r["direction"]=="UPPER" else "SHORT",
             "signal_time_ms":signal,"first_eligible_1m_open_ts_ms":signal,
             "causal_cohort":cohort,"disposition":status,"reason_code":reason})
     # Module B: collapse strict/broad cohort rows to unique source events.
@@ -596,7 +598,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
         failed_rows.append({"asset":asset,"source_event_key":f"{asset}|{direction}|{signal}|{snapshot}",
             "source_event_row_ids":";".join(sorted(x["event_id"] for x in members)),
             "historical_cohort_memberships":";".join(sorted({x["definition"] for x in members})),"direction":direction,
-            "family":"FAILED_BREAKOUT_REVERSAL","signal_time_ms":signal,
+            "family":"FAILED_BREAKOUT_REVERSAL","family_direction":"SHORT" if direction=="UPPER" else "LONG","signal_time_ms":signal,
             "confirmation_ts_ms":confirmation or "","first_eligible_1m_open_ts_ms":confirmation or "",
             "causal_source_cohort":source_cohort,"disposition":status,"reason_code":reason})
     out.mkdir(parents=True,exist_ok=True)
