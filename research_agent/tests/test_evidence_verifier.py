@@ -57,6 +57,11 @@ class EvidenceVerifierTests(unittest.TestCase):
         result = self.verify(evidence=self.evidence + [dict(self.evidence[0])])
         self.assertIn("duplicate_evidence_path", result["results"][1]["reasons"])
 
+    def test_rejects_single_backslash_path(self):
+        unsafe = [dict(self.evidence[0], path="docs\\private.md")]
+        result = self.verify(evidence=unsafe)
+        self.assertIn("unsafe_repository_path", result["results"][0]["reasons"])
+
     def test_rejects_malformed_commit_manifest_hash(self):
         with self.assertRaises(ValueError):
             self.verify(manifest={"commit_sha": self.commit, "files": {self.path: "bad"}})
