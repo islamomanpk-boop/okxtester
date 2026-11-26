@@ -25,7 +25,26 @@ The G0-04 reconstruction code emits these required files:
 - `raw_crossing_summary.csv`
 - `run_metadata.json`
 
-The raw crossing ledger is `unique_raw_crossing_events_with_six_variants.csv`. It is the sole primary source population for breakout continuation; the retrospective 932 selected identities and Module B's 1,592 historical event cohort are reconciliation references only. The artifact ZIP hash is known, but the individual file SHA-256 values and artifact contents have not yet been re-extracted in this G0-05 work session. Do not proceed to canonical joins until the exact artifact members and their internal hashes are independently verified.
+The raw crossing ledger is `unique_raw_crossing_events_with_six_variants.csv`. It is the sole primary source population for breakout continuation; the retrospective 932 selected identities and Module B's 1,592 historical event cohort are reconciliation references only. The artifact ZIP was re-downloaded and independently hashed in this work session; its SHA-256 matches the recorded digest. All seven output-file SHA-256 values below were independently recomputed and match `run_metadata.json`:
+
+| Artifact member | SHA-256 |
+|---|---|
+| `causal_thresholds_by_context.csv` | `39bc0a66112bdce96282a46ef9caac82765131d0ff36ee9e722497bd5c908b0d` |
+| `historical_932_identity_reconciliation.csv` | `137d573e3f817465847b03179409ded4ceb5d884c7ba502e7d9fdf3a95d45ccf` |
+| `context_coverage_and_cross_pipeline_audit.json` | `8eaab44b6e5f5523310a01c2a7150741b5d86ed6cff27fbef5b1d279aec7dfa3` |
+| `historical_baseline_reproduction.csv` | `cf280aad8961d76eca88ffe3993d6c6ec1a6e024c94986039864d28ae1d77a54` |
+| `input_manifest.csv` | `86ef3c95732b9026792f9736ac950983a59a092d71345c62bc7059234873fbd7` |
+| `raw_crossing_summary.csv` | `8ad347fbbdf6d66eefd4379b25726e32a1871a95fc4fe20697eb769a921abb4a` |
+| `unique_raw_crossing_events_with_six_variants.csv` | `d8c5958f74b4fe4b75b876eb057642a2dae56167c7fc616764d170983901df20` |
+
+Direct artifact checks:
+- ZIP digest matches: PASS.
+- Raw crossing ledger: 2,861 rows and 2,861 unique full-grain keys.
+- Historical selected identities in raw ledger: 932.
+- Historical baseline: 20/20 passed.
+- Historical reconciliation: 120 rows, zero raw-source mismatches.
+- Threshold table: 65,310 rows; 21,770 per policy; P25 <= P40 in every row; prior-context count minimum 180.
+- Six policy/population variants reproduce the recorded event totals exactly.
 
 ## 2. Rejection family inputs
 
@@ -88,10 +107,8 @@ The descriptive lifecycle metadata records 1,592 events (932 broad, 660 strict),
 
 ## 6. Remaining provenance blockers
 
-1. Re-extract G0-04 artifact 15087542445 and verify all expected member paths, file sizes, per-file SHA-256 values and the metadata's code revision.
-2. Verify the exact six-variant raw-crossing ledger schema, unique key grain, row count, threshold joins and all 20/20 baseline evidence directly from the artifact.
-3. Calculate SHA-256 for rejection boundary, event-anatomy and five detector-feature CSVs; compare with a frozen manifest.
-4. Calculate SHA-256 for Module B event and horizon CSVs and compare with their run metadata output hashes.
-5. Validate one-to-one/one-to-many source joins and explicit disposition coverage before any candidate row is emitted.
+1. Calculate SHA-256 for rejection boundary, event-anatomy and five detector-feature CSVs; compare with a frozen manifest.
+2. Calculate SHA-256 for Module B event and horizon CSVs and compare with their run metadata output hashes.
+3. Validate one-to-one/one-to-many source joins and explicit disposition coverage before any candidate row is emitted.
 
 **No canonical candidate generation is authorized until these blockers are closed.**
