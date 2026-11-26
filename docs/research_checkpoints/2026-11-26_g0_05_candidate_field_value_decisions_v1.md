@@ -188,4 +188,4 @@ Correct family mapping:
 - Breakout / failed breakout: exact G0-04 raw context at `context_snapshot_ms`; verify `upper`, `lower` and `channel_width_pct` against the detector feature row one 4H bar earlier; use raw context `efficiency` and `overlap`; `regime_definition_version=HISTORICAL_BREAKOUT_CONTEXT_V1`.
 - Breakout/failed-breakout context validity ends at the next 4H context snapshot (`context_snapshot_ms + 14,400,000`), subject to the source's complete 4H grid.
 
-The source audit now performs this lagged channel cross-check and preserves `reference_feature_snapshot_ts_ms`. It no longer incorrectly compares historical-context efficiency/overlap to same-time detector values.
+The source audit now performs this lagged channel cross-check and preserves `reference_feature_snapshot_ts_ms` plus `reference_feature_match_status` (`MATCHED_ONE_4H_LAG` or `EXPECTED_LEADING_LEGACY_BOUNDARY`). At most one distinct leading context per asset is permitted. It no longer incorrectly compares historical-context efficiency/overlap to same-time detector values.
