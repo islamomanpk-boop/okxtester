@@ -48,7 +48,7 @@ def make_summary(queue, allowed_ids=()):
 
 
 class BatchPlannerTests(unittest.TestCase):
-    @patch("research_agent.engine.batch_planner.preflight_all_tasks")
+    @patch("research_agent.engine.batch_planner._preflight_all_tasks_with_queue")
     @patch("research_agent.engine.batch_planner.load_queue")
     def test_runtime_planner_uses_fixed_queue_and_preflight_sources(self, mock_load, mock_preflight):
         queue = make_queue()
@@ -59,7 +59,7 @@ class BatchPlannerTests(unittest.TestCase):
         result = build_runtime_batch_plan()
 
         mock_load.assert_called_once_with()
-        mock_preflight.assert_called_once_with()
+        mock_preflight.assert_called_once_with(queue)
         self.assertFalse(result["authorized"])
         self.assertFalse(result["execution_performed"])
         self.assertEqual(result["planned_task_count"], 0)
