@@ -553,7 +553,8 @@ def confirmation_ambiguity_flag(direction: str, boundary: float, bar: dict) -> s
 
 def canonical_snapshot_provenance(asset: str, snapshot_ms: int, next_snapshot_ms,
                                    feature: dict, threshold: dict | None,
-                                   causal_cohort: str) -> dict:
+                                   causal_cohort: str,
+                                   regime_definition_version: str = "SIDEWAYS_DETECTOR_ORIGINAL_V1") -> dict:
     """Materialize exact frozen snapshot, feature and causal-threshold provenance."""
     snapshot = int(snapshot_ms)
     if ms(feature.get("available_at_ts_ms", ""), "feature snapshot availability") != snapshot:
@@ -578,7 +579,7 @@ def canonical_snapshot_provenance(asset: str, snapshot_ms: int, next_snapshot_ms
             raise ValueError("threshold calibration is not prior-only or has insufficient history")
     return {
         "instrument_id": f"{asset}-USDT-SWAP",
-        "regime_definition_version": "SIDEWAYS_DETECTOR_ORIGINAL_V1",
+        "regime_definition_version": regime_definition_version,
         "candidate_rule_version": "G0_05_CANDIDATE_RULE_V1",
         "source_pipeline_version": "G0_04_CAUSAL_RECONSTRUCTION_V1+MODULE_A_V1_1+MODULE_B_V1_1",
         "snapshot_id": f"{asset}|{snapshot}",
@@ -1118,25 +1119,33 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             status, minute_reason=minute_check(asset,signal)
             if minute_reason:
                 reason=minute_reason
-        feature=feature_by_timestamp[asset].get(snap)
-        if feature is None:
-            fail(f"breakout has no exact detector feature snapshot: {source_key}")
-        next_snapshot=next_feature_snapshot[asset].get(snap, "")
-        threshold=exact_threshold_for_snapshot(
-            thresholds,asset,snap,"EXPANDING_PRIOR","UNIQUE_4H_FEATURE_ROWS")
+        reference_feature_snapshot=snap-14400000
+        reference_feature=feature_by_timestamp[asset].get(reference_feature_snapshot)
+        if reference_feature is None:
+            fail(f"breakout has no one-4H-lagged detector feature reference: {source_key}")
         for raw_field, feature_field in (
             ("channel_width_pct","channel_width_pct"),
-            ("efficiency","directional_efficiency"),
-            ("overlap","mean_overlap"),
             ("upper","upper"),("lower","lower"),
         ):
-            if not math.isclose(float(r[raw_field]),float(feature[feature_field]),rel_tol=0.0,abs_tol=1e-9):
-                fail(f"G0-04 raw crossing {raw_field} differs from exact feature snapshot: {source_key}")
+            if not math.isclose(float(r[raw_field]),float(reference_feature[feature_field]),rel_tol=0.0,abs_tol=1e-9):
+                fail(f"G0-04 raw crossing {raw_field} differs from one-4H-lagged detector feature: {source_key}")
+        next_snapshot=snap+14400000
+        threshold=exact_threshold_for_snapshot(
+            thresholds,asset,snap,"EXPANDING_PRIOR","UNIQUE_4H_FEATURE_ROWS")
+        feature_context={
+            "available_at_ts_ms":str(snap),
+            "upper":r["upper"],"lower":r["lower"],
+            "channel_width_pct":r["channel_width_pct"],
+            "directional_efficiency":r["efficiency"],
+            "mean_overlap":r["overlap"],
+        }
         snapshot_fields=canonical_snapshot_provenance(
-            asset,snap,next_snapshot,feature,threshold,cohort)
+            asset,snap,next_snapshot,feature_context,threshold,cohort,
+            regime_definition_version="HISTORICAL_BREAKOUT_CONTEXT_V1")
         source_event_key=f"{asset}|{r['direction']}|{signal}|{snap}"
         cluster=breakout_cluster_map[source_event_key]
         breakout_rows.append({**snapshot_fields,
+            "reference_feature_snapshot_ts_ms":reference_feature_snapshot,
             "source_event_id":source_event_key,
             "source_event_row_ids":source_event_key,
             "asset":asset,"source_event_key":source_event_key,
@@ -1204,8 +1213,27 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             thresholds,asset,snapshot,"EXPANDING_PRIOR","UNIQUE_4H_FEATURE_ROWS")
         if not source_ok:
             source_cohort="CAUSAL_THRESHOLD_WARMUP" if threshold is None else "CAUSAL_REGIME_NOT_ELIGIBLE"
+        reference_feature_snapshot=snapshot-14400000
+        reference_feature=feature_by_timestamp[asset].get(reference_feature_snapshot)
+        if reference_feature is None:
+            fail(f"failed-breakout source has no one-4H-lagged detector feature reference: {key}")
+        for raw_field, feature_field in (
+            ("channel_width_pct","channel_width_pct"),
+            ("upper","upper"),("lower","lower"),
+        ):
+            if not math.isclose(float(raw[raw_field]),float(reference_feature[feature_field]),rel_tol=0.0,abs_tol=1e-9):
+                fail(f"failed-breakout source {raw_field} differs from one-4H-lagged detector feature: {key}")
+        next_snapshot=snapshot+14400000
+        feature_context={
+            "available_at_ts_ms":str(snapshot),
+            "upper":raw["upper"],"lower":raw["lower"],
+            "channel_width_pct":raw["channel_width_pct"],
+            "directional_efficiency":raw["efficiency"],
+            "mean_overlap":raw["overlap"],
+        }
         snapshot_fields=canonical_snapshot_provenance(
-            asset,snapshot,next_snapshot,feature,threshold,source_cohort)
+            asset,snapshot,next_snapshot,feature_context,threshold,source_cohort,
+            regime_definition_version="HISTORICAL_BREAKOUT_CONTEXT_V1")
         confirmation=next(iter(confirmations)) if confirmations else None
         observed_windows={int(x["observed_bars_12h"]) for x in members}
         if len(observed_windows)!=1:
@@ -1256,6 +1284,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             confirmation_open=confirmation-900000
             event_observed_at=confirmation
         failed_rows.append({**snapshot_fields,
+            "reference_feature_snapshot_ts_ms":reference_feature_snapshot,
             "source_event_id":source_event_id,
             "source_breakout_source_event_id":source_event_key,
             "asset":asset,"source_event_key":source_event_key,
