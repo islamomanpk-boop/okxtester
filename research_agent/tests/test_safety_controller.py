@@ -6,7 +6,10 @@ import hashlib
 import json
 import unittest
 
-from research_agent.engine.safety_controller import authorize_task
+from research_agent.engine.safety_controller import (
+    _authorize_task_with_policy,
+    authorize_task,
+)
 
 
 def digest(value):
@@ -72,7 +75,7 @@ def policy_fixture(task, *, phase_order=None, phase_rules=None, lock=False):
 class SafetyControllerTests(unittest.TestCase):
     def evaluate(self, task, **kwargs):
         queued, agent, phases, queue, allowlist = policy_fixture(task, **kwargs)
-        return authorize_task(
+        return _authorize_task_with_policy(
             queued,
             allowlist=allowlist,
             agent_config=agent,
@@ -163,7 +166,7 @@ class SafetyControllerTests(unittest.TestCase):
             "operation": "repository_inspection",
             "status": "queued",
         }
-        result = authorize_task(
+        result = _authorize_task_with_policy(
             task,
             allowlist={"approved_tasks": []},
             agent_config={"execution": []},
@@ -185,6 +188,17 @@ class SafetyControllerTests(unittest.TestCase):
         )
         self.assertFalse(result["authorized"])
         self.assertIn("unique, non-empty phase names", result["reason"])
+
+
+    def test_public_runtime_authorizer_rejects_policy_injection(self):
+        task = {
+            "task_id": "P3-INJECT",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        with self.assertRaises(TypeError):
+            authorize_task(task, allowlist={"approved_tasks": []})
 
     def test_denies_g0_05_while_global_lock_is_active(self):
         result = self.evaluate(
