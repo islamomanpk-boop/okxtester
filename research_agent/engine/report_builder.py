@@ -408,11 +408,36 @@ def build_artifact_bundle(
     }
 
 
+def _strict_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    """Build JSON objects while rejecting duplicate keys."""
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"Duplicate JSON object key: {key}")
+        result[key] = value
+    return result
+
+
+def _reject_json_constant(value: str) -> None:
+    raise ValueError(f"Non-standard JSON numeric constant is not allowed: {value}")
+
+
+def _strict_json_loads(value: str) -> Any:
+    """Parse JSON without duplicate keys or non-standard NaN/Infinity values."""
+    return json.loads(
+        value,
+        object_pairs_hook=_strict_json_object,
+        parse_constant=_reject_json_constant,
+    )
+
+
 def verify_artifact_files(
     files: dict[str, str],
     manifest: dict[str, Any],
     *,
     actual_artifact_name: str,
+    expected_run_id: str,
+    expected_run_attempt: str,
 ) -> None:
     """Verify a downloaded/in-memory artifact file map against its manifest.
 
@@ -426,25 +451,33 @@ def verify_artifact_files(
         raise ValueError("Artifact must contain exactly the three expected files.")
     if not all(isinstance(name, str) and isinstance(content, str) for name, content in files.items()):
         raise TypeError("Artifact file names and contents must be strings.")
-    try:
-        embedded_manifest = json.loads(files["artifact_manifest.json"])
-    except (TypeError, json.JSONDecodeError) as exc:
-        raise ValueError("artifact_manifest.json is not valid JSON.") from exc
-    if embedded_manifest != manifest:
-        raise ValueError("Supplied artifact manifest does not match artifact_manifest.json.")
-    if not isinstance(actual_artifact_name, str) or not actual_artifact_name.strip():
-        raise ValueError("Actual downloaded artifact name must be supplied.")
     if not isinstance(manifest, dict) or set(manifest) != {
         "schema_version", "artifact_name", "task_id", "phase", "run_id",
         "run_attempt", "commit_sha", "files", "limitations",
     }:
         raise ValueError("Artifact manifest schema is invalid.")
+    try:
+        embedded_manifest = _strict_json_loads(files["artifact_manifest.json"])
+    except (TypeError, json.JSONDecodeError, ValueError) as exc:
+        raise ValueError("artifact_manifest.json is not valid strict JSON.") from exc
+    if embedded_manifest != manifest:
+        raise ValueError("Supplied artifact manifest does not match artifact_manifest.json.")
+    if not isinstance(actual_artifact_name, str) or not actual_artifact_name.strip():
+        raise ValueError("Actual downloaded artifact name must be supplied.")
+    for name, value in (
+        ("expected_run_id", expected_run_id),
+        ("expected_run_attempt", expected_run_attempt),
+    ):
+        if not isinstance(value, str) or not re.fullmatch(r"[1-9][0-9]*", value):
+            raise ValueError(f"{name} must be a trusted positive decimal workflow identifier.")
     if type(manifest["schema_version"]) is not int or manifest["schema_version"] != 1:
         raise ValueError("Unsupported artifact manifest schema version.")
     for name in ("run_id", "run_attempt"):
         if not isinstance(manifest[name], str) or not re.fullmatch(r"[1-9][0-9]*", manifest[name]):
             raise ValueError(f"Artifact manifest {name} is invalid.")
-    expected_name = f"okx-research-agent-{manifest['run_id']}-{manifest['run_attempt']}"
+    if manifest["run_id"] != expected_run_id or manifest["run_attempt"] != expected_run_attempt:
+        raise ValueError("Artifact manifest run identifiers do not match trusted workflow context.")
+    expected_name = f"okx-research-agent-{expected_run_id}-{expected_run_attempt}"
     if manifest["artifact_name"] != expected_name or actual_artifact_name != expected_name:
         raise ValueError("Artifact name does not match its trusted run identifiers.")
     if not isinstance(manifest["task_id"], str) or not manifest["task_id"].strip():
@@ -478,9 +511,9 @@ def verify_artifact_files(
     if seen != expected_paths:
         raise ValueError("Artifact manifest does not cover every expected report file.")
     try:
-        report = json.loads(files["report.json"])
-    except (TypeError, json.JSONDecodeError) as exc:
-        raise ValueError("Artifact report.json is not valid JSON.") from exc
+        report = _strict_json_loads(files["report.json"])
+    except (TypeError, json.JSONDecodeError, ValueError) as exc:
+        raise ValueError("Artifact report.json is not valid strict JSON.") from exc
     validate_report(report)
     if render_json(report) != files["report.json"] or render_markdown(report) != files["report.md"]:
         raise ValueError("Artifact report representations are not canonical or mutually consistent.")
