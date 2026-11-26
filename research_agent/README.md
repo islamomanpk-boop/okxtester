@@ -11,7 +11,7 @@
 - Reports are intended for GitHub Actions artifacts.
 - Work is organized in the agreed order: Phase 3, Phase 1, Phase 2, Phase 4, Phase 5.
 - No automatic merge or write to the research branch is permitted.
-- The safety controller and task queue have not been runtime-tested; no scripts, tests, or workflows have been run as part of this setup.
+- The safety controller, task queue, and report builder have not been runtime-tested; no scripts, tests, or workflows have been run as part of this setup.
 
 ## Hard safety boundary: Phase 3 G0-05
 
@@ -37,7 +37,7 @@ A missing, ambiguous, malformed, or conflicting permission means **deny**. The t
 - `config/task_allowlist.json` — trusted task IDs; currently empty.
 - `engine/safety_controller.py` — pure permission evaluator; it authorizes but never executes a task.
 - `engine/task_runner.py` — planned; not implemented.
-- `engine/report_builder.py` — planned; not implemented.
+- `engine/report_builder.py` — deterministic JSON/Markdown report formatting, input SHA-256 manifests, validation, and report digest; not runtime-tested.
 - `.github/workflows/` — planned event-driven orchestration; must remain disabled until separately reviewed and approved.
 
 ## Activation policy
