@@ -48,6 +48,10 @@ class PersistenceContractTests(unittest.TestCase):
         self.assertTrue(result["conflict"])
         self.assertFalse(result["appended"])
         self.assertEqual(result["ledger"], first)
+        self.assertIsNot(result["ledger"], first)
+        self.assertIsNot(result["ledger"][0], first[0])
+        result["ledger"][0]["payload"]["note"] = "caller mutation"
+        self.assertEqual(first[0]["payload"]["note"], "observed")
         self.assertIsNone(result["event"])
 
     def test_exact_replay_is_idempotent_even_after_head_advanced(self):
