@@ -3,7 +3,7 @@ import hashlib
 import unittest
 from unittest.mock import patch
 from research_agent.engine import review_artifact
-from research_agent.engine.assignment_package import prepare_worker_assignment
+from research_agent.engine.assignment_package import assignment_package_digest, prepare_worker_assignment
 from research_agent.engine.report_builder import task_definition_digest
 
 class ReviewArtifactTests(unittest.TestCase):
@@ -29,6 +29,7 @@ class ReviewArtifactTests(unittest.TestCase):
             "prohibited": list(self.task["prohibited"]), "task_definition_sha256": digest,
             "assignment_status": "preflight_allowed_not_executed", "completion_authority": "human_only"}
         self.package = prepare_worker_assignment(self.task, preflight, planned_assignment=plan)
+        self.package_digest = assignment_package_digest(self.package)
         self.commit = "1" * 40
         self.path = "docs/assistant_handoff/source.md"
         self.content = b"Source evidence fixture.\\n"
@@ -44,7 +45,8 @@ class ReviewArtifactTests(unittest.TestCase):
             "actions_performed": ["read_existing_documentation"],
             "limitations": ["Human review remains required."],
             "completion_claimed": True, "gate_closure_claimed": False}
-        self.context = {"expected_commit_sha": self.commit, "commit_manifest": self.manifest,
+        self.context = {"expected_assignment_package_sha256": self.package_digest,
+            "expected_commit_sha": self.commit, "commit_manifest": self.manifest,
             "file_contents": {self.path: self.content},
             "repository": review_artifact.EXPECTED_REPOSITORY,
             "branch": review_artifact.EXPECTED_BRANCH, "commit_sha": self.commit,
