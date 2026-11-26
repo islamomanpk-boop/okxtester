@@ -130,20 +130,26 @@ def render_json(report: dict[str, Any]) -> str:
     return json.dumps(report, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
 
 
+def _markdown_safe(value: Any) -> str:
+    """Flatten untrusted values and escape Markdown control characters."""
+    rendered = value if isinstance(value, str) else json.dumps(value, sort_keys=True, ensure_ascii=False, allow_nan=False)
+    rendered = " ".join(rendered.split())
+    for character in (chr(92), chr(96), "*", "_", "{", "}", "[", "]", "<", ">", "#", "+", "-", ".", "!", "|"):
+        rendered = rendered.replace(character, chr(92) + character)
+    return rendered
+
+
 def _as_bullets(items: list[Any]) -> str:
     if not items:
         return "- None recorded."
-    return "\n".join(
-        "- " + (item if isinstance(item, str) else json.dumps(item, sort_keys=True, ensure_ascii=False))
-        for item in items
-    )
+    return "\n".join("- " + _markdown_safe(item) for item in items)
 
 
 def render_markdown(report: dict[str, Any]) -> str:
     """Render a concise audit report from validated report data."""
     validate_report(report)
     manifest_lines = [
-        f"- `{entry['path']}` — SHA-256 `{entry['sha256']}`"
+        f"- `{_markdown_safe(entry['path'])}` — SHA-256 `{_markdown_safe(entry['sha256'])}`"
         for entry in report["input_manifest"]
     ]
     if not manifest_lines:
@@ -152,15 +158,15 @@ def render_markdown(report: dict[str, Any]) -> str:
     sections = [
         "# OKX Research Agent Report",
         "",
-        f"- **Task:** `{report['task_id']}`",
-        f"- **Phase:** `{report['phase']}`",
-        f"- **Status:** {report['status']}",
-        f"- **Agent:** `{report['agent_name']}`",
-        f"- **Repository:** `{report['repository']}`",
-        f"- **Branch:** `{report['branch']}`",
-        f"- **Commit SHA:** `{report['commit_sha']}`",
-        f"- **Run ID:** `{report['run_id']}`",
-        f"- **Timestamp (UTC):** `{report['timestamp_utc']}`",
+        f"- **Task:** `{_markdown_safe(report['task_id'])}`",
+        f"- **Phase:** `{_markdown_safe(report['phase'])}`",
+        f"- **Status:** {_markdown_safe(report['status'])}",
+        f"- **Agent:** `{_markdown_safe(report['agent_name'])}`",
+        f"- **Repository:** `{_markdown_safe(report['repository'])}`",
+        f"- **Branch:** `{_markdown_safe(report['branch'])}`",
+        f"- **Commit SHA:** `{_markdown_safe(report['commit_sha'])}`",
+        f"- **Run ID:** `{_markdown_safe(report['run_id'])}`",
+        f"- **Timestamp (UTC):** `{_markdown_safe(report['timestamp_utc'])}`",
         "",
         "## Findings",
         _as_bullets(report["findings"]),
