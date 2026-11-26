@@ -7,7 +7,7 @@
 ## Outcomes
 
 - `append_prepared`: new event validated and prepared against the current head.
-- `stale_checkpoint`: a new event was proposed against an outdated head; the returned ledger is unchanged and the caller must reload and reconcile.
+- `stale_checkpoint`: a new event was proposed against an outdated head; the returned ledger is an isolated copy of the unchanged snapshot and the caller must reload and reconcile.
 - `idempotent_replay`: the same stable upstream event ID and identical event facts already exist; no second event is added.
 - Reusing an event ID with different facts, malformed checkpoints, or an invalid existing ledger raises a validation error.
 
