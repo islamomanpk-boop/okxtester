@@ -152,7 +152,11 @@ def authorize_task(
     phase_order = phases.get("phase_order")
     phase_rules = phases.get("phases")
     defaults = phases.get("global_defaults")
-    if not isinstance(phase_order, list) or not isinstance(phase_rules, dict) or not isinstance(defaults, dict):
+    if not isinstance(phase_order, list) or not phase_order or not all(
+        isinstance(item, str) and item.strip() for item in phase_order
+    ) or len(set(phase_order)) != len(phase_order):
+        return _deny("Phase order must contain unique, non-empty phase names.")
+    if not isinstance(phase_rules, dict) or not isinstance(defaults, dict):
         return _deny("Phase permission configuration is malformed.")
     if phase not in phase_order or phase not in phase_rules:
         return _deny("Unknown phase; no permission is granted.")
@@ -189,11 +193,16 @@ def authorize_task(
         g0_05 = phase_rule.get("g0_05")
         if not isinstance(g0_05, dict):
             return _deny("Phase 3 G0-05 lock configuration is missing.")
+        global_g0_05_lock = execution.get("current_g0_05_execution_lock")
+        if not isinstance(global_g0_05_lock, bool):
+            return _deny("Global G0-05 lock must be explicitly true or false.")
+        # While the current G0-05 handoff is active, do not rely on task labels:
+        # every Phase 3 task is denied, preventing a relabelled task bypass.
+        if global_g0_05_lock is True:
+            return _deny("G0-05 execution lock is active; all Phase 3 task authorization is prohibited.")
         if queued_task.get("workstream") == "g0_05" or queued_task.get(
             "handoff_id"
         ) == "PHASE3_G0_05_RECONCILIATION_TASK_02":
-            if agent.get("execution", {}).get("current_g0_05_execution_lock") is True:
-                return _deny("G0-05 execution lock is active; automated authorization is prohibited.")
             required_lock_values = {
                 "status": "read_only_reconciliation_only",
                 "scripts_tests_workflows": "prohibited",
