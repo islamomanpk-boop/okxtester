@@ -16,7 +16,8 @@ from research.phase3_g0_05_source_manifest_audit_v1 import (
     first_eligible_minute_or_blank, validate_module_b_horizons,
     validate_disposition_ledger, grouped_disposition_counts, historical_membership_label,
     assign_interval_graph_clusters, observed_window_bars, consistent_physical_cluster,
-    make_repeated_signal_group_id,
+    make_repeated_signal_group_id, aggregate_completed_15m_bar,
+    confirmation_ambiguity_flag,
 )
 
 
@@ -438,6 +439,45 @@ class G005SourceAuditTests(unittest.TestCase):
         self.assertEqual(first_eligible_minute_or_blank("REJECTED", 123000), "")
         self.assertEqual(first_eligible_minute_or_blank("EXPIRED", None), "")
         self.assertEqual(first_eligible_minute_or_blank("CENSORED", 123000), "")
+
+    def test_completed_15m_bar_requires_all_15_exact_minute_components(self):
+        minute_bars = {
+            i * 60000: (100.0, 101.0, 99.0, 100.0)
+            for i in range(15)
+        }
+        bar = aggregate_completed_15m_bar(minute_bars, 900000)
+        self.assertEqual(bar["component_minute_count"], 15)
+        self.assertEqual(bar["bar_open_ts_ms"], 0)
+        self.assertEqual(bar["bar_close_ts_ms"], 900000)
+        self.assertEqual(bar["high"], 101.0)
+        self.assertEqual(bar["low"], 99.0)
+        del minute_bars[7 * 60000]
+        self.assertIsNone(aggregate_completed_15m_bar(minute_bars, 900000))
+
+    def test_completed_15m_bar_rejects_non_quarter_hour_close(self):
+        with self.assertRaisesRegex(ValueError, "quarter-hour aligned"):
+            aggregate_completed_15m_bar({}, 901000)
+
+    def test_completed_15m_bar_rejects_invalid_component_ohlc(self):
+        minute_bars = {
+            i * 60000: (100.0, 99.0, 101.0, 100.0)
+            for i in range(15)
+        }
+        with self.assertRaisesRegex(ValueError, "invalid 1m OHLC"):
+            aggregate_completed_15m_bar(minute_bars, 900000)
+
+    def test_failed_breakout_confirmation_wick_ambiguity_upper_and_lower(self):
+        upper_bar = {"high": 101.0, "low": 98.0, "close": 99.0}
+        lower_bar = {"high": 102.0, "low": 99.0, "close": 101.0}
+        ordinary_bar = {"high": 100.0, "low": 98.0, "close": 99.0}
+        self.assertEqual(
+            confirmation_ambiguity_flag("UPPER", 100.0, upper_bar),
+            "CONFIRMATION_CANDLE_WICK_OUTSIDE_CLOSE_INSIDE")
+        self.assertEqual(
+            confirmation_ambiguity_flag("LOWER", 100.0, lower_bar),
+            "CONFIRMATION_CANDLE_WICK_OUTSIDE_CLOSE_INSIDE")
+        self.assertEqual(
+            confirmation_ambiguity_flag("UPPER", 100.0, ordinary_bar), "NONE")
 
     def test_rejection_repeated_signal_group_uses_snapshot_and_segment(self):
         first = make_repeated_signal_group_id(
