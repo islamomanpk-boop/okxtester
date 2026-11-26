@@ -61,7 +61,7 @@ def file_manifest_entry(path: Path, root: Path) -> dict:
     size = path.stat().st_size
     sha256 = hashlib.sha256()
     blob_sha1 = hashlib.sha1()
-    blob_sha1.update(f"blob {size}\\0".encode("ascii"))
+    blob_sha1.update(f"blob {size}\0".encode("ascii"))
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             sha256.update(chunk)
