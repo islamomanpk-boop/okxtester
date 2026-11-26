@@ -23,7 +23,15 @@ def _repository_file(path: str | Path) -> Path:
     supplied = Path(path)
     if supplied.is_absolute() or ".." in supplied.parts:
         raise ValueError("Report input paths must be safe repository-relative paths.")
-    resolved = (REPOSITORY_ROOT / supplied).resolve(strict=True)
+    # Reject symlinks at every path component, including links that happen
+    # to resolve back inside the repository. This keeps provenance paths
+    # stable and prevents a later link retarget from changing the input.
+    candidate = REPOSITORY_ROOT
+    for part in supplied.parts:
+        candidate = candidate / part
+        if candidate.is_symlink():
+            raise ValueError("Report input paths must not contain symlinks.")
+    resolved = candidate.resolve(strict=True)
     try:
         resolved.relative_to(REPOSITORY_ROOT.resolve())
     except ValueError as exc:
