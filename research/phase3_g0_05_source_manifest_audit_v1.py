@@ -1207,6 +1207,12 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "bytes": path.stat().st_size,
             "sha256": g004_meta["output_sha256"][name],
         }
+    g004_metadata_path = artifact / "run_metadata.json"
+    g004_files["run_metadata.json"] = {
+        "path": "G0-04-artifact/run_metadata.json",
+        "bytes": g004_metadata_path.stat().st_size,
+        "sha256": sha256_bytes(g004_metadata_path.read_bytes()),
+    }
     complete_manifest = {
         "schema_version": "G0_05_COMPLETE_SOURCE_MANIFEST_V2",
         "repository": "islamomanpk-boop/okxtester",
@@ -1248,15 +1254,15 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "reports/sideways_phase3_research_archive_v1/episode_retest_anatomy_v1/event_anatomy_v1.csv",
             "reports/phase3_rejection_lifecycle_v1_1/rejection_lifecycle_events_v1.csv",
             "reports/phase3_rejection_lifecycle_v1_1/run_metadata_v1.json",
-            g004_threshold_path,
+            g004_threshold_path, "G0-04-artifact/run_metadata.json",
         ],
         "breakout": [
-            feature_path("BTC"), g004_raw_path, g004_threshold_path,
+            g004_raw_path, g004_threshold_path, "G0-04-artifact/run_metadata.json",
             "reports/phase3_breakout_lifecycle_v1_1/breakout_lifecycle_events_v1_1.csv",
             "reports/phase3_breakout_lifecycle_v1_1/run_metadata_v1_1.json",
         ],
         "failed_breakout": [
-            g004_raw_path, g004_threshold_path,
+            g004_raw_path, g004_threshold_path, "G0-04-artifact/run_metadata.json",
             "reports/phase3_breakout_lifecycle_v1_1/breakout_lifecycle_events_v1_1.csv",
             "reports/phase3_breakout_lifecycle_v1_1/breakout_lifecycle_horizons_v1_1.csv",
             "reports/phase3_breakout_lifecycle_v1_1/run_metadata_v1_1.json",
@@ -1285,13 +1291,12 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
         if not rows: fail(f"empty row disposition output {name}")
         family_key = "rejection" if name.startswith("rejection_") else "breakout" if name.startswith("breakout_") else "failed_breakout"
         source_paths = list(family_source_paths[family_key])
-        source_paths.append(feature_path(rows[0]["asset"]) if family_key != "failed_breakout" else market_path(rows[0]["asset"]))
-        if family_key == "rejection":
-            source_paths.append(feature_path(rows[0]["asset"]))
-        source_paths.append(market_path(rows[0]["asset"]))
         for row in rows:
-            row["source_file_paths"] = ";".join(sorted(set(source_paths)))
-            row["source_git_blob_ids"] = ";".join(sorted({path_to_blob[p] for p in source_paths if p in path_to_blob}))
+            row_paths = set(source_paths)
+            row_paths.add(feature_path(row["asset"]))
+            row_paths.add(market_path(row["asset"]))
+            row["source_file_paths"] = ";".join(sorted(row_paths))
+            row["source_git_blob_ids"] = ";".join(sorted({path_to_blob[p] for p in row_paths if p in path_to_blob}))
             row["source_sha256_manifest_id"] = source_manifest_id
         identity_field, expected_rows = identity_fields[name]
         counts[name] = validate_disposition_ledger(rows, identity_field, expected_rows)
