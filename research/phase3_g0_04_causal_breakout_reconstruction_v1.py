@@ -91,7 +91,10 @@ def joined15(b15,ctx):
  r=ctx.reset_index()[["snapshot","upper","lower","channel_width","efficiency","overlap"]]
  z=pd.merge_asof(l.sort_values("signal_time"),r.sort_values("snapshot"),
                  left_on="signal_time",right_on="snapshot",direction="backward")
- if z.snapshot.isna().any() or (z.snapshot>z.signal_time).any(): stop("future/missing as-of context")
+ # Leading 15M bars before the first available 4H snapshot are expected warm-up rows.
+ # Keep them with null context; downstream masks naturally exclude them.
+ # A non-null future assignment remains a hard failure.
+ if (z.snapshot.notna() & (z.snapshot>z.signal_time)).any(): stop("future as-of context")
  return z
 
 def cross_check(root,a,ctx):
@@ -262,11 +265,11 @@ def self_test():
  assert z.snapshot.iloc[0]==b15.index[0] and z.snapshot.iloc[1]==b15.index[0]
  # A future context must not be back-assigned to an earlier 15M close.
  future=c.copy(); future.index=future.index+pd.Timedelta(minutes=30)
- try:
-  joined15(b15,future)
-  raise AssertionError("future context was accepted")
- except RuntimeError:
-  pass
+ zfuture=joined15(b15,future)
+ assert zfuture.snapshot.isna().all()  # future context is not back-assigned
+ # Pre-context warm-up rows remain present and are explicitly unclassified.
+ warm=joined15(b15,future)
+ assert len(warm)==len(b15) and warm.snapshot.isna().all()
  # Build 182 contexts with 16 joined 15M rows each; last context is extreme
  # to prove its own value is excluded from its threshold.
  times=pd.date_range("2025-01-01",periods=182,freq="4h",tz="UTC",name="snapshot")
