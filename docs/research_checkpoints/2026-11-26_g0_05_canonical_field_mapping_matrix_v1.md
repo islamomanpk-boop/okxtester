@@ -172,4 +172,4 @@ The corrected mapping:
 - Breakout/failed-breakout `efficiency_value` and `overlap_value` are sourced from the G0-04 raw context, not same-time detector features.
 - Breakout/failed-breakout `snapshot_valid_until_ts_ms` is the next 4H context snapshot.
 
-The source audit preserves `reference_feature_snapshot_ts_ms` and uses `HISTORICAL_BREAKOUT_CONTEXT_V1` for breakout/failed-breakout rows. This is a source-timing correction, not a change to G0-04 thresholds or eligibility decisions.
+The source audit preserves `reference_feature_snapshot_ts_ms` and `reference_feature_match_status`; it allows the single expected leading legacy context per asset that predates the detector feature ledger, but fails if more than one distinct leading context appears. It uses `HISTORICAL_BREAKOUT_CONTEXT_V1` for breakout/failed-breakout rows. This is a source-timing correction, not a change to G0-04 thresholds or eligibility decisions.
