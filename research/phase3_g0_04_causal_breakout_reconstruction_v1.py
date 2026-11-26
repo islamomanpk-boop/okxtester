@@ -216,8 +216,17 @@ def old_events(root):
  if signal_ts.isna().any() or snapshot_ts.isna().any(): stop("historical classification ledger contains invalid identity timestamps")
  d["signal_time_ms"]=signal_ts.astype("int64")//1_000_000
  d["context_snapshot_ms"]=snapshot_ts.astype("int64")//1_000_000
- if d.duplicated(KEYS).any(): stop("historical classification ledger contains duplicate identity rows")
- return d[KEYS].assign(was_historical_selected=True)
+ # The source is a classification matrix: each signal identity is intentionally
+ # repeated across definition (STRICT_P25/BROAD_P40) and zone (5/10/15%).
+ # Validate uniqueness at that full source-row grain before collapsing to the
+ # 932 cross-definition signal identities used by the downstream reconciliation.
+ source_keys=KEYS+["definition","zone_pct_of_channel"]
+ if any(c not in d.columns for c in source_keys): stop("historical classification ledger missing classification-key columns")
+ if d.duplicated(source_keys).any(): stop("historical classification ledger contains duplicate full classification rows")
+ if set(d.definition.dropna().unique())!={"STRICT_P25","BROAD_P40"}: stop("historical classification ledger has unexpected definitions")
+ if set(pd.to_numeric(d.zone_pct_of_channel,errors="coerce").dropna().unique())!={5.0,10.0,15.0}: stop("historical classification ledger has unexpected zone levels")
+ identities=d[KEYS].drop_duplicates()
+ return identities.assign(was_historical_selected=True)
 
 def run(root,out):
  mins,input_audit,common=load_sources(root)
