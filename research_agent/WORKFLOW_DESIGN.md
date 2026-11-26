@@ -42,6 +42,20 @@ The push-only workflow is `funding-engine-contract-tests.yml`.
 
 The 26 write-permission findings are a static regex census of explicit permission declarations, not a proof of the effective token permission after repository/org policy. The complete workflow YAML files were not all reviewed line-by-line for every command, action pin, artifact path, or checkout behavior. The inventory is sufficient to establish a broad isolation risk, not to certify individual workflows.
 
+## Newly identified activation constraint — repository default branch
+
+The repository metadata currently identifies `main` as the default branch. The agent implementation and all 13 agent files are isolated on `agent/okx-research-agent-v1`; that branch is not the default branch.
+
+GitHub's current documentation states that a `workflow_dispatch` event is only received when the workflow file exists on the repository's default branch. Selecting a non-default branch as the run ref does not remove this requirement. Therefore, a manual-only workflow file committed solely to the agent branch will not be manually dispatchable in this repository until a workflow file also exists on `main`. See GitHub's [workflow_dispatch trigger documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows) and [manual workflow guide](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow).
+
+This exposes a design conflict that must be resolved before activation:
+
+- **Keep the strict no-main-changes policy:** the same-repository manual-dispatch design is blocked. A separate agent repository with its own default-branch workflow could run the agent and check out the public research repository read-only, but would move workflow runs and artifacts to that separate repository.
+- **Allow a minimal main-branch dispatcher:** a small, reviewed `workflow_dispatch` caller could live on `main` and invoke a reusable workflow pinned to the agent branch. This requires an explicit exception to the current no-main-changes boundary and a separate review; it is not authorized by this design note.
+- **Use a branch push trigger:** this may allow branch-local automation without a main-branch dispatcher, but it is not equivalent to a user-controlled manual dispatch and risks running on every matching push. It is not selected as a workaround.
+
+No workflow has been added, no branch policy has been changed, and no run has been attempted. The current no-main-write/no-merge boundary remains in force. Do not silently solve this by placing a workflow on `main`, opening or merging a PR, or enabling a push trigger. The user must choose the repository layout/trigger trade-off before workflow installation.
+
 ## First-workflow design (future, subject to authorization)
 
 ### Trigger and scope
