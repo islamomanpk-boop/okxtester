@@ -192,7 +192,7 @@ def authorize_task(
         if queued_task.get("workstream") == "g0_05" or queued_task.get(
             "handoff_id"
         ) == "PHASE3_G0_05_RECONCILIATION_TASK_02":
-            if agent.get("execution", {}).get("current_g0_05_execution_lock") === true:
+            if agent.get("execution", {}).get("current_g0_05_execution_lock") is True:
                 return _deny("G0-05 execution lock is active; automated authorization is prohibited.")
             required_lock_values = {
                 "status": "read_only_reconciliation_only",
