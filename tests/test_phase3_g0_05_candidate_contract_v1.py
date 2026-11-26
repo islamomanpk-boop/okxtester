@@ -14,7 +14,7 @@ from research.phase3_g0_05_candidate_contract_v1 import (
 
 from research.phase3_g0_05_source_manifest_audit_v1 import (
     first_eligible_minute_or_blank, validate_module_b_horizons,
-    validate_disposition_ledger,
+    validate_disposition_ledger, grouped_disposition_counts,
 )
 
 
@@ -436,6 +436,22 @@ class G005SourceAuditTests(unittest.TestCase):
         self.assertEqual(first_eligible_minute_or_blank("REJECTED", 123000), "")
         self.assertEqual(first_eligible_minute_or_blank("EXPIRED", None), "")
         self.assertEqual(first_eligible_minute_or_blank("CENSORED", 123000), "")
+
+    def test_grouped_disposition_counts_are_deterministic_and_reconcile(self):
+        rows = [
+            {"asset": "BTC", "disposition": "ELIGIBLE_FOR_FURTHER_VALIDATION"},
+            {"asset": "BTC", "disposition": "REJECTED"},
+            {"asset": "ETH", "disposition": "ELIGIBLE_FOR_FURTHER_VALIDATION"},
+        ]
+        first = grouped_disposition_counts(rows, ("asset", "disposition"))
+        second = grouped_disposition_counts(list(reversed(rows)), ("asset", "disposition"))
+        self.assertEqual(first, second)
+        self.assertEqual(sum(item["rows"] for item in first), len(rows))
+        self.assertEqual(first, [
+            {"asset": "BTC", "disposition": "ELIGIBLE_FOR_FURTHER_VALIDATION", "rows": 1},
+            {"asset": "BTC", "disposition": "REJECTED", "rows": 1},
+            {"asset": "ETH", "disposition": "ELIGIBLE_FOR_FURTHER_VALIDATION", "rows": 1},
+        ])
 
     def test_disposition_ledger_enforces_frozen_reason_codes(self):
         rows = [
