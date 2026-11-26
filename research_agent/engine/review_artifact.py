@@ -9,7 +9,15 @@ EXPECTED_REPOSITORY = "islamomanpk-boop/okxtester"
 EXPECTED_BRANCH = "agent/okx-research-agent-v1"
 
 def _as_text(value: Any) -> str:
-    rendered = value if isinstance(value, str) else json.dumps(value, sort_keys=True, ensure_ascii=False, allow_nan=False)
+    if isinstance(value, str):
+        rendered = value
+    else:
+        try:
+            rendered = json.dumps(value, sort_keys=True, ensure_ascii=False, allow_nan=False)
+        except (TypeError, ValueError):
+            # Malformed worker values must remain reviewable as invalid input;
+            # rendering an audit artifact must not crash on NaN or mixed keys.
+            rendered = f"<unrenderable worker value: {type(value).__name__}>"
     rendered = " ".join(rendered.split())
     return rendered if len(rendered) <= 2000 else rendered[:1997] + "..."
 
