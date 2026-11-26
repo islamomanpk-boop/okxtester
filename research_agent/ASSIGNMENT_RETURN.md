@@ -27,3 +27,6 @@ are never approved by this module.
 No worker is launched, no files are read or written, no GitHub/network calls
 are made, and no task queue or allowlist is changed. Runtime tests remain
 unexecuted under the active G0-05 handoff.
+
+
+The return reviewer now rebuilds and compares the complete canonical package using strict JSON serialization, including worker action instructions, submission schema, metadata, and authority flags. This prevents altered instructions from being accepted as the original assignment and rejects Boolean schema versions masquerading as integer version 1.
