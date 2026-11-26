@@ -4,7 +4,8 @@ from research.phase3_g0_05_candidate_contract_v1 import (
     MINUTE_MS, FIFTEEN_MIN_MS, FAILURE_HORIZON_MS,
     snapshot_is_valid, rejection_confirmation, first_eligible_minute,
     family_side, complete_15m_confirmation, failed_breakout_confirmation,
-    candidate_id, classify_disposition, deterministic_json,\n    causal_regime_eligible, validate_strict_broad_nesting,
+    candidate_id, classify_disposition, deterministic_json,
+    causal_regime_eligible, validate_strict_broad_nesting,
 )
 
 
