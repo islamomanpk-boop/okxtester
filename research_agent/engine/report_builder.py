@@ -107,7 +107,7 @@ def render_markdown(report: dict[str, Any]) -> str:
     """Render a concise audit report from validated report data."""
     validate_report(report)
     manifest_lines = [
-        f"- \`{entry['path']}\` — SHA-256 \`{entry['sha256']}\`"
+        f"- `{entry['path']}` — SHA-256 `{entry['sha256']}`"
         for entry in report["input_manifest"]
     ]
     if not manifest_lines:
@@ -116,15 +116,15 @@ def render_markdown(report: dict[str, Any]) -> str:
     sections = [
         "# OKX Research Agent Report",
         "",
-        f"- **Task:** \`{report['task_id']}\`",
-        f"- **Phase:** \`{report['phase']}\`",
+        f"- **Task:** `{report['task_id']}`",
+        f"- **Phase:** `{report['phase']}`",
         f"- **Status:** {report['status']}",
-        f"- **Agent:** \`{report['agent_name']}\`",
-        f"- **Repository:** \`{report['repository']}\`",
-        f"- **Branch:** \`{report['branch']}\`",
-        f"- **Commit SHA:** \`{report['commit_sha']}\`",
-        f"- **Run ID:** \`{report['run_id']}\`",
-        f"- **Timestamp (UTC):** \`{report['timestamp_utc']}\`",
+        f"- **Agent:** `{report['agent_name']}`",
+        f"- **Repository:** `{report['repository']}`",
+        f"- **Branch:** `{report['branch']}`",
+        f"- **Commit SHA:** `{report['commit_sha']}`",
+        f"- **Run ID:** `{report['run_id']}`",
+        f"- **Timestamp (UTC):** `{report['timestamp_utc']}`",
         "",
         "## Findings",
         _as_bullets(report["findings"]),
