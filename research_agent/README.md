@@ -44,9 +44,9 @@ A missing, ambiguous, malformed, or conflicting permission means **deny**. The t
 - `config/task_queue.json` — initial phase-ordered task definitions and dependencies.
 - `config/task_allowlist.json` — trusted task-definition hash approvals; currently empty.
 - `engine/safety_controller.py` — fail-closed evaluator that requires an exact queue match, a trusted SHA-256 approval, an active phase, and read-only permission; it never executes tasks.
-- `engine/task_runner.py` — preflight-only queue dispatcher; it selects an exact queue entry and asks the safety controller for a decision, but has no subprocess, script, test, workflow, or research executor.
+- `engine/task_runner.py` — preflight-only queue dispatcher; it returns a stable fail-closed result envelope, rejects malformed queue rows and inconsistent authorization responses, and has no subprocess, script, test, workflow, or research executor.
 - `engine/report_builder.py` — deterministic JSON/Markdown report formatting, repository-contained input SHA-256 manifests with symlink rejection, escaped untrusted Markdown values, strict report validation, report digest, and an explicit verifier that compares declared hashes with current checkout bytes. This verifier does not prove commit-tree provenance or a clean checkout; not runtime-tested.
-- Regression coverage authored but not executed: 17 safety-controller tests, 18 report-builder tests, and 5 task-runner tests (40 total).
+- Regression coverage authored but not executed: 17 safety-controller tests, 18 report-builder tests, and 10 task-runner tests (45 total).
 - `.github/workflows/` — no agent-specific workflow is installed yet. The first future workflow must be manual-dispatch only and preflight/report-only; event-driven and scheduled triggers require separate validation and approval.
 
 ## Validation and activation gates
