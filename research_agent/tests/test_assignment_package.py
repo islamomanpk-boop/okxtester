@@ -99,6 +99,15 @@ class WorkerAssignmentPackageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unsupported fields"):
             prepare_worker_assignment(task, result)
 
+    def test_rejects_non_queued_preflight_status(self):
+        task = make_task()
+        result = preflight(task, True)
+        result["queue_status"] = "completed"
+        with self.assertRaisesRegex(ValueError, "exact task"):
+            prepare_worker_assignment(
+                task, result, planned_assignment=plan_entry(task)
+            )
+
     def test_rejects_allow_without_planner_entry(self):
         task = make_task()
         with self.assertRaisesRegex(ValueError, "requires one exact"):
