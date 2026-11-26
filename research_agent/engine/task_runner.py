@@ -88,22 +88,35 @@ def _preflight_task_with_queue(task_id: str, current_queue: dict[str, Any]) -> d
             queue_status=queue_status,
             reason="Safety controller returned a malformed decision; denied.",
         )
+    # The authorization boundary accepts one exact response schema only.
+    # Extra fields, missing fields, non-bool flags, unknown decisions, and
+    # inconsistent decision/flag pairs are all malformed and fail closed.
+    if set(decision) != {"authorized", "decision", "reason"}:
+        return _preflight_result(
+            task_id, queue_status=queue_status,
+            reason="Safety controller returned an unexpected response shape; denied.",
+        )
+    authorized_flag = decision.get("authorized")
+    decision_code = decision.get("decision")
     valid_reason = decision.get("reason")
-    authorized = (
-        decision.get("authorized") is True
-        and decision.get("decision") == "ALLOW_READ_ONLY"
-        and isinstance(valid_reason, str)
-        and bool(valid_reason.strip())
-    )
+    if (
+        type(authorized_flag) is not bool
+        or decision_code not in {"ALLOW_READ_ONLY", "DENY"}
+        or not isinstance(valid_reason, str)
+        or not valid_reason.strip()
+        or (authorized_flag is True) != (decision_code == "ALLOW_READ_ONLY")
+    ):
+        return _preflight_result(
+            task_id, queue_status=queue_status,
+            reason="Safety controller returned an inconsistent or malformed decision; denied.",
+        )
+    authorized = authorized_flag is True
     return _preflight_result(
         task_id,
         queue_status=queue_status,
-        decision="ALLOW_READ_ONLY" if authorized else "DENY",
+        decision=decision_code,
         authorized=authorized,
-        reason=(
-            valid_reason if isinstance(valid_reason, str) and valid_reason.strip()
-            else "Safety controller returned no valid reason; denied."
-        ),
+        reason=valid_reason,
     )
 
 
