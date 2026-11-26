@@ -1,11 +1,33 @@
 """Read-only preflight dispatcher tests; authored but not executed."""
 import unittest
+import tempfile
+from pathlib import Path
 from unittest.mock import patch
 
 from research_agent.engine import task_runner
 
 
 class TaskRunnerTests(unittest.TestCase):
+    def test_load_queue_rejects_duplicate_json_object_keys(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "queue.json"
+            path.write_text(
+                '{"schema_version":1,"schema_version":1,"tasks":[]}',
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "Duplicate JSON object key"):
+                task_runner.load_queue(path)
+
+    def test_load_queue_rejects_nonstandard_json_constants(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "queue.json"
+            path.write_text(
+                '{"schema_version":NaN,"tasks":[]}',
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "Non-standard JSON"):
+                task_runner.load_queue(path)
+
     def test_rejects_non_object_queue_without_raising(self):
         result = task_runner._preflight_task_with_queue("P3-RO-001", [])
         self.assertEqual(result["decision"], "DENY")
