@@ -17,7 +17,7 @@
 - The safety controller validates every queue entry and rejects duplicate queue IDs, malformed allowlist hashes, duplicate allowlist approvals, phase-priority mismatches, missing human-gate advancement rules, incomplete task contracts, unsupported task fields, missing mandatory prohibitions, and non-human completion authority.
 - The public runtime authorization function loads policy only from fixed repository configuration paths; policy injection is isolated to a private test seam.
 - Markdown report rendering flattens line breaks and escapes Markdown control characters in untrusted findings and metadata.
-- Report validation enforces a strict top-level schema, string-only narrative lists, canonical UTC timestamps ending in `Z`, normalized safe manifest paths, finite JSON values, and only verifiable non-completion statuses (`preflight_only`, `blocked`, `skipped`, `not_run`).
+- Report validation enforces a strict top-level schema, string-only narrative lists, canonical UTC timestamps ending in `Z`, normalized safe manifest paths, finite JSON values, and only allowlisted non-completion statuses (`preflight_only`, `blocked`, `skipped`, `not_run`).
 - While the current G0-05 lock is active, all Phase 3 task authorization is denied, regardless of task labels.
 - Only tasks marked `queued` in the currently active phase are eligible for future evaluation; later phases remain blocked.
 
@@ -45,8 +45,8 @@ A missing, ambiguous, malformed, or conflicting permission means **deny**. The t
 - `config/task_allowlist.json` — trusted task-definition hash approvals; currently empty.
 - `engine/safety_controller.py` — fail-closed evaluator that requires an exact queue match, a trusted SHA-256 approval, an active phase, and read-only permission; it never executes tasks.
 - `engine/task_runner.py` — preflight-only queue dispatcher; it returns a stable fail-closed result envelope, rejects malformed queue rows and inconsistent authorization responses, and has no subprocess, script, test, workflow, or research executor.
-- `engine/report_builder.py` — deterministic JSON/Markdown report formatting, repository-contained input SHA-256 manifests with symlink rejection, escaped untrusted Markdown values, strict report validation, report digest, and an explicit verifier that compares declared hashes with current checkout bytes. This verifier does not prove commit-tree provenance or a clean checkout; not runtime-tested.
-- Regression coverage authored but not executed: 17 safety-controller tests, 18 report-builder tests, and 10 task-runner tests (45 total).
+- `engine/report_builder.py` — deterministic JSON/Markdown report formatting, repository-contained input SHA-256 manifests with symlink rejection, escaped untrusted Markdown values, strict report validation, report digest, an explicit verifier that compares declared hashes with current checkout bytes, and Markdown disclosures that caller-supplied metadata and hashes are not authenticated by schema validation. This verifier does not prove commit-tree provenance or a clean checkout; not runtime-tested.
+- Regression coverage authored but not executed: 17 safety-controller tests, 19 report-builder tests, and 10 task-runner tests (46 total).
 - `.github/workflows/` — no agent-specific workflow is installed yet. The first future workflow must be manual-dispatch only and preflight/report-only; event-driven and scheduled triggers require separate validation and approval.
 
 ## Validation and activation gates
