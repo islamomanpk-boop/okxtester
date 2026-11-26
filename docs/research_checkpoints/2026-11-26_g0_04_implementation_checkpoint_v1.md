@@ -195,3 +195,12 @@ The separate AI reviewer Kimi's own report remains labelled INCONCLUSIVE because
 The four descriptive observations from Kimi remain documented: 262 raw events in warm-up are ineligible under all variants; two SOL events with undefined efficiency/overlap are ineligible; 12 legacy ratio-based efficiency values exceed 1 and must not be confused with detector efficiency; and the actual classification ledger contains no null zone values despite the validator gap that has now been fixed.
 
 **Current disposition:** technical reconstruction, corrected validation, artifact integrity, raw input hashes, common-index integrity, baseline counts/quantiles, and detector-ledger cross-checks have now passed. Formal G0-04 acceptance still requires the project owner to decide whether the independent AI review plus this separately documented assistant-side raw-data recomputation satisfies the project's review standard, and to record that disposition. G0-05 implementation/candidate generation remains blocked; Gate 0 remains CONDITIONAL HOLD. No execution simulation, strategy backtesting, or PnL work is authorized.
+
+
+### Recheck of artifact edge-population observations
+
+The latest artifact was also checked directly for the edge-population observations raised by Kimi:
+- Exactly 262 of 2,861 raw events have no matching threshold rows at their asset/context snapshot, confirming they occur before the 180-prior-context calibration warm-up and are ineligible under every variant.
+- Exactly two raw events have undefined efficiency/overlap values; both are SOL events and remain ineligible.
+- Exactly 12 raw events have legacy ratio-based efficiency greater than 1. This is consistent with the preserved historical ratio formula and must not be interpreted using the detector's difference-based efficiency bound.
+- The threshold artifact has 65,310 rows; no P25 value exceeds P40, no calibration endpoint is equal to or later than its classified snapshot, and every joined-15M prior-row count equals 16 times its prior-context count.
