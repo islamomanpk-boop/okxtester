@@ -12,6 +12,8 @@
 - Work is organized in the agreed order: Phase 3, Phase 1, Phase 2, Phase 4, Phase 5.
 - No automatic merge or write to the research branch is permitted.
 - The safety controller, task queue, and report builder have not been runtime-tested; no scripts, tests, or workflows have been run as part of this setup.
+- The safety controller binds approvals to the SHA-256 hash of the exact queued task definition; changing its phase, operation, scope, or restrictions invalidates that approval.
+- Only tasks marked `queued` in the currently active phase are eligible for future evaluation; later phases remain blocked.
 
 ## Hard safety boundary: Phase 3 G0-05
 
@@ -34,10 +36,10 @@ A missing, ambiguous, malformed, or conflicting permission means **deny**. The t
 - `config/agent_config.json` — identity, operating mode, scheduling defaults, and global prohibitions.
 - `config/phase_permissions.json` — phase order and operation-level permission boundaries.
 - `config/task_queue.json` — initial phase-ordered task definitions and dependencies.
-- `config/task_allowlist.json` — trusted task IDs; currently empty.
-- `engine/safety_controller.py` — pure permission evaluator; it authorizes but never executes a task.
+- `config/task_allowlist.json` — trusted task-definition hash approvals; currently empty.
+- `engine/safety_controller.py` — fail-closed evaluator that requires an exact queue match, a trusted SHA-256 approval, an active phase, and read-only permission; it never executes tasks.
 - `engine/task_runner.py` — planned; not implemented.
-- `engine/report_builder.py` — deterministic JSON/Markdown report formatting, input SHA-256 manifests, validation, and report digest; not runtime-tested.
+- `engine/report_builder.py` — deterministic JSON/Markdown report formatting, repository-contained input SHA-256 manifests, report validation, and report digest; not runtime-tested.
 - `.github/workflows/` — planned event-driven orchestration; must remain disabled until separately reviewed and approved.
 
 ## Activation policy
