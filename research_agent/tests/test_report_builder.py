@@ -32,6 +32,12 @@ def valid_report():
 
 
 class ReportBuilderTests(unittest.TestCase):
+    def test_rejects_report_with_unexpected_agent_identity(self):
+        report = valid_report()
+        report["agent_name"] = "untrusted-agent-name"
+        with self.assertRaisesRegex(ValueError, "fixed agent identity"):
+            report_builder.validate_report(report)
+
     def test_rejects_completion_claim_statuses_without_executor(self):
         for status in ("completed", "success", "successful", "research_complete", "approved"):
             report = valid_report()
