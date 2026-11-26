@@ -165,15 +165,14 @@ def preflight_task(task_id: str) -> dict[str, Any]:
 
 
 
-def preflight_all_tasks() -> dict[str, Any]:
-    """Return a bounded, non-executing preflight summary for the trusted queue.
+def _preflight_all_tasks_with_queue(trusted_queue: dict[str, Any]) -> dict[str, Any]:
+    """Summarize preflight results for one already-loaded queue snapshot.
 
-    This is an operator visibility aid only. It never authorizes the queue as a
-    whole, changes task status, or invokes a task executor.
+    The supplied queue is treated as the single snapshot for every task in
+    this summary. This helper does not reload the queue, mutate it, or
+    authorize the queue as a whole.
     """
-    try:
-        trusted_queue = load_queue()
-    except (OSError, json.JSONDecodeError, ValueError) as exc:
+    if not isinstance(trusted_queue, dict):
         return {
             "mode": "queue_preflight_only",
             "decision": "DENY",
@@ -182,7 +181,7 @@ def preflight_all_tasks() -> dict[str, Any]:
             "task_count": 0,
             "allow_count": 0,
             "deny_count": 0,
-            "reason": f"Cannot load task queue ({type(exc).__name__}); denied.",
+            "reason": "Task queue must be a JSON object; denied.",
             "tasks": [],
         }
 
@@ -230,6 +229,25 @@ def preflight_all_tasks() -> dict[str, Any]:
         "reason": "Per-task preflight results only; this summary is not queue-wide authorization.",
         "tasks": results,
     }
+
+
+def preflight_all_tasks() -> dict[str, Any]:
+    """Load the trusted queue once and return a non-authorizing preflight summary."""
+    try:
+        trusted_queue = load_queue()
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        return {
+            "mode": "queue_preflight_only",
+            "decision": "DENY",
+            "authorized": False,
+            "execution_performed": False,
+            "task_count": 0,
+            "allow_count": 0,
+            "deny_count": 0,
+            "reason": f"Cannot load task queue ({type(exc).__name__}); denied.",
+            "tasks": [],
+        }
+    return _preflight_all_tasks_with_queue(trusted_queue)
 
 
 def main() -> int:
