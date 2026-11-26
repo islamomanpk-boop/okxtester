@@ -338,7 +338,7 @@ class ReportBuilderTests(unittest.TestCase):
             for row in manifest["files"]:
                 actual = hashlib.sha256(bundle["files"][row["path"]].encode("utf-8")).hexdigest()
                 self.assertEqual(actual, row["sha256"])
-            self.assertTrue(bundle["files"]["artifact_manifest.json"].endswith("\\n"))
+            self.assertTrue(bundle["files"]["artifact_manifest.json"].endswith("\n"))
 
     def test_artifact_bundle_rejects_run_id_mismatch(self):
         task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
