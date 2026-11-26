@@ -18,6 +18,36 @@ FAMILY_SIDE = {
     "FAILED_LOWER_BREAKOUT": ("LOWER", "LONG"),
 }
 
+REJECTED_REASON_CODES = frozenset({
+    "CAUSAL_THRESHOLD_WARMUP",
+    "CAUSAL_REGIME_NOT_ELIGIBLE",
+    "SNAPSHOT_NOT_AVAILABLE_AT_SIGNAL",
+    "SOURCE_HASH_MISMATCH",
+    "MISSING_SOURCE_IDENTITY",
+    "SOURCE_JOIN_UNMATCHED",
+    "DUPLICATE_SOURCE_IDENTITY",
+    "DUPLICATE_CANDIDATE_ID",
+    "INVALID_SOURCE_SCHEMA",
+    "INVALID_FEATURE_VALUES",
+    "FUTURE_CONTEXT_ASSIGNED",
+    "DIRECTION_MAPPING_MISMATCH",
+    "NO_VALID_SOURCE_BREAKOUT",
+    "INCOMPLETE_CONFIRMATION_BAR",
+})
+EXPIRED_REASON_CODES = frozenset({
+    "EXPIRED_NO_RETURN_INSIDE_WITHIN_12H",
+    "SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION",
+})
+CENSORED_REASON_CODES = frozenset({
+    "MISSING_OR_GAPPED_MINUTES",
+    "INCOMPLETE_15M_CONFIRMATION",
+    "SOURCE_END_BEFORE_RESOLUTION",
+    "AMBIGUOUS_CONFIRMATION_UNRESOLVED",
+})
+DISPOSITION_STATUSES = frozenset({
+    "ELIGIBLE_FOR_FURTHER_VALIDATION", "REJECTED", "EXPIRED", "CENSORED",
+})
+
 
 def snapshot_is_valid(snapshot_available_ms: int, snapshot_next_ms: int,
                       confirmation_ms: int) -> bool:
@@ -175,6 +205,61 @@ def classify_disposition(snapshot_available_ms: int, snapshot_next_ms: int,
     return ("ELIGIBLE_FOR_FURTHER_VALIDATION"
             if snapshot_is_valid(snapshot_available_ms, snapshot_next_ms, confirmation_ms)
             else "SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION")
+
+
+def exact_threshold_for_snapshot(threshold_by_key: dict, asset: str,
+                                 snapshot_ms: int, policy: str,
+                                 population: str) -> dict | None:
+    """Return only the exact asset/snapshot/policy/population threshold; never use a neighbor."""
+    snapshot = int(snapshot_ms)
+    row = threshold_by_key.get((asset, snapshot, policy, population))
+    if row is None:
+        return None
+    if int(row["last_prior_context_ms"]) >= snapshot:
+        raise ValueError("threshold calibration must end strictly before snapshot")
+    if int(row["prior_context_count"]) < 180:
+        raise ValueError("threshold requires at least 180 prior contexts")
+    return row
+
+
+def validate_source_key_join(expected_keys: list, observed_keys: list,
+                             exact: bool = True) -> bool:
+    """Require unique keys and either exact equality or expected-key subset coverage."""
+    expected = list(expected_keys)
+    observed = list(observed_keys)
+    if len(expected) != len(set(expected)):
+        raise ValueError("duplicate expected source identity")
+    if len(observed) != len(set(observed)):
+        raise ValueError("duplicate observed source identity")
+    missing = set(expected) - set(observed)
+    extra = set(observed) - set(expected)
+    if missing or (exact and extra):
+        raise ValueError(
+            f"source identity reconciliation mismatch: missing={len(missing)}, extra={len(extra)}"
+        )
+    return True
+
+
+def validate_disposition_reason(status: str, exclusion_reason: str,
+                                censoring_reason: str = "") -> bool:
+    """Enforce the frozen candidate status/reason-code contract."""
+    reason = (exclusion_reason or "").strip()
+    censor = (censoring_reason or "").strip()
+    if status not in DISPOSITION_STATUSES:
+        raise ValueError(f"unknown candidate status: {status}")
+    if status == "ELIGIBLE_FOR_FURTHER_VALIDATION":
+        if reason != "NONE" or censor:
+            raise ValueError("eligible rows require exclusion_reason=NONE and no censoring_reason")
+    elif status == "REJECTED":
+        if reason not in REJECTED_REASON_CODES or censor:
+            raise ValueError("rejected row has invalid exclusion or censoring reason")
+    elif status == "EXPIRED":
+        if reason not in EXPIRED_REASON_CODES or censor:
+            raise ValueError("expired row has invalid exclusion or censoring reason")
+    elif status == "CENSORED":
+        if reason not in CENSORED_REASON_CODES or censor != reason:
+            raise ValueError("censored row requires matching non-empty exclusion and censoring reasons")
+    return True
 
 
 def deterministic_json(rows: list[dict]) -> str:
