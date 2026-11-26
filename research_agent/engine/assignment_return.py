@@ -5,7 +5,7 @@ from typing import Any
 
 import json
 
-from .assignment_package import prepare_worker_assignment
+from .assignment_package import assignment_package_digest, prepare_worker_assignment
 from .report_builder import task_definition_digest
 from .review_pipeline import review_submission_with_verified_evidence
 
@@ -15,6 +15,7 @@ def review_assignment_return(
     assignment_package: dict[str, Any],
     submission: dict[str, Any],
     *,
+    expected_assignment_package_sha256: str,
     expected_commit_sha: str,
     commit_manifest: dict[str, Any],
     file_contents: dict[str, bytes],
@@ -30,6 +31,13 @@ def review_assignment_return(
         raise TypeError("Trusted task and assignment package must be objects.")
     if type(assignment_package.get("schema_version")) is not int or assignment_package.get("schema_version") != 1:
         raise ValueError("Unsupported assignment package schema version.")
+
+    if (not isinstance(expected_assignment_package_sha256, str)
+            or len(expected_assignment_package_sha256) != 64
+            or any(ch not in "0123456789abcdef" for ch in expected_assignment_package_sha256)):
+        raise ValueError("A trusted lowercase assignment-package SHA-256 is required.")
+    if assignment_package_digest(assignment_package) != expected_assignment_package_sha256:
+        raise ValueError("Assignment package digest does not match the trusted prepared-package digest.")
 
     digest = task_definition_digest(trusted_task)
     preflight = assignment_package.get("preflight")
