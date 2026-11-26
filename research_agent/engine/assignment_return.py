@@ -3,6 +3,9 @@ from __future__ import annotations
 
 from typing import Any
 
+import json
+
+from .assignment_package import prepare_worker_assignment
 from .report_builder import task_definition_digest
 from .review_pipeline import review_submission_with_verified_evidence
 
@@ -25,44 +28,57 @@ def review_assignment_return(
     """
     if not isinstance(trusted_task, dict) or not isinstance(assignment_package, dict):
         raise TypeError("Trusted task and assignment package must be objects.")
-    if assignment_package.get("schema_version") != 1:
+    if type(assignment_package.get("schema_version")) is not int or assignment_package.get("schema_version") != 1:
         raise ValueError("Unsupported assignment package schema version.")
-    if assignment_package.get("mode") != "worker_assignment_package_only":
-        raise ValueError("Assignment package mode is invalid.")
-    if assignment_package.get("assignment_status") != "prepared_not_dispatched":
-        raise ValueError("Only a prepared, non-blocked assignment package can be reviewed.")
-    if assignment_package.get("dispatch_permitted") is not False:
-        raise ValueError("Assignment package must not claim dispatch permission.")
-    for field in ("execution_performed", "task_completion_approved", "gate_closure_approved"):
-        if assignment_package.get(field) is not False:
-            raise ValueError(f"Assignment package has an invalid authority flag: {field}.")
-    if assignment_package.get("completion_authority") != "human_only":
-        raise ValueError("Assignment package must preserve human-only completion authority.")
 
     digest = task_definition_digest(trusted_task)
-    expected = {
+    preflight = assignment_package.get("preflight")
+    if not isinstance(preflight, dict):
+        raise ValueError("Assignment package preflight record is invalid.")
+    reason = preflight.get("reason")
+    if not isinstance(reason, str) or not reason.strip():
+        raise ValueError("Assignment package does not contain an exact allowed preflight result.")
+
+    # Rebuild the package from the trusted task and the minimal allowed
+    # preflight facts, then compare canonical JSON. String comparison keeps
+    # JSON booleans distinct from integers (Python dict equality does not).
+    canonical_preflight = {
+        "task_id": trusted_task.get("task_id"),
+        "queue_status": "queued",
+        "decision": "ALLOW_READ_ONLY",
+        "authorized": True,
+        "reason": reason,
+        "execution_performed": False,
+        "mode": "preflight_only",
+    }
+    canonical_plan = {
         "task_id": trusted_task.get("task_id"),
         "phase": trusted_task.get("phase"),
         "operation": trusted_task.get("operation"),
+        "title": trusted_task.get("title"),
         "handoff_id": trusted_task.get("handoff_id"),
-        "task_definition_sha256": digest,
-        "trusted_task": trusted_task,
         "scope": trusted_task.get("scope"),
         "prohibited": trusted_task.get("prohibited"),
+        "task_definition_sha256": digest,
+        "assignment_status": "preflight_allowed_not_executed",
         "completion_authority": "human_only",
     }
-    for field, value in expected.items():
-        if assignment_package.get(field) != value:
-            raise ValueError(f"Assignment package does not match trusted task field: {field}.")
-
-    preflight = assignment_package.get("preflight")
-    if not isinstance(preflight, dict) or preflight != {
-        "decision": "ALLOW_READ_ONLY",
-        "authorized": True,
-        "reason": preflight.get("reason") if isinstance(preflight, dict) else None,
-        "execution_performed": False,
-    } or not isinstance(preflight.get("reason"), str) or not preflight["reason"].strip():
-        raise ValueError("Assignment package does not contain an exact allowed preflight result.")
+    expected_package = prepare_worker_assignment(
+        trusted_task, canonical_preflight, planned_assignment=canonical_plan
+    )
+    try:
+        supplied_canonical = json.dumps(
+            assignment_package, sort_keys=True, separators=(",", ":"),
+            ensure_ascii=False, allow_nan=False,
+        )
+        expected_canonical = json.dumps(
+            expected_package, sort_keys=True, separators=(",", ":"),
+            ensure_ascii=False, allow_nan=False,
+        )
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Assignment package is not strict JSON data.") from exc
+    if supplied_canonical != expected_canonical:
+        raise ValueError("Assignment package does not exactly match the canonical trusted package.")
 
     review = review_submission_with_verified_evidence(
         trusted_task,
