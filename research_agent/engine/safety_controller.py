@@ -1,27 +1,31 @@
-"""Fail-closed permission checks for okx-research-agent.
+"""Fail-closed authorization for the OKX research operations agent.
 
-This module authorizes a task; it does not execute the task. Missing or
-ambiguous permission is always a denial. No network access or side effects.
+This module evaluates permissions only. It never executes a research task.
+All missing, malformed, stale, or conflicting policy data results in DENY.
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
-AGENT_CONFIG = ROOT / "research_agent" / "config" / "agent_config.json"
-PHASE_CONFIG = ROOT / "research_agent" / "config" / "phase_permissions.json"
+CONFIG_DIR = ROOT / "research_agent" / "config"
+AGENT_CONFIG = CONFIG_DIR / "agent_config.json"
+PHASE_CONFIG = CONFIG_DIR / "phase_permissions.json"
+QUEUE_CONFIG = CONFIG_DIR / "task_queue.json"
+ALLOWLIST_CONFIG = CONFIG_DIR / "task_allowlist.json"
 
 READ_ONLY_OPERATIONS = {
     "repository_inspection",
     "evidence_lineage_review",
     "report_generation",
 }
-
-GLOBAL_DENY_OPERATIONS = {
+DENIED_OPERATIONS = {
+    "modify_code",
     "modify_research_data",
     "modify_canonical_definitions",
     "create_candidates",
@@ -38,7 +42,7 @@ GLOBAL_DENY_OPERATIONS = {
 
 
 class PermissionConfigError(Exception):
-    """Raised when permission configuration is missing or malformed."""
+    """Raised when trusted permission configuration is missing or malformed."""
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -51,6 +55,13 @@ def _load_json(path: Path) -> dict[str, Any]:
     return value
 
 
+def _canonical_hash(value: Any) -> str:
+    encoded = json.dumps(
+        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def _deny(reason: str) -> dict[str, Any]:
     return {"authorized": False, "decision": "DENY", "reason": reason}
 
@@ -61,11 +72,12 @@ def authorize_task(
     allowlist: dict[str, Any] | None = None,
     agent_config: dict[str, Any] | None = None,
     phase_config: dict[str, Any] | None = None,
+    queue_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Authorize one task without executing it.
+    """Evaluate an exact queued task against a separately trusted hash allowlist.
 
-    The allowlist must come from a separately reviewed trusted source.
-    Expected shape: {"approved_task_ids": ["..."]}. A task cannot approve itself.
+    Allowlist shape: {"approved_tasks": [{"task_id": "...", "task_sha256": "..."}]}.
+    A task cannot approve itself, change its own operation, or change its phase.
     """
     if not isinstance(task, dict):
         return _deny("Task must be a JSON object.")
@@ -73,41 +85,70 @@ def authorize_task(
     try:
         agent = agent_config if agent_config is not None else _load_json(AGENT_CONFIG)
         phases = phase_config if phase_config is not None else _load_json(PHASE_CONFIG)
+        queue = queue_config if queue_config is not None else _load_json(QUEUE_CONFIG)
+        trusted_allowlist = allowlist if allowlist is not None else _load_json(ALLOWLIST_CONFIG)
     except PermissionConfigError as exc:
         return _deny(str(exc))
 
-    if not isinstance(agent, dict):
-        return _deny("Agent configuration is malformed.")
+    if not all(isinstance(item, dict) for item in (agent, phases, queue, trusted_allowlist)):
+        return _deny("One or more policy documents are malformed.")
+
     execution = agent.get("execution")
     if not isinstance(execution, dict):
         return _deny("Agent execution configuration is missing or malformed.")
     if execution.get("enabled") is not True:
-        return _deny("Agent execution is disabled; authorization checks are non-operational.")
-    if execution.get("require_task_allowlist") is not True:
-        return _deny("Agent configuration does not require an explicit task allowlist.")
-    if execution.get("require_phase_permission") is not True:
-        return _deny("Agent configuration does not require phase permissions.")
-    if execution.get("require_safety_controller") is not True:
-        return _deny("Agent configuration does not require the safety controller.")
-
-    if not isinstance(allowlist, dict):
-        return _deny("Trusted task allowlist was not supplied.")
-    approved_ids = allowlist.get("approved_task_ids")
-    if not isinstance(approved_ids, list) or not all(
-        isinstance(item, str) and item.strip() for item in approved_ids
+        return _deny("Agent execution is disabled; no task can execute.")
+    for required_flag in (
+        "require_task_allowlist",
+        "require_phase_permission",
+        "require_safety_controller",
     ):
-        return _deny("Task allowlist is missing or malformed.")
+        if execution.get(required_flag) is not True:
+            return _deny(f"Required safety setting is not enabled: {required_flag}")
+
+    queue_policy = queue.get("queue_policy")
+    queue_tasks = queue.get("tasks")
+    if not isinstance(queue_policy, dict) or not isinstance(queue_tasks, list):
+        return _deny("Task queue policy is missing or malformed.")
+    if queue_policy.get("execution_enabled") is not True:
+        return _deny("Task queue execution is disabled.")
+    if queue_policy.get("no_phase_skipping") is not True:
+        return _deny("Queue does not enforce sequential phase order.")
+    if queue_policy.get("tasks_may_not_override_handoffs") is not True:
+        return _deny("Queue does not preserve handoff restrictions.")
+
+    approved = trusted_allowlist.get("approved_tasks")
+    if not isinstance(approved, list):
+        return _deny("Trusted allowlist must contain an approved_tasks list.")
+    if not all(
+        isinstance(row, dict)
+        and isinstance(row.get("task_id"), str)
+        and isinstance(row.get("task_sha256"), str)
+        for row in approved
+    ):
+        return _deny("Trusted allowlist entries are malformed.")
 
     task_id = task.get("task_id")
-    phase = task.get("phase")
-    operation = task.get("operation")
     if not isinstance(task_id, str) or not task_id.strip():
         return _deny("Task is missing a valid task_id.")
-    if task_id not in approved_ids:
-        return _deny("Task ID is not present in the trusted allowlist.")
-    if not isinstance(phase, str) or not isinstance(operation, str):
-        return _deny("Task must specify phase and operation as strings.")
 
+    queued_matches = [row for row in queue_tasks if isinstance(row, dict) and row.get("task_id") == task_id]
+    if len(queued_matches) != 1:
+        return _deny("Task ID must match exactly one queue entry.")
+    queued_task = queued_matches[0]
+    if task != queued_task:
+        return _deny("Submitted task differs from its trusted queue definition.")
+    if queued_task.get("status") != "queued":
+        return _deny("Task is not in queued status.")
+
+    allow_matches = [row for row in approved if row["task_id"] == task_id]
+    if len(allow_matches) != 1:
+        return _deny("Task is not uniquely approved in the trusted allowlist.")
+    if allow_matches[0]["task_sha256"] != _canonical_hash(queued_task):
+        return _deny("Task definition hash does not match the trusted approval.")
+
+    phase = queued_task.get("phase")
+    operation = queued_task.get("operation")
     phase_order = phases.get("phase_order")
     phase_rules = phases.get("phases")
     defaults = phases.get("global_defaults")
@@ -115,56 +156,51 @@ def authorize_task(
         return _deny("Phase permission configuration is malformed.")
     if phase not in phase_order or phase not in phase_rules:
         return _deny("Unknown phase; no permission is granted.")
-
-    # Global prohibitions override every phase-specific allowance.
-    if operation in GLOBAL_DENY_OPERATIONS:
-        return _deny(f"Operation is globally prohibited: {operation}")
-    if operation not in READ_ONLY_OPERATIONS:
-        return _deny(f"Unrecognized or non-read-only operation: {operation}")
+    if agent.get("phase_order") != phase_order or queue_policy.get("phase_order") != phase_order:
+        return _deny("Agent, queue, and phase permission order do not agree.")
 
     phase_rule = phase_rules[phase]
     if not isinstance(phase_rule, dict):
-        return _deny("Phase rule is malformed.")
+        return _deny("Phase permission entry is malformed.")
+    if phase_rule.get("status") != "active_research_phase":
+        return _deny("Task belongs to a phase that is not currently active.")
 
-    # G0-05 permits only read-only reconciliation under its current handoff.
-    # The operation allowlist above excludes scripts, tests, workflows, and writes.
+    if operation in DENIED_OPERATIONS:
+        return _deny(f"Operation is prohibited: {operation}")
+    if operation not in READ_ONLY_OPERATIONS:
+        return _deny(f"Unknown or non-read-only operation: {operation}")
+
     if phase == "phase3_sideways_range":
         g0_05 = phase_rule.get("g0_05")
         if not isinstance(g0_05, dict):
             return _deny("Phase 3 G0-05 lock configuration is missing.")
-        targets_g0_05 = (
-            task.get("handoff_id") == "PHASE3_G0_05_RECONCILIATION_TASK_02"
-            or task.get("workstream") == "g0_05"
-        )
-        if targets_g0_05 and (
-            g0_05.get("status") != "read_only_reconciliation_only"
-            or g0_05.get("scripts_tests_workflows") != "prohibited"
-            or g0_05.get("data_or_code_changes") != "prohibited"
-            or g0_05.get("backtesting_and_pnl") != "prohibited"
-            or g0_05.get("gate_closure") != "prohibited"
-        ):
-            return _deny("G0-05 safety lock is missing, weakened, or malformed.")
+        if queued_task.get("workstream") == "g0_05" or queued_task.get(
+            "handoff_id"
+        ) == "PHASE3_G0_05_RECONCILIATION_TASK_02":
+            required_lock_values = {
+                "status": "read_only_reconciliation_only",
+                "scripts_tests_workflows": "prohibited",
+                "data_or_code_changes": "prohibited",
+                "candidate_generation": "prohibited",
+                "backtesting_and_pnl": "prohibited",
+                "gate_closure": "prohibited",
+            }
+            if any(g0_05.get(key) != value for key, value in required_lock_values.items()):
+                return _deny("G0-05 safety lock is missing, weakened, or malformed.")
 
-    if phase_rule.get("execution_override") == "deny" and operation not in READ_ONLY_OPERATIONS:
-        return _deny("Phase execution override denies this operation.")
-
-    default_key = {
-        "repository_inspection": "repository_inspection",
-        "evidence_lineage_review": "evidence_lineage_review",
-        "report_generation": "report_generation",
-    }[operation]
-    permitted_values = {
-        "repository_inspection": {"allow_read_only"},
-        "evidence_lineage_review": {"allow_read_only"},
-        "report_generation": {"allow_local_or_artifact_only"},
+    default_values = {
+        "repository_inspection": ("repository_inspection", "allow_read_only"),
+        "evidence_lineage_review": ("evidence_lineage_review", "allow_read_only"),
+        "report_generation": ("report_generation", "allow_local_or_artifact_only"),
     }
-    if defaults.get(default_key) not in permitted_values[operation]:
-        return _deny("Global configuration does not explicitly permit this read-only operation.")
+    config_key, required_value = default_values[operation]
+    if defaults.get(config_key) != required_value:
+        return _deny("Global configuration does not explicitly permit this operation.")
 
     return {
         "authorized": True,
         "decision": "ALLOW_READ_ONLY",
-        "reason": "Task is allowlisted and within the configured read-only scope.",
+        "reason": "Exact queued task, trusted hash approval, phase, and read-only policy all match.",
         "task_id": task_id,
         "phase": phase,
         "operation": operation,
@@ -174,23 +210,16 @@ def authorize_task(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check an OKX research task's permissions; this command does not execute it."
+        description="Evaluate an OKX research task's permissions; does not execute it."
     )
-    parser.add_argument("task_file", type=Path, help="Path to a JSON task description.")
-    parser.add_argument(
-        "--allowlist-file",
-        type=Path,
-        required=True,
-        help="Trusted JSON allowlist containing approved_task_ids.",
-    )
+    parser.add_argument("task_file", type=Path, help="JSON task copied exactly from the queue.")
     args = parser.parse_args()
     try:
         task = json.loads(args.task_file.read_text(encoding="utf-8"))
-        allowlist = json.loads(args.allowlist_file.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        print(json.dumps(_deny(f"Cannot read task or allowlist: {exc}"), indent=2))
-        return 2
-    result = authorize_task(task, allowlist=allowlist)
+        result = _deny(f"Cannot read task file: {exc}")
+    else:
+        result = authorize_task(task)
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0 if result["authorized"] else 1
 
