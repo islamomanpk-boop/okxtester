@@ -640,7 +640,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "historical_cohort_memberships":";".join(sorted({r["definition"].upper() for r in item["members"]})),
             "direction":direction,"family":"SUPPORT_REJECTION" if direction.lower()=="lower" else "RESISTANCE_REJECTION",
             "family_direction":"LONG" if direction.lower()=="lower" else "SHORT",
-            "confirmation_ts_ms":confirm,"first_eligible_1m_open_ts_ms":confirm,
+            "confirmation_ts_ms":confirm,"first_eligible_1m_open_ts_ms":first_eligible_minute_or_blank(status, confirm),
             "disposition":status,"reason_code":reason})
     # Raw breakout crossings: retain one row per raw source crossing.
     raw_rows = g004_data["raw_rows"]
@@ -663,7 +663,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
         breakout_rows.append({"asset":asset,"source_event_key":f"{asset}|{r['direction']}|{signal}|{snap}",
             "direction":r["direction"],"family":"BREAKOUT_CONTINUATION",
             "family_direction":"LONG" if r["direction"]=="UPPER" else "SHORT",
-            "signal_time_ms":signal,"first_eligible_1m_open_ts_ms":signal,
+            "signal_time_ms":signal,"first_eligible_1m_open_ts_ms":first_eligible_minute_or_blank(status, signal),
             "causal_cohort":cohort,"disposition":status,"reason_code":reason})
     # Every G0-04 raw crossing must appear exactly once in the continuation ledger.
     expected_breakout_keys = [
