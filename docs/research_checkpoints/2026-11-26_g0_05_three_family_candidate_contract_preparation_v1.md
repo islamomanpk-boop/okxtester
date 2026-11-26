@@ -271,3 +271,12 @@ If any critical item fails, status remains OPEN / BLOCKED or CONDITIONAL HOLD. D
 G0-04 canonical execution has completed successfully and its artifact has been inspected. The implementation checkpoint records the run ID, checked-out revision, 20/20 historical baseline reproduction, 932-identity reconciliation, cross-pipeline checks, partial-tail coverage exception, and independently verified output hashes.
 
 **This is not formal G0-04 acceptance.** G0-05 remains preparation-only and blocked until the independent review and dated G0-04 closeout are completed. No candidate generator, candidate ledger, order/fill simulation, PnL, or strategy backtest is authorized by this update.
+
+
+## G0-04 latest evidence update — 2026-11-26
+
+The null/invalid historical zone-level validator repair is complete. Corrected source revision `86b49598d676b6ab00649bf31d4490ffbb1e608f` passed workflow run [45756061179](https://github.com/islamomanpk-boop/okxtester/actions/runs/45756061179), job `139694830125`, and produced artifact `15087542445` with ZIP SHA-256 `ef6204b546b49880675514ff76b4f6cb86e2821ba2b0d1d5412549927388f0a1`.
+
+The implementation checkpoint now records additional direct checks against the five raw 1-minute files: all five SHA-256 values independently match metadata; 569,125 common timestamps are identical across assets; source cadence/OHLCV checks show no defects; a separate raw-data recomputation reproduces all 20 historical counts and all 10 quantiles; and all five detector ledgers match 2,358 rebuilt contexts each within (10^{-9}). The actual historical classification ledger has 4,776 rows and 932 distinct identities, with no null zones or duplicate full-grain classifications.
+
+These checks materially close the evidence gaps raised in the preliminary Kimi review, but they are documented as a separate assistant-side audit and do not change Kimi's own INCONCLUSIVE report. Formal G0-04 acceptance still requires an explicit project-owner disposition under the review standard. Therefore this G0-05 document remains PREPARATION ONLY: implementation and candidate generation are blocked; Gate 0 remains CONDITIONAL HOLD; no execution simulation, backtesting or PnL is authorized.
