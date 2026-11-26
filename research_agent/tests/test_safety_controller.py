@@ -130,6 +130,33 @@ class SafetyControllerTests(unittest.TestCase):
         self.assertFalse(result["authorized"])
         self.assertIn("human-authorized closed", result["reason"])
 
+    def test_denies_relabelled_phase3_task_while_global_lock_is_active(self):
+        result = self.evaluate(
+            {
+                "task_id": "P3-OTHER-LABEL",
+                "phase": "phase3_sideways_range",
+                "workstream": "unrelated_label",
+                "operation": "repository_inspection",
+                "status": "queued",
+            },
+            lock=True,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("all Phase 3 task authorization", result["reason"])
+
+    def test_denies_duplicate_phase_order_entries(self):
+        result = self.evaluate(
+            {
+                "task_id": "P3-DUPLICATE-PHASE",
+                "phase": "phase3_sideways_range",
+                "operation": "repository_inspection",
+                "status": "queued",
+            },
+            phase_order=["phase3_sideways_range", "phase3_sideways_range"],
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("unique, non-empty phase names", result["reason"])
+
     def test_denies_g0_05_while_global_lock_is_active(self):
         result = self.evaluate(
             {
