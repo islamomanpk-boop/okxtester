@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from safety_controller import authorize_task
+from .safety_controller import authorize_task
 
 ROOT = Path(__file__).resolve().parents[2]
 QUEUE_PATH = ROOT / "research_agent" / "config" / "task_queue.json"
