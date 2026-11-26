@@ -25,15 +25,12 @@ _PREFLIGHT_FIELDS = {
     "execution_performed", "mode",
 }
 def assignment_package_digest(package: dict[str, Any]) -> str:
-    """Hash a canonical package; caller must retain this digest in a trusted channel."""
+    """Hash a strict canonical package; caller retains this digest in a trusted channel."""
     if not isinstance(package, dict):
         raise TypeError("Assignment package must be an object.")
-    try:
-        canonical = json.dumps(package, sort_keys=True, separators=(",", ":"),
-                               ensure_ascii=False, allow_nan=False).encode("utf-8")
-    except (TypeError, ValueError) as exc:
-        raise ValueError("Assignment package is not strict JSON data.") from exc
-    return hashlib.sha256(canonical).hexdigest()
+    # Reuse the task digest's strict JSON contract: no key coercion, tuples,
+    # non-finite numbers, or Python-only values may enter the fingerprint.
+    return task_definition_digest(package)
 
 
 _PLAN_FIELDS = {
