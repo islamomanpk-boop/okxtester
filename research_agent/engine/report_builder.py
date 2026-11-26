@@ -221,6 +221,50 @@ def verify_input_manifest_against_checkout(report: dict[str, Any]) -> list[str]:
     return mismatches
 
 
+def verify_report_provenance(
+    report: dict[str, Any],
+    trusted_task: dict[str, Any],
+    *,
+    expected_repository: str,
+    expected_branch: str,
+    expected_commit_sha: str,
+    actual_head_sha: str,
+    checkout_clean: bool,
+) -> None:
+    """Verify report claims against trusted task and independently supplied checkout facts.
+
+    The caller must obtain these runtime facts from the workflow/checkout boundary,
+    not from report fields or task-controlled input. A clean checkout at the exact
+    expected commit makes the declared file hashes attributable to that commit.
+    """
+    verify_report_task_binding(report, trusted_task)
+    for name, value in (
+        ("expected_repository", expected_repository),
+        ("expected_branch", expected_branch),
+        ("expected_commit_sha", expected_commit_sha),
+        ("actual_head_sha", actual_head_sha),
+    ):
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"{name} must be a non-empty trusted runtime value.")
+    if not _COMMIT_RE.fullmatch(expected_commit_sha):
+        raise ValueError("expected_commit_sha must be a valid lowercase Git SHA.")
+    if not _COMMIT_RE.fullmatch(actual_head_sha):
+        raise ValueError("actual_head_sha must be a valid lowercase Git SHA.")
+    if report["repository"] != expected_repository:
+        raise ValueError("Report repository does not match trusted workflow context.")
+    if report["branch"] != expected_branch:
+        raise ValueError("Report branch does not match trusted workflow context.")
+    if report["commit_sha"] != expected_commit_sha:
+        raise ValueError("Report commit SHA does not match trusted workflow context.")
+    if actual_head_sha != expected_commit_sha:
+        raise ValueError("Checked-out HEAD does not match the expected commit SHA.")
+    if checkout_clean is not True:
+        raise ValueError("Checkout must be independently confirmed clean.")
+    mismatches = verify_input_manifest_against_checkout(report)
+    if mismatches:
+        raise ValueError("Input manifest verification failed: " + "; ".join(mismatches))
+
+
 def render_json(report: dict[str, Any]) -> str:
     """Return stable, human-readable JSON with deterministic key ordering."""
     validate_report(report)
