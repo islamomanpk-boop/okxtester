@@ -4,12 +4,14 @@
 
 ## Current status
 
-- Foundation configuration only; automation is not enabled.
+- Foundation configuration, fail-closed safety controller, phase-ordered task queue, and empty trusted allowlist are present.
+- Agent execution and scheduling remain disabled.
 - Repository inspection is read-only by default.
 - No unattended general-purpose LLM is assumed or required.
 - Reports are intended for GitHub Actions artifacts.
-- Work is organized across all five research phases in the agreed order: Phase 3, Phase 1, Phase 2, Phase 4, Phase 5.
+- Work is organized in the agreed order: Phase 3, Phase 1, Phase 2, Phase 4, Phase 5.
 - No automatic merge or write to the research branch is permitted.
+- The safety controller and task queue have not been runtime-tested; no scripts, tests, or workflows have been run as part of this setup.
 
 ## Hard safety boundary: Phase 3 G0-05
 
@@ -17,25 +19,27 @@ The current G0-05 handoff requires read-only reconciliation and explicitly prohi
 
 ## Permission model
 
-Every future task must pass all of these checks before execution:
+Every proposed task must pass all of these checks before it can be considered for execution:
 
-1. The task is explicitly present in the task allowlist.
-2. Its phase is enabled for that exact operation.
+1. The task ID is explicitly present in the trusted task allowlist.
+2. Its phase is recognized and has the relevant permission.
 3. No current handoff or gate restriction prohibits the operation.
-4. The operation is within the free-only budget and repository scope.
-5. The operation does not require human approval that has not been granted.
+4. The operation is in the controller's narrow read-only allowlist.
+5. The agent execution master switch is enabled.
 
-A missing, ambiguous, or conflicting permission means **deny**.
+A missing, ambiguous, malformed, or conflicting permission means **deny**. The task itself cannot grant its own permission. The current trusted allowlist is intentionally empty.
 
-## Planned components
+## Components
 
 - `config/agent_config.json` — identity, operating mode, scheduling defaults, and global prohibitions.
 - `config/phase_permissions.json` — phase order and operation-level permission boundaries.
-- `engine/safety_controller.py` — planned fail-closed enforcement (not yet implemented).
-- `engine/task_runner.py` — planned allowlisted task execution (not yet implemented).
-- `engine/report_builder.py` — planned reproducible report generation (not yet implemented).
+- `config/task_queue.json` — initial phase-ordered task definitions and dependencies.
+- `config/task_allowlist.json` — trusted task IDs; currently empty.
+- `engine/safety_controller.py` — pure permission evaluator; it authorizes but never executes a task.
+- `engine/task_runner.py` — planned; not implemented.
+- `engine/report_builder.py` — planned; not implemented.
 - `.github/workflows/` — planned event-driven orchestration; must remain disabled until separately reviewed and approved.
 
 ## Activation policy
 
-Creating this scaffold does not authorize running it. Do not add or enable scheduled/event-triggered workflows until the safety controller, task allowlist, and independent validation are complete and the applicable research handoffs permit execution.
+Creating this scaffold does not authorize running it. Do not add or enable scheduled/event-triggered workflows until the safety controller, task allowlist, and independent validation are complete and the applicable research handoffs permit execution. The G0-05 handoff remains authoritative even if a future agent configuration is changed.
