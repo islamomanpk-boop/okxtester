@@ -9,6 +9,10 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
+from research.phase3_g0_05_candidate_contract_v1 import (
+    exact_threshold_for_snapshot, validate_source_key_join,
+)
+
 EXPECTED_BLOBS = {
     "reports/sideways_boundary_events_historical_v1/boundary_tests_historical_v1.csv": "2af6f85cd60194019f903a17f16216841ae61f8c",
     "reports/sideways_phase3_research_archive_v1/episode_retest_anatomy_v1/event_anatomy_v1.csv": "c58de65ec1936607790c2ee40b828897e6f726dc",
@@ -220,7 +224,8 @@ def audit_rejections(root: Path, loaded: dict, threshold_by_key: dict) -> dict:
         idx = int(source["snapshot_index"])
         feature = feature_rows[asset][idx]
         snapshot = ms(feature["available_at_ts_ms"], "feature snapshot")
-        threshold = threshold_by_key.get((asset, snapshot, "EXPANDING_PRIOR", "UNIQUE_4H_FEATURE_ROWS"))
+        threshold = exact_threshold_for_snapshot(threshold_by_key, asset, snapshot,
+                                     "EXPANDING_PRIOR", "UNIQUE_4H_FEATURE_ROWS")
         confirmation = memberships["broad"]["confirmation_ms"]
         next_available = memberships["broad"]["next_available_ms"]
         if confirmation >= next_available:
@@ -466,6 +471,27 @@ def validate_module_b_horizons(events: list[dict[str, str]],
     }
 
 
+def validate_disposition_ledger(rows: list[dict[str, str]],
+                                 identity_field: str, expected_rows: int) -> dict:
+    """Require one unique physical source identity and one valid disposition per row."""
+    if len(rows) != expected_rows:
+        fail(f"disposition ledger row count {len(rows)} != expected {expected_rows}")
+    identities = [(row.get(identity_field) or "").strip() for row in rows]
+    if any(not value for value in identities):
+        fail(f"disposition ledger has blank {identity_field}")
+    if len(identities) != len(set(identities)):
+        fail(f"disposition ledger has duplicate {identity_field}")
+    allowed = {"ELIGIBLE_FOR_FURTHER_VALIDATION", "REJECTED", "EXPIRED", "CENSORED"}
+    dispositions = [row.get("disposition") for row in rows]
+    invalid = sorted(set(dispositions) - allowed)
+    if invalid or any(not value for value in dispositions):
+        fail(f"disposition ledger has invalid status values: {invalid}")
+    counts = Counter(dispositions)
+    if sum(counts.values()) != expected_rows:
+        fail("disposition totals do not equal the source population")
+    return {"rows": len(rows), "dispositions": dict(counts)}
+
+
 def audit_module_b(root: Path, g004_raw_keys: set) -> dict:
     base = root / "reports/phase3_breakout_lifecycle_v1_1"
     metadata = json.loads((base / "run_metadata_v1_1.json").read_text(encoding="utf-8"))
@@ -498,9 +524,10 @@ def audit_module_b(root: Path, g004_raw_keys: set) -> dict:
                ms(row["signal_time_ms"], "Module B signal"),
                iso_ms(row["snapshot"], "Module B snapshot"))
         event_keys.add(key)
-    unmatched = event_keys - g004_raw_keys
-    if unmatched:
-        fail(f"Module B source identities absent from G0-04 raw ledger: {len(unmatched)}")
+    try:
+        validate_source_key_join(list(event_keys), list(g004_raw_keys), exact=False)
+    except ValueError as exc:
+        fail(f"Module B source identities absent from G0-04 raw ledger: {exc}")
     return {"event_rows": len(events), "horizon_rows": len(horizons),
             "events_git_blob_sha1": git_blob_sha1(event_path.read_bytes()),
             "events_sha256": sha256_bytes(event_path.read_bytes()),
@@ -585,7 +612,8 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             fail(f"physical rejection missing broad cohort row: {key}")
         feature = feature_by_asset[asset][idx]
         snapshot = ms(feature["available_at_ts_ms"],"rejection feature snapshot")
-        threshold = thresholds.get((asset,snapshot,"EXPANDING_PRIOR","UNIQUE_4H_FEATURE_ROWS"))
+        threshold = exact_threshold_for_snapshot(thresholds, asset, snapshot,
+                                         "EXPANDING_PRIOR", "UNIQUE_4H_FEATURE_ROWS")
         confirm = ms(broad["first_strong_rejection_ts_ms"],"rejection open") + 900000
         next_available = ms(broad["snapshot_next_available_at_ts_ms"],"next snapshot")
         if confirm >= next_available:
@@ -632,6 +660,16 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "family_direction":"LONG" if r["direction"]=="UPPER" else "SHORT",
             "signal_time_ms":signal,"first_eligible_1m_open_ts_ms":signal,
             "causal_cohort":cohort,"disposition":status,"reason_code":reason})
+    # Every G0-04 raw crossing must appear exactly once in the continuation ledger.
+    expected_breakout_keys = [
+        f"{r['asset']}|{r['direction']}|{ms(r['signal_time_ms'], 'raw signal')}|{ms(r['context_snapshot_ms'], 'raw snapshot')}"
+        for r in raw_rows
+    ]
+    observed_breakout_keys = [r["source_event_key"] for r in breakout_rows]
+    try:
+        validate_source_key_join(expected_breakout_keys, observed_breakout_keys, exact=True)
+    except ValueError as exc:
+        fail(f"breakout source-key reconciliation failed: {exc}")
     # Module B: collapse strict/broad cohort rows to unique source events.
     base=root/"reports/phase3_breakout_lifecycle_v1_1"
     _, events=read_csv(base/"breakout_lifecycle_events_v1_1.csv")
@@ -682,14 +720,18 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
            "breakout_source_dispositions.csv":breakout_rows,
            "failed_breakout_source_dispositions.csv":failed_rows}
     counts={}
+    identity_fields = {
+        "rejection_source_dispositions.csv": ("source_event_row_ids", 1154),
+        "breakout_source_dispositions.csv": ("source_event_key", 2861),
+        "failed_breakout_source_dispositions.csv": ("source_event_key", 932),
+    }
     for name, rows in files.items():
         if not rows: fail(f"empty row disposition output {name}")
+        identity_field, expected_rows = identity_fields[name]
+        counts[name] = validate_disposition_ledger(rows, identity_field, expected_rows)
         with (out/name).open("w",encoding="utf-8",newline="") as h:
             writer=csv.DictWriter(h,fieldnames=list(rows[0]))
             writer.writeheader(); writer.writerows(rows)
-        counts[name]={"rows":len(rows),"dispositions":dict(Counter(x["disposition"] for x in rows))}
-    if len(rejection_rows)!=1154 or len(breakout_rows)!=2861 or len(failed_rows)!=932:
-        fail(f"row-level disposition cardinality mismatch: { {k:v['rows'] for k,v in counts.items()} }")
     return {"market_1m_inputs":input_audit,"row_level_outputs":counts,
             "scope":"SOURCE-ONLY DISPOSITION DRY-RUN; NO CANDIDATE GENERATION"}
 
