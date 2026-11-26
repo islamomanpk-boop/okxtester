@@ -17,6 +17,31 @@ Both include `workflow_dispatch` and push triggers restricted to `price-action-v
 
 These workflows are not agent workflows. They must not be dispatched or otherwise used to bypass the current G0-05 handoff. The two-file review is not a complete audit of all 39 inherited workflow trigger definitions.
 
+## Inherited workflow inventory — complete filename census
+
+A read-only inventory of all 39 YAML workflow files in `.github/workflows/` on the agent branch was completed. This was a static text inspection only; no workflow was dispatched.
+
+- 39 workflows total.
+- 38 declare `workflow_dispatch`.
+- 35 declare `push`.
+- 4 are manual-dispatch-only in the inspected trigger declarations.
+- 1 is push-only in the inspected trigger declarations.
+- 26 contain at least one explicit write permission among repository contents, Actions, pull requests, or issues.
+- 13 do not contain those explicit write permissions.
+- All 39 contain workflow YAML files inherited from the research branch; none is an agent-specific workflow.
+
+The four dispatch-only workflows are:
+- `sideways-boundary-interaction-taxonomy-v1.yml`
+- `sideways-rejection-v1-full-study.yml`
+- `sideways-rejection-v1-tests.yml`
+- `vps-health-monitor.yml`
+
+The push-only workflow is `funding-engine-contract-tests.yml`.
+
+**Important interpretation:** a workflow being present on the agent branch does not mean it is safe to dispatch. Many workflows explicitly check out `price-action-v1`; some have write permissions and run research scripts or tests. Manual dispatch can therefore still reach protected research code. The current G0-05 handoff prohibits using these workflows for G0-05 work, and the agent must not dispatch any inherited workflow as a workaround.
+
+The 26 write-permission findings are a static regex census of explicit permission declarations, not a proof of the effective token permission after repository/org policy. The complete workflow YAML files were not all reviewed line-by-line for every command, action pin, artifact path, or checkout behavior. The inventory is sufficient to establish a broad isolation risk, not to certify individual workflows.
+
 ## First-workflow design (future, subject to authorization)
 
 ### Trigger and scope
