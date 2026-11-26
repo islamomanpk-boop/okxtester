@@ -476,6 +476,21 @@ def validate_module_b_horizons(events: list[dict[str, str]],
     }
 
 
+def historical_membership_label(was_historical_selected: str, definitions: set[str]) -> str:
+    """Reconcile the raw G0-04 selected flag to Module B's row-level cohort labels."""
+    flag = (was_historical_selected or "").strip().lower()
+    if flag not in {"true", "false"}:
+        fail(f"invalid G0-04 historical-selected flag: {was_historical_selected!r}")
+    allowed = {"BROAD_P40", "STRICT_P25"}
+    if not definitions.issubset(allowed):
+        fail(f"unknown historical cohort memberships: {sorted(definitions - allowed)}")
+    if "STRICT_P25" in definitions and "BROAD_P40" not in definitions:
+        fail("historical strict cohort is not nested within broad")
+    if (flag == "true") != bool(definitions):
+        fail("G0-04 historical-selected flag disagrees with Module B cohort membership")
+    return ";".join(sorted(definitions)) if definitions else "NONE"
+
+
 def grouped_disposition_counts(rows: list[dict[str, str]], fields: tuple[str, ...]) -> list[dict]:
     """Return deterministic grouped row counts without changing source identities."""
     grouped = Counter(
@@ -678,9 +693,20 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
     raw_rows = g004_data["raw_rows"]
     breakout_rows = []
     tag="EXPANDING_PRIOR__UNIQUE_4H_FEATURE_ROWS"
+    base=root/"reports/phase3_breakout_lifecycle_v1_1"
+    _, module_b_events=read_csv(base/"breakout_lifecycle_events_v1_1.csv")
+    module_b_memberships={}
+    for event in module_b_events:
+        event_key=(event["asset"],event["direction"],
+                   ms(event["signal_time_ms"],"Module B signal"),
+                   iso_ms(event["snapshot"],"Module B snapshot"))
+        module_b_memberships.setdefault(event_key,set()).add(event["definition"])
     for r in raw_rows:
         asset=r["asset"]; signal=ms(r["signal_time_ms"],"breakout signal")
         snap=ms(r["context_snapshot_ms"],"breakout snapshot")
+        source_key=(asset,r["direction"],signal,snap)
+        historical_membership=historical_membership_label(
+            r.get("was_historical_selected",""), module_b_memberships.get(source_key,set()))
         if r[tag+"__strict"].lower()=="true":
             eligible=True; cohort="CAUSAL_STRICT"
         elif r[tag+"__broad"].lower()=="true":
@@ -698,6 +724,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "direction":r["direction"],"family":"BREAKOUT_CONTINUATION",
             "family_direction":"LONG" if r["direction"]=="UPPER" else "SHORT",
             "signal_time_ms":signal,"first_eligible_1m_open_ts_ms":first_eligible_minute_or_blank(status, signal),
+            "historical_cohort_memberships":historical_membership,
             "causal_cohort":cohort,"disposition":status,"reason_code":reason,
             "censoring_reason":reason if status=="CENSORED" else ""})
     # Every G0-04 raw crossing must appear exactly once in the continuation ledger.
@@ -711,8 +738,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
     except ValueError as exc:
         fail(f"breakout source-key reconciliation failed: {exc}")
     # Module B: collapse strict/broad cohort rows to unique source events.
-    base=root/"reports/phase3_breakout_lifecycle_v1_1"
-    _, events=read_csv(base/"breakout_lifecycle_events_v1_1.csv")
+    events=module_b_events
     grouped={}
     for r in events:
         key=(r["asset"],r["direction"],ms(r["signal_time_ms"],"Module B signal"),iso_ms(r["snapshot"],"Module B snapshot"))
