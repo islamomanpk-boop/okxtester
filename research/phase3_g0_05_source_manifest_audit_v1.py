@@ -477,6 +477,46 @@ def validate_module_b_horizons(events: list[dict[str, str]],
     }
 
 
+def aggregate_completed_15m_bar(minute_bars: dict[int, tuple], confirmation_close_ms: int):
+    """Aggregate an exact UTC quarter-hour from 15 consecutive 1m OHLC records."""
+    close_ms = int(confirmation_close_ms)
+    if close_ms % 900000 != 0:
+        raise ValueError(f"15m confirmation close is not quarter-hour aligned: {close_ms}")
+    open_ms = close_ms - 900000
+    required = [open_ms + i * 60000 for i in range(15)]
+    if any(ts not in minute_bars for ts in required):
+        return None
+    bars = [minute_bars[ts] for ts in required]
+    for ts, values in zip(required, bars):
+        if len(values) != 4:
+            raise ValueError(f"invalid 1m OHLC tuple at {ts}")
+        o, h, l, close = (float(v) for v in values)
+        if not all(math.isfinite(v) for v in (o, h, l, close)) or l > min(o, close) or h < max(o, close) or l > h:
+            raise ValueError(f"invalid 1m OHLC values at {ts}")
+    return {
+        "bar_open_ts_ms": open_ms,
+        "bar_close_ts_ms": close_ms,
+        "open": float(bars[0][0]),
+        "high": max(float(bar[1]) for bar in bars),
+        "low": min(float(bar[2]) for bar in bars),
+        "close": float(bars[-1][3]),
+        "component_minute_count": 15,
+    }
+
+
+def confirmation_ambiguity_flag(direction: str, boundary: float, bar: dict) -> str:
+    """Flag a completed return-inside bar whose wick still extends beyond the boundary."""
+    side = direction.upper()
+    level = float(boundary)
+    if side == "UPPER" and float(bar["high"]) > level and float(bar["close"]) <= level:
+        return "CONFIRMATION_CANDLE_WICK_OUTSIDE_CLOSE_INSIDE"
+    if side == "LOWER" and float(bar["low"]) < level and float(bar["close"]) >= level:
+        return "CONFIRMATION_CANDLE_WICK_OUTSIDE_CLOSE_INSIDE"
+    if side not in {"UPPER", "LOWER"}:
+        raise ValueError(f"unknown breakout direction for ambiguity check: {direction}")
+    return "NONE"
+
+
 def make_repeated_signal_group_id(family: str, asset: str, direction: str,
                                   snapshot_key: str | int, segment_id: str | int | None = None,
                                   source_group_id: str | None = None) -> str:
