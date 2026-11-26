@@ -397,7 +397,7 @@ def build_artifact_bundle(
         ],
     }
     files["artifact_manifest.json"] = (
-        json.dumps(manifest, indent=2, sort_keys=True, ensure_ascii=False, allow_nan=False) + "\\n"
+        json.dumps(manifest, indent=2, sort_keys=True, ensure_ascii=False, allow_nan=False) + "\n"
     )
     return {
         "artifact_name": manifest["artifact_name"],
