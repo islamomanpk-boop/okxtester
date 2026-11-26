@@ -60,7 +60,7 @@ A static source review is not a substitute for these runtime checks.
 
 1. The applicable research handoff must explicitly permit the proposed validation and execution scope. Do not infer permission from this checklist.
 2. Resolve the default-branch activation constraint: either explicitly authorize a minimal reviewed dispatcher on `main`, or approve a separate agent repository; do not alter `main` or create another repository implicitly.
-4. A human reviewer must inspect the exact task definition and approve its SHA-256 hash in the trusted allowlist.
+3. A human reviewer must inspect the exact task definition and approve its SHA-256 hash in the trusted allowlist.
 4. The agent execution and queue execution switches must remain disabled until the validation checks above pass.
 5. The safety controller must be tested against both allowed and denied cases, including phase override denial, missing prior-gate closure, the active G0-05 lock, tampered task payloads, and missing/malformed policy files.
 6. A future workflow must use least-privilege GitHub permissions, explicit branch filters, concurrency protection, bounded artifact retention, and no secrets unless separately justified.
