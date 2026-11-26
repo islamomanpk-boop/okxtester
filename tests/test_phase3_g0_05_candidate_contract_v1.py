@@ -466,6 +466,11 @@ class G005SourceAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "invalid 1m OHLC"):
             aggregate_completed_15m_bar(minute_bars, 900000)
 
+    def test_confirmation_ambiguity_rejects_unknown_direction(self):
+        with self.assertRaisesRegex(ValueError, "unknown breakout direction"):
+            confirmation_ambiguity_flag("SIDEWAYS", 100.0,
+                                         {"high": 101.0, "low": 99.0, "close": 100.0})
+
     def test_failed_breakout_confirmation_wick_ambiguity_upper_and_lower(self):
         upper_bar = {"high": 101.0, "low": 98.0, "close": 99.0}
         lower_bar = {"high": 102.0, "low": 99.0, "close": 101.0}
