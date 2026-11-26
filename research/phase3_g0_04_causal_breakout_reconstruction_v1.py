@@ -208,9 +208,14 @@ def old_events(root):
  p=root/"reports/breakout_prior_test_count_v1/breakout_prior_test_classifications_v1.csv"
  if not p.is_file(): stop("historical 932-signal classification ledger missing")
  d=pd.read_csv(p)
- d["signal_time_ms"]=pd.to_datetime(d.signal_time,utc=True).astype("int64")//1_000_000
- d["context_snapshot_ms"]=pd.to_datetime(d.snapshot,utc=True).astype("int64")//1_000_000
- return d[KEYS].drop_duplicates().assign(was_historical_selected=True)
+ required=["asset","direction","signal_time","snapshot"]
+ if any(c not in d.columns for c in required): stop("historical classification ledger missing identity columns")
+ if d[required].isna().any().any(): stop("historical classification ledger contains null identity fields")
+ d["signal_time_ms"]=pd.to_datetime(d.signal_time,utc=True,errors="coerce").astype("int64")//1_000_000
+ d["context_snapshot_ms"]=pd.to_datetime(d.snapshot,utc=True,errors="coerce").astype("int64")//1_000_000
+ if d[["signal_time_ms","context_snapshot_ms"]].isna().any().any(): stop("historical classification ledger contains invalid identity timestamps")
+ if d.duplicated(KEYS).any(): stop("historical classification ledger contains duplicate identity rows")
+ return d[KEYS].assign(was_historical_selected=True)
 
 def run(root,out):
  mins,input_audit,common=load_sources(root)
