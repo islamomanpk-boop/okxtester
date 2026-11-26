@@ -464,7 +464,7 @@ class G005SourceAuditTests(unittest.TestCase):
             43200000: {"available_at_ts_ms": "43200000"},
         }}
         with self.assertRaisesRegex(ValueError, "missing non-leading"):
-            resolve_lagged_feature_reference(features, "BTC", 57600000)
+            resolve_lagged_feature_reference(features, "BTC", 72000000)
 
     def test_canonical_snapshot_provenance_uses_exact_prior_threshold(self):
         feature = {
