@@ -90,3 +90,14 @@ The following is a dependency order, not permission to begin implementation:
 - No tests, scripts, or workflows were run for this audit.
 - No research code/data, canonical research definitions, protected research branch, default branch, secrets, permissions, VPS, or runner configuration were changed.
 - The current G0-05 handoff remains authoritative; no task execution, dispatch, scheduling, candidate generation, backtesting, PnL claim, strategy selection, gate closure, or phase advancement is authorized.
+
+
+## 9. Follow-up resolution — versioned event model and unified transaction
+
+The event-vocabulary decision is now documented in:
+- `EVENT_SCHEMA_V2_PROPOSAL.md` — preserve v1 unchanged and propose a separate v2 registry lifecycle log.
+- `UNIFIED_TRUSTED_LIFECYCLE_TRANSACTION_SPEC.md` — define the global registry sequence, per-assignment state version, replay-before-stale-check ordering, authenticated operation-boundary approval, and atomic commit of state/event/idempotency/checkpoint.
+
+This resolves the **documentation-level architecture choice**: one trusted assignment registry owns one globally sequenced v2 lifecycle log; per-assignment state versions provide an additional compare-and-swap guard; the existing v1 ledger remains immutable legacy evidence. It does not resolve backend selection, identity provisioning, approval-channel implementation, checkpoint trust root, cross-language canonicalization vectors, or transaction failure testing.
+
+The unified specification is a proposal, not implementation authority. The original G0-05 restrictions remain controlling. No tests, scripts, workflows, dispatch, or protected-branch changes were performed.
