@@ -359,6 +359,7 @@ class ReportBuilderTests(unittest.TestCase):
     def test_artifact_bundle_rejects_non_numeric_run_attempt(self):
         task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
         report = valid_report()
+        report["run_id"] = "12345"
         report["task_definition_sha256"] = report_builder.task_definition_digest(task)
         with self.assertRaisesRegex(ValueError, "run_attempt"):
             report_builder.build_artifact_bundle(
