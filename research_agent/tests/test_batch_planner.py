@@ -110,6 +110,12 @@ class BatchPlannerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "phase order"):
             build_batch_plan(queue=queue, preflight_summary=make_summary(queue))
 
+    def test_rejects_tasks_outside_approved_phase_sequence(self):
+        queue = make_queue()
+        queue["tasks"][0]["phase"] = "unknown_phase"
+        with self.assertRaisesRegex(ValueError, "approved project phases"):
+            build_batch_plan(queue=queue, preflight_summary=make_summary(queue))
+
     def test_rejects_duplicate_queue_ids(self):
         queue = make_queue()
         queue["tasks"].append(dict(queue["tasks"][0]))
