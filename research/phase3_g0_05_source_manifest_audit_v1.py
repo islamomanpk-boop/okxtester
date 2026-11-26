@@ -437,6 +437,183 @@ def audit_module_b(root: Path, g004_raw_keys: set) -> dict:
             "link_cardinality": "MODULE_B_COHORT_ROWS_TO_G004_RAW_IDENTITIES_RECONCILED"}
 
 
+def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
+                            g004_data: dict, rejection_audit: dict) -> dict:
+    """Emit source-only physical-event disposition ledgers; never candidates."""
+    minute_opens = {}
+    input_audit = {}
+    for asset in ASSETS:
+        p = root / "data/market_1m" / f"{asset}_USDT_USDT_1m.csv"
+        if not p.is_file():
+            fail(f"missing exact-minute source {p}")
+        h = hashlib.sha256()
+        stamps = set()
+        with p.open("rb") as raw:
+            for chunk in iter(lambda: raw.read(1 << 20), b""):
+                h.update(chunk)
+        expected = {
+            "BTC":"3afab3d60387c87fc4b96f54911538fea6bbb7682b2e18001537bc4359da6633",
+            "ETH":"8a2924bcb23bd5963cd1c46b8871475ff7ff4a3c8d8bed6325dbd406ec0552d2",
+            "SOL":"8ed0a2efade22a11aa50f4511cdab3d32f438759f7acd7819ccbe41ab92ac0b3",
+            "DOGE":"eabf087b1a782d316fa1560b10fc4ee7adfc0adb426ef3d1158dc18c248c40f4",
+            "AVAX":"44ac7db951247a374aecba845336517b82b2655489920d62ec70f9b02fccdfd5"}[asset]
+        if h.hexdigest() != expected:
+            fail(f"{asset} 1m SHA256 mismatch before exact-minute lookup")
+        with p.open("r", encoding="utf-8", newline="") as handle:
+            reader = csv.DictReader(handle)
+            if reader.fieldnames != ["ts","open","high","low","close","vol"]:
+                fail(f"{asset} 1m schema mismatch")
+            for row in reader:
+                t = ms(row["ts"], f"{asset} 1m ts")
+                if t % 60000 or t in stamps:
+                    fail(f"{asset} duplicate or off-grid 1m timestamp {t}")
+                stamps.add(t)
+        minute_opens[asset] = stamps
+        input_audit[asset] = {"rows":len(stamps),"sha256":h.hexdigest()}
+
+    def minute_check(asset, timestamp):
+        t = ms(str(timestamp), "first eligible minute")
+        if t % 60000:
+            return "CENSORED", "MISSING_OR_GAPPED_MINUTES"
+        if t not in minute_opens[asset]:
+            return "CENSORED", "MISSING_OR_GAPPED_MINUTES"
+        return "ELIGIBLE_FOR_FURTHER_VALIDATION", ""
+
+    rows_out = []
+    # Rejection source: collapse historical strict/broad rows to one physical event.
+    ledger_path = root / "reports/sideways_boundary_events_historical_v1/boundary_tests_historical_v1.csv"
+    anatomy_path = root / "reports/sideways_phase3_research_archive_v1/episode_retest_anatomy_v1/event_anatomy_v1.csv"
+    _, ledger = read_csv(ledger_path)
+    _, anatomy = read_csv(anatomy_path)
+    anatomy_by_id = {r["event_id"]:r for r in anatomy}
+    feature_by_asset = {}
+    for asset in ASSETS:
+        _, fr = read_csv(root / "reports/sideways_detector_original_v1" / f"{asset}_features_original_v1.csv")
+        feature_by_asset[asset] = fr
+    physical = {}
+    for row in ledger:
+        if not (row.get("first_strong_rejection_ts_ms") or "").strip():
+            continue
+        eid = rejection_event_id(row)
+        idx = int(row["snapshot_index"])
+        key = (row["asset"],row["direction"],idx,int(row["segment_id"]),
+               int(row["test_rank"]),ms(row["test_start_ts_ms"],"test start"))
+        d = physical.setdefault(key, {"members":[]})
+        d["members"].append(row)
+        d["event_ids"].append(eid) if "event_ids" in d else d.update({"event_ids":[eid]})
+    rejection_rows = []
+    thresholds = g004_data["threshold_by_key"]
+    for key, item in physical.items():
+        asset, direction, idx, segment, rank, start = key
+        broad = next((r for r in item["members"] if r["definition"].lower()=="broad"), None)
+        if broad is None:
+            fail(f"physical rejection missing broad cohort row: {key}")
+        feature = feature_by_asset[asset][idx]
+        snapshot = ms(feature["available_at_ts_ms"],"rejection feature snapshot")
+        threshold = thresholds.get((asset,snapshot,"EXPANDING_PRIOR","UNIQUE_4H_FEATURE_ROWS"))
+        confirm = ms(broad["first_strong_rejection_ts_ms"],"rejection open") + 900000
+        next_available = ms(broad["snapshot_next_available_at_ts_ms"],"next snapshot")
+        if confirm >= next_available:
+            status, reason = "EXPIRED","SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION"
+        elif threshold is None:
+            status, reason = "REJECTED","CAUSAL_THRESHOLD_WARMUP"
+        else:
+            width,eff,ov = (float(feature[k]) for k in ("channel_width_pct","directional_efficiency","mean_overlap"))
+            strict = width <= float(threshold["p25"]) and eff <= .30 and ov >= .70
+            broad_ok = width <= float(threshold["p40"]) and eff <= .30 and ov >= .70
+            if strict: status,reason="ELIGIBLE_FOR_FURTHER_VALIDATION",""
+            elif broad_ok: status,reason="ELIGIBLE_FOR_FURTHER_VALIDATION","CAUSAL_BROAD_ONLY"
+            else: status,reason="REJECTED","CAUSAL_REGIME_NOT_ELIGIBLE"
+        if status=="ELIGIBLE_FOR_FURTHER_VALIDATION":
+            status, minute_reason = minute_check(asset, confirm)
+            reason = reason or minute_reason
+        rejection_rows.append({
+            "asset":asset,"source_event_row_ids":";".join(sorted(item["event_ids"])),
+            "historical_cohort_memberships":";".join(sorted({r["definition"].upper() for r in item["members"]})),
+            "direction":direction,"family":"SUPPORT_REJECTION" if direction.lower()=="lower" else "RESISTANCE_REJECTION",
+            "confirmation_ts_ms":confirm,"first_eligible_1m_open_ts_ms":confirm,
+            "disposition":status,"reason_code":reason})
+    # Raw breakout crossings: retain one row per raw source crossing.
+    raw_rows = g004_data["raw_rows"]
+    breakout_rows = []
+    tag="EXPANDING_PRIOR__UNIQUE_4H_FEATURE_ROWS"
+    for r in raw_rows:
+        asset=r["asset"]; signal=ms(r["signal_time_ms"],"breakout signal")
+        snap=ms(r["context_snapshot_ms"],"breakout snapshot")
+        if r[tag+"__strict"].lower()=="true":
+            eligible=True; cohort="CAUSAL_STRICT"
+        elif r[tag+"__broad"].lower()=="true":
+            eligible=True; cohort="CAUSAL_BROAD_ONLY"
+        else:
+            eligible=False; cohort="CAUSAL_THRESHOLD_WARMUP" if not any(
+                (asset,snap,pop,pol) in thresholds for pol in POLICIES for pop in POPS) else "CAUSAL_REGIME_NOT_ELIGIBLE"
+        status="ELIGIBLE_FOR_FURTHER_VALIDATION" if eligible else "REJECTED"
+        reason=cohort if not eligible or cohort=="CAUSAL_BROAD_ONLY" else ""
+        if eligible:
+            status, minute_reason=minute_check(asset,signal); reason=reason or minute_reason
+        breakout_rows.append({"asset":asset,"source_event_key":f"{asset}|{r['direction']}|{signal}|{snap}",
+            "direction":r["direction"],"family":"BREAKOUT_CONTINUATION",
+            "signal_time_ms":signal,"first_eligible_1m_open_ts_ms":signal,
+            "causal_cohort":cohort,"disposition":status,"reason_code":reason})
+    # Module B: collapse strict/broad cohort rows to unique source events.
+    base=root/"reports/phase3_breakout_lifecycle_v1_1"
+    _, events=read_csv(base/"breakout_lifecycle_events_v1_1.csv")
+    grouped={}
+    for r in events:
+        key=(r["asset"],r["direction"],ms(r["signal_time_ms"],"Module B signal"),iso_ms(r["snapshot"],"Module B snapshot"))
+        grouped.setdefault(key,[]).append(r)
+    failed_rows=[]
+    for key, members in grouped.items():
+        asset,direction,signal,snapshot=key
+        if len(members)!=2 or {x["definition"] for x in members}!={"BROAD_P40","STRICT_P25"}:
+            fail(f"Module B physical event cohort collapse mismatch: {key}")
+        confirmations={ms(x["first_15m_return_inside_close_ts_ms"],"failure confirmation")
+                       for x in members if (x.get("first_15m_return_inside_close_ts_ms") or "").strip()}
+        complete={x["complete_12h"].lower()=="true" for x in members}
+        if len(confirmations)>1 or len(complete)!=1:
+            fail(f"Module B cohort rows disagree on horizon outcome: {key}")
+        raw=next((x for x in raw_rows if x["asset"]==asset and x["direction"]==direction
+                  and ms(x["signal_time_ms"],"raw signal")==signal
+                  and ms(x["context_snapshot_ms"],"raw snapshot")==snapshot),None)
+        if raw is None:
+            fail(f"Module B event missing raw crossing: {key}")
+        if raw[tag+"__strict"].lower()=="true": source_ok=True; source_cohort="CAUSAL_STRICT"
+        elif raw[tag+"__broad"].lower()=="true": source_ok=True; source_cohort="CAUSAL_BROAD_ONLY"
+        else: source_ok=False; source_cohort="SOURCE_BREAKOUT_NOT_CAUSALLY_ELIGIBLE"
+        confirmation=next(iter(confirmations)) if confirmations else None
+        if not source_ok:
+            status,reason="REJECTED",source_cohort
+        elif confirmation is None:
+            if next(iter(complete)):
+                status,reason="EXPIRED","EXPIRED_NO_RETURN_INSIDE_WITHIN_12H"
+            else:
+                status,reason="CENSORED","SOURCE_END_BEFORE_RESOLUTION"
+        else:
+            if confirmation<=signal or confirmation>signal+43200000:
+                fail(f"Module B failure confirmation outside 12h horizon: {key}")
+            status,reason=minute_check(asset,confirmation)
+        failed_rows.append({"asset":asset,"source_event_key":f"{asset}|{direction}|{signal}|{snapshot}",
+            "source_event_row_ids":";".join(sorted(x["event_id"] for x in members)),
+            "historical_cohort_memberships":"BROAD_P40;STRICT_P25","direction":direction,
+            "family":"FAILED_BREAKOUT_REVERSAL","signal_time_ms":signal,
+            "confirmation_ts_ms":confirmation or "","first_eligible_1m_open_ts_ms":confirmation or "",
+            "causal_source_cohort":source_cohort,"disposition":status,"reason_code":reason})
+    out.mkdir(parents=True,exist_ok=True)
+    files={"rejection_source_dispositions.csv":rejection_rows,
+           "breakout_source_dispositions.csv":breakout_rows,
+           "failed_breakout_source_dispositions.csv":failed_rows}
+    counts={}
+    for name, rows in files.items():
+        if not rows: fail(f"empty row disposition output {name}")
+        with (out/name).open("w",encoding="utf-8",newline="") as h:
+            writer=csv.DictWriter(h,fieldnames=list(rows[0]))
+            writer.writeheader(); writer.writerows(rows)
+        counts[name]={"rows":len(rows),"dispositions":dict(Counter(x["disposition"] for x in rows))}
+    if len(rejection_rows)!=1154 or len(breakout_rows)!=2861 or len(failed_rows)!=932:
+        fail(f"row-level disposition cardinality mismatch: { {k:v['rows'] for k,v in counts.items()} }")
+    return {"market_1m_inputs":input_audit,"row_level_outputs":counts,
+            "scope":"SOURCE-ONLY DISPOSITION DRY-RUN; NO CANDIDATE GENERATION"}
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[1])
@@ -447,6 +624,7 @@ def main() -> None:
     meta, g004, g004_data = audit_g004_artifact(args.g004_artifact_dir)
     rejection = audit_rejections(args.repo_root, loaded, g004_data["threshold_by_key"])
     module_b = audit_module_b(args.repo_root, g004_data["raw_keys"])
+    dry_run = row_disposition_dry_run(args.repo_root, args.g004_artifact_dir, args.output_dir, g004_data, rejection)
     report = {
         "status": "G0_05_SOURCE_PROVENANCE_AND_IDENTITY_AUDIT_PASS",
         "scope": "read-only source integrity and identity reconciliation; no candidate generation",
@@ -459,6 +637,7 @@ def main() -> None:
             "policy_population_counts": g004["policy_population_counts"]},
         "rejection_sources": rejection,
         "module_b_sources": module_b,
+        "row_level_disposition_dry_run": dry_run,
         "source_manifest": manifest,
     }
     args.output_dir.mkdir(parents=True, exist_ok=True)
