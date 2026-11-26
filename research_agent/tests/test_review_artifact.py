@@ -102,6 +102,14 @@ class ReviewArtifactTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "evidence-review commit"):
             self.build(commit_sha="2" * 40)
 
+    def test_malformed_worker_value_does_not_crash_artifact_rendering(self):
+        malformed = dict(self.submission)
+        malformed["evidence"] = [dict(self.submission["evidence"][0], path=float("nan"))]
+        result, report = self.build(malformed)
+        self.assertEqual(result["report_status"], "not_run")
+        self.assertTrue(any("unrenderable worker value" in item for item in report["findings"]))
+        self.assertTrue(report["blockers"])
+
     def test_never_claims_dispatch_or_upload(self):
         result, _ = self.build()
         self.assertFalse(result["dispatch_or_delivery_verified"])
