@@ -1,4 +1,6 @@
 """Report-builder validation tests; authored but not executed under the active handoff."""
+import hashlib
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -301,6 +303,73 @@ class ReportBuilderTests(unittest.TestCase):
                 expected_commit_sha=report["commit_sha"],
                 actual_head_sha=report["commit_sha"],
                 checkout_clean=True,
+            )
+
+    def test_artifact_bundle_contains_complete_hashed_outputs(self):
+        with tempfile.TemporaryDirectory(dir=report_builder.REPOSITORY_ROOT) as temporary:
+            path = Path(temporary) / "evidence.txt"
+            path.write_text("artifact evidence", encoding="utf-8")
+            relative = path.relative_to(report_builder.REPOSITORY_ROOT).as_posix()
+            task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
+            report = valid_report()
+            report["run_id"] = "12345"
+            report["task_definition_sha256"] = report_builder.task_definition_digest(task)
+            report["input_manifest"] = report_builder.build_input_manifest([relative])
+            bundle = report_builder.build_artifact_bundle(
+                report, task,
+                expected_repository=report["repository"],
+                expected_branch=report["branch"],
+                expected_commit_sha=report["commit_sha"],
+                actual_head_sha=report["commit_sha"],
+                checkout_clean=True,
+                run_id="12345",
+                run_attempt="2",
+            )
+            self.assertEqual(
+                set(bundle["files"]),
+                {"report.json", "report.md", "artifact_manifest.json"},
+            )
+            self.assertEqual(bundle["artifact_name"], "okx-research-agent-12345-2")
+            manifest = json.loads(bundle["files"]["artifact_manifest.json"])
+            self.assertEqual(
+                {row["path"] for row in manifest["files"]},
+                {"report.json", "report.md"},
+            )
+            for row in manifest["files"]:
+                actual = hashlib.sha256(bundle["files"][row["path"]].encode("utf-8")).hexdigest()
+                self.assertEqual(actual, row["sha256"])
+            self.assertTrue(bundle["files"]["artifact_manifest.json"].endswith("\\n"))
+
+    def test_artifact_bundle_rejects_run_id_mismatch(self):
+        task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
+        report = valid_report()
+        report["task_definition_sha256"] = report_builder.task_definition_digest(task)
+        with self.assertRaisesRegex(ValueError, "run_id"):
+            report_builder.build_artifact_bundle(
+                report, task,
+                expected_repository=report["repository"],
+                expected_branch=report["branch"],
+                expected_commit_sha=report["commit_sha"],
+                actual_head_sha=report["commit_sha"],
+                checkout_clean=True,
+                run_id="99999",
+                run_attempt="1",
+            )
+
+    def test_artifact_bundle_rejects_non_numeric_run_attempt(self):
+        task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
+        report = valid_report()
+        report["task_definition_sha256"] = report_builder.task_definition_digest(task)
+        with self.assertRaisesRegex(ValueError, "run_attempt"):
+            report_builder.build_artifact_bundle(
+                report, task,
+                expected_repository=report["repository"],
+                expected_branch=report["branch"],
+                expected_commit_sha=report["commit_sha"],
+                actual_head_sha=report["commit_sha"],
+                checkout_clean=True,
+                run_id=report["run_id"],
+                run_attempt="latest",
             )
 
     def test_markdown_report_displays_task_definition_hash(self):
