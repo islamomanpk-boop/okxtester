@@ -24,7 +24,7 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Added focused safety-controller denial/allowance tests, including relabelled Phase 3 tasks, duplicate phase order, and malformed inputs; authored but not executed.
 - [x] Read-only preflight dispatcher has no executor, subprocess, or write capability.
 - [x] Preflight dispatcher now returns DENY for malformed queue objects instead of raising an uncaught attribute error.
-- [x] Report formatter validates repository-contained inputs, normalized unique manifest paths, SHA-256 values, commit SHA format, and UTC timestamps.
+- [x] Report formatter validates repository-contained inputs, rejection of symlinked path components, normalized unique manifest paths, SHA-256 values, commit SHA format, and UTC timestamps.
 - [x] Added report-builder tests for deterministic rendering, malformed provenance, duplicate paths, traversal, and external paths; authored but not executed.
 - [x] Added preflight tests for malformed queues, duplicate task IDs, and preflight-only behavior; authored but not executed.
 - [x] Static configuration/source consistency review completed against the branch files.
