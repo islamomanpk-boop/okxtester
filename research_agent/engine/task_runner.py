@@ -47,7 +47,7 @@ def preflight_task(task_id: str, queue: dict[str, Any] | None = None) -> dict[st
         return {"decision": "DENY", "reason": "Task ID must match exactly one queue entry."}
 
     task = matches[0]
-    decision = authorize_task(task, queue_config=current_queue)
+    decision = authorize_task(task)
     return {
         "task_id": task_id,
         "queue_status": task.get("status", "unknown"),
