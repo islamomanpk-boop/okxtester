@@ -79,6 +79,7 @@ class ReportBuilderTests(unittest.TestCase):
         self.assertIn("\\#", rendered)
         self.assertNotIn("## Forged heading", rendered)
         self.assertNotIn("[click](", rendered)
+
     def test_manifest_hashing_rejects_paths_outside_repository(self):
         with tempfile.TemporaryDirectory() as temporary:
             outside = Path(temporary) / "outside.txt"
