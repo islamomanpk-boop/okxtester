@@ -463,3 +463,17 @@ The independent exact-minute verifier was rerun against this grouped-summary art
 - Report status `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; all five raw inputs re-hashed and checked; all 2,857/2,857 eligible timestamps present; all 2,090 non-eligible first-minute fields blank.
 
 **Current status:** Source-only provenance, identity, Module B horizon, exact-minute, disposition-reason and grouped-count checks pass. Remaining G0-05 work is the canonical output field mapping and implementation, historical cohort preservation for breakout, overlap/repeated-signal metadata convention, complete source-to-candidate schema validation, full independent review and deterministic candidate-output reproducibility. Canonical candidate generation remains unauthorized; no execution simulation, strategy backtest, PnL or phase transition is authorized.
+
+
+## 21. Raw breakout historical cohort membership — 2026-11-26
+
+The G0-04 raw crossing ledger's `was_historical_selected` flag is now reconciled by exact source identity to Module B's event rows. The breakout source-disposition ledger preserves historical `BROAD_P40` and `STRICT_P25` membership separately from the causal cohort.
+
+- Source audit [45802913642](https://github.com/islamomanpk-boop/okxtester/actions/runs/45802913642) — SUCCESS; artifact ID `15108411917`; ZIP SHA-256 `181b395393c9f7d012c282b64d862f10f83639f974543acf3b139a20e7d7f6e5`.
+- Synthetic suite [45802929770](https://github.com/islamomanpk-boop/okxtester/actions/runs/45802929770) — SUCCESS; **86/86 tests passed**.
+- Raw crossings: 1,929 with no historical selected membership, 272 BROAD_P40-only, and 660 with both BROAD_P40 and STRICT_P25. No strict-only event is permitted.
+- The selected flag must agree with exact-key Module B membership; mismatches, unknown cohort labels and strict-without-broad fail closed.
+
+This preserves the important distinction between retrospective historical cohorts and G0-04 causal expanding-prior eligibility. The historical 932 are not treated as the only causal eligible source population.
+
+The independent minute workflow is being advanced to this latest source-audit artifact before its next run. Overlap-cluster/repeated-signal metadata and the complete canonical candidate field mapping remain open. Candidate generation and trading tests remain unauthorized.
