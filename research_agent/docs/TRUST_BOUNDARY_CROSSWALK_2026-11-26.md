@@ -101,3 +101,12 @@ The event-vocabulary decision is now documented in:
 This resolves the **documentation-level architecture choice**: one trusted assignment registry owns one globally sequenced v2 lifecycle log; per-assignment state versions provide an additional compare-and-swap guard; the existing v1 ledger remains immutable legacy evidence. It does not resolve backend selection, identity provisioning, approval-channel implementation, checkpoint trust root, cross-language canonicalization vectors, or transaction failure testing.
 
 The unified specification is a proposal, not implementation authority. The original G0-05 restrictions remain controlling. No tests, scripts, workflows, dispatch, or protected-branch changes were performed.
+
+
+## 10. Follow-up threat analysis and failure-injection plan
+
+The new docs/THREAT_MODEL_AND_FAILURE_INJECTION_MATRIX.md records protected assets, actors, trust boundaries, independence requirements for approval/workflow/registry/evidence roots, 26 threat scenarios, and 30 proposed failure-injection cases with expected safe oracles and evidence to retain.
+
+The analysis identifies atomic state/event/idempotency/checkpoint persistence, operation-boundary approval, authenticated delivery, anti-rollback recovery, and trust-root separation as critical design blockers. It distinguishes worker-claim validation, evidence-byte integrity, task disposition, and phase-gate authority.
+
+This is a documentation-level risk analysis and future test plan only. Likelihood and residual-risk acceptance are not asserted. No failure injection, tests, scripts, or workflows were run. The current G0-05 handoff remains controlling; no activation or protected-branch change is authorized.
