@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 from .report_builder import task_definition_digest
-from .task_runner import load_queue, preflight_all_tasks
+from .task_runner import _preflight_all_tasks_with_queue, load_queue
 
 MAX_BATCH_SIZE = 10
 EXPECTED_PHASE_ORDER = [
@@ -25,7 +25,7 @@ def build_runtime_batch_plan(*, max_tasks: int = 5) -> dict[str, Any]:
     if type(max_tasks) is not int or not 1 <= max_tasks <= MAX_BATCH_SIZE:
         raise ValueError(f"max_tasks must be an integer from 1 to {MAX_BATCH_SIZE}.")
     trusted_queue = load_queue()
-    trusted_preflight = preflight_all_tasks()
+    trusted_preflight = _preflight_all_tasks_with_queue(trusted_queue)
     return build_batch_plan(
         max_tasks=max_tasks,
         queue=trusted_queue,
@@ -74,7 +74,7 @@ def build_batch_plan(
         raise ValueError("Duplicate task IDs are not permitted.")
 
     if preflight_summary is None:
-        preflight_summary = preflight_all_tasks()
+        preflight_summary = _preflight_all_tasks_with_queue(queue)
     if not isinstance(preflight_summary, dict):
         raise ValueError("Preflight summary is malformed.")
     if (
