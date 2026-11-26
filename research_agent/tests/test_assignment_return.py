@@ -83,12 +83,29 @@ class AssignmentReturnTests(unittest.TestCase):
     def test_tampered_scope_is_rejected_before_submission_review(self):
         tampered = dict(self.package)
         tampered["scope"] = ["Expanded scope"]
-        with self.assertRaisesRegex(ValueError, "scope"):
+        with self.assertRaisesRegex(ValueError, "canonical trusted package"):
             self.review(tampered)
 
     def test_tampered_digest_is_rejected(self):
         tampered = dict(self.package, task_definition_sha256="0" * 64)
         with self.assertRaisesRegex(ValueError, "task_definition_sha256"):
+            self.review(tampered)
+
+    def test_tampered_worker_action_allowlist_is_rejected(self):
+        tampered = dict(self.package)
+        tampered["allowed_declared_actions"] = ["run_backtests"]
+        with self.assertRaisesRegex(ValueError, "canonical trusted package"):
+            self.review(tampered)
+
+    def test_tampered_submission_schema_is_rejected(self):
+        tampered = dict(self.package)
+        tampered["worker_submission_schema"] = {"required_fields": []}
+        with self.assertRaisesRegex(ValueError, "canonical trusted package"):
+            self.review(tampered)
+
+    def test_boolean_schema_version_is_not_accepted_as_integer_one(self):
+        tampered = dict(self.package, schema_version=True)
+        with self.assertRaisesRegex(ValueError, "schema version"):
             self.review(tampered)
 
     def test_dispatch_claim_is_rejected(self):
