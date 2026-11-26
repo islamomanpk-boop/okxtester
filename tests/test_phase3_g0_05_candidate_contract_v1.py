@@ -268,6 +268,7 @@ class G005ContractTests(unittest.TestCase):
                 "source_breakout_source_event_id": source_breakout_id,
                 "source_breakout_candidate_id": breakout_id,
                 "signal_available_at_ts_ms": confirmation_ts,
+                "expiry_ts_ms": 1761287400000 + FAILURE_HORIZON_MS,
             },
         ]
 
@@ -280,7 +281,7 @@ class G005ContractTests(unittest.TestCase):
     def test_candidate_identity_validator_rejects_wrong_candidate_hash(self):
         rows = self._synthetic_candidate_identity_rows()
         rows[0]["candidate_id"] = "0" * 64
-        with self.assertRaisesRegex(ValueError, "does not resolve"):
+        with self.assertRaisesRegex(ValueError, "does not match"):
             validate_candidate_identity_links(rows)
 
     def test_candidate_identity_validator_rejects_duplicate_candidate_ids(self):
@@ -311,7 +312,7 @@ class G005ContractTests(unittest.TestCase):
     def test_candidate_identity_validator_rejects_broken_source_breakout_link(self):
         rows = self._synthetic_candidate_identity_rows()
         rows[1]["source_breakout_candidate_id"] = "f" * 64
-        with self.assertRaisesRegex(ValueError, "does not match"):
+        with self.assertRaisesRegex(ValueError, "does not resolve"):
             validate_candidate_identity_links(rows)
 
     def test_candidate_identity_validator_requires_source_breakout_row(self):
