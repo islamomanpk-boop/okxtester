@@ -450,3 +450,16 @@ Evidence:
 The earlier failed synthetic run [45802163583](https://github.com/islamomanpk-boop/okxtester/actions/runs/45802163583) exposed one stale test fixture without reason fields; the fixture was corrected and the succeeding 80-test run is the controlling test evidence.
 
 **Updated status:** G0-05 source identity, causal-threshold, horizon, row-level disposition, exact-minute, and reason-code audits have passed their recorded checks. The canonical candidate schema/output, complete family/asset/side/overlap reporting, full independent review, deterministic candidate-output rerun, and formal G0-05 closeout remain open. No canonical candidates or trading tests have been authorized.
+
+
+## 20. Structured disposition summaries and latest independent minute verification — 2026-11-26
+
+The source-only audit now emits deterministic grouped summaries by asset/disposition, family/LONG-SHORT/disposition/reason, source direction/disposition, causal cohort/disposition and reason code. Source-audit run [45802587303](https://github.com/islamomanpk-boop/okxtester/actions/runs/45802587303) passed at commit `a1ef8721f3f770fb46079c09ea039da75a7e920e`; artifact ID `15108166636`; ZIP SHA-256 `456c683375d20ebef8a852421d235e745d2c79f62be29d2eea18045d59b455cc`. The new deterministic grouping test passed in the **81/81** synthetic suite [45802605906](https://github.com/islamomanpk-boop/okxtester/actions/runs/45802605906).
+
+The independent exact-minute verifier was rerun against this grouped-summary artifact:
+- Workflow [45802702444](https://github.com/islamomanpk-boop/okxtester/actions/runs/45802702444) — SUCCESS.
+- Artifact ID `15107996832`.
+- ZIP SHA-256 `e05759ff6fa9b73178de85a21f62f014e66c3dbbe3718ff675c21b3ebd7ff317`, independently recomputed after download.
+- Report status `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; all five raw inputs re-hashed and checked; all 2,857/2,857 eligible timestamps present; all 2,090 non-eligible first-minute fields blank.
+
+**Current status:** Source-only provenance, identity, Module B horizon, exact-minute, disposition-reason and grouped-count checks pass. Remaining G0-05 work is the canonical output field mapping and implementation, historical cohort preservation for breakout, overlap/repeated-signal metadata convention, complete source-to-candidate schema validation, full independent review and deterministic candidate-output reproducibility. Canonical candidate generation remains unauthorized; no execution simulation, strategy backtest, PnL or phase transition is authorized.
