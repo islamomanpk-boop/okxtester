@@ -16,7 +16,7 @@ from research.phase3_g0_05_source_manifest_audit_v1 import (
     first_eligible_minute_or_blank, validate_module_b_horizons,
     validate_disposition_ledger, grouped_disposition_counts, historical_membership_label,
     assign_interval_graph_clusters, observed_window_bars, consistent_physical_cluster,
-    make_repeated_signal_group_id, aggregate_completed_15m_bar,
+    make_repeated_signal_group_id, aggregate_completed_15m_bar, file_manifest_entry, git_blob_sha1,
     confirmation_ambiguity_flag,
 )
 
@@ -439,6 +439,18 @@ class G005SourceAuditTests(unittest.TestCase):
         self.assertEqual(first_eligible_minute_or_blank("REJECTED", 123000), "")
         self.assertEqual(first_eligible_minute_or_blank("EXPIRED", None), "")
         self.assertEqual(first_eligible_minute_or_blank("CENSORED", 123000), "")
+
+    def test_streaming_file_manifest_matches_git_blob_and_sha256(self):
+        data = b"frozen source bytes\n"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "sample.csv"
+            path.write_bytes(data)
+            info = file_manifest_entry(path, root)
+        self.assertEqual(info["path"], "sample.csv")
+        self.assertEqual(info["sha256"], hashlib.sha256(data).hexdigest())
+        self.assertEqual(info["git_blob_sha1"], git_blob_sha1(data))
+        self.assertEqual(info["bytes"], len(data))
 
     def test_completed_15m_bar_requires_all_15_exact_minute_components(self):
         minute_bars = {
