@@ -368,3 +368,21 @@ The following remain before canonical candidate generation:
 5. Only after these pass, request/record authorization to run the canonical candidate generator.
 
 **Current status:** G0-04 ACCEPTED; G0-05 contract primitives and 31 synthetic tests pass. G0-05 source manifest is partially verified; source reconciliation dry-run remains pending. Candidate generation, execution simulation, strategy backtesting and PnL remain prohibited.
+
+
+## 15. Source-only causal disposition and schema freeze — 2026-11-26
+
+The G0-05 candidate/disposition schema is now recorded in `2026-11-26_g0_05_candidate_disposition_schema_v1.md`. It freezes the status/reason enums, physical source identity, cohort membership handling, provenance fields, timestamp fields, and the rule that point-event rejection/continuation records have no active-order expiry at this gate.
+
+Latest source-only audit:
+- Workflow [45782827341](https://github.com/islamomanpk-boop/okxtester/actions/runs/45782827341) passed.
+- Artifact [15098494434](https://github.com/islamomanpk-boop/okxtester/actions/runs/45782827341/artifacts/15098494434), ZIP SHA-256 `3dad432c4a9c8a81364b93b0a2e0cbd66c70e54716fc2e704536094c2a8f84ea`.
+- All 7 rejection-family source blob pins and SHA-256 values passed.
+- All Module B event/horizon SHA-256 values matched frozen metadata.
+- G0-04 threshold flags were independently recomputed across 15,594 event/variant joins; all matched.
+- The 262 raw G0-04 warm-up events were explicitly accounted for by asset.
+- Rejection source rows collapsed to 1,154 unique physical test identities while preserving all 1,992 strict/broad source-row IDs and memberships. The strict physical cohort is nested within broad.
+- Source-only causal rejection disposition: 942 strict eligible, 141 broad-only eligible, 2 not regime-eligible, 29 warm-up, 40 snapshot-expired. These are not candidate output rows.
+- Module B's 1,592 definition rows map to 932 unique source identities; all 932 match the G0-04 raw crossing ledger.
+
+**Current status:** G0-04 ACCEPTED. G0-05 schema, 31 synthetic tests, and read-only source provenance/identity/causal-threshold audit are passing. Next task is to extend synthetic tests around the source-to-physical-event collapse and family-specific disposition accounting, then implement a deterministic source-only disposition dry-run. Canonical candidate generation remains blocked pending that dry-run and its review. No orders, fills, execution simulation, PnL, strategy backtests or Gate 2+ work are authorized.
