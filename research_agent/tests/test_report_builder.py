@@ -414,7 +414,10 @@ class ReportBuilderTests(unittest.TestCase):
             tampered = dict(bundle["files"])
             tampered["report.md"] += "\\nInjected content"
             with self.assertRaisesRegex(ValueError, "hash mismatch"):
-                report_builder.verify_artifact_files(tampered, bundle["manifest"])
+                report_builder.verify_artifact_files(
+                    tampered, bundle["manifest"],
+                    actual_artifact_name=bundle["artifact_name"],
+                )
 
     def test_artifact_verifier_rejects_missing_or_unexpected_files(self):
         files = {
@@ -424,7 +427,9 @@ class ReportBuilderTests(unittest.TestCase):
             "extra.txt": "unexpected",
         }
         with self.assertRaisesRegex(ValueError, "exactly the three"):
-            report_builder.verify_artifact_files(files, {})
+            report_builder.verify_artifact_files(
+                files, {}, actual_artifact_name="okx-research-agent-1-1"
+            )
 
     def test_artifact_bundle_rejects_run_id_mismatch(self):
         task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
