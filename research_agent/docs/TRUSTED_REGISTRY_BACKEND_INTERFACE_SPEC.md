@@ -87,7 +87,7 @@ External delivery occurs outside the database transaction. The registry first re
 
 ## 5. Idempotency and replay
 
-Use `(source_namespace, delivery_id, event_role)`; source namespace must be authenticated. Normalize complete semantic facts, then look up the idempotency tuple **before** rejecting a stale checkpoint:
+Use two linked identity levels: `(source_namespace, delivery_id)` is the unique authenticated provider-delivery identity; `(source_namespace, delivery_id, event_role)` is the unique lifecycle-event idempotency identity when one delivery emits multiple legitimate events. Event role is a closed schema-defined value. Source namespace must be authenticated. Normalize complete semantic facts, then look up the event-level idempotency tuple **before** rejecting a stale checkpoint:
 - same key + same facts: return original receipt, no second event;
 - same key + changed facts: reject as changed replay and raise a security signal;
 - new key: verify global and assignment versions and current state, then atomically commit.
