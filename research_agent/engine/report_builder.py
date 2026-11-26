@@ -8,7 +8,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -57,13 +57,14 @@ def build_input_manifest(paths: Iterable[str | Path]) -> list[dict[str, str]]:
     manifest = []
     seen: set[str] = set()
     for item in paths:
+        raw_path = str(item)
         relative = Path(item)
         if (
             relative.is_absolute()
             or not relative.parts
             or ".." in relative.parts
-            or "\\" in path_value
-            or any(ord(character) < 32 or ord(character) == 127 for character in path_value)
+            or "\\" in raw_path
+            or any(ord(character) < 32 or ord(character) == 127 for character in raw_path)
         ):
             raise ValueError("Manifest paths must be safe repository-relative paths.")
         canonical_path = relative.as_posix()
@@ -128,7 +129,13 @@ def validate_report(report: dict[str, Any]) -> None:
         if not isinstance(path_value, str) or not path_value.strip():
             raise ValueError("Manifest path must be a non-empty string.")
         relative = Path(path_value)
-        if relative.is_absolute() or not relative.parts or ".." in relative.parts:
+        if (
+            relative.is_absolute()
+            or not relative.parts
+            or ".." in relative.parts
+            or "\\" in path_value
+            or any(ord(character) < 32 or ord(character) == 127 for character in path_value)
+        ):
             raise ValueError("Manifest paths must be safe repository-relative paths.")
         if relative.as_posix() != path_value:
             raise ValueError("Manifest paths must use normalized POSIX relative paths.")
