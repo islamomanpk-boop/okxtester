@@ -81,8 +81,7 @@ def prepare_worker_assignment(
     if (
         preflight_result.get("task_id") != task_id
         or preflight_result.get("mode") != "preflight_only"
-        or not isinstance(preflight_result.get("queue_status"), str)
-        or not preflight_result["queue_status"].strip()
+        or preflight_result.get("queue_status") != "queued"
         or preflight_result.get("execution_performed") is not False
         or type(preflight_result.get("authorized")) is not bool
         or not isinstance(preflight_result.get("reason"), str)
