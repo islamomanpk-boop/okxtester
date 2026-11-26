@@ -74,6 +74,46 @@ class TaskRunnerTests(unittest.TestCase):
         self.assertEqual(result["decision"], "DENY")
         self.assertFalse(result["authorized"])
 
+    def test_rejects_authorizer_response_with_extra_fields(self):
+        queue = {"tasks": [{"task_id": "P3-RO-001", "status": "queued"}]}
+        response = {
+            "decision": "ALLOW_READ_ONLY", "authorized": True,
+            "reason": "looks valid", "execution_performed": True,
+        }
+        with patch.object(task_runner, "authorize_task", return_value=response):
+            result = task_runner._preflight_task_with_queue("P3-RO-001", queue)
+        self.assertEqual(result["decision"], "DENY")
+        self.assertFalse(result["authorized"])
+
+    def test_rejects_authorizer_response_with_missing_fields(self):
+        queue = {"tasks": [{"task_id": "P3-RO-001", "status": "queued"}]}
+        response = {"decision": "ALLOW_READ_ONLY", "authorized": True}
+        with patch.object(task_runner, "authorize_task", return_value=response):
+            result = task_runner._preflight_task_with_queue("P3-RO-001", queue)
+        self.assertEqual(result["decision"], "DENY")
+
+    def test_rejects_non_boolean_authorized_flag(self):
+        queue = {"tasks": [{"task_id": "P3-RO-001", "status": "queued"}]}
+        response = {"decision": "ALLOW_READ_ONLY", "authorized": 1, "reason": "truthy"}
+        with patch.object(task_runner, "authorize_task", return_value=response):
+            result = task_runner._preflight_task_with_queue("P3-RO-001", queue)
+        self.assertEqual(result["decision"], "DENY")
+
+    def test_rejects_unknown_authorizer_decision(self):
+        queue = {"tasks": [{"task_id": "P3-RO-001", "status": "queued"}]}
+        response = {"decision": "ALLOW", "authorized": True, "reason": "unknown"}
+        with patch.object(task_runner, "authorize_task", return_value=response):
+            result = task_runner._preflight_task_with_queue("P3-RO-001", queue)
+        self.assertEqual(result["decision"], "DENY")
+
+    def test_rejects_authorized_flag_conflicting_with_deny_code(self):
+        queue = {"tasks": [{"task_id": "P3-RO-001", "status": "queued"}]}
+        response = {"decision": "DENY", "authorized": True, "reason": "conflict"}
+        with patch.object(task_runner, "authorize_task", return_value=response):
+            result = task_runner._preflight_task_with_queue("P3-RO-001", queue)
+        self.assertEqual(result["decision"], "DENY")
+        self.assertFalse(result["authorized"])
+
     def test_preflight_never_invokes_executor(self):
         queue = {"tasks": [{"task_id": "P3-RO-001", "status": "queued"}]}
         with patch.object(
