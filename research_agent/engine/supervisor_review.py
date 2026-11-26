@@ -41,6 +41,8 @@ def _safe_evidence_path(value: str) -> bool:
         return False
     if re.match(r"^[A-Za-z]:", value):
         return False
+    if any(ord(char) < 32 or ord(char) == 127 for char in value):
+        return False
     parts = value.split("/")
     return all(part not in {"", ".", ".."} for part in parts)
 
