@@ -165,6 +165,21 @@ def authorize_task(
     if phase_rule.get("status") != "active_research_phase":
         return _deny("Task belongs to a phase that is not currently active.")
 
+    # Require an explicit read-only opt-in; missing, deny, and unknown values fail closed.
+    if phase_rule.get("execution_override") != "allow_read_only":
+        return _deny("Phase execution override does not explicitly allow read-only work.")
+
+    # A later phase cannot become executable by changing its status alone.
+    phase_index = phase_order.index(phase)
+    for prior_phase in phase_order[:phase_index]:
+        prior_rule = phase_rules.get(prior_phase)
+        if not isinstance(prior_rule, dict):
+            return _deny(f"Prior phase permission is missing or malformed: {prior_phase}")
+        if prior_rule.get("gate_status") != "human_authorized_closed":
+            return _deny(
+                f"Prior phase gate is not explicitly human-authorized closed: {prior_phase}"
+            )
+
     if operation in DENIED_OPERATIONS:
         return _deny(f"Operation is prohibited: {operation}")
     if operation not in READ_ONLY_OPERATIONS:
@@ -177,6 +192,8 @@ def authorize_task(
         if queued_task.get("workstream") == "g0_05" or queued_task.get(
             "handoff_id"
         ) == "PHASE3_G0_05_RECONCILIATION_TASK_02":
+            if agent.get("execution", {}).get("current_g0_05_execution_lock") === true:
+                return _deny("G0-05 execution lock is active; automated authorization is prohibited.")
             required_lock_values = {
                 "status": "read_only_reconciliation_only",
                 "scripts_tests_workflows": "prohibited",
