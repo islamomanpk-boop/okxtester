@@ -85,9 +85,15 @@ def _validate_utc_timestamp(value: str) -> None:
     if not _UTC_TIMESTAMP_RE.fullmatch(value):
         raise ValueError("Report timestamp must use canonical ISO-8601 UTC form ending in Z.")
     try:
-        datetime.fromisoformat(value[:-1] + "+00:00")
+        parsed = datetime.fromisoformat(value[:-1] + "+00:00")
     except ValueError as exc:
         raise ValueError("Report timestamp must be a valid ISO-8601 UTC timestamp.") from exc
+    canonical = parsed.strftime("%Y-%m-%dT%H:%M:%S")
+    if parsed.microsecond:
+        canonical += "." + f"{parsed.microsecond:06d}".rstrip("0")
+    canonical += "Z"
+    if value != canonical:
+        raise ValueError("Report timestamp must use the shortest canonical fractional form.")
 
 
 def _validate_json_value(value: Any, location: str = "task") -> None:
