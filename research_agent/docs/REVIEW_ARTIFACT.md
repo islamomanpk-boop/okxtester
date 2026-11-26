@@ -13,6 +13,7 @@ the existing deterministic report and artifact builder.
    provenance and construct the three-file bundle in memory.
 
 ## Safety boundaries
+- Malformed worker values that cannot be represented as strict JSON are rendered as a bounded type marker in the audit report, so malformed declarations remain reviewable instead of crashing report construction.
 - Report status is always `not_run`: this reporting layer did not execute the
   research task. Worker status/findings are explicitly labelled declarations.
 - Evidence integrity means only that supplied bytes match the supplied manifest.
