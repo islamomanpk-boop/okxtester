@@ -45,7 +45,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: phase3-g0-04-causal-reconstruction-\${{ github.run_id }}
+          name: phase3-g0-04-causal-reconstruction-${{ github.run_id }}
           path: phase3_g0_04_output/
           if-no-files-found: warn
           retention-days: 14
