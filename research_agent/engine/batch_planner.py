@@ -67,6 +67,9 @@ def build_batch_plan(
     if policy.get("no_phase_skipping") is not True:
         raise ValueError("Queue must explicitly prohibit phase skipping.")
 
+    if any(task.get("phase") not in phase_order for task in tasks):
+        raise ValueError("Every task must belong to one of the approved project phases.")
+
     ids = [task.get("task_id") for task in tasks]
     if any(not isinstance(value, str) or not value.strip() for value in ids):
         raise ValueError("Every task must have a non-empty task ID.")
