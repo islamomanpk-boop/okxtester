@@ -75,7 +75,13 @@ def _preflight_task_with_queue(task_id: str, current_queue: dict[str, Any]) -> d
     queue_status = task.get("status")
     if not isinstance(queue_status, str) or not queue_status.strip():
         queue_status = "unknown"
-    decision = authorize_task(task)
+    try:
+        decision = authorize_task(task)
+    except Exception as exc:
+        return _preflight_result(
+            task_id, queue_status=queue_status,
+            reason=f"Safety controller failed unexpectedly ({type(exc).__name__}); denied.",
+        )
     if not isinstance(decision, dict):
         return _preflight_result(
             task_id,
@@ -106,7 +112,9 @@ def preflight_task(task_id: str) -> dict[str, Any]:
     try:
         trusted_queue = load_queue()
     except (OSError, json.JSONDecodeError, ValueError) as exc:
-        return {"decision": "DENY", "reason": f"Cannot load task queue: {exc}"}
+        return _preflight_result(
+            None, reason=f"Cannot load task queue ({type(exc).__name__}); denied."
+        )
     return _preflight_task_with_queue(task_id, trusted_queue)
 
 
