@@ -583,5 +583,22 @@ class SafetyControllerTests(unittest.TestCase):
         self.assertIn("strict JSON booleans", result["reason"])
 
 
+    def test_denies_weakened_global_operation_default(self):
+        task = {
+            "task_id": "P3-WEAKENED-GLOBAL-DEFAULT",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        phases["global_defaults"]["execute_tests"] = "allow"
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("Global phase defaults differ", result["reason"])
+
+
 if __name__ == "__main__":
     unittest.main()
