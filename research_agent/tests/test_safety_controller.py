@@ -51,6 +51,7 @@ def policy_fixture(task, *, phase_order=None, phase_rules=None, lock=False):
     ])
     queued_task.setdefault("completion_authority", "human_only")
     queue = {
+        "schema_version": 1,
         "queue_policy": {
             "phase_order": phase_order,
             "execution_enabled": True,
@@ -61,6 +62,11 @@ def policy_fixture(task, *, phase_order=None, phase_rules=None, lock=False):
         "tasks": [queued_task],
     }
     agent = {
+        "agent_name": "okx-research-agent",
+        "version": "1.0.0",
+        "operating_mode": "deterministic_research_operations",
+        "report_destination": "github_actions_artifacts",
+        "cost_policy": "free_only",
         "repository_access": "read_only_by_default",
         "branch_policy": {
             "working_branch": "agent/okx-research-agent-v1",
@@ -68,7 +74,13 @@ def policy_fixture(task, *, phase_order=None, phase_rules=None, lock=False):
             "automatic_merge": False,
             "automatic_commit_to_research_branch": False,
         },
-        "scheduling": {"enabled": False},
+        "scheduling": {
+            "mode": "event_driven_with_scheduled_fallback",
+            "enabled": False,
+            "triggers": ["manual_dispatch"],
+            "concurrency_group": "okx-research-agent",
+            "cancel_in_progress": False,
+        },
         "execution": {
             "enabled": True,
             "require_task_allowlist": True,
@@ -77,17 +89,34 @@ def policy_fixture(task, *, phase_order=None, phase_rules=None, lock=False):
             "current_g0_05_execution_lock": lock,
         },
         "phase_order": phase_order,
+        "prohibitions": ["no_automatic_merge"],
     }
     phases = {
+        "schema_version": 1,
         "phase_order": phase_order,
         "global_defaults": {
             "repository_inspection": "allow_read_only",
             "evidence_lineage_review": "allow_read_only",
             "report_generation": "allow_local_or_artifact_only",
+            "execute_scripts": "deny_unless_task_and_phase_allowlisted",
+            "execute_tests": "deny_unless_task_and_phase_allowlisted",
+            "trigger_workflows": "deny",
+            "modify_research_data": "deny",
+            "modify_canonical_definitions": "deny",
+            "create_candidates": "deny",
+            "run_backtests": "deny",
+            "make_pnl_claims": "deny",
+            "select_strategies": "deny",
+            "close_gates": "deny",
+            "deploy_to_vps": "deny",
+            "change_secrets_or_permissions": "deny",
         },
         "phases": phase_rules,
+        "approval_required_for": ["closing_a_research_gate"],
     }
     allowlist = {
+        "schema_version": 1,
+        "description": "Test-only trusted approval fixture.",
         "approved_tasks": [
             {"task_id": queued_task["task_id"], "task_sha256": digest(queued_task)}
         ]
