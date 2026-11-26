@@ -46,10 +46,11 @@ Before a non-Python writer or verifier is introduced, the integration must eithe
 3. Load the durable ledger, delivery index, and protected checkpoint from a store with access controls independent of the worker.
 4. Verify the complete hash chain and confirm that the independently protected checkpoint matches the current ledger head (including the empty-ledger case).
 5. Canonicalize and validate the event using the existing pure ledger primitives; derive its global `event_id` from the authenticated delivery identity as specified above.
-6. In one database transaction or true compare-and-swap operation, require the stored checkpoint/version to equal the snapshot loaded in step 3; reject stale writers without changing ledger, delivery index, or checkpoint.
-7. Enforce uniqueness for both the authenticated source namespace plus stable delivery ID and the derived global event ID. An exact replay returns the original event; reuse with different facts is rejected.
-8. Append the event, record its delivery-index entry, and advance the protected checkpoint atomically. A split write is not acceptable unless a separately specified recovery protocol can prove which side committed.
-9. Return a receipt containing the committed event digest and checkpoint version. The receipt is evidence of storage only, not task completion or gate approval.
+6. In one database transaction or true compare-and-swap operation, first look up the authenticated `(source_namespace, delivery_id)` under the store's uniqueness/transaction guarantees. If it already exists, compare the complete canonical event facts: return the original receipt for an exact replay even when the caller's expected checkpoint is now stale; reject changed facts. This replay path must not append or advance the checkpoint.
+7. Only when no delivery record exists, require the stored checkpoint/version to equal the snapshot loaded in step 3; reject stale new-event writers without changing ledger, delivery index, or checkpoint.
+8. Enforce uniqueness for both the authenticated source namespace plus stable delivery ID and the derived global event ID. Handle concurrent first deliveries by allowing only one transaction to insert; a losing transaction must re-read the winning record and apply the exact-replay-versus-conflicting-facts rule, not append a second event.
+9. Append the event, record its delivery-index entry, and advance the protected checkpoint atomically. A split write is not acceptable unless a separately specified recovery protocol can prove which side committed.
+10. Return a receipt containing the committed event digest and checkpoint version. The receipt is evidence of storage only, not task completion or gate approval.
 
 ## Backend selection criteria
 
