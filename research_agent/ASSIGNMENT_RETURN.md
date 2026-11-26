@@ -6,6 +6,8 @@ calling the existing structural and evidence-integrity review pipeline.
 
 ## Checks
 
+- Requires the expected SHA-256 digest of the exact prepared package, retained independently by a trusted dispatcher or handoff channel. The digest must not come from the worker return. This protects all package fields, including the dynamic preflight reason, against alteration.
+
 - Requires a `prepared_not_dispatched` package with no dispatch, execution,
   task-completion, or gate-closure authority.
 - Recomputes the trusted task-definition digest.
