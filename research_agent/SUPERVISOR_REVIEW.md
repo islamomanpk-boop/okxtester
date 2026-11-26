@@ -36,4 +36,7 @@ Every result has `human_review_required: true`,
 The module does not inspect evidence file bytes, verify source truth, execute
 work, alter task state, or approve phase advancement. A later trusted review
 stage must independently verify artifact contents and provenance before a
-human considers the findings.
+human considers the findings. The integrated `engine.review_pipeline` performs
+the structural check first, then verifies evidence bytes against a supplied
+expected-commit manifest; failures are returned for revision. See
+[REVIEW_PIPELINE.md](REVIEW_PIPELINE.md).
