@@ -399,6 +399,12 @@ class ReportBuilderTests(unittest.TestCase):
                     actual_artifact_name=bundle["artifact_name"],
                     expected_run_id="12345",
                     expected_run_attempt="1",
+                    expected_repository=report["repository"],
+                    expected_branch=report["branch"],
+                    expected_commit_sha=report["commit_sha"],
+                    expected_task_id=report["task_id"],
+                    expected_phase=report["phase"],
+                    expected_task_definition_sha256=report["task_definition_sha256"],
                 )
 
     def test_artifact_verifier_rejects_downloaded_name_mismatch(self):
@@ -427,6 +433,12 @@ class ReportBuilderTests(unittest.TestCase):
                     actual_artifact_name="wrong-artifact-name",
                     expected_run_id="12345",
                     expected_run_attempt="1",
+                    expected_repository=report["repository"],
+                    expected_branch=report["branch"],
+                    expected_commit_sha=report["commit_sha"],
+                    expected_task_id=report["task_id"],
+                    expected_phase=report["phase"],
+                    expected_task_definition_sha256=report["task_definition_sha256"],
                 )
 
     def test_artifact_verifier_rejects_tampered_report_bytes(self):
@@ -457,6 +469,12 @@ class ReportBuilderTests(unittest.TestCase):
                     actual_artifact_name=bundle["artifact_name"],
                     expected_run_id="12345",
                     expected_run_attempt="1",
+                    expected_repository=report["repository"],
+                    expected_branch=report["branch"],
+                    expected_commit_sha=report["commit_sha"],
+                    expected_task_id=report["task_id"],
+                    expected_phase=report["phase"],
+                    expected_task_definition_sha256=report["task_definition_sha256"],
                 )
 
     def test_artifact_verifier_rejects_missing_or_unexpected_files(self):
@@ -498,6 +516,12 @@ class ReportBuilderTests(unittest.TestCase):
                     actual_artifact_name=bundle["artifact_name"],
                     expected_run_id="99999",
                     expected_run_attempt="2",
+                    expected_repository=report["repository"],
+                    expected_branch=report["branch"],
+                    expected_commit_sha=report["commit_sha"],
+                    expected_task_id=report["task_id"],
+                    expected_phase=report["phase"],
+                    expected_task_definition_sha256=report["task_definition_sha256"],
                 )
 
     def test_artifact_verifier_rejects_duplicate_manifest_json_keys(self):
