@@ -1194,7 +1194,17 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             fail(f"Module B event missing raw crossing: {key}")
         if raw[tag+"__strict"].lower()=="true": source_ok=True; source_cohort="CAUSAL_STRICT"
         elif raw[tag+"__broad"].lower()=="true": source_ok=True; source_cohort="CAUSAL_BROAD_ONLY"
-        else: source_ok=False; source_cohort="NOT_ELIGIBLE"
+        else: source_ok=False
+        feature=feature_by_timestamp[asset].get(snapshot)
+        if feature is None:
+            fail(f"failed-breakout source has no exact detector feature snapshot: {key}")
+        next_snapshot=next_feature_snapshot[asset].get(snapshot, "")
+        threshold=exact_threshold_for_snapshot(
+            thresholds,asset,snapshot,"EXPANDING_PRIOR","UNIQUE_4H_FEATURE_ROWS")
+        if not source_ok:
+            source_cohort="CAUSAL_THRESHOLD_WARMUP" if threshold is None else "CAUSAL_REGIME_NOT_ELIGIBLE"
+        snapshot_fields=canonical_snapshot_provenance(
+            asset,snapshot,next_snapshot,feature,threshold,source_cohort)
         confirmation=next(iter(confirmations)) if confirmations else None
         observed_windows={int(x["observed_bars_12h"]) for x in members}
         if len(observed_windows)!=1:
@@ -1222,6 +1232,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
                 reason="NONE"
         source_event_key=f"{asset}|{direction}|{signal}|{snapshot}"
         cluster=breakout_cluster_map[source_event_key]
+        source_event_id=f"{source_event_key}|{confirmation if confirmation is not None else 'NO_CONFIRMATION'}"
         if confirmation is not None and confirmation_bar is not None:
             source_boundary=float(raw["upper"] if direction=="UPPER" else raw["lower"])
             ambiguity=confirmation_ambiguity_flag(direction,source_boundary,confirmation_bar)
@@ -1243,7 +1254,10 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             confirmation_status="CENSORED"
             confirmation_open=confirmation-900000
             event_observed_at=confirmation
-        failed_rows.append({"asset":asset,"source_event_key":source_event_key,
+        failed_rows.append({**snapshot_fields,
+            "source_event_id":source_event_id,
+            "source_breakout_source_event_id":source_event_key,
+            "asset":asset,"source_event_key":source_event_key,
             "source_event_row_ids":";".join(sorted(x["event_id"] for x in members)),
             "historical_cohort_memberships":";".join(sorted({x["definition"] for x in members})),"direction":direction,
             "family":"FAILED_BREAKOUT_REVERSAL","family_direction":"SHORT" if direction=="UPPER" else "LONG","signal_time_ms":signal,
