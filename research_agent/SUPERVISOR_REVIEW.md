@@ -10,7 +10,11 @@ A worker submission must include the exact task ID, phase, operation, and
 SHA-256 digest of the complete trusted task definition. It must provide a
 status, summary, findings, evidence references (repository-relative path,
 SHA-256, source reference, description), declared actions performed, and
-limitations. Unknown fields are rejected.
+limitations. Unknown fields are rejected. Declared actions must use the small
+allowlist of benign read-only/reporting action identifiers; unknown action
+labels fail closed as safety violations rather than being trusted as free text.
+Repository-relative evidence paths reject traversal, absolute paths, Windows
+drive prefixes, and backslashes.
 
 ## Review dispositions
 
