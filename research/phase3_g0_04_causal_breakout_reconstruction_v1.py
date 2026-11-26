@@ -135,17 +135,20 @@ def raw_events(z,a):
 def thresholds(ctx,z,a):
  counts=z.groupby("snapshot").size()
  full=counts[counts==16].index
- c=ctx.loc[ctx.index.isin(full)].sort_index()
- if len(c)<WARMUP+1: stop(f"{a} fewer than 181 fully covered contexts")
- widths=z[z.snapshot.isin(c.index)].groupby("snapshot").channel_width.agg(list)
+ prior_clock=ctx.loc[ctx.index.isin(full)].sort_index()
+ current_clock=ctx.sort_index()
+ if len(prior_clock)<WARMUP+1: stop(f"{a} fewer than 181 fully covered contexts")
+ widths=z[z.snapshot.isin(prior_clock.index)].groupby("snapshot").channel_width.agg(list)
  rows=[]
- for i,t in enumerate(c.index):
-  prior=c.index[:i]
+ for t in current_clock.index:
+  # Current context may have a partial 15M tail; it is eligible for classification,
+  # but only fully covered, strictly earlier contexts may enter calibration.
+  prior=prior_clock.index[prior_clock.index<t]
   if len(prior)<WARMUP: continue
   for pol in POLICIES:
    sample=prior[:WARMUP] if pol=="FIXED_180" else (prior[-WARMUP:] if pol=="ROLLING_180" else prior)
    for pop in POPS:
-    vals=(c.loc[sample,"channel_width"].to_numpy(float) if pop=="UNIQUE_4H_FEATURE_ROWS"
+    vals=(prior_clock.loc[sample,"channel_width"].to_numpy(float) if pop=="UNIQUE_4H_FEATURE_ROWS"
           else np.asarray([v for ts in sample for v in widths.loc[ts]],float))
     if not np.isfinite(vals).all(): stop("non-finite calibration values")
     rows.append({"asset":a,"snapshot_ms":t.value//1_000_000,"policy":pol,"population":pop,
