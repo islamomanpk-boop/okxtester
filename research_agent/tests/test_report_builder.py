@@ -220,6 +220,29 @@ class ReportBuilderTests(unittest.TestCase):
         digest = report_builder.task_definition_digest(task)
         self.assertRegex(digest, r"^[0-9a-f]{64}$")
 
+    def test_report_task_binding_accepts_exact_trusted_task(self):
+        task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
+        report = valid_report()
+        report["task_definition_sha256"] = report_builder.task_definition_digest(task)
+        report_builder.verify_report_task_binding(report, task)
+
+    def test_report_task_binding_rejects_changed_task_definition(self):
+        task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
+        report = valid_report()
+        report["task_definition_sha256"] = report_builder.task_definition_digest(task)
+        changed = dict(task, scope=["inspect", "extra"])
+        with self.assertRaisesRegex(ValueError, "hash does not match"):
+            report_builder.verify_report_task_binding(report, changed)
+
+    def test_report_task_binding_rejects_task_id_or_phase_mismatch(self):
+        task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
+        report = valid_report()
+        report["task_definition_sha256"] = report_builder.task_definition_digest(task)
+        with self.assertRaisesRegex(ValueError, "task_id"):
+            report_builder.verify_report_task_binding(report, dict(task, task_id="P3-OTHER"))
+        with self.assertRaisesRegex(ValueError, "phase"):
+            report_builder.verify_report_task_binding(report, dict(task, phase="phase1"))
+
     def test_markdown_report_displays_task_definition_hash(self):
         rendered = report_builder.render_markdown(valid_report())
         self.assertIn("Task definition SHA-256", rendered)
