@@ -1,7 +1,11 @@
 """Authored tests for the pure orchestration coordinator; not executed."""
 import unittest
+from unittest.mock import patch
 
-from research_agent.engine.orchestration_coordinator import build_orchestration_snapshot
+from research_agent.engine.orchestration_coordinator import (
+    build_orchestration_snapshot,
+    build_runtime_orchestration_snapshot,
+)
 
 
 def fixture(allowed=False):
@@ -91,6 +95,27 @@ class OrchestrationCoordinatorTests(unittest.TestCase):
         self.assertEqual(guidance["recovery_status"], "delivery_uncertain")
         self.assertFalse(guidance["automatic_retry_permitted"])
         self.assertFalse(guidance["observation_source_authenticated"])
+
+    @patch("research_agent.engine.orchestration_coordinator._preflight_all_tasks_with_queue")
+    @patch("research_agent.engine.orchestration_coordinator.load_queue")
+    def test_runtime_uses_one_queue_snapshot_for_preflight_and_planning(self, mock_load, mock_preflight):
+        queue, preflight = fixture(False)
+        mock_load.return_value = queue
+        mock_preflight.return_value = preflight
+
+        result = build_runtime_orchestration_snapshot()
+
+        mock_load.assert_called_once_with()
+        mock_preflight.assert_called_once_with(queue)
+        self.assertEqual(result["planned_task_count"], 0)
+        self.assertFalse(result["dispatch_permitted"])
+
+    def test_rejects_boolean_batch_limit(self):
+        queue, preflight = fixture(False)
+        with self.assertRaises(ValueError):
+            build_orchestration_snapshot(
+                queue=queue, preflight_summary=preflight, max_tasks=True
+            )
 
     def test_unknown_recovery_task_is_rejected(self):
         queue, preflight = fixture(False)
