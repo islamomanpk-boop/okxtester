@@ -75,7 +75,11 @@ def build_orchestration_snapshot(
         if not isinstance(recovery_observations, dict):
             raise TypeError("Recovery observations must be an object keyed by task ID.")
         for task_id, observation in recovery_observations.items():
-            if task_id not in task_by_id or not isinstance(observation, dict):
+            # JSON object keys are strings, but reject malformed Python callers
+            # explicitly rather than allowing an unhashable key to raise TypeError.
+            if not isinstance(task_id, str) or task_id not in task_by_id:
+                raise ValueError("Recovery observation must reference a known string task ID.")
+            if not isinstance(observation, dict):
                 raise ValueError("Recovery observation must reference a known task and object.")
             if set(observation) != {"delivery_state", "review_state", "human_disposition"}:
                 raise ValueError("Recovery observation has missing or unsupported fields.")
