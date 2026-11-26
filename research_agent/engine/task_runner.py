@@ -82,15 +82,20 @@ def _preflight_task_with_queue(task_id: str, current_queue: dict[str, Any]) -> d
             queue_status=queue_status,
             reason="Safety controller returned a malformed decision; denied.",
         )
-    authorized = decision.get("authorized") is True and decision.get("decision") == "ALLOW_READ_ONLY"
+    valid_reason = decision.get("reason")
+    authorized = (
+        decision.get("authorized") is True
+        and decision.get("decision") == "ALLOW_READ_ONLY"
+        and isinstance(valid_reason, str)
+        and bool(valid_reason.strip())
+    )
     return _preflight_result(
         task_id,
         queue_status=queue_status,
         decision="ALLOW_READ_ONLY" if authorized else "DENY",
         authorized=authorized,
         reason=(
-            decision.get("reason")
-            if isinstance(decision.get("reason"), str) and decision.get("reason").strip()
+            valid_reason if isinstance(valid_reason, str) and valid_reason.strip()
             else "Safety controller returned no valid reason; denied."
         ),
     )
