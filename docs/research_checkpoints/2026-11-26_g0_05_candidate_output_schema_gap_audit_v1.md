@@ -60,9 +60,9 @@ The following items are not present as complete fields in the current three sour
 
 ### 3.4 Dependence and event metadata
 
-- `overlap_cluster_id` and `repeated_signal_group_id` are not currently emitted.
-- The frozen decisions prohibit deleting or collapsing overlapping events, but the exact metadata-only cluster construction and reporting convention has not yet been specified. Do not invent a cluster window or use future outcomes to define one.
-- Rejection test-rank/source repeated-test identity is preserved in source IDs, but a canonical repeated-signal group field is not yet materialized.
+- `overlap_cluster_id`, `overlap_cluster_size`, and cluster start/end bounds are now emitted in all three source-only ledgers. Rejection uses the accepted Module A 24H interval-graph clusters with physical size recounted after strict/broad collapse; breakout continuation uses the same frozen Module B 12H interval-graph method applied to all 2,861 unique raw crossings; failed-breakout reversal inherits its linked source breakout cluster.
+- Clusters are metadata only. No overlapping event is removed, merged or re-labelled.
+- A separate `repeated_signal_group_id` rule remains unfrozen. Existing rejection test-rank/segment identity and distinct raw breakout crossing keys preserve repeated events without adding a new grouping rule.
 - `ambiguity_flags` are not emitted in the current source-only artifact.
 
 ### 3.5 Lifecycle fields
@@ -116,7 +116,7 @@ Evidence:
 
 This closes the previously noted absence of asset/family/side/causal-cohort/reason grouped disposition summaries in the source-audit report. The summary is descriptive and does not alter or collapse source rows.
 
-Remaining reporting gaps include overlap-cluster/repeated-signal metadata and cluster-size reporting. The raw breakout historical membership gap has been closed by exact-key reconciliation to Module B; its implementation evidence is recorded below. The canonical candidate fields listed in Sections 2–3 above remain unmaterialized.
+The overlap-cluster metadata and cluster-size reporting gap has been closed as recorded below. A separate repeated-signal group identifier remains undefined; existing source identities continue to preserve repeated events. The canonical candidate fields listed in Sections 2–3 above remain unmaterialized.
 
 
 ## 8. Raw breakout historical cohort membership reconciled — 2026-11-26
@@ -132,3 +132,23 @@ Evidence:
 - The raw selected flag must agree with the exact-key Module B membership; unknown labels and strict-without-broad fail closed.
 
 Historical cohort membership is separate from causal eligibility. The 932 historically selected events are not treated as the only causally eligible events, and causal strict/broad classifications are not overwritten by historical cohort labels.
+
+
+## 9. Frozen overlap-cluster metadata added — 2026-11-26
+
+The source-only disposition audit now attaches deterministic overlap-cluster metadata without deleting or deduplicating any source event.
+
+- Rejection: reuses the accepted Module A 24H interval-graph cluster IDs and start/end bounds. Cluster sizes are recalculated at the 1,154 physical-event grain after strict/broad cohort collapse, preventing nested cohort rows from inflating physical cluster size.
+- Breakout continuation: applies the frozen Module B 12H per-asset interval-graph algorithm to all 2,861 unique G0-04 raw crossings. Each window begins at signal availability and ends after the observed 1-minute bars, capped at 720; exact source-minute continuity is required. The 932 Module B source events are cross-checked against their recorded `observed_bars_12h`.
+- Failed-breakout reversal: inherits the overlap cluster of its linked source breakout and is not counted as a new source event cluster.
+
+Evidence:
+- Source audit [45803856975](https://github.com/islamomanpk-boop/okxtester/actions/runs/45803856975) — SUCCESS; artifact ID `15108946054`; ZIP SHA-256 `a3c5ca3bc224ea457134253506b5222248cc409563a2bfdeaa14a34ffecc62f9`, independently recomputed after download.
+- Synthetic suite [45803874401](https://github.com/islamomanpk-boop/okxtester/actions/runs/45803874401) — SUCCESS; **93/93 tests passed**. Tests cover transitive overlap, half-open endpoint separation, deterministic ordering, multiple assets, non-positive windows, duplicate IDs, exact observed-window starts and cohort-cluster consistency.
+
+Cluster summary:
+- Rejection physical events: **380 clusters** across five assets; largest physical cluster size **16** (the accepted Module A cohort-row cluster maximum was 32 before strict/broad collapse).
+- Breakout raw crossings: **1,037 clusters** across five assets; largest cluster size **14**.
+- Failed-breakout rows inherit source breakout clusters; they are a subset and do not create additional cluster counts.
+
+The original accepted Module A and Module B outputs remain unchanged. The G0-05 breakout cluster IDs are versioned separately as `g0_05_raw_overlap` because the cluster population now includes all 2,861 raw crossings, not only Module B's historical selected subset.
