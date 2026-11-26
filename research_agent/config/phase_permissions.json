@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "phase_order": [
+    "phase3_sideways_range",
+    "phase1_uptrend_bullish",
+    "phase2_downtrend_bearish",
+    "phase4_choppy_high_volatility",
+    "phase5_transition_expansion"
+  ],
+  "global_defaults": {
+    "repository_inspection": "allow_read_only",
+    "evidence_lineage_review": "allow_read_only",
+    "report_generation": "allow_local_or_artifact_only",
+    "execute_scripts": "deny_unless_task_and_phase_allowlisted",
+    "execute_tests": "deny_unless_task_and_phase_allowlisted",
+    "trigger_workflows": "deny",
+    "modify_research_data": "deny",
+    "modify_canonical_definitions": "deny",
+    "create_candidates": "deny",
+    "run_backtests": "deny",
+    "make_pnl_claims": "deny",
+    "select_strategies": "deny",
+    "close_gates": "deny",
+    "deploy_to_vps": "deny",
+    "change_secrets_or_permissions": "deny"
+  },
+  "phases": {
+    "phase3_sideways_range": {
+      "priority": 1,
+      "status": "active_research_phase",
+      "task_scope": "follow_current_handoff_and_gate_status",
+      "execution_override": "deny",
+      "g0_05": {
+        "status": "read_only_reconciliation_only",
+        "scripts_tests_workflows": "prohibited",
+        "data_or_code_changes": "prohibited",
+        "candidate_generation": "prohibited",
+        "backtesting_and_pnl": "prohibited",
+        "gate_closure": "prohibited",
+        "lock_reason": "Current G0-05 handoff explicitly prohibits execution and changes."
+      }
+    },
+    "phase1_uptrend_bullish": {
+      "priority": 2,
+      "status": "queued",
+      "execution_override": "deny"
+    },
+    "phase2_downtrend_bearish": {
+      "priority": 3,
+      "status": "queued",
+      "execution_override": "deny"
+    },
+    "phase4_choppy_high_volatility": {
+      "priority": 4,
+      "status": "queued",
+      "execution_override": "deny"
+    },
+    "phase5_transition_expansion": {
+      "priority": 5,
+      "status": "queued",
+      "execution_override": "deny"
+    }
+  },
+  "approval_required_for": [
+    "lifting_a_phase_specific_restriction",
+    "running_backtests",
+    "generating_strategy_candidates",
+    "changing_canonical_research_definitions",
+    "closing_a_research_gate",
+    "modifying_or_deleting_valuable_data",
+    "vps_or_production_changes"
+  ]
+}
