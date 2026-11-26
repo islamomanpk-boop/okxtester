@@ -88,35 +88,49 @@ def _preflight_task_with_queue(task_id: str, current_queue: dict[str, Any]) -> d
             queue_status=queue_status,
             reason="Safety controller returned a malformed decision; denied.",
         )
-    # The authorization boundary accepts one exact response schema only.
-    # Extra fields, missing fields, non-bool flags, unknown decisions, and
-    # inconsistent decision/flag pairs are all malformed and fail closed.
-    if set(decision) != {"authorized", "decision", "reason"}:
-        return _preflight_result(
-            task_id, queue_status=queue_status,
-            reason="Safety controller returned an unexpected response shape; denied.",
-        )
+    # The controller has two deliberately distinct exact response schemas:
+    # compact DENY, and identity-bound ALLOW. Neither accepts extra fields.
     authorized_flag = decision.get("authorized")
     decision_code = decision.get("decision")
     valid_reason = decision.get("reason")
-    if (
-        type(authorized_flag) is not bool
-        or not isinstance(decision_code, str)
-        or decision_code not in {"ALLOW_READ_ONLY", "DENY"}
-        or not isinstance(valid_reason, str)
-        or not valid_reason.strip()
-        or (authorized_flag is True) != (decision_code == "ALLOW_READ_ONLY")
-    ):
+    deny_keys = {"authorized", "decision", "reason"}
+    allow_keys = {
+        "authorized", "decision", "reason", "task_id", "phase",
+        "operation", "execution_performed",
+    }
+    if type(authorized_flag) is not bool or not isinstance(decision_code, str):
+        return _preflight_result(
+            task_id, queue_status=queue_status,
+            reason="Safety controller returned malformed authorization types; denied.",
+        )
+    if authorized_flag is True:
+        valid_shape = (
+            set(decision) == allow_keys
+            and decision_code == "ALLOW_READ_ONLY"
+            and isinstance(valid_reason, str)
+            and bool(valid_reason.strip())
+            and decision.get("task_id") == task.get("task_id")
+            and decision.get("phase") == task.get("phase")
+            and decision.get("operation") == task.get("operation")
+            and decision.get("execution_performed") is False
+        )
+    else:
+        valid_shape = (
+            set(decision) == deny_keys
+            and decision_code == "DENY"
+            and isinstance(valid_reason, str)
+            and bool(valid_reason.strip())
+        )
+    if not valid_shape:
         return _preflight_result(
             task_id, queue_status=queue_status,
             reason="Safety controller returned an inconsistent or malformed decision; denied.",
         )
-    authorized = authorized_flag is True
     return _preflight_result(
         task_id,
         queue_status=queue_status,
         decision=decision_code,
-        authorized=authorized,
+        authorized=authorized_flag,
         reason=valid_reason,
     )
 
