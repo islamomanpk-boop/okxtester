@@ -3,7 +3,7 @@
 **Date:** 2026-11-26  
 **Project:** OKX Price Action V1 — Phase 3 Sideways / Range  
 **Sequence:** Gate 0, task G0-05 (after G0-04)  
-**Status:** PREPARATION ONLY — BLOCKED ON G0-04 ACCEPTANCE  
+**Status:** PREPARATION ONLY — BLOCKED ON FORMAL G0-04 ACCEPTANCE  
 **Authority:** Controlling Phase 3 roadmap and the 2026-11-25 candidate-availability/source-timing audit  
 **Execution status:** No candidate generator has been run or authorized by this document. No candidates, orders, fills, outcomes, PnL, or strategy results are produced.
 
@@ -11,12 +11,12 @@
 
 This is **G0-05**, not a replacement for or parallel execution of G0-04. The ordered work sequence remains:
 
-1. **G0-04 — causal breakout reconstruction and past-only threshold comparison.** Currently running in GitHub Actions. Its source checks, synthetic tests, full reconstruction, reconciliation, and outputs must be inspected and accepted before this task is unlocked.
+1. **G0-04 — causal breakout reconstruction and past-only threshold comparison.** Canonical GitHub Actions execution passed on 2026-11-26 (run 45749524341, attempt 6; checked-out revision 29e59e0). The 20/20 historical baseline, 932 historical identity reconciliation, feature/context alignment, and output hashes have been checked. The execution evidence is recorded in `2026-11-26_g0_04_implementation_checkpoint_v1.md`; formal independent review/acceptance remains pending, so G0-05 remains blocked.
 2. **G0-05 — freeze and implement the causal three-family candidate contract.** This document is preparation only. It does not pre-empt G0-04 results.
 3. **Remaining Gate 0 blockers and formal Gate 0 decision.** G0-05 acceptance alone does not close Gate 0. Funding/mark-price and other source/engine blockers recorded in the controlling register remain subject to their own acceptance.
 4. Only after a documented Gate 0 pass may the project proceed to Gate 2, then Gate 3, Gate 4, Gate 5, Gate 6, and Gate 7 in that order.
 
-Do not skip, renumber, merge, or mark a task complete because its specification or code has merely been prepared. If G0-04 fails or is inconclusive, stop at G0-04, diagnose and repair it, then rerun and review it before unlocking G0-05.
+Do not skip, renumber, merge, or mark a task complete because its specification or code has merely been prepared. If G0-04 fails, is inconclusive, or has not been formally accepted, stop at G0-04. Diagnose and repair any defect, rerun if needed, and complete review before unlocking G0-05.
 
 ## 2. Purpose and scope
 
@@ -264,3 +264,10 @@ If any critical item fails, status remains OPEN / BLOCKED or CONDITIONAL HOLD. D
 5. Only after acceptance, finalize the deferred G0-05 decisions and implement the generator/tests/workflow as the next numbered task.
 
 **Current disposition:** G0-05 specification preparation recorded; implementation and candidate generation remain blocked on G0-04 acceptance. Gate 0 remains CONDITIONAL HOLD. No strategy backtest or PnL work is authorized.
+
+
+## G0-04 execution status update — 2026-11-26
+
+G0-04 canonical execution has completed successfully and its artifact has been inspected. The implementation checkpoint records the run ID, checked-out revision, 20/20 historical baseline reproduction, 932-identity reconciliation, cross-pipeline checks, partial-tail coverage exception, and independently verified output hashes.
+
+**This is not formal G0-04 acceptance.** G0-05 remains preparation-only and blocked until the independent review and dated G0-04 closeout are completed. No candidate generator, candidate ledger, order/fill simulation, PnL, or strategy backtest is authorized by this update.
