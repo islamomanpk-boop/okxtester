@@ -33,6 +33,12 @@ The current pure ledger schema has one globally unique `event_id`; it does not h
 
 The existing `append_event()` and `prepare_append()` APIs remain unchanged and purely in-memory. They can enforce exact replay only after the adapter has supplied the same globally unique `event_id` and identical event facts.
 
+## Canonicalization and hash interoperability
+
+The current ledger implementation hashes Python `json.dumps(sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)` output. That gives a deterministic byte representation for this implementation, but it is not a declared cross-language standard such as RFC 8785/JCS. In particular, JSON number formatting and Unicode/key ordering can differ between runtimes even when parsed values are semantically equivalent.
+
+Before a non-Python writer or verifier is introduced, the integration must either (a) adopt a versioned RFC 8785/JCS-compatible canonicalization contract and shared test vectors, or (b) explicitly constrain all ledger writes and verification to a pinned Python serializer/runtime. The current schema permits finite floating-point values, so the selected contract must specify number handling. Do not silently migrate existing event hashes; any canonicalization change requires an explicit versioned migration plan and verification of historical records.
+
 ## Required trust and transaction sequence
 
 1. Authenticate the caller at the transport boundary. Derive source namespace, source identity, and delivery ID from a trusted GitHub/platform event or authenticated human-review channel; never accept worker-provided `source`, `source_ref`, namespace, or delivery identity as proof.
@@ -40,7 +46,7 @@ The existing `append_event()` and `prepare_append()` APIs remain unchanged and p
 3. Load the durable ledger, delivery index, and protected checkpoint from a store with access controls independent of the worker.
 4. Verify the complete hash chain and confirm that the independently protected checkpoint matches the current ledger head (including the empty-ledger case).
 5. Canonicalize and validate the event using the existing pure ledger primitives; derive its global `event_id` from the authenticated delivery identity as specified above.
-6. In one database transaction or true compare-and-swap operation, require the stored checkpoint/version to equal the snapshot loaded in step 3; reject stale writers without changing either ledger, delivery index, or checkpoint.
+6. In one database transaction or true compare-and-swap operation, require the stored checkpoint/version to equal the snapshot loaded in step 3; reject stale writers without changing ledger, delivery index, or checkpoint.
 7. Enforce uniqueness for both the authenticated source namespace plus stable delivery ID and the derived global event ID. An exact replay returns the original event; reuse with different facts is rejected.
 8. Append the event, record its delivery-index entry, and advance the protected checkpoint atomically. A split write is not acceptable unless a separately specified recovery protocol can prove which side committed.
 9. Return a receipt containing the committed event digest and checkpoint version. The receipt is evidence of storage only, not task completion or gate approval.
