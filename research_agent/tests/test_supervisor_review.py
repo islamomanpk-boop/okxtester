@@ -117,6 +117,16 @@ class SupervisorReviewTests(unittest.TestCase):
         result = review_worker_submission(self.task, submission)
         self.assertEqual(result["review_disposition"], "return_for_revision")
 
+    def test_non_string_top_level_field_name_fails_closed_without_exception(self):
+        submission = dict(self.submission)
+        submission[7] = "unexpected"
+        result = review_worker_submission(self.task, submission)
+        self.assertEqual(result["review_disposition"], "return_for_revision")
+        self.assertIn(
+            "Submission field names must all be strings.",
+            result["issues"],
+        )
+
     def test_does_not_accept_unknown_fields(self):
         submission = dict(self.submission, automatic_approval=True)
         result = review_worker_submission(self.task, submission)
