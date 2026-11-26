@@ -585,9 +585,9 @@ The source-only ledger now includes family-specific file paths, Git blob IDs, a 
 The latest source-only disposition artifact now includes exact snapshot/threshold/feature provenance, family-specific regime versions, instrument IDs and deterministic source-event IDs. Breakout and failed-breakout rows preserve G0-04's one-4H-lagged historical context; the detector feature row one 4H bar earlier is used only for the documented channel cross-check. The expected leading legacy boundary is explicitly marked.
 
 Evidence:
-- Source audit [45808007422](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808007422) — SUCCESS; artifact ID `15110482845`; ZIP SHA-256 `f29bf78c7dbcaaca05f51ca10a5fc688f334664262debee6d37b7b657d390f2b`.
-- Complete manifest ID: `f851f6c65214f18a6f24cd7424cad0dedba26c2c2a1210dda269ddef84bc81d2`; exact-byte SHA-256 independently recomputed and matched all 4,947 rows.
-- Synthetic suite [45808027261](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808027261) — SUCCESS; **111/111 tests passed**.
+- Source audit [45809114333](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809114333) — SUCCESS; artifact ID `15109854146`; ZIP SHA-256 `256dd55f22f0dc6c17732a4462c7cf88229af6ec57e42ec2becbc2fea9d6c85d`.
+- Complete manifest ID: `dcc2bc9b6af890a81f0ecf109d34843fcc34b2a8431116b766aa97acdfc7082f`; exact-byte SHA-256 independently recomputed and matched all 4,947 rows.
+- Synthetic suite [45809254233](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809254233) — SUCCESS; **120/120 tests passed**.
 - Independent minute verification [45808232768](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808232768) — SUCCESS; artifact ID `15109374812`; ZIP SHA-256 `6ba631e255aa433a50e00a708e4d4e05475e4fb35c10e058eab825c46c98bc4a`; 2,857/2,857 eligible timestamps present.
 
 **Remaining:** final candidate IDs and failed-breakout source-breakout candidate IDs are deliberately not materialized. The remaining work is deterministic ID/schema validation, full canonical serialization design, and independent review. G0-05 remains open; no canonical candidate generation, execution simulation, strategy backtests, PnL or phase transition is authorized.
@@ -601,3 +601,14 @@ A pure contract validator is now in place for the eventual canonical ledger. It 
 - Tests use synthetic identities only. No candidate IDs were generated for real source rows, and no canonical candidate ledger was created.
 
 Remaining gate work is the full family-specific candidate-record schema validator, deterministic serializer/reproduction and independent review. G0-05 remains open.
+
+
+## 31. Schema-normalized cohort labels and identity preflight — 2026-11-26
+
+The latest source-only audit emits the frozen cohort enum values (`STRICT_P25`, `BROAD_ONLY`, `NOT_ELIGIBLE`, `WARMUP`, `NOT_APPLICABLE`) and explicit `side` / `boundary_side` fields with the correct family mappings.
+
+- Source audit [45809114333](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809114333) — SUCCESS; artifact ID `15109854146`; ZIP SHA-256 `256dd55f22f0dc6c17732a4462c7cf88229af6ec57e42ec2becbc2fea9d6c85d`.
+- Complete manifest ID: `dcc2bc9b6af890a81f0ecf109d34843fcc34b2a8431116b766aa97acdfc7082f`; all 4,947 rows carry it and all source-event IDs are unique.
+- Synthetic suite [45809254233](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809254233) — SUCCESS; **120/120 tests passed**.
+
+The pure candidate identity validator now checks deterministic candidate IDs and the final failed-breakout source identity composition and link. All tests use synthetic IDs; real candidate IDs remain unmaterialized. Independent minute verification against this latest source-audit artifact is running.
