@@ -361,8 +361,35 @@ class ReportBuilderTests(unittest.TestCase):
                 run_attempt="2",
             )
             report_builder.verify_artifact_files(
-                bundle["files"], bundle["manifest"]
+                bundle["files"], bundle["manifest"],
+                actual_artifact_name=bundle["artifact_name"],
             )
+
+    def test_artifact_verifier_rejects_downloaded_name_mismatch(self):
+        with tempfile.TemporaryDirectory(dir=report_builder.REPOSITORY_ROOT) as temporary:
+            path = Path(temporary) / "evidence.txt"
+            path.write_text("artifact evidence", encoding="utf-8")
+            relative = path.relative_to(report_builder.REPOSITORY_ROOT).as_posix()
+            task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
+            report = valid_report()
+            report["run_id"] = "12345"
+            report["task_definition_sha256"] = report_builder.task_definition_digest(task)
+            report["input_manifest"] = report_builder.build_input_manifest([relative])
+            bundle = report_builder.build_artifact_bundle(
+                report, task,
+                expected_repository=report["repository"],
+                expected_branch=report["branch"],
+                expected_commit_sha=report["commit_sha"],
+                actual_head_sha=report["commit_sha"],
+                checkout_clean=True,
+                run_id="12345",
+                run_attempt="1",
+            )
+            with self.assertRaisesRegex(ValueError, "Artifact name"):
+                report_builder.verify_artifact_files(
+                    bundle["files"], bundle["manifest"],
+                    actual_artifact_name="wrong-artifact-name",
+                )
 
     def test_artifact_verifier_rejects_tampered_report_bytes(self):
         with tempfile.TemporaryDirectory(dir=report_builder.REPOSITORY_ROOT) as temporary:
