@@ -68,7 +68,19 @@ Accepted source expectations from `research/phase3_rejection_lifecycle_v1_1.py`:
 - rejection confirmation: first strong rejection 15-minute candle open + 900,000 ms;
 - existing 10%-of-channel retest band and 20%-of-channel inward-separation rule are descriptive lifecycle geometry, not G0-05 execution rules.
 
-The 40 broad / 29 strict snapshot-expiry cases remain source records with explicit exclusion disposition. The source blob IDs are verified; SHA-256 for the two event CSVs and five feature CSVs must be calculated in the final source-manifest run before canonical generation.
+The 40 broad / 29 strict snapshot-expiry cases remain source records with explicit exclusion disposition. The read-only source-audit workflow calculated these SHA-256 values from the exact checked-out bytes:
+
+| Input | SHA-256 |
+|---|---|
+| `boundary_tests_historical_v1.csv` | `a58060c7699e8c7be27b0551ec6fd88bf6a97eb0a943e2228f62b981fab7019b` |
+| `event_anatomy_v1.csv` | `d808f3f93848bd9063b368ca7435798c7b06fb2c6144192b7bf8bbe854392261` |
+| `BTC_features_original_v1.csv` | `c8c3bbb2e3942eb22dc78fae8f310ce8dd9963f58b3865500ea8225bc55c395f` |
+| `ETH_features_original_v1.csv` | `88a0131775977bf30c914be5118c7998dd1570f1b42340a4201477b5388bfb44` |
+| `SOL_features_original_v1.csv` | `d8766f8071d48c77fa7bd7dbe5b5f8f787b886f0ba74d06238b27b1e6f409228` |
+| `DOGE_features_original_v1.csv` | `f8b4e60a0feb1784521694ffd7008ca8a7b806c260b9cc3f8c8ee020f6c2d05f` |
+| `AVAX_features_original_v1.csv` | `d5394e5fce3a642a452a854101c6b60a7012e2a257a13867bfe2cd74f7bc87cf` |
+
+All seven Git blob pins and the above SHA-256 values passed the G0-05 read-only source-audit workflow.
 
 ## 3. Canonical 1-minute market data
 
@@ -88,8 +100,10 @@ The exact common index is 569,125 timestamps at 60-second cadence. This is inher
 
 - Event ledger: `reports/phase3_breakout_lifecycle_v1_1/breakout_lifecycle_events_v1_1.csv`
   - Git blob: `da00c6682719864eaee3a491330d57f4d6fd2b39`
+  - SHA-256: `d47cc0c480f5175c7c07bc09b3878d00f30e847223df5aee517435bd6216c861`
 - Horizon ledger: `reports/phase3_breakout_lifecycle_v1_1/breakout_lifecycle_horizons_v1_1.csv`
   - Git blob: `068e2b90b9824f7c68818c0eb913608db6b8a568`
+  - SHA-256: `532e68ecb7b1394457202b8c4cb4c3252ec11a8c1807ad91087e0d0341b06faf`
 - Run metadata: `reports/phase3_breakout_lifecycle_v1_1/run_metadata_v1_1.json`
   - Git blob: `72930564f85fc356faa54115c6f76ffc7c533a58`
 - Original lifecycle implementation: `research/phase3_breakout_lifecycle_v1_1.py`
@@ -107,8 +121,24 @@ The descriptive lifecycle metadata records 1,592 events (932 broad, 660 strict),
 
 ## 6. Remaining provenance blockers
 
-1. Calculate SHA-256 for rejection boundary, event-anatomy and five detector-feature CSVs; compare with a frozen manifest.
-2. Calculate SHA-256 for Module B event and horizon CSVs and compare with their run metadata output hashes.
-3. Validate one-to-one/one-to-many source joins and explicit disposition coverage before any candidate row is emitted.
+1. Preserve the verified SHA-256 and Git blob manifest for the seven rejection-family inputs.
+2. Preserve the Module B event/horizon SHA-256 values and verify them again in the read-only audit report.
+3. Expand reconciliation to candidate-specific causal threshold eligibility and exact snapshot lookup, without emitting candidate records.
 
 **No canonical candidate generation is authorized until these blockers are closed.**
+
+
+## 7. G0-05 source-audit execution evidence
+
+- Workflow: [45782267493](https://github.com/islamomanpk-boop/okxtester/actions/runs/45782267493)
+- Job: `139780414670` — SUCCESS.
+- Checked-out revision: `123cc54093b7b3a3fbac2351a437664e7edb2a23`.
+- Artifact: [phase3-g0-05-source-audit-45782267493](https://github.com/islamomanpk-boop/okxtester/actions/runs/45782267493/artifacts/15097814699).
+- Artifact ZIP SHA-256: `9d1522dfaceab459d12e5011275455eaae008eea4fb8d4f3d96b9d66225714e3`.
+- The artifact was downloaded and its ZIP SHA-256 independently verified.
+- Source audit status: `G0_05_SOURCE_PROVENANCE_AND_IDENTITY_AUDIT_PASS`.
+- Rejection family: 2,452 boundary rows; 1,992 confirmed source events; one-to-one anatomy join passed; 1,154 broad / 838 strict; 40 broad / 29 strict confirmation-at-snapshot-endpoint exclusions.
+- Module B: 1,592 event rows; 6,368 horizon rows; 932 distinct source identities; all 932 matched the G0-04 raw crossing ledger; zero unmatched identities.
+- G0-04 artifact: 2,861 raw crossing rows; 20/20 historical baseline; zero raw-source mismatches; 65,310 threshold rows; all six policy/population totals verified.
+
+The audit is read-only. It generated provenance/reconciliation reports only; it did not generate canonical candidate rows, orders, fills or outcomes.
