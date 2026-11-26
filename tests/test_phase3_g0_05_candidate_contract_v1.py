@@ -8,7 +8,8 @@ from research.phase3_g0_05_candidate_contract_v1 import (
     snapshot_is_valid, rejection_confirmation, first_eligible_minute,
     family_side, complete_15m_confirmation, failed_breakout_confirmation,
     candidate_id, classify_disposition, deterministic_json,
-    validate_candidate_identity_links,
+    validate_candidate_identity_links, validate_canonical_candidate_record,
+    validate_canonical_candidate_ledger,
     causal_regime_eligible, validate_strict_broad_nesting,
     exact_first_minute_disposition, failed_breakout_horizon_disposition,
     rejection_physical_identity, collapse_rejection_cohort_rows, causal_rejection_disposition,
@@ -110,6 +111,138 @@ class G005ContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "12-hour"):
             failed_breakout_confirmation("UPPER", 99.0, 100.0,
                                           FAILURE_HORIZON_MS + 1, 0, True)
+
+    def _canonical_candidate_fixture(self, family, source_event_id, signal_available,
+                                      boundary_side, side, source_breakout_candidate_id="NOT_APPLICABLE",
+                                      source_breakout_signal_available=None):
+        snapshot = 1761278400000
+        rule_version = "G0_05_CANDIDATE_RULE_V1"
+        regime = ("SIDEWAYS_DETECTOR_ORIGINAL_V1"
+                  if family in {"SUPPORT_REJECTION", "RESISTANCE_REJECTION"}
+                  else "HISTORICAL_BREAKOUT_CONTEXT_V1")
+        confirmation_rule = {
+            "SUPPORT_REJECTION": "STRONG_REJECTION_15M_CLOSE_V1",
+            "RESISTANCE_REJECTION": "STRONG_REJECTION_15M_CLOSE_V1",
+            "BREAKOUT_CONTINUATION": "BOUNDARY_CROSSING_15M_CLOSE_V1",
+            "FAILED_BREAKOUT_REVERSAL": "RETURN_INSIDE_15M_CLOSE_V1",
+        }[family]
+        failed = family == "FAILED_BREAKOUT_REVERSAL"
+        source_signal = source_breakout_signal_available or signal_available
+        record = {
+            "source_event_id": source_event_id,
+            "family": family,
+            "candidate_rule_version": rule_version,
+            "instrument_id": "BTC-USDT-SWAP",
+            "asset": "BTC",
+            "side": side,
+            "boundary_side": boundary_side,
+            "regime_definition_version": regime,
+            "source_pipeline_version": "G0_04_CAUSAL_RECONSTRUCTION_V1+MODULE_A_V1_1+MODULE_B_V1_1",
+            "source_event_row_ids": ["source-row-1"],
+            "historical_cohort_memberships": ["BROAD_P40"],
+            "causal_cohort_label": "STRICT_P25",
+            "overlap_cluster_id": "cluster-btc-1",
+            "overlap_cluster_size": 1,
+            "overlap_window_start_ts_ms": snapshot,
+            "overlap_window_end_ts_ms": snapshot + 43200000,
+            "repeated_signal_group_id": "group-btc-1",
+            "snapshot_id": f"BTC|{snapshot}",
+            "snapshot_available_at_ts_ms": snapshot,
+            "snapshot_valid_from_ts_ms": snapshot,
+            "snapshot_valid_until_ts_ms": snapshot + 14400000,
+            "frozen_upper_boundary": 110.0,
+            "frozen_lower_boundary": 90.0,
+            "channel_width_pct": 9.0,
+            "threshold_policy_id": "EXPANDING_PRIOR",
+            "threshold_population_id": "UNIQUE_4H_FEATURE_ROWS",
+            "threshold_value": 9.5,
+            "threshold_percentile": 25,
+            "threshold_calibration_start_ts_ms": 1760000000000,
+            "threshold_calibration_end_ts_ms": 1761000000000,
+            "threshold_prior_observation_count": 200,
+            "efficiency_value": 0.2,
+            "efficiency_limit": 0.30,
+            "overlap_value": 0.8,
+            "overlap_minimum": 0.70,
+            "source_file_paths": ["data/market_1m/BTC_USDT_USDT_1m.csv",
+                                  "G0-04-artifact/unique_raw_crossing_events_with_six_variants.csv"],
+            "source_git_blob_ids": ["a" * 40],
+            "source_sha256_manifest_id": "b" * 64,
+            "signal_candle_open_ts_ms": signal_available - FIFTEEN_MIN_MS,
+            "signal_candle_close_ts_ms": signal_available,
+            "signal_available_at_ts_ms": signal_available,
+            "confirmation_rule_id": confirmation_rule,
+            "confirmation_bar_interval_ms": FIFTEEN_MIN_MS,
+            "confirmation_status": "CONFIRMED",
+            "first_eligible_execution_bar_open_ts_ms": signal_available,
+            "event_observed_at_ts_ms": signal_available,
+            "ambiguity_flags": ["NONE"],
+            "decluster_policy_id": "G0_05_INTERVAL_GRAPH_METADATA_V1",
+            "candidate_status": "ELIGIBLE_FOR_FURTHER_VALIDATION",
+            "exclusion_reason": "NONE",
+            "censoring_reason": None,
+            "invalidation_reference_type": "NOT_APPLICABLE",
+            "invalidation_reference_value": "NOT_APPLICABLE",
+            "invalidation_reference_ts_ms": "NOT_APPLICABLE",
+            "expiry_rule_id": "SOURCE_BREAKOUT_12H_RETURN_INSIDE_V1" if failed else "NOT_APPLICABLE",
+            "expiry_ts_ms": source_signal + FAILURE_HORIZON_MS if failed else "NOT_APPLICABLE",
+            "source_breakout_candidate_id": source_breakout_candidate_id,
+            "source_reconciliation_status": "EXACT_LINKED_SOURCE_BREAKOUT" if failed else "EXACT_SOURCE_MATCH",
+            "source_join_cardinality": "ONE_FAILED_BREAKOUT_TO_ONE_SOURCE_BREAKOUT" if failed else "ONE_RAW_CROSSING_TO_ONE_DISPOSITION",
+        }
+        record["candidate_id"] = candidate_id(source_event_id, family, rule_version)
+        return record
+
+    def test_full_canonical_candidate_ledger_accepts_exact_breakout_link(self):
+        breakout_identity = "BTC|UPPER|1761287400000|1761278400000"
+        breakout = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", breakout_identity, 1761287400000, "UPPER", "LONG")
+        confirmation = 1761291000000
+        failed_identity = (
+            f"{breakout['candidate_id']}|{confirmation}|G0_05_CANDIDATE_RULE_V1")
+        failed = self._canonical_candidate_fixture(
+            "FAILED_BREAKOUT_REVERSAL", failed_identity, confirmation, "UPPER", "SHORT",
+            source_breakout_candidate_id=breakout["candidate_id"],
+            source_breakout_signal_available=breakout["signal_available_at_ts_ms"])
+        result = validate_canonical_candidate_ledger([breakout, failed])
+        self.assertEqual(result["candidate_rows"], 2)
+        self.assertEqual(result["failed_breakout_source_links_validated"], 1)
+
+    def test_canonical_record_rejects_wrong_family_side(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["side"] = "SHORT"
+        with self.assertRaisesRegex(ValueError, "family, boundary_side and side"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_future_threshold_calibration(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["threshold_calibration_end_ts_ms"] = record["snapshot_available_at_ts_ms"]
+        with self.assertRaisesRegex(ValueError, "must end before snapshot"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_missing_required_lineage(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        del record["source_file_paths"]
+        with self.assertRaisesRegex(ValueError, "missing required fields"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_ledger_rejects_failed_breakout_expiry_mismatch(self):
+        breakout_identity = "BTC|UPPER|1761287400000|1761278400000"
+        breakout = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", breakout_identity, 1761287400000, "UPPER", "LONG")
+        confirmation = 1761291000000
+        failed_identity = (
+            f"{breakout['candidate_id']}|{confirmation}|G0_05_CANDIDATE_RULE_V1")
+        failed = self._canonical_candidate_fixture(
+            "FAILED_BREAKOUT_REVERSAL", failed_identity, confirmation, "UPPER", "SHORT",
+            source_breakout_candidate_id=breakout["candidate_id"],
+            source_breakout_signal_available=breakout["signal_available_at_ts_ms"])
+        failed["expiry_ts_ms"] += 1
+        with self.assertRaisesRegex(ValueError, "expiry does not match"):
+            validate_canonical_candidate_ledger([breakout, failed])
 
     def _synthetic_candidate_identity_rows(self):
         version = "G0_05_CANDIDATE_RULE_V1"
