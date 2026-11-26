@@ -129,6 +129,22 @@ class ReportBuilderTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "ending in Z"):
             report_builder.validate_report(report)
 
+    def test_timestamp_fraction_must_use_shortest_canonical_form(self):
+        for timestamp in (
+            "2026-11-26T12:00:00.0Z",
+            "2026-11-26T12:00:00.000000Z",
+            "2026-11-26T12:00:00.100000Z",
+        ):
+            report = valid_report()
+            report["timestamp_utc"] = timestamp
+            with self.subTest(timestamp=timestamp):
+                with self.assertRaisesRegex(ValueError, "shortest canonical fractional form"):
+                    report_builder.validate_report(report)
+
+        report = valid_report()
+        report["timestamp_utc"] = "2026-11-26T12:00:00.1Z"
+        report_builder.validate_report(report)
+
     def test_rejects_non_string_finding_entries(self):
         report = valid_report()
         report["findings"] = [{"unexpected": "object"}]
