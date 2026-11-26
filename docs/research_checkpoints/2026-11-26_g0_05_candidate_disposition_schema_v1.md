@@ -71,10 +71,11 @@ No other reason string may be emitted without a versioned schema amendment.
 
 ### 4.1 Identity and classification
 - `candidate_id` — deterministic SHA-256 of canonical source identity + family + rule version; collision checked.
-- `source_event_id` — immutable identity from the accepted source pipeline.
+- `source_event_id` — canonical underlying physical event identity; immutable and independent of duplicated historical cohort labels.
+- `source_event_row_ids` — all immutable accepted source-row identities contributing to this physical event, preserving the original strict/broad definition rows.
 - `family`, `instrument_id`, `asset`, `side`, `boundary_side`.
 - `regime_definition_version`, `candidate_rule_version`, `source_pipeline_version`.
-- `historical_cohort_definition`, `causal_cohort_label` (STRICT_P25 / BROAD_P40 / NOT_APPLICABLE).
+- `historical_cohort_memberships` — list containing BROAD_P40, STRICT_P25 or both as present in the accepted source; `causal_cohort_label` is STRICT_P25 / BROAD_ONLY / NOT_ELIGIBLE / WARMUP / NOT_APPLICABLE.
 - `overlap_cluster_id`, `repeated_signal_group_id` (metadata only; no source event deletion).
 
 ### 4.2 Snapshot and threshold provenance
@@ -107,11 +108,11 @@ For rejection and continuation point events, invalidation/expiry fields are NOT_
 
 ## 5. Canonical source identity
 
-- Rejection: `asset|definition|direction|snapshot_index|segment_id|test_rank|test_start_ts_ms`. Source test rank and source protocol separation remain intact.
+- Rejection underlying physical identity: `asset|direction|snapshot_index|segment_id|test_rank|test_start_ts_ms`. The source `definition` field is historical cohort membership, not a second physical event. Preserve both original definition-specific source row IDs in `source_event_row_ids`; one physical event receives one causal disposition and one candidate identity.
 - Breakout continuation: `asset|direction|signal_time_ms|context_snapshot_ms`, using the G0-04 raw crossing ledger. Each unique raw crossing remains separate, including overlaps.
 - Failed-breakout reversal: source breakout candidate ID + completed 15-minute return-inside confirmation timestamp + rule version. Exactly one first qualifying completed return-inside confirmation per source breakout under the frozen lifecycle rule.
 
-Strict/broad duplicate cohort rows that refer to the same underlying source identity are represented as cohort metadata on the same underlying event, not double-counted as separate raw events unless a family-specific source key explicitly includes definition.
+Strict/broad duplicate cohort rows are represented as historical cohort-membership metadata on one underlying physical event. Do not double-count a strict event as a second independent event within broad.
 
 ## 6. Mandatory disposition accounting
 
