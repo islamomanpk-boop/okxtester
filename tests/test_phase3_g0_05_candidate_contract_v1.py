@@ -471,15 +471,23 @@ class G005SourceAuditTests(unittest.TestCase):
             confirmation_ambiguity_flag("SIDEWAYS", 100.0,
                                          {"high": 101.0, "low": 99.0, "close": 100.0})
 
-    def test_failed_breakout_confirmation_wick_ambiguity_upper_and_lower(self):
-        upper_bar = {"high": 101.0, "low": 98.0, "close": 99.0}
-        lower_bar = {"high": 102.0, "low": 99.0, "close": 101.0}
-        ordinary_bar = {"high": 100.0, "low": 98.0, "close": 99.0}
+    def test_failed_breakout_confirmation_open_and_wick_ambiguity(self):
+        upper_open = {"open": 101.0, "high": 102.0, "low": 98.0, "close": 99.0}
+        lower_open = {"open": 99.0, "high": 102.0, "low": 98.0, "close": 101.0}
+        upper_wick = {"open": 100.0, "high": 101.0, "low": 98.0, "close": 99.0}
+        lower_wick = {"open": 100.0, "high": 102.0, "low": 99.0, "close": 101.0}
+        ordinary_bar = {"open": 100.0, "high": 100.0, "low": 98.0, "close": 99.0}
         self.assertEqual(
-            confirmation_ambiguity_flag("UPPER", 100.0, upper_bar),
+            confirmation_ambiguity_flag("UPPER", 100.0, upper_open),
+            "CONFIRMATION_CANDLE_OPEN_OUTSIDE_CLOSE_INSIDE")
+        self.assertEqual(
+            confirmation_ambiguity_flag("LOWER", 100.0, lower_open),
+            "CONFIRMATION_CANDLE_OPEN_OUTSIDE_CLOSE_INSIDE")
+        self.assertEqual(
+            confirmation_ambiguity_flag("UPPER", 100.0, upper_wick),
             "CONFIRMATION_CANDLE_WICK_OUTSIDE_CLOSE_INSIDE")
         self.assertEqual(
-            confirmation_ambiguity_flag("LOWER", 100.0, lower_bar),
+            confirmation_ambiguity_flag("LOWER", 100.0, lower_wick),
             "CONFIRMATION_CANDLE_WICK_OUTSIDE_CLOSE_INSIDE")
         self.assertEqual(
             confirmation_ambiguity_flag("UPPER", 100.0, ordinary_bar), "NONE")
