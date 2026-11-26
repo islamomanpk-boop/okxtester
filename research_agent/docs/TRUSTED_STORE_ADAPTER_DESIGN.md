@@ -13,22 +13,36 @@ The event ledger and persistence contract are pure in-memory decision primitives
 A future adapter should expose a deliberately small interface:
 
 - `load_snapshot()`: return the ledger plus an independently protected head checkpoint and checkpoint version.
-- `append_if_current(expected_checkpoint, event)`: atomically verify the stored checkpoint, enforce unique upstream event ID, append the event, and advance the protected checkpoint in one transaction.
-- `lookup_delivery(source, delivery_id)`: resolve retries against the stable upstream delivery identity.
+- `append_if_current(expected_checkpoint, event)`: atomically verify the stored checkpoint, enforce unique upstream event identity, append the event, and advance the protected checkpoint in one transaction.
+- `lookup_delivery(source_namespace, delivery_id)`: resolve retries against the stable upstream delivery identity.
 - `verify_snapshot()`: verify event schemas, hash links, unique IDs, checkpoint-to-head equality, and checkpoint authenticity before any state is used.
 
 These are interface requirements, not implemented functions. No current module should pretend this interface exists.
 
+## Stable delivery identity and event IDs
+
+The current pure ledger schema has one globally unique `event_id`; it does not have separate `source` and `delivery_id` columns. The future adapter must bridge that shape explicitly rather than treating the coarse `source` enum (`github_workflow`, `human_review`, or `worker_return`) as a globally unique namespace.
+
+- Derive a stable, opaque source namespace from authenticated context. It should distinguish the relevant provider/tenant or installation, repository or workspace, and authenticated channel where applicable. Do not put credentials or unnecessary personal data in the namespace.
+- Obtain `delivery_id` from the authenticated upstream delivery mechanism. Never accept a worker-supplied delivery ID or namespace as proof of origin.
+- Derive the ledger's global `event_id` deterministically from a canonical, unambiguous encoding of the pair `(source_namespace, delivery_id)` (for example, SHA-256 over canonical JSON containing both strings). Do not use naive delimiter concatenation, which can be ambiguous.
+- Enforce a durable unique constraint on the original pair `(source_namespace, delivery_id)` as well as the derived `event_id`. Keep the original pair in the store's delivery index so `lookup_delivery()` can resolve retries without trusting worker data.
+- Keep `source` as the ledger's allowlisted category. Populate `source_ref` with a stable, non-secret reference to the authenticated source event/resource; do not overload it as the delivery ID unless its semantics are explicitly fixed.
+- For a retry, reproduce the same event facts, including the same canonical `occurred_at_utc`. Prefer an authenticated upstream occurrence timestamp. If the source has none, the adapter must durably retain the first accepted timestamp alongside the delivery identity and reuse it; generating a fresh processing timestamp on every retry would make an otherwise identical delivery appear to have changed facts.
+- If one authenticated delivery legitimately produces multiple ledger events, derive a distinct deterministic event identity for each event role using an additional fixed role discriminator, and document that mapping. Never reuse one delivery identity for different event facts.
+
+The existing `append_event()` and `prepare_append()` APIs remain unchanged and purely in-memory. They can enforce exact replay only after the adapter has supplied the same globally unique `event_id` and identical event facts.
+
 ## Required trust and transaction sequence
 
-1. Authenticate the caller at the transport boundary. Derive source identity and delivery ID from a trusted GitHub/platform event or authenticated human-review channel; never accept worker-provided `source`, `source_ref`, or delivery identity as proof.
+1. Authenticate the caller at the transport boundary. Derive source namespace, source identity, and delivery ID from a trusted GitHub/platform event or authenticated human-review channel; never accept worker-provided `source`, `source_ref`, namespace, or delivery identity as proof.
 2. Resolve the event to the exact trusted queued task and current task-definition digest. Re-read the controlling handoff, phase gate, allowlist, and branch policy at the operation boundary.
-3. Load the durable ledger and protected checkpoint from a store with access controls independent of the worker.
+3. Load the durable ledger, delivery index, and protected checkpoint from a store with access controls independent of the worker.
 4. Verify the complete hash chain and confirm that the independently protected checkpoint matches the current ledger head (including the empty-ledger case).
-5. Canonicalize and validate the event using the existing pure ledger primitives.
-6. In one database transaction or true compare-and-swap operation, require the stored checkpoint/version to equal the snapshot loaded in step 3; reject stale writers without changing either ledger or checkpoint.
-7. Enforce a unique constraint on the authenticated source plus stable delivery ID. An exact replay returns the original event; reuse with different facts is rejected.
-8. Append the event and advance the protected checkpoint atomically. A split write is not acceptable unless a separately specified recovery protocol can prove which side committed.
+5. Canonicalize and validate the event using the existing pure ledger primitives; derive its global `event_id` from the authenticated delivery identity as specified above.
+6. In one database transaction or true compare-and-swap operation, require the stored checkpoint/version to equal the snapshot loaded in step 3; reject stale writers without changing either ledger, delivery index, or checkpoint.
+7. Enforce uniqueness for both the authenticated source namespace plus stable delivery ID and the derived global event ID. An exact replay returns the original event; reuse with different facts is rejected.
+8. Append the event, record its delivery-index entry, and advance the protected checkpoint atomically. A split write is not acceptable unless a separately specified recovery protocol can prove which side committed.
 9. Return a receipt containing the committed event digest and checkpoint version. The receipt is evidence of storage only, not task completion or gate approval.
 
 ## Backend selection criteria
@@ -48,7 +62,7 @@ A GitHub artifact alone is not an adequate mutable ledger or protected checkpoin
 
 ## Recovery and failure semantics
 
-- Crash before transaction commit: no event or checkpoint advancement is visible; retry using the same authenticated delivery ID.
+- Crash before transaction commit: no event, delivery-index entry, or checkpoint advancement is visible; retry using the same authenticated delivery ID.
 - Crash after atomic commit but before response: retry resolves to the already-committed event and returns its receipt.
 - Stale checkpoint: reload, verify, and reconcile; never silently rebase a human disposition or worker submission.
 - Checkpoint mismatch or invalid chain: fail closed and require human investigation; do not rebuild or reset the trust root automatically.
