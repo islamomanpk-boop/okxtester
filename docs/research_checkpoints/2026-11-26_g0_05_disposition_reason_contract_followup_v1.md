@@ -67,3 +67,18 @@ The independent exact-minute workflow has been updated to consume the reason-con
 ## 6. Authorization boundary
 
 This closes the reason-code mismatch for the source-only disposition audit. It does not complete the canonical candidate schema, overlap-cluster reporting, all family/asset/side summary requirements, or the full G0-05 acceptance review. No canonical candidate rows, orders, fills, execution simulation, PnL, strategy backtests, or phase transition are authorized by this follow-up.
+
+
+## 7. Independent minute verification rerun against the reason-validated artifact
+
+- Workflow [45802348522](https://github.com/islamomanpk-boop/okxtester/actions/runs/45802348522) — SUCCESS.
+- Job: `139848550215`.
+- Checked-out workflow commit: `64bdadc618b4654a7a94164183d0c0a05512158e`.
+- The workflow selected the successful source-audit run at exact commit `253f187b0da75f76c585fed6f4ec416cd28c5ddc`.
+- Artifact ID: `15107686762`.
+- Artifact ZIP SHA-256: `cf5d687ec36d0a6d906cb81f26becbca01e68553297ff422ab59ca69f9004c62`, independently recomputed after download.
+- Extracted JSON SHA-256: `b2ab8bf00572c54a60cb3548c3131dcd986ed020639a6b762ce9328187b1e679`.
+- Report status: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`.
+- All five raw 1-minute source hashes/row counts and all 2,857 eligible timestamp memberships passed again. All 2,090 non-eligible rows had blank first-eligible timestamps.
+
+This rerun confirms the exact-minute result against the newer artifact that also enforces the corrected reason-code contract.
