@@ -566,6 +566,23 @@ def resolve_lagged_feature_reference(feature_by_timestamp: dict, asset: str,
         f"{asset} missing non-leading one-4H-lagged detector feature reference {reference_ts}")
 
 
+def canonical_cohort_label(cohort: str) -> str:
+    mapping = {
+        "CAUSAL_STRICT": "STRICT_P25",
+        "STRICT": "STRICT_P25",
+        "CAUSAL_BROAD_ONLY": "BROAD_ONLY",
+        "CAUSAL_REGIME_NOT_ELIGIBLE": "NOT_ELIGIBLE",
+        "NOT_ELIGIBLE": "NOT_ELIGIBLE",
+        "CAUSAL_THRESHOLD_WARMUP": "WARMUP",
+        "WARMUP": "WARMUP",
+        "NOT_EVALUATED": "NOT_APPLICABLE",
+    }
+    try:
+        return mapping[cohort]
+    except KeyError as exc:
+        raise ValueError(f"unknown causal cohort label: {cohort}") from exc
+
+
 def canonical_snapshot_provenance(asset: str, snapshot_ms: int, next_snapshot_ms,
                                    feature: dict, threshold: dict | None,
                                    causal_cohort: str,
@@ -615,7 +632,7 @@ def canonical_snapshot_provenance(asset: str, snapshot_ms: int, next_snapshot_ms
         "threshold_calibration_start_ts_ms": calibration_start,
         "threshold_calibration_end_ts_ms": calibration_end,
         "threshold_prior_observation_count": prior_count,
-        "causal_cohort_label": causal_cohort,
+        "causal_cohort_label": canonical_cohort_label(causal_cohort),
     }
 
 
@@ -1052,7 +1069,9 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "source_event_id":rejection_physical_identity({
                 "asset":asset,"direction":direction,"snapshot_index":idx,
                 "segment_id":segment,"test_rank":rank,"test_start_ts_ms":start}),
-            "asset":asset,"source_event_row_ids":";".join(sorted(item["event_ids"])),
+            "asset":asset,"side":"LONG" if direction.lower()=="lower" else "SHORT",
+            "boundary_side":direction.upper(),
+            "source_event_row_ids":";".join(sorted(item["event_ids"])),
             "overlap_cluster_id":rejection_cluster[0],
             "overlap_cluster_size":rejection_cluster_sizes[rejection_cluster[0]],
             "overlap_cluster_start_ts_ms":rejection_cluster[2],
@@ -1060,7 +1079,9 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "repeated_signal_group_id":make_repeated_signal_group_id(
                 "SUPPORT_REJECTION" if direction.lower()=="lower" else "RESISTANCE_REJECTION",
                 asset, direction, idx, segment_id=segment),
-            "historical_cohort_memberships":";".join(sorted({r["definition"].upper() for r in item["members"]})),
+            "historical_cohort_memberships":";".join(sorted({
+                {"BROAD":"BROAD_P40","STRICT":"STRICT_P25","BROAD_P40":"BROAD_P40","STRICT_P25":"STRICT_P25"}[r["definition"].upper()]
+                for r in item["members"]})),
             "causal_cohort":causal_cohort,
             "direction":direction,"family":"SUPPORT_REJECTION" if direction.lower()=="lower" else "RESISTANCE_REJECTION",
             "family_direction":"LONG" if direction.lower()=="lower" else "SHORT",
@@ -1169,8 +1190,10 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "source_event_id":source_event_key,
             "source_event_row_ids":source_event_key,
             "asset":asset,"source_event_key":source_event_key,
-            "direction":r["direction"],"family":"BREAKOUT_CONTINUATION",
+            "direction":r["direction"],"boundary_side":r["direction"],
+            "family":"BREAKOUT_CONTINUATION",
             "family_direction":"LONG" if r["direction"]=="UPPER" else "SHORT",
+            "side":"LONG" if r["direction"]=="UPPER" else "SHORT",
             "signal_time_ms":signal,"signal_candle_open_ts_ms":signal-900000,
             "signal_candle_close_ts_ms":signal,"signal_available_at_ts_ms":signal,
             "confirmation_rule_id":"BOUNDARY_CROSSING_15M_CLOSE_V1",
@@ -1309,8 +1332,11 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "source_breakout_source_event_id":source_event_key,
             "asset":asset,"source_event_key":source_event_key,
             "source_event_row_ids":";".join(sorted(x["event_id"] for x in members)),
-            "historical_cohort_memberships":";".join(sorted({x["definition"] for x in members})),"direction":direction,
-            "family":"FAILED_BREAKOUT_REVERSAL","family_direction":"SHORT" if direction=="UPPER" else "LONG","signal_time_ms":signal,
+            "historical_cohort_memberships":";".join(sorted({x["definition"] for x in members})),
+            "direction":direction,"boundary_side":direction,
+            "family":"FAILED_BREAKOUT_REVERSAL",
+            "family_direction":"SHORT" if direction=="UPPER" else "LONG",
+            "side":"SHORT" if direction=="UPPER" else "LONG","signal_time_ms":signal,
             "signal_candle_open_ts_ms":confirmation_open,
             "signal_candle_close_ts_ms":confirmation or "",
             "signal_available_at_ts_ms":confirmation or "",
