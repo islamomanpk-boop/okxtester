@@ -13,6 +13,7 @@
 - No automatic merge or write to the research branch is permitted.
 - The safety controller, task queue, and report builder have not been runtime-tested; no scripts, tests, or workflows have been run as part of this setup.
 - The safety controller binds approvals to the SHA-256 hash of the exact queued task definition; changing its phase, operation, scope, or restrictions invalidates that approval.
+- While the current G0-05 lock is active, all Phase 3 task authorization is denied, regardless of task labels.
 - Only tasks marked `queued` in the currently active phase are eligible for future evaluation; later phases remain blocked.
 
 ## Hard safety boundary: Phase 3 G0-05
@@ -38,10 +39,9 @@ A missing, ambiguous, malformed, or conflicting permission means **deny**. The t
 - `config/task_queue.json` — initial phase-ordered task definitions and dependencies.
 - `config/task_allowlist.json` — trusted task-definition hash approvals; currently empty.
 - `engine/safety_controller.py` — fail-closed evaluator that requires an exact queue match, a trusted SHA-256 approval, an active phase, and read-only permission; it never executes tasks.
-- `engine/task_runner.py` — preflight-only queue dispatcher; no subprocess, script, test, workflow, or research executor is implemented.
-- `engine/task_runner.py` — read-only queue preflight; it selects an exact queue entry and asks the safety controller for a decision, but never executes research work.
+- `engine/task_runner.py` — preflight-only queue dispatcher; it selects an exact queue entry and asks the safety controller for a decision, but has no subprocess, script, test, workflow, or research executor.
 - `engine/report_builder.py` — deterministic JSON/Markdown report formatting, repository-contained input SHA-256 manifests, report validation, and report digest; not runtime-tested.
-- `.github/workflows/` — planned event-driven orchestration; must remain disabled until separately reviewed and approved.
+- `.github/workflows/` — no agent-specific workflow is installed yet. The first future workflow must be manual-dispatch only and preflight/report-only; event-driven and scheduled triggers require separate validation and approval.
 
 ## Validation and activation gates
 
@@ -49,4 +49,4 @@ See [VALIDATION_AND_ACTIVATION.md](VALIDATION_AND_ACTIVATION.md) for completed s
 
 ## Activation policy
 
-Creating this scaffold does not authorize running it. Do not add or enable scheduled/event-triggered workflows until the safety controller, task allowlist, and independent validation are complete and the applicable research handoffs permit execution. The G0-05 handoff remains authoritative even if a future agent configuration is changed.
+Creating this scaffold does not authorize running it. Do not add or enable any agent workflow until the safety controller, task allowlist, and independent validation are complete and the applicable research handoffs permit execution. The G0-05 handoff remains authoritative even if a future agent configuration is changed.
