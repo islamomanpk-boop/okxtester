@@ -164,7 +164,9 @@ def old_events(root):
 
 def run(root,out):
  mins,input_audit,common=load_sources(root)
- baseline_rows=[]; event_rows=[]; threshold_rows=[]; ctx_audit=[]
+ baseline_rows=[]; ctx_audit=[]; cache={}
+ # First pass: reconstruct source context and reproduce all 20 historical counts.
+ # No causal thresholds or raw-event outputs are calculated before this gate passes.
  for a in ASSETS:
   b15,b4=bars(mins[a],"15min",15),bars(mins[a],"4h",240)
   ctx=context(b4)
@@ -175,18 +177,25 @@ def run(root,out):
   ctx_audit.append({"asset":a,"bars15":len(b15),"bars4h":len(b4),"finite_contexts":len(finite),
     "coverage_exceptions":exceptions,"cross_pipeline":cross_check(root,a,finite)})
   baseline_rows+=baseline(z,a)
-  th,_=thresholds(finite,z,a); threshold_rows.append(th)
-  event_rows+=raw_events(z,a)
+  cache[a]=(finite,z)
  base=pd.DataFrame(baseline_rows)
  if len(base)!=20 or not base.passed.all():
-  out.mkdir(parents=True,exist_ok=True); base.to_csv(out/"historical_baseline_reproduction.csv",index=False)
+  out.mkdir(parents=True,exist_ok=True)
+  base.to_csv(out/"historical_baseline_reproduction.csv",index=False)
   stop(f"historical baseline reproduced {int(base.passed.sum())}/20; causal output withheld")
+ # Second pass begins only after exact 20/20 baseline reproduction.
+ event_rows=[]; threshold_rows=[]
+ for a in ASSETS:
+  finite,z=cache[a]
+  th,_=thresholds(finite,z,a)
+  threshold_rows.append(th)
+  event_rows+=raw_events(z,a)
  ev=pd.DataFrame(event_rows); th=pd.concat(threshold_rows,ignore_index=True); old=old_events(root)
  if ev.duplicated(KEYS).any() or old.duplicated(KEYS).any(): stop("event identity duplicate")
  if len(old)!=932: stop(f"historical selected identity count {len(old)} != 932")
  ids=ev.merge(old,on=KEYS,how="left")
  ids["was_historical_selected"]=ids.was_historical_selected.fillna(False).astype(bool)
- # Build each variant independently, then attach flags to the one-row-per-event ledger.
+ # Attach each policy/population independently; retain one row per raw event.
  for pol in POLICIES:
   for pop in POPS:
    q=th[(th.policy==pol)&(th.population==pop)][["asset","snapshot_ms","p25","p40"]]
@@ -197,7 +206,8 @@ def run(root,out):
    ids=ids.merge(tmp[KEYS+[tag+"__strict",tag+"__broad"]],on=KEYS,how="left",validate="one_to_one")
  strict=[c for c in ids if c.endswith("__strict")]
  broad=[c for c in ids if c.endswith("__broad")]
- if (ids[strict].fillna(False).to_numpy() & ~ids[broad].fillna(False).to_numpy()).any(): stop("strict is not nested in broad")
+ if (ids[strict].fillna(False).to_numpy() & ~ids[broad].fillna(False).to_numpy()).any():
+  stop("strict is not nested in broad")
  oldset=set(map(tuple,old[KEYS].to_numpy())); rawset=set(map(tuple,ev[KEYS].to_numpy()))
  rec=[]
  for pol in POLICIES:
@@ -212,8 +222,8 @@ def run(root,out):
       r={k for k in rawset if k[0]==a and k[1]==direction}
       e={k for k in eset if k[0]==a and k[1]==direction}
       rec.append({"asset":a,"direction":direction,"policy":pol,"population":pop,"definition":definition,
-       "unchanged_eligible":len(o&e),"newly_eligible":len((r-o)&e),
-       "no_longer_eligible":len(o-e),"raw_source_mismatch":len(o-r)})
+       "unchanged_eligible":len(o&r&e),"newly_eligible":len((r-o)&e),
+       "no_longer_eligible":len((o&r)-e),"raw_source_mismatch":len(o-r)})
  out.mkdir(parents=True,exist_ok=True)
  base.to_csv(out/"historical_baseline_reproduction.csv",index=False)
  pd.DataFrame(input_audit).to_csv(out/"input_manifest.csv",index=False)
