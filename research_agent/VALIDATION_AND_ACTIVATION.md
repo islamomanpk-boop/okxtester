@@ -33,11 +33,11 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Report schema rejects unsupported top-level fields, non-string finding entries, Boolean schema versions, Windows-style manifest paths, non-finite JSON values, and unsupported/completion-claim statuses; only preflight_only, blocked, skipped, and not_run are accepted.
 - [x] Added a checkout-manifest verifier that detects missing files and byte/hash mismatches. Its scope is explicitly limited to current checkout bytes; it does not assert that those bytes belong to the reported Git commit or that the checkout is clean.
 - [x] Markdown reports explicitly disclose that caller-supplied repository/branch/commit/task-hash/run metadata is not authenticated by schema validation, manifest hashes are declarations until independently checked, and reports are not task-completion evidence or gate approval.
-- [x] Report schema requires a task-definition SHA-256 and provides canonical JSON hashing; the workflow must compute it from the exact trusted queue object.
-- [x] Added 23 report-builder regression tests covering deterministic rendering, malformed provenance, duplicate and unsafe paths, strict schema/timestamp validation, external paths, symlinks, Markdown injection, completion-claim status rejection, and explicit provenance/metadata limitation disclosures; authored but not executed.
+- [x] Report schema requires a task-definition SHA-256 and provides canonical JSON hashing; digest inputs are restricted to strict JSON values (string object keys, finite numbers, arrays, objects, and JSON scalars), rejecting Python-only values and ambiguous key coercion. The workflow must compute it from the exact trusted queue object.
+- [x] Added 27 report-builder regression tests covering deterministic rendering, malformed provenance, duplicate and unsafe paths, strict schema/timestamp validation, external paths, symlinks, Markdown injection, completion-claim status rejection, and explicit provenance/metadata limitation disclosures; authored but not executed.
 - [x] Markdown report rendering flattens untrusted line breaks and escapes Markdown control characters in findings and metadata; untrusted values are kept outside Markdown code spans to prevent delimiter breakout.
 - [x] Added 12 preflight tests for malformed queues and rows, duplicate task IDs, trusted-queue boundary, stable denial envelopes, inconsistent/malformed authorization results, and preflight-only behavior; authored but not executed.
-- [x] Total regression tests authored: 56 (21 safety-controller, 23 report-builder, 12 task-runner); none executed.
+- [x] Total regression tests authored: 60 (21 safety-controller, 27 report-builder, 12 task-runner); none executed.
 - [x] Static configuration/source consistency review completed against the branch files.
 
 ## Deferred validation
