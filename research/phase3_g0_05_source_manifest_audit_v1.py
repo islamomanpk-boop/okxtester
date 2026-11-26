@@ -108,7 +108,7 @@ def verify_pinned_sources(root: Path) -> tuple[dict, dict]:
     return manifest, loaded
 
 
-def audit_rejections(root: Path, loaded: dict) -> dict:
+def audit_rejections(root: Path, loaded: dict, threshold_by_key: dict) -> dict:
     ledger_path = "reports/sideways_boundary_events_historical_v1/boundary_tests_historical_v1.csv"
     anatomy_path = "reports/sideways_phase3_research_archive_v1/episode_retest_anatomy_v1/event_anatomy_v1.csv"
     lf, ledger = loaded[ledger_path]
@@ -147,6 +147,7 @@ def audit_rejections(root: Path, loaded: dict) -> dict:
 
     seen, matched, endpoint = set(), 0, Counter()
     by_definition = Counter()
+    underlying = {}
     for row in ledger:
         raw_rejection = (row.get("first_strong_rejection_ts_ms") or "").strip()
         if not raw_rejection:
@@ -155,14 +156,17 @@ def audit_rejections(root: Path, loaded: dict) -> dict:
         if eid in seen:
             fail(f"duplicate rejection source identity {eid}")
         seen.add(eid)
-        a = row["asset"]
+        asset = row["asset"]
+        definition = row["definition"].lower()
         idx = int(row["snapshot_index"])
-        features = feature_rows[a]
+        features = feature_rows[asset]
         if idx < 0 or idx + 1 >= len(features):
             fail(f"{eid}: snapshot index outside feature ledger")
         current, nxt = features[idx], features[idx + 1]
         available = ms(row["snapshot_available_at_ts_ms"], "snapshot availability")
         next_available = ms(row["snapshot_next_available_at_ts_ms"], "next snapshot availability")
+        if next_available <= available:
+            fail(f"{eid}: invalid snapshot validity interval")
         if ms(current["available_at_ts_ms"], "feature availability") != available:
             fail(f"{eid}: feature/snapshot availability mismatch")
         if ms(nxt["available_at_ts_ms"], "next feature availability") != next_available:
@@ -170,31 +174,94 @@ def audit_rejections(root: Path, loaded: dict) -> dict:
         anatomy_row = anatomy_by_id.get(eid)
         if anatomy_row is None:
             fail(f"{eid}: missing anatomy row")
-        confirmation = ms(raw_rejection, "rejection candle open") + 900000
+        rejection_open = ms(raw_rejection, "rejection candle open")
+        confirmation = rejection_open + 900000
         if ms(anatomy_row["confirmation_ts_ms"], "anatomy confirmation") != confirmation:
             fail(f"{eid}: confirmation timestamp mismatch")
         if float(anatomy_row["upper"]) != float(current["upper"]) or float(anatomy_row["lower"]) != float(current["lower"]):
             fail(f"{eid}: frozen boundary mismatch")
+        if available > rejection_open:
+            fail(f"{eid}: source snapshot was not available at rejection candle open")
         if confirmation == next_available:
-            endpoint[row["definition"].lower()] += 1
+            endpoint[definition] += 1
         elif confirmation > next_available:
             fail(f"{eid}: confirmation occurs after next snapshot availability")
         matched += 1
-        by_definition[row["definition"].lower()] += 1
+        by_definition[definition] += 1
+        # The historical definition is cohort membership, not a second
+        # independent physical boundary-test event.
+        physical_key = (asset, row["direction"], idx, int(row["segment_id"]),
+                        int(row["test_rank"]), ms(row["test_start_ts_ms"], "test start"))
+        item = underlying.setdefault(physical_key, {})
+        if definition in item:
+            fail(f"duplicate physical rejection membership {physical_key}/{definition}")
+        item[definition] = {"row": row, "event_id": eid, "confirmation_ms": confirmation,
+                             "available_ms": available, "next_available_ms": next_available}
     if seen != set(anatomy_by_id):
         fail(f"rejection identity/anatomy mismatch: source={len(seen)} anatomy={len(anatomy_by_id)}")
     if by_definition != Counter({"broad": 1154, "strict": 838}):
         fail(f"rejection cohort counts differ: {dict(by_definition)}")
     if endpoint != Counter({"broad": 40, "strict": 29}):
         fail(f"snapshot-endpoint exclusion counts differ: {dict(endpoint)}")
+    if len(underlying) != 1154:
+        fail(f"physical rejection identity count {len(underlying)} != 1,154")
+    if any("broad" not in item for item in underlying.values()):
+        fail("a strict historical rejection is not nested in broad membership")
+    strict_keys = {key for key, item in underlying.items() if "strict" in item}
+    broad_keys = {key for key, item in underlying.items() if "broad" in item}
+    if not strict_keys.issubset(broad_keys) or len(strict_keys) != 838:
+        fail("historical strict rejection identities are not nested in broad")
+
+    causal_counts = Counter()
+    causal_by_asset = {}
+    for physical_key, memberships in underlying.items():
+        asset = physical_key[0]
+        source = memberships["broad"]["row"]
+        idx = int(source["snapshot_index"])
+        feature = feature_rows[asset][idx]
+        snapshot = ms(feature["available_at_ts_ms"], "feature snapshot")
+        threshold = threshold_by_key.get((asset, snapshot, "EXPANDING_PRIOR", "UNIQUE_4H_FEATURE_ROWS"))
+        confirmation = memberships["broad"]["confirmation_ms"]
+        next_available = memberships["broad"]["next_available_ms"]
+        if confirmation >= next_available:
+            disposition = "SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION"
+        elif threshold is None:
+            disposition = "CAUSAL_THRESHOLD_WARMUP"
+        else:
+            width = float(feature["channel_width_pct"])
+            efficiency = float(feature["directional_efficiency"])
+            overlap_value = float(feature["mean_overlap"])
+            if not all(map(lambda x: x == x and abs(x) != float("inf"),
+                           (width, efficiency, overlap_value))):
+                fail(f"{physical_key}: non-finite causal detector feature")
+            strict_ok = (width <= float(threshold["p25"]) and efficiency <= 0.30 and overlap_value >= 0.70)
+            broad_ok = (width <= float(threshold["p40"]) and efficiency <= 0.30 and overlap_value >= 0.70)
+            if strict_ok and not broad_ok:
+                fail(f"{physical_key}: strict causal cohort not nested in broad")
+            if strict_ok:
+                disposition = "CAUSAL_STRICT_ELIGIBLE"
+            elif broad_ok:
+                disposition = "CAUSAL_BROAD_ONLY_ELIGIBLE"
+            else:
+                disposition = "CAUSAL_REGIME_NOT_ELIGIBLE"
+        causal_counts[disposition] += 1
+        causal_by_asset.setdefault(asset, Counter())[disposition] += 1
+    expired_physical = causal_counts["SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION"]
+    if expired_physical != 40:
+        fail(f"unique physical snapshot-expired rejection events {expired_physical} != 40")
     return {
         "boundary_ledger_rows": len(ledger),
         "rejection_rows_with_confirmation": matched,
         "anatomy_rows": len(anatomy),
         "identity_join": "ONE_TO_ONE_PASS",
-        "cohort_rows": dict(by_definition),
-        "confirmation_at_next_snapshot_endpoint": dict(endpoint),
-        "disposition": "PRESERVE_SOURCE_ROWS; EXCLUDE FROM CAUSAL REJECTION ELIGIBILITY",
+        "historical_cohort_rows": dict(by_definition),
+        "historical_unique_physical_events": len(underlying),
+        "historical_strict_physical_events": len(strict_keys),
+        "historical_strict_nested_in_broad": True,
+        "confirmation_at_next_snapshot_endpoint_rows": dict(endpoint),
+        "causal_disposition_counts_by_unique_physical_event": dict(causal_counts),
+        "causal_disposition_counts_by_asset": {a: dict(v) for a, v in causal_by_asset.items()},
+        "disposition": "SOURCE_ONLY_AUDIT; NO CANDIDATE RECORDS EMITTED",
     }
 
 
@@ -323,7 +390,7 @@ def audit_g004_artifact(artifact: Path) -> tuple[dict, dict, dict]:
                   "threshold_rows": len(thresholds), "threshold_event_joins_and_flag_recomputations": recomputed,
                   "warmup_raw_events": len(warmup_keys), "warmup_by_asset": dict(warmup_by_asset),
                   "policy_population_counts": variants}, {
-                      "raw_keys": raw_keys, "raw_rows": raw}
+                      "raw_keys": raw_keys, "raw_rows": raw, "threshold_by_key": threshold_by_key}
 
 
 def audit_module_b(root: Path, g004_raw_keys: set) -> dict:
@@ -377,8 +444,8 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, default=Path("g0_05_source_audit_output"))
     args = parser.parse_args()
     manifest, loaded = verify_pinned_sources(args.repo_root)
-    rejection = audit_rejections(args.repo_root, loaded)
     meta, g004, g004_data = audit_g004_artifact(args.g004_artifact_dir)
+    rejection = audit_rejections(args.repo_root, loaded, g004_data["threshold_by_key"])
     module_b = audit_module_b(args.repo_root, g004_data["raw_keys"])
     report = {
         "status": "G0_05_SOURCE_PROVENANCE_AND_IDENTITY_AUDIT_PASS",
