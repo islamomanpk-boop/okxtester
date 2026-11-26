@@ -22,7 +22,7 @@ from research.phase3_g0_05_source_manifest_audit_v1 import (
     assign_interval_graph_clusters, observed_window_bars, consistent_physical_cluster,
     make_repeated_signal_group_id, aggregate_completed_15m_bar, file_manifest_entry, git_blob_sha1,
     confirmation_ambiguity_flag, canonical_snapshot_provenance,
-    resolve_lagged_feature_reference,
+    resolve_lagged_feature_reference, canonical_cohort_label,
 )
 
 
@@ -525,6 +525,19 @@ class G005SourceAuditTests(unittest.TestCase):
         }}
         with self.assertRaisesRegex(ValueError, "missing non-leading"):
             resolve_lagged_feature_reference(features, "BTC", 72000000)
+
+    def test_canonical_cohort_labels_match_frozen_schema_enum(self):
+        cases = {
+            "CAUSAL_STRICT": "STRICT_P25",
+            "CAUSAL_BROAD_ONLY": "BROAD_ONLY",
+            "CAUSAL_REGIME_NOT_ELIGIBLE": "NOT_ELIGIBLE",
+            "CAUSAL_THRESHOLD_WARMUP": "WARMUP",
+            "NOT_EVALUATED": "NOT_APPLICABLE",
+        }
+        for source, expected in cases.items():
+            self.assertEqual(canonical_cohort_label(source), expected)
+        with self.assertRaisesRegex(ValueError, "unknown causal cohort"):
+            canonical_cohort_label("UNRECOGNIZED")
 
     def test_canonical_snapshot_provenance_uses_exact_prior_threshold(self):
         feature = {
