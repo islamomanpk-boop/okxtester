@@ -21,6 +21,7 @@ from research.phase3_g0_05_source_manifest_audit_v1 import (
     assign_interval_graph_clusters, observed_window_bars, consistent_physical_cluster,
     make_repeated_signal_group_id, aggregate_completed_15m_bar, file_manifest_entry, git_blob_sha1,
     confirmation_ambiguity_flag, canonical_snapshot_provenance,
+    resolve_lagged_feature_reference,
 )
 
 
@@ -442,6 +443,28 @@ class G005SourceAuditTests(unittest.TestCase):
         self.assertEqual(first_eligible_minute_or_blank("REJECTED", 123000), "")
         self.assertEqual(first_eligible_minute_or_blank("EXPIRED", None), "")
         self.assertEqual(first_eligible_minute_or_blank("CENSORED", 123000), "")
+
+    def test_lagged_feature_reference_matches_exact_prior_4h_snapshot(self):
+        features = {"BTC": {14400000: {"available_at_ts_ms": "14400000"}}}
+        ts, row, status = resolve_lagged_feature_reference(features, "BTC", 28800000)
+        self.assertEqual(ts, 14400000)
+        self.assertEqual(row["available_at_ts_ms"], "14400000")
+        self.assertEqual(status, "MATCHED_ONE_4H_LAG")
+
+    def test_lagged_feature_reference_allows_only_expected_leading_boundary(self):
+        features = {"BTC": {14400000: {"available_at_ts_ms": "14400000"}}}
+        ts, row, status = resolve_lagged_feature_reference(features, "BTC", 14400000)
+        self.assertEqual(ts, 0)
+        self.assertIsNone(row)
+        self.assertEqual(status, "EXPECTED_LEADING_LEGACY_BOUNDARY")
+
+    def test_lagged_feature_reference_rejects_internal_missing_snapshot(self):
+        features = {"BTC": {
+            14400000: {"available_at_ts_ms": "14400000"},
+            43200000: {"available_at_ts_ms": "43200000"},
+        }}
+        with self.assertRaisesRegex(ValueError, "missing non-leading"):
+            resolve_lagged_feature_reference(features, "BTC", 57600000)
 
     def test_canonical_snapshot_provenance_uses_exact_prior_threshold(self):
         feature = {
