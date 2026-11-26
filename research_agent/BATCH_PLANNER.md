@@ -2,7 +2,11 @@
 
 The `engine.batch_planner` module creates a deterministic, bounded work plan
 from the trusted task queue and a complete, non-authorizing per-task preflight
-summary.
+summary. The future runtime must call `build_runtime_batch_plan()`: this entry
+point accepts only a batch-size limit and loads both queue and preflight data
+from their fixed repository runtime sources. `build_batch_plan()` remains a
+pure planning/test seam that accepts explicit inputs and must not be treated as
+a trusted dispatch boundary.
 
 ## Behavior
 
