@@ -38,7 +38,8 @@ A missing, ambiguous, malformed, or conflicting permission means **deny**. The t
 - `config/task_queue.json` — initial phase-ordered task definitions and dependencies.
 - `config/task_allowlist.json` — trusted task-definition hash approvals; currently empty.
 - `engine/safety_controller.py` — fail-closed evaluator that requires an exact queue match, a trusted SHA-256 approval, an active phase, and read-only permission; it never executes tasks.
-- `engine/task_runner.py` — planned; not implemented.
+- `engine/task_runner.py` — preflight-only queue dispatcher; no subprocess, script, test, workflow, or research executor is implemented.
+- `engine/task_runner.py` — read-only queue preflight; it selects an exact queue entry and asks the safety controller for a decision, but never executes research work.
 - `engine/report_builder.py` — deterministic JSON/Markdown report formatting, repository-contained input SHA-256 manifests, report validation, and report digest; not runtime-tested.
 - `.github/workflows/` — planned event-driven orchestration; must remain disabled until separately reviewed and approved.
 
