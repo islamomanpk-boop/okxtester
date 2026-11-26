@@ -112,3 +112,18 @@ The latest source-audit artifact at commit `3f906768028ff686a526e43182dd8a3d2a67
 - Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; all 2,857 eligible timestamps and all five raw source hash/grid checks passed.
 
 This is the latest exact-minute verification. It consumes the source audit with the reason-code contract, grouped summaries, and breakout historical cohort membership checks.
+
+
+## 10. Independent exact-minute verification after overlap-cluster attachment
+
+The independent verifier was rerun against the latest source-audit artifact with rejection and breakout overlap clusters attached:
+
+- Workflow [45804011434](https://github.com/islamomanpk-boop/okxtester/actions/runs/45804011434) — SUCCESS.
+- Job: `139854351079`.
+- Workflow commit: `cc894c7bdfd02a323eaef631f47c12476ec5baac`.
+- Artifact ID: `15107528618`.
+- ZIP SHA-256: `3b3b7df9855f0b6a525b2209d6748b6aed20fe19e1d896f0d8191610c9c64000`, independently recomputed after download.
+- JSON SHA-256: `b2ab8bf00572c54a60cb3548c3131dcd986ed020639a6b762ce9328187b1e679`.
+- Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; all five raw market inputs and all 2,857 eligible timestamps passed again.
+
+The independent minute check does not validate the cluster algorithm itself; the source audit and 93 synthetic tests cover that separate metadata layer.
