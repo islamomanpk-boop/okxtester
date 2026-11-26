@@ -10,6 +10,7 @@ summary.
   Phase 5.
 - Stops at the earliest phase containing queued work if no task in that phase
   passes exact single-task preflight. It never skips ahead to a later phase.
+- Carries each selected task's exact handoff ID, scope, prohibited-action list, and canonical task-definition digest into the assignment so a future worker receives the complete task boundary.
 - Selects only task IDs whose preflight result is explicitly
   `ALLOW_READ_ONLY`, matches the exact task ID, has the expected preflight-only
   shape, and asserts that no execution occurred.
