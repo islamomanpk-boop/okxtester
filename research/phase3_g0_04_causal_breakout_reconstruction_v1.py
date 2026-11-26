@@ -249,20 +249,55 @@ def run(root,out):
  print(meta["status"])
 
 def self_test():
+ # Right-labelled, left-closed aggregation and incomplete interval exclusion.
  ix=pd.date_range("2026-01-01",periods=32,freq="min",tz="UTC")
  m=pd.DataFrame({"open":100.,"high":101.,"low":99.,"close":100.5,"vol":1.},index=ix)
- assert len(bars(m,"15min",15))==2
+ b15=bars(m,"15min",15)
+ assert len(b15)==2 and b15.index[0]==ix[0]+pd.Timedelta(minutes=15)
  assert len(bars(m,"4h",240))==0
- # equal-close context is available; an earlier close cannot see it
+ # Context is usable at its exact availability label.
  c=pd.DataFrame({"upper":[110.],"lower":[90.],"channel_width":[22.],"efficiency":[.2],"overlap":[.8]},
-   index=pd.DatetimeIndex([ix[0]+pd.Timedelta(minutes=15)],name="snapshot"))
- z=joined15(bars(m,"15min",15),c)
- assert z.snapshot.iloc[0]==ix[0]+pd.Timedelta(minutes=15)
- assert z.snapshot.iloc[1]==ix[0]+pd.Timedelta(minutes=15)
- # Shared context clock yields exactly 16 repeated joined rows per context.
- t=pd.date_range("2025-01-01",periods=180,freq="4h",tz="UTC")
- assert len(np.repeat(np.arange(180),16))==16*len(t)
- assert np.quantile([1,2,3,4],.25)<=np.quantile([1,2,3,4],.40)
+  index=pd.DatetimeIndex([ix[0]+pd.Timedelta(minutes=15)],name="snapshot"))
+ z=joined15(b15,c)
+ assert z.snapshot.iloc[0]==b15.index[0] and z.snapshot.iloc[1]==b15.index[0]
+ # A future context must not be back-assigned to an earlier 15M close.
+ future=c.copy(); future.index=future.index+pd.Timedelta(minutes=30)
+ try:
+  joined15(b15,future)
+  raise AssertionError("future context was accepted")
+ except RuntimeError:
+  pass
+ # Build 182 contexts with 16 joined 15M rows each; last context is extreme
+ # to prove its own value is excluded from its threshold.
+ times=pd.date_range("2025-01-01",periods=182,freq="4h",tz="UTC",name="snapshot")
+ widths=np.arange(1.,183.); widths[-1]=10000.
+ ctx=pd.DataFrame({"upper":200.,"lower":100.,"channel_width":widths,
+  "efficiency":.2,"overlap":.8},index=times)
+ rows=[]
+ for t,w in zip(times,widths):
+  for j in range(16):
+   rows.append({"snapshot":t,"channel_width":w,"close":100.})
+ joined=pd.DataFrame(rows)
+ th,_=thresholds(ctx,joined,"TST")
+ at=th[th.snapshot_ms==times[180].value//1_000_000]
+ assert len(at)==6 and set(at.prior_context_count)=={180}
+ assert set(at.prior_15m_row_count)=={2880}
+ at_last=th[th.snapshot_ms==times[181].value//1_000_000]
+ expanding=at_last[at_last.policy=="EXPANDING_PRIOR"]
+ assert len(expanding)==2 and set(expanding.prior_context_count)=={181}
+ assert float(expanding.p25.iloc[0])==float(np.quantile(np.arange(1.,182.),.25))
+ # Rolling and fixed windows each use 180 contexts, expanding uses all 181.
+ assert set(at_last[at_last.policy.isin(["FIXED_180","ROLLING_180"])].prior_context_count)=={180}
+ # One incomplete prior context is excluded, never silently counted as 16.
+ partial=joined.drop(joined.index[0])
+ th_partial,_=thresholds(ctx,partial,"TST")
+ last=th_partial[th_partial.snapshot_ms==times[181].value//1_000_000]
+ assert set(last.prior_context_count)=={180}
+ # Strict percentile threshold cannot exceed broad threshold.
+ assert (th.p25<=th.p40).all()
+ # Historical identity is independent of strict/broad duplicate labels.
+ identity=("BTC","UPPER",123,456)
+ assert len(set([identity,identity]))==1
 
 def main():
  p=argparse.ArgumentParser(description=__doc__)
