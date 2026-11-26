@@ -477,6 +477,25 @@ def validate_module_b_horizons(events: list[dict[str, str]],
     }
 
 
+def make_repeated_signal_group_id(family: str, asset: str, direction: str,
+                                  snapshot_key: str | int, segment_id: str | int | None = None,
+                                  source_group_id: str | None = None) -> str:
+    """Build metadata-only repeated-signal groups from frozen source context."""
+    if not asset or not direction or snapshot_key in (None, ""):
+        raise ValueError("repeated-signal group requires asset, direction and snapshot")
+    if family in {"SUPPORT_REJECTION", "RESISTANCE_REJECTION"}:
+        if segment_id in (None, ""):
+            raise ValueError("rejection repeated-signal group requires segment_id")
+        return f"{asset}|rejection|{direction.lower()}|snapshot_{snapshot_key}|segment_{segment_id}"
+    if family == "BREAKOUT_CONTINUATION":
+        return f"{asset}|breakout|{direction.upper()}|snapshot_{snapshot_key}"
+    if family == "FAILED_BREAKOUT_REVERSAL":
+        if not source_group_id:
+            raise ValueError("failed-breakout group must inherit its source breakout group")
+        return source_group_id
+    raise ValueError(f"unknown repeated-signal group family: {family}")
+
+
 def observed_window_bars(minute_index: list[int], start_ms: int, max_bars: int) -> int:
     """Count contiguous observed 1m opens from an exact event start, capped at max_bars."""
     if max_bars <= 0:
@@ -857,6 +876,9 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "overlap_cluster_size":rejection_cluster_sizes[rejection_cluster[0]],
             "overlap_cluster_start_ts_ms":rejection_cluster[2],
             "overlap_cluster_end_exclusive_ts_ms":rejection_cluster[3],
+            "repeated_signal_group_id":make_repeated_signal_group_id(
+                "SUPPORT_REJECTION" if direction.lower()=="lower" else "RESISTANCE_REJECTION",
+                asset, direction, idx, segment_id=segment),
             "historical_cohort_memberships":";".join(sorted({r["definition"].upper() for r in item["members"]})),
             "causal_cohort":causal_cohort,
             "direction":direction,"family":"SUPPORT_REJECTION" if direction.lower()=="lower" else "RESISTANCE_REJECTION",
@@ -882,6 +904,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             fail(f"Module B cohort rows disagree on observed 12H bars: {event_key}")
         module_b_observed[event_key]=observed
     raw_cluster_events=[]
+    breakout_group_by_key={}
     for raw in raw_rows:
         asset=raw["asset"]
         signal=ms(raw["signal_time_ms"],"raw breakout signal for overlap")
@@ -890,9 +913,12 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
         observed=observed_window_bars(minute_index[asset],signal,720)
         if key in module_b_observed and module_b_observed[key] != observed:
             fail(f"Module B observed 12H window differs from canonical 1m source: {key}")
+        source_event_key=f"{asset}|{raw['direction']}|{signal}|{snapshot}"
+        breakout_group_by_key[key]=make_repeated_signal_group_id(
+            "BREAKOUT_CONTINUATION",asset,raw["direction"],snapshot)
         raw_cluster_events.append({
             "asset":asset,
-            "event_id":f"{asset}|{raw['direction']}|{signal}|{snapshot}",
+            "event_id":source_event_key,
             "signal_time_ms":signal,
             "observed_bars_12h":observed,
         })
@@ -930,6 +956,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "overlap_cluster_size":cluster["overlap_cluster_size"],
             "overlap_cluster_start_ts_ms":cluster["overlap_cluster_start_ts_ms"],
             "overlap_cluster_end_exclusive_ts_ms":cluster["overlap_cluster_end_exclusive_ts_ms"],
+            "repeated_signal_group_id":breakout_group_by_key[source_key],
             "causal_cohort":cohort,"disposition":status,"reason_code":reason,
             "censoring_reason":reason if status=="CENSORED" else ""})
     # Every G0-04 raw crossing must appear exactly once in the continuation ledger.
@@ -994,6 +1021,9 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "overlap_cluster_size":cluster["overlap_cluster_size"],
             "overlap_cluster_start_ts_ms":cluster["overlap_cluster_start_ts_ms"],
             "overlap_cluster_end_exclusive_ts_ms":cluster["overlap_cluster_end_exclusive_ts_ms"],
+            "repeated_signal_group_id":make_repeated_signal_group_id(
+                "FAILED_BREAKOUT_REVERSAL",asset,direction,snapshot,
+                source_group_id=breakout_group_by_key[key]),
             "disposition":status,"reason_code":reason,
             "censoring_reason":reason if status=="CENSORED" else ""})
     out.mkdir(parents=True,exist_ok=True)
