@@ -16,6 +16,7 @@ REPORT_SCHEMA_VERSION = 1
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _COMMIT_RE = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
+_UTC_TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$")
 
 
 def _repository_file(path: str | Path) -> Path:
@@ -57,7 +58,13 @@ def build_input_manifest(paths: Iterable[str | Path]) -> list[dict[str, str]]:
     seen: set[str] = set()
     for item in paths:
         relative = Path(item)
-        if relative.is_absolute() or not relative.parts or ".." in relative.parts:
+        if (
+            relative.is_absolute()
+            or not relative.parts
+            or ".." in relative.parts
+            or "\\" in path_value
+            or any(ord(character) < 32 or ord(character) == 127 for character in path_value)
+        ):
             raise ValueError("Manifest paths must be safe repository-relative paths.")
         canonical_path = relative.as_posix()
         if canonical_path in seen:
@@ -69,12 +76,14 @@ def build_input_manifest(paths: Iterable[str | Path]) -> list[dict[str, str]]:
 
 
 def _validate_utc_timestamp(value: str) -> None:
+    # Require one canonical UTC representation so equivalent offsets or
+    # unusual ISO-8601 spellings cannot produce inconsistent audit records.
+    if not _UTC_TIMESTAMP_RE.fullmatch(value):
+        raise ValueError("Report timestamp must use canonical ISO-8601 UTC form ending in Z.")
     try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        datetime.fromisoformat(value[:-1] + "+00:00")
     except ValueError as exc:
-        raise ValueError("Report timestamp must be an ISO-8601 UTC timestamp.") from exc
-    if parsed.tzinfo is None or parsed.utcoffset() != timezone.utc.utcoffset(parsed):
-        raise ValueError("Report timestamp must include a UTC timezone.")
+        raise ValueError("Report timestamp must be a valid ISO-8601 UTC timestamp.") from exc
 
 
 def validate_report(report: dict[str, Any]) -> None:
@@ -89,12 +98,18 @@ def validate_report(report: dict[str, Any]) -> None:
     missing = sorted(required.difference(report))
     if missing:
         raise ValueError("Report is missing required fields: " + ", ".join(missing))
+    unexpected = sorted(set(report).difference(required))
+    if unexpected:
+        raise ValueError("Report contains unsupported fields: " + ", ".join(unexpected))
     if report["schema_version"] != REPORT_SCHEMA_VERSION:
         raise ValueError("Unsupported report schema version.")
     list_fields = ("findings", "blockers", "skipped_checks", "limitations", "input_manifest")
     for field in list_fields:
         if not isinstance(report[field], list):
             raise TypeError(f"Report field {field!r} must be a list.")
+    for field in ("findings", "blockers", "skipped_checks", "limitations"):
+        if not all(isinstance(item, str) and item.strip() for item in report[field]):
+            raise ValueError(f"Every item in report field {field!r} must be a non-empty string.")
     for field in ("agent_name", "task_id", "phase", "status", "repository",
                   "branch", "commit_sha", "run_id", "timestamp_utc"):
         if not isinstance(report[field], str) or not report[field].strip():
@@ -127,7 +142,7 @@ def validate_report(report: dict[str, Any]) -> None:
 def render_json(report: dict[str, Any]) -> str:
     """Return stable, human-readable JSON with deterministic key ordering."""
     validate_report(report)
-    return json.dumps(report, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+    return json.dumps(report, indent=2, sort_keys=True, ensure_ascii=False, allow_nan=False) + "\n"
 
 
 def _markdown_safe(value: Any) -> str:
