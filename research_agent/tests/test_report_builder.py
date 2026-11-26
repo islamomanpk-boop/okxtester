@@ -44,6 +44,38 @@ class ReportBuilderTests(unittest.TestCase):
             with self.subTest(status=status):
                 report_builder.validate_report(report)
 
+    def test_checkout_manifest_verification_accepts_matching_bytes(self):
+        with tempfile.TemporaryDirectory(dir=report_builder.REPOSITORY_ROOT) as temporary:
+            path = Path(temporary) / "evidence.txt"
+            path.write_text("original evidence", encoding="utf-8")
+            relative = path.relative_to(report_builder.REPOSITORY_ROOT).as_posix()
+            report = valid_report()
+            report["input_manifest"] = report_builder.build_input_manifest([relative])
+            self.assertEqual(
+                report_builder.verify_input_manifest_against_checkout(report), []
+            )
+
+    def test_checkout_manifest_verification_detects_changed_bytes(self):
+        with tempfile.TemporaryDirectory(dir=report_builder.REPOSITORY_ROOT) as temporary:
+            path = Path(temporary) / "evidence.txt"
+            path.write_text("original evidence", encoding="utf-8")
+            relative = path.relative_to(report_builder.REPOSITORY_ROOT).as_posix()
+            report = valid_report()
+            report["input_manifest"] = report_builder.build_input_manifest([relative])
+            path.write_text("modified evidence", encoding="utf-8")
+            mismatches = report_builder.verify_input_manifest_against_checkout(report)
+            self.assertEqual(len(mismatches), 1)
+            self.assertIn("does not match", mismatches[0])
+
+    def test_checkout_manifest_verification_reports_missing_input(self):
+        report = valid_report()
+        report["input_manifest"] = [
+            {"path": "research_agent/nonexistent-evidence.txt", "sha256": "b" * 64}
+        ]
+        mismatches = report_builder.verify_input_manifest_against_checkout(report)
+        self.assertEqual(len(mismatches), 1)
+        self.assertIn("unavailable", mismatches[0])
+
     def test_valid_report_renders_deterministically(self):
         report = valid_report()
         first = report_builder.render_json(report)
