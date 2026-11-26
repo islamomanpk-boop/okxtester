@@ -10,6 +10,10 @@ from research.phase3_g0_05_candidate_contract_v1 import (
     rejection_physical_identity, collapse_rejection_cohort_rows, causal_rejection_disposition,
 )
 
+from research.phase3_g0_05_source_manifest_audit_v1 import (
+    first_eligible_minute_or_blank, validate_module_b_horizons,
+)
+
 
 class G005ContractTests(unittest.TestCase):
     def test_snapshot_valid_before_endpoint(self):
@@ -235,6 +239,87 @@ class G005ContractTests(unittest.TestCase):
     def test_deterministic_serialization(self):
         rows = [{"b": 2, "a": 1}]
         self.assertEqual(deterministic_json(rows), deterministic_json([{"a": 1, "b": 2}]))
+
+
+
+class G005SourceAuditTests(unittest.TestCase):
+    def sample_horizons(self):
+        events = [{
+            "event_id": "BTC|broad_p40|upper|1000|zone10",
+            "signal_time_ms": "1000",
+            "complete_12h": "True",
+            "first_15m_return_inside_close_ts_ms": "901000",
+        }]
+        horizons = []
+        for label in ("15M", "1H", "4H", "12H"):
+            horizons.append({
+                "event_id": events[0]["event_id"],
+                "horizon": label,
+                "complete": "True",
+                "first_15m_return_inside_close_ts_ms": "901000" if label == "12H" else "",
+            })
+        return events, horizons
+
+    def test_module_b_horizons_reconcile_four_rows_per_event(self):
+        events, horizons = self.sample_horizons()
+        result = validate_module_b_horizons(events, horizons)
+        self.assertEqual(result["events_reconciled"], 1)
+        self.assertEqual(result["horizon_rows_reconciled"], 4)
+        self.assertEqual(result["twelve_hour_confirmations"], 1)
+
+    def test_module_b_horizons_reject_missing_horizon(self):
+        events, horizons = self.sample_horizons()
+        with self.assertRaisesRegex(RuntimeError, "exactly 15M/1H/4H/12H"):
+            validate_module_b_horizons(events, horizons[:-1])
+
+    def test_module_b_horizons_reject_duplicate_horizon(self):
+        events, horizons = self.sample_horizons()
+        horizons[-1] = dict(horizons[-2])
+        with self.assertRaisesRegex(RuntimeError, "duplicate Module B horizon"):
+            validate_module_b_horizons(events, horizons)
+
+    def test_module_b_horizons_reject_unknown_event_id(self):
+        events, horizons = self.sample_horizons()
+        horizons[-1]["event_id"] = "unexpected-event"
+        with self.assertRaisesRegex(RuntimeError, "unknown event_id"):
+            validate_module_b_horizons(events, horizons)
+
+    def test_module_b_horizons_reject_completion_mismatch(self):
+        events, horizons = self.sample_horizons()
+        horizons[-1]["complete"] = "False"
+        with self.assertRaisesRegex(RuntimeError, "completion flag mismatch"):
+            validate_module_b_horizons(events, horizons)
+
+    def test_module_b_horizons_reject_confirmation_mismatch(self):
+        events, horizons = self.sample_horizons()
+        horizons[-1]["first_15m_return_inside_close_ts_ms"] = "900000"
+        with self.assertRaisesRegex(RuntimeError, "confirmation timestamp mismatch"):
+            validate_module_b_horizons(events, horizons)
+
+    def test_module_b_horizons_allow_exact_12h_confirmation(self):
+        events, horizons = self.sample_horizons()
+        events[0]["first_15m_return_inside_close_ts_ms"] = "43201000"
+        horizons[-1]["first_15m_return_inside_close_ts_ms"] = "43201000"
+        result = validate_module_b_horizons(events, horizons)
+        self.assertEqual(result["twelve_hour_confirmations"], 1)
+
+    def test_module_b_horizons_reject_confirmation_after_12h(self):
+        events, horizons = self.sample_horizons()
+        events[0]["first_15m_return_inside_close_ts_ms"] = "43201001"
+        horizons[-1]["first_15m_return_inside_close_ts_ms"] = "43201001"
+        with self.assertRaisesRegex(RuntimeError, "outside 12-hour horizon"):
+            validate_module_b_horizons(events, horizons)
+
+    def test_only_eligible_failed_breakout_exposes_first_eligible_minute(self):
+        self.assertEqual(first_eligible_minute_or_blank(
+            "ELIGIBLE_FOR_FURTHER_VALIDATION", 123000), 123000)
+        self.assertEqual(first_eligible_minute_or_blank("REJECTED", 123000), "")
+        self.assertEqual(first_eligible_minute_or_blank("EXPIRED", None), "")
+        self.assertEqual(first_eligible_minute_or_blank("CENSORED", 123000), "")
+
+    def test_eligible_failed_breakout_requires_confirmation_minute(self):
+        with self.assertRaisesRegex(RuntimeError, "missing its confirmation minute"):
+            first_eligible_minute_or_blank("ELIGIBLE_FOR_FURTHER_VALIDATION", None)
 
 
 if __name__ == "__main__":
