@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "queue_policy": {
+    "phase_order": [
+      "phase3_sideways_range",
+      "phase1_uptrend_bullish",
+      "phase2_downtrend_bearish",
+      "phase4_choppy_high_volatility",
+      "phase5_transition_expansion"
+    ],
+    "advance_only_after_current_phase_gate_is_human_authorized_closed": true,
+    "no_phase_skipping": true,
+    "execution_enabled": false,
+    "tasks_may_not_override_handoffs": true
+  },
+  "tasks": [
+    {
+      "task_id": "P3-G005-RO-001",
+      "phase": "phase3_sideways_range",
+      "workstream": "g0_05",
+      "handoff_id": "PHASE3_G0_05_RECONCILIATION_TASK_02",
+      "operation": "evidence_lineage_review",
+      "title": "Continue read-only G0-05 real-row identity and source-lineage reconciliation",
+      "status": "queued",
+      "scope": [
+        "Review source-to-canonical field mapping and nullability",
+        "Trace candidate identity and cross-family collision handling from existing evidence",
+        "Review source joins, snapshot lineage, confirmation and censoring edge cases",
+        "Record unknowns and blockers without executing scripts or tests"
+      ],
+      "prohibited": [
+        "execute_scripts",
+        "execute_tests",
+        "trigger_workflows",
+        "modify_code",
+        "modify_research_data",
+        "create_candidates",
+        "run_backtests",
+        "make_pnl_claims",
+        "select_strategies",
+        "close_gates"
+      ],
+      "completion_authority": "human_only"
+    },
+    {
+      "task_id": "P3-G005-RO-002",
+      "phase": "phase3_sideways_range",
+      "workstream": "g0_05",
+      "handoff_id": "PHASE3_G0_05_RECONCILIATION_TASK_02",
+      "operation": "repository_inspection",
+      "title": "Inspect G0-05 handoff and provenance documentation for unresolved read-only requirements",
+      "status": "queued",
+      "scope": [
+        "Read existing handoff, checkpoint, manifests and reports",
+        "Check consistency of documented counts and definitions",
+        "Produce a findings list with source references"
+      ],
+      "prohibited": [
+        "execute_scripts",
+        "execute_tests",
+        "trigger_workflows",
+        "modify_code",
+        "modify_research_data",
+        "create_candidates",
+        "run_backtests",
+        "make_pnl_claims",
+        "select_strategies",
+        "close_gates"
+      ],
+      "completion_authority": "human_only"
+    },
+    {
+      "task_id": "P1-RO-001",
+      "phase": "phase1_uptrend_bullish",
+      "operation": "repository_inspection",
+      "title": "Inspect Phase 1 existing research evidence and document its current readiness; do not begin strategy selection.",
+      "status": "blocked_until_prior_phases_complete",
+      "scope": [
+        "Read existing documentation and research artifacts only",
+        "Record readiness, missing evidence and dependencies"
+      ],
+      "prohibited": [
+        "execute_scripts",
+        "execute_tests",
+        "trigger_workflows",
+        "modify_code",
+        "modify_research_data",
+        "create_candidates",
+        "run_backtests",
+        "make_pnl_claims",
+        "select_strategies",
+        "close_gates"
+      ],
+      "completion_authority": "human_only"
+    },
+    {
+      "task_id": "P2-RO-001",
+      "phase": "phase2_downtrend_bearish",
+      "operation": "repository_inspection",
+      "title": "Inspect Phase 2 existing research evidence and document its current readiness; do not begin strategy selection.",
+      "status": "blocked_until_prior_phases_complete",
+      "scope": [
+        "Read existing documentation and research artifacts only",
+        "Record readiness, missing evidence and dependencies"
+      ],
+      "prohibited": [
+        "execute_scripts",
+        "execute_tests",
+        "trigger_workflows",
+        "modify_code",
+        "modify_research_data",
+        "create_candidates",
+        "run_backtests",
+        "make_pnl_claims",
+        "select_strategies",
+        "close_gates"
+      ],
+      "completion_authority": "human_only"
+    },
+    {
+      "task_id": "P4-RO-001",
+      "phase": "phase4_choppy_high_volatility",
+      "operation": "repository_inspection",
+      "title": "Inspect Phase 4 existing research evidence and document its current readiness; do not begin strategy selection.",
+      "status": "blocked_until_prior_phases_complete",
+      "scope": [
+        "Read existing documentation and research artifacts only",
+        "Record readiness, missing evidence and dependencies"
+      ],
+      "prohibited": [
+        "execute_scripts",
+        "execute_tests",
+        "trigger_workflows",
+        "modify_code",
+        "modify_research_data",
+        "create_candidates",
+        "run_backtests",
+        "make_pnl_claims",
+        "select_strategies",
+        "close_gates"
+      ],
+      "completion_authority": "human_only"
+    },
+    {
+      "task_id": "P5-RO-001",
+      "phase": "phase5_transition_expansion",
+      "operation": "repository_inspection",
+      "title": "Inspect Phase 5 existing research evidence and document its current readiness; do not begin strategy selection.",
+      "status": "blocked_until_prior_phases_complete",
+      "scope": [
+        "Read existing documentation and research artifacts only",
+        "Record readiness, missing evidence and dependencies"
+      ],
+      "prohibited": [
+        "execute_scripts",
+        "execute_tests",
+        "trigger_workflows",
+        "modify_code",
+        "modify_research_data",
+        "create_candidates",
+        "run_backtests",
+        "make_pnl_claims",
+        "select_strategies",
+        "close_gates"
+      ],
+      "completion_authority": "human_only"
+    }
+  ]
+}
