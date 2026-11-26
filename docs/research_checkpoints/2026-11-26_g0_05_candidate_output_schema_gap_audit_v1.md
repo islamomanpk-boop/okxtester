@@ -62,7 +62,7 @@ The following items are not present as complete fields in the current three sour
 
 - `overlap_cluster_id`, `overlap_cluster_size`, and cluster start/end bounds are now emitted in all three source-only ledgers. Rejection uses the accepted Module A 24H interval-graph clusters with physical size recounted after strict/broad collapse; breakout continuation uses the same frozen Module B 12H interval-graph method applied to all 2,861 unique raw crossings; failed-breakout reversal inherits its linked source breakout cluster.
 - Clusters are metadata only. No overlapping event is removed, merged or re-labelled.
-- A separate `repeated_signal_group_id` rule remains unfrozen. Existing rejection test-rank/segment identity and distinct raw breakout crossing keys preserve repeated events without adding a new grouping rule.
+- `repeated_signal_group_id` is now frozen and emitted: rejection groups by asset/direction/snapshot/segment; breakout groups by asset/direction/context snapshot; failed-breakout inherits its source breakout group.
 - `ambiguity_flags` are not emitted in the current source-only artifact.
 
 ### 3.5 Lifecycle fields
@@ -116,7 +116,7 @@ Evidence:
 
 This closes the previously noted absence of asset/family/side/causal-cohort/reason grouped disposition summaries in the source-audit report. The summary is descriptive and does not alter or collapse source rows.
 
-The overlap-cluster metadata and cluster-size reporting gap has been closed as recorded below. A separate repeated-signal group identifier remains undefined; existing source identities continue to preserve repeated events. The canonical candidate fields listed in Sections 2–3 above remain unmaterialized.
+The overlap-cluster metadata and cluster-size reporting gap has been closed as recorded below. The repeated-signal group identifier has now been frozen and emitted, as recorded below. The canonical candidate fields listed in Sections 2–3 above remain unmaterialized.
 
 
 ## 8. Raw breakout historical cohort membership reconciled — 2026-11-26
@@ -152,3 +152,20 @@ Cluster summary:
 - Failed-breakout rows inherit source breakout clusters; they are a subset and do not create additional cluster counts.
 
 The original accepted Module A and Module B outputs remain unchanged. The G0-05 breakout cluster IDs are versioned separately as `g0_05_raw_overlap` because the cluster population now includes all 2,861 raw crossings, not only Module B's historical selected subset.
+
+
+## 10. Repeated-signal group IDs added — 2026-11-26
+
+The schema's separate `repeated_signal_group_id` field is now implemented and tested. It is distinct from overlap clustering and uses only immutable source context:
+- rejection: asset/direction/snapshot index/segment;
+- breakout: asset/direction/context snapshot;
+- failed breakout: inherits the linked source breakout group.
+
+Evidence:
+- Source audit [45804274324](https://github.com/islamomanpk-boop/okxtester/actions/runs/45804274324) — SUCCESS; artifact ID `15107399743`; ZIP SHA-256 `0b4ca8ab5e12129d988425d78786efc1d18b3be04be07afabc3b04398a23c124`.
+- Synthetic suite [45804297791](https://github.com/islamomanpk-boop/okxtester/actions/runs/45804297791) — SUCCESS; **97/97 tests passed**.
+- Rejection: 1,046 groups / 1,154 rows.
+- Breakout: 2,051 groups / 2,861 rows.
+- Failed-breakout: 663 inherited groups / 932 rows.
+
+No grouping changes row counts, source identities or dispositions. The schema gaps now remaining are the rest of the canonical candidate field mapping and materialization, including source lineage, snapshot/threshold/feature fields, signal/confirmation anatomy, lifecycle nullability, and full schema validation.
