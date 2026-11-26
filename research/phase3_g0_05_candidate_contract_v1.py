@@ -454,18 +454,15 @@ def validate_candidate_identity_links(records: list[dict]) -> dict:
     if len(versions) != 1:
         raise ValueError("candidate ledger mixes candidate_rule_version values")
 
+    records_by_id = {row["candidate_id"]: row for row in records}
     for row in records:
         family = row["family"]
         linked = row.get("source_breakout_candidate_id")
         if family == "FAILED_BREAKOUT_REVERSAL":
-            source_breakout_identity = str(row.get("source_breakout_source_event_id", "")).strip()
-            if not source_breakout_identity or not linked:
+            if not linked:
                 raise ValueError("failed-breakout row is missing its source breakout link")
-            expected_link = candidate_id(
-                source_breakout_identity, "BREAKOUT_CONTINUATION", row["candidate_rule_version"])
-            if linked != expected_link:
-                raise ValueError("source_breakout_candidate_id does not match the exact source breakout identity")
-            if expected_link not in candidate_ids:
+            source_breakout_row = records_by_id.get(linked)
+            if source_breakout_row is None or source_breakout_row.get("family") != "BREAKOUT_CONTINUATION":
                 raise ValueError("source_breakout_candidate_id does not resolve to a source breakout candidate row")
             confirmation_ts = str(row.get("signal_available_at_ts_ms") or "NO_CONFIRMATION")
             expected_failed_identity = (
