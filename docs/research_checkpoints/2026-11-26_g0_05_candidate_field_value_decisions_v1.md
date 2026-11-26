@@ -213,3 +213,19 @@ The independent verifier was rerun against source-audit run `45808007422` / arti
 - Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; 2,857/2,857 eligible timestamps present, 2,090 non-eligible rows have blank first-eligible timestamps, and all five raw market hashes/grids pass.
 
 This independent result confirms that the exact snapshot/threshold field materialization did not alter eligible-minute membership.
+
+
+## 18. Candidate identity/link validator added without generating real candidate IDs
+
+A pure contract validator now checks a future canonical ledger's:
+- deterministic `candidate_id = SHA256(source_event_id + family + candidate_rule_version)`;
+- duplicate candidate IDs and duplicate family/source-event identities;
+- single candidate-rule version per ledger;
+- exact failed-breakout `source_breakout_candidate_id` link to the source breakout candidate row;
+- absence of source-breakout links on non-failed-breakout families.
+
+Synthetic tests use only invented identities. No IDs were computed for the 4,947 real source rows and no canonical candidate rows were created.
+
+- Synthetic suite [45808764318](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808764318) — SUCCESS; **117/117 tests passed**.
+
+This closes the deterministic ID/link validator design gap, while the real candidate IDs and linked candidate ledger remain intentionally unmaterialized until G0-05 approval.
