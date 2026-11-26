@@ -211,3 +211,6 @@ The source-only audit now emits the exact schema cohort enum values and explicit
 Evidence: source audit [45809114333](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809114333), artifact `15109854146`, manifest ID `dcc2bc9b6af890a81f0ecf109d34843fcc34b2a8431116b766aa97acdfc7082f`; all 4,947 source-event IDs unique. Synthetic suite [45809254233](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809254233) passed **120/120 tests**.
 
 The final canonical failed-breakout `source_event_id` will use the linked source breakout candidate ID + confirmation timestamp (or `NO_CONFIRMATION`) + rule version. The source-only ledger's current failed-breakout identity remains provisional.
+
+
+Independent minute verification after this schema normalization: workflow [45809422866](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809422866) — SUCCESS; artifact ID `15110639152`; ZIP SHA-256 `5836d3212c56cfc72ab31db17d6704e03c1413d8c783c6f9049c4be083361798`; 2,857/2,857 eligible timestamps present.
