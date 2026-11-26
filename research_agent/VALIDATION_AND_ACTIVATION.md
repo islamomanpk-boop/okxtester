@@ -21,11 +21,14 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Safety controller requires explicit human-authorized closure of every prior phase gate before a later phase can be authorized.
 - [x] Safety controller enforces the active global G0-05 lock against every Phase 3 task, regardless of task labels, preventing relabelling bypasses.
 - [x] Safety controller rejects duplicate/empty phase-order entries and returns DENY for malformed task or policy inputs rather than propagating validation exceptions.
+- [x] Public runtime authorization accepts only the task payload and loads policy from fixed repository paths; policy injection is confined to a private test seam.
+- [x] Task preflight uses the trusted repository policy rather than passing a caller-supplied queue into the authorization boundary.
 - [x] Added focused safety-controller denial/allowance tests, including relabelled Phase 3 tasks, duplicate phase order, and malformed inputs; authored but not executed.
 - [x] Read-only preflight dispatcher has no executor, subprocess, or write capability.
 - [x] Preflight dispatcher now returns DENY for malformed queue objects instead of raising an uncaught attribute error.
 - [x] Report formatter validates repository-contained inputs, rejection of symlinked path components, normalized unique manifest paths, SHA-256 values, commit SHA format, and UTC timestamps.
-- [x] Added report-builder tests for deterministic rendering, malformed provenance, duplicate paths, traversal, and external paths; authored but not executed.
+- [x] Added report-builder tests for deterministic rendering, malformed provenance, duplicate paths, traversal, external paths, and Markdown injection; authored but not executed.
+- [x] Markdown report rendering flattens untrusted line breaks and escapes Markdown control characters in findings and metadata.
 - [x] Added preflight tests for malformed queues, duplicate task IDs, and preflight-only behavior; authored but not executed.
 - [x] Static configuration/source consistency review completed against the branch files.
 
@@ -34,8 +37,8 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 These checks must not be run while the current G0-05 handoff prohibits them:
 
 - [ ] Python syntax/import validation.
-- [ ] Execute safety-controller tests, including phase override denial, missing prior-gate closure, active global Phase 3 lock with relabelled tasks, duplicate phase order, malformed input denial, allowlist mismatch, task mutation, unknown operation, and disabled switches.
-- [ ] Execute report-builder tests for valid reports, malformed manifests, path traversal, UTC timestamps, commit SHA format, and deterministic digests.
+- [ ] Execute safety-controller tests, including phase override denial, missing prior-gate closure, active global Phase 3 lock with relabelled tasks, duplicate phase order, malformed input denial, policy-injection rejection at the public runtime API, allowlist mismatch, task mutation, unknown operation, and disabled switches.
+- [ ] Execute report-builder tests for valid reports, malformed manifests, path traversal, UTC timestamps, commit SHA format, deterministic digests, and hostile Markdown/newline inputs.
 - [ ] Execute preflight tests for malformed queues, duplicate task IDs, and no-execution behavior.
 - [ ] End-to-end dry-run of the preflight dispatcher.
 - [ ] GitHub Actions workflow validation and a manual workflow run.
