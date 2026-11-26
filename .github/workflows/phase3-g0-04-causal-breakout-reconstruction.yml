@@ -2,6 +2,12 @@ name: Phase 3 G0-04 Causal Breakout Reconstruction
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - price-action-v1
+    paths:
+      - research/phase3_g0_04_causal_breakout_reconstruction_v1.py
+      - .github/workflows/phase3-g0-04-causal-breakout-reconstruction.yml
 
 permissions:
   contents: read
