@@ -41,6 +41,7 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Added 22 preflight tests for malformed queues and rows, duplicate task IDs and JSON keys, non-standard JSON constants, trusted-queue boundary, stable denial envelopes, inconsistent/malformed authorization results, and preflight-only behavior; authored but not executed.
 - [x] Total regression tests authored: 100 (31 safety-controller, 47 report-builder, 22 task-runner); none executed. Safety policy and CLI task JSON now reject duplicate object keys and non-standard NaN/Infinity constants.
 - [x] Static configuration/source consistency review completed against the branch files.
+- [x] Added `PHASE_SUPPORT_MATRIX.md` documenting reusable support and queue coverage across all five phases in the agreed order; later phases remain gated by predecessor closure and their own handoffs.
 - [x] Verified repository default branch is `main`; GitHub requires a `workflow_dispatch` workflow file to exist on the default branch. The current agent-branch-only/manual-dispatch design is blocked unless the user authorizes a minimal main-branch dispatcher or chooses a separate agent repository. No such change is authorized or made.
 
 ## Deferred validation
