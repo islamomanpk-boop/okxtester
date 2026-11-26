@@ -49,6 +49,10 @@ A missing, ambiguous, malformed, or conflicting permission means **deny**. The t
 - Regression coverage authored but not executed: 31 safety-controller tests, 47 report-builder tests, and 22 task-runner tests (100 total). Safety policy files and CLI task input use strict JSON parsing that rejects duplicate keys and non-standard NaN/Infinity constants.
 - `.github/workflows/` — no agent-specific workflow is installed yet. The first future workflow must be manual-dispatch only and preflight/report-only; event-driven and scheduled triggers require separate validation and approval.
 
+## Full-project phase coverage
+
+See [PHASE_SUPPORT_MATRIX.md](PHASE_SUPPORT_MATRIX.md) for the shared operating model and queue coverage across all five phases in the agreed order: Phase 3, Phase 1, Phase 2, Phase 4, Phase 5. The agent is reusable across the full project; Phase 3 is only the current active phase. Later phases remain blocked until predecessor gates are human-authorized closed and their own handoffs permit work.
+
 ## Validation and activation gates
 
 See [VALIDATION_AND_ACTIVATION.md](VALIDATION_AND_ACTIVATION.md) for completed setup, deferred runtime checks, and conditions for safe activation. Static review does not count as runtime validation.
