@@ -16,6 +16,7 @@ def valid_report():
         "repository": "islamomanpk-boop/okxtester",
         "branch": "agent/okx-research-agent-v1",
         "commit_sha": "a" * 40,
+        "task_definition_sha256": "d" * 64,
         "run_id": "manual-test",
         "timestamp_utc": "2026-11-26T12:00:00Z",
         "input_manifest": [
@@ -184,6 +185,26 @@ class ReportBuilderTests(unittest.TestCase):
         self.assertIn("\\`", rendered)
         self.assertNotIn("[click](", rendered)
         self.assertNotIn("## forged heading", rendered)
+
+
+    def test_rejects_malformed_task_definition_hash(self):
+        report = valid_report()
+        report["task_definition_sha256"] = "not-a-hash"
+        with self.assertRaisesRegex(ValueError, "task_definition_sha256"):
+            report_builder.validate_report(report)
+
+    def test_task_definition_digest_is_stable_and_order_independent(self):
+        first = {"task_id": "P3-RO-001", "phase": "phase3", "scope": ["a", "b"]}
+        second = {"scope": ["a", "b"], "phase": "phase3", "task_id": "P3-RO-001"}
+        self.assertEqual(
+            report_builder.task_definition_digest(first),
+            report_builder.task_definition_digest(second),
+        )
+
+    def test_markdown_report_displays_task_definition_hash(self):
+        rendered = report_builder.render_markdown(valid_report())
+        self.assertIn("Task definition SHA-256", rendered)
+        self.assertIn("d" * 64, rendered)
 
 if __name__ == "__main__":
     unittest.main()
