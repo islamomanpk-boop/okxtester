@@ -131,7 +131,7 @@ Every source row must be accounted for. The sum of mutually exclusive dispositio
 
 ## 7. Current implementation boundary
 
-The current 31-test synthetic suite covers core timestamp, snapshot, regime-threshold, nesting, family-direction, 15-minute completeness, source-linkage, horizon and determinism primitives. The read-only source audit separately verifies pinned sources and identity joins.
+The current 43-test synthetic suite covers core timestamp, snapshot, regime-threshold, nesting, family-direction, 15-minute completeness, source-linkage, horizon and determinism primitives. The read-only source audit separately verifies pinned sources and identity joins.
 
 Before canonical candidate generation, add tests for the exact source-key joins, missing/duplicate rows, threshold lookup at exact snapshot availability, all disposition reason codes, family-specific warm-up and snapshot-expiry cases, and full reconciliation totals. Then run the source-only dry-run and inspect its artifact. Candidate generation remains blocked until that evidence is accepted.
 
