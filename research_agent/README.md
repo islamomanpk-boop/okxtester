@@ -43,6 +43,10 @@ A missing, ambiguous, malformed, or conflicting permission means **deny**. The t
 - `engine/report_builder.py` — deterministic JSON/Markdown report formatting, repository-contained input SHA-256 manifests, report validation, and report digest; not runtime-tested.
 - `.github/workflows/` — planned event-driven orchestration; must remain disabled until separately reviewed and approved.
 
+## Validation and activation gates
+
+See [VALIDATION_AND_ACTIVATION.md](VALIDATION_AND_ACTIVATION.md) for completed setup, deferred runtime checks, and conditions for safe activation. Static review does not count as runtime validation.
+
 ## Activation policy
 
 Creating this scaffold does not authorize running it. Do not add or enable scheduled/event-triggered workflows until the safety controller, task allowlist, and independent validation are complete and the applicable research handoffs permit execution. The G0-05 handoff remains authoritative even if a future agent configuration is changed.
