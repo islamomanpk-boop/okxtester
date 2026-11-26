@@ -96,6 +96,11 @@ class SupervisorReviewTests(unittest.TestCase):
         result = review_worker_submission(self.task, submission)
         self.assertEqual(result["review_disposition"], "return_for_revision")
 
+    def test_unhashable_status_is_rejected_without_exception(self):
+        submission = dict(self.submission, status=["completed"])
+        result = review_worker_submission(self.task, submission)
+        self.assertEqual(result["review_disposition"], "return_for_revision")
+
 
 if __name__ == "__main__":
     unittest.main()
