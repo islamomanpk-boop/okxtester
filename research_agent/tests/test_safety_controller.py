@@ -54,6 +54,9 @@ def policy_fixture(task, *, phase_order=None, phase_rules=None, lock=False):
             "gate_closure": "prohibited",
             "lock_reason": "Current G0-05 handoff prohibits execution.",
         })
+        phase3["g0_05"].setdefault(
+            "lock_reason", "Current G0-05 handoff prohibits execution."
+        )
     queued_task = dict(task)
     queued_task.setdefault("title", "Read-only policy fixture task")
     queued_task.setdefault("scope", ["Inspect existing repository evidence only"])
