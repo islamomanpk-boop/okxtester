@@ -30,10 +30,11 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Report formatter validates repository-contained inputs, rejection of symlinked path components, normalized unique manifest paths, SHA-256 values, commit SHA format, and canonical UTC timestamps ending in Z.
 - [x] Report schema rejects unsupported top-level fields, non-string finding entries, Boolean schema versions, Windows-style manifest paths, non-finite JSON values, and unsupported/completion-claim statuses; only preflight_only, blocked, skipped, and not_run are accepted.
 - [x] Added a checkout-manifest verifier that detects missing files and byte/hash mismatches. Its scope is explicitly limited to current checkout bytes; it does not assert that those bytes belong to the reported Git commit or that the checkout is clean.
-- [x] Added 18 report-builder regression tests covering deterministic rendering, malformed provenance, duplicate and unsafe paths, strict schema/timestamp validation, external paths, symlinks, Markdown injection, and completion-claim status rejection; authored but not executed.
+- [x] Markdown reports explicitly disclose that caller-supplied repository/branch/commit/run metadata is not authenticated by schema validation, manifest hashes are declarations until independently checked, and reports are not task-completion evidence or gate approval.
+- [x] Added 19 report-builder regression tests covering deterministic rendering, malformed provenance, duplicate and unsafe paths, strict schema/timestamp validation, external paths, symlinks, Markdown injection, completion-claim status rejection, and explicit provenance/metadata limitation disclosures; authored but not executed.
 - [x] Markdown report rendering flattens untrusted line breaks and escapes Markdown control characters in findings and metadata.
 - [x] Added 10 preflight tests for malformed queues and rows, duplicate task IDs, trusted-queue boundary, stable denial envelopes, inconsistent/malformed authorization results, and preflight-only behavior; authored but not executed.
-- [x] Total regression tests authored: 45 (17 safety-controller, 18 report-builder, 10 task-runner); none executed.
+- [x] Total regression tests authored: 46 (17 safety-controller, 19 report-builder, 10 task-runner); none executed.
 - [x] Static configuration/source consistency review completed against the branch files.
 
 ## Deferred validation
