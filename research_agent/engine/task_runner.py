@@ -17,8 +17,26 @@ ROOT = Path(__file__).resolve().parents[2]
 QUEUE_PATH = ROOT / "research_agent" / "config" / "task_queue.json"
 
 
+def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    """Reject duplicate keys instead of silently accepting last-value-wins JSON."""
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"Duplicate JSON object key: {key}")
+        result[key] = value
+    return result
+
+
+def _reject_json_constant(value: str) -> None:
+    raise ValueError(f"Non-standard JSON numeric constant is not allowed: {value}")
+
+
 def load_queue(path: Path = QUEUE_PATH) -> dict[str, Any]:
-    value = json.loads(path.read_text(encoding="utf-8"))
+    value = json.loads(
+        path.read_text(encoding="utf-8"),
+        object_pairs_hook=_unique_json_object,
+        parse_constant=_reject_json_constant,
+    )
     if not isinstance(value, dict) or not isinstance(value.get("tasks"), list):
         raise ValueError("Task queue is missing or malformed.")
     return value
