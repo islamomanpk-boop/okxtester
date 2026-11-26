@@ -477,3 +477,13 @@ The G0-04 raw crossing ledger's `was_historical_selected` flag is now reconciled
 This preserves the important distinction between retrospective historical cohorts and G0-04 causal expanding-prior eligibility. The historical 932 are not treated as the only causal eligible source population.
 
 The independent minute workflow is being advanced to this latest source-audit artifact before its next run. Overlap-cluster/repeated-signal metadata and the complete canonical candidate field mapping remain open. Candidate generation and trading tests remain unauthorized.
+
+
+## 22. Latest independent verification after breakout cohort reconciliation — 2026-11-26
+
+The independent minute verifier was rerun against the source-audit artifact containing the breakout historical-membership join:
+- Workflow [45803028375](https://github.com/islamomanpk-boop/okxtester/actions/runs/45803028375) — SUCCESS; job `139850895093`.
+- Artifact ID `15107712661`; ZIP SHA-256 `f4be33a3abc238c2d972e89f8ba0a8a9eca846b3036b531e4d66898f0fbdb9ab`, independently recomputed after download.
+- Report `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; 2,857/2,857 eligible timestamps present; five raw market files independently re-hashed and their timestamp grids checked.
+
+The current source-only checks therefore pass for identity, historical/causal cohort separation, disposition reason codes, grouped counts and exact first-minute membership. The canonical candidate output field mapping and overlap/repeated-signal metadata convention remain unresolved. G0-05 remains open and candidate generation remains unauthorized.
