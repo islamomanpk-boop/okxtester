@@ -551,6 +551,21 @@ def confirmation_ambiguity_flag(direction: str, boundary: float, bar: dict) -> s
     return "NONE"
 
 
+def resolve_lagged_feature_reference(feature_by_timestamp: dict, asset: str,
+                                       context_snapshot_ms: int) -> tuple[int, dict | None, str]:
+    """Resolve G0-04's one-4H-lagged detector channel reference, including its expected leading edge."""
+    reference_ts = int(context_snapshot_ms) - 14400000
+    asset_features = feature_by_timestamp[asset]
+    reference = asset_features.get(reference_ts)
+    if reference is not None:
+        return reference_ts, reference, "MATCHED_ONE_4H_LAG"
+    earliest = min(asset_features)
+    if reference_ts < earliest:
+        return reference_ts, None, "EXPECTED_LEADING_LEGACY_BOUNDARY"
+    raise ValueError(
+        f"{asset} missing non-leading one-4H-lagged detector feature reference {reference_ts}")
+
+
 def canonical_snapshot_provenance(asset: str, snapshot_ms: int, next_snapshot_ms,
                                    feature: dict, threshold: dict | None,
                                    causal_cohort: str,
@@ -1119,16 +1134,15 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             status, minute_reason=minute_check(asset,signal)
             if minute_reason:
                 reason=minute_reason
-        reference_feature_snapshot=snap-14400000
-        reference_feature=feature_by_timestamp[asset].get(reference_feature_snapshot)
-        if reference_feature is None:
-            fail(f"breakout has no one-4H-lagged detector feature reference: {source_key}")
-        for raw_field, feature_field in (
-            ("channel_width_pct","channel_width_pct"),
-            ("upper","upper"),("lower","lower"),
-        ):
-            if not math.isclose(float(r[raw_field]),float(reference_feature[feature_field]),rel_tol=0.0,abs_tol=1e-9):
-                fail(f"G0-04 raw crossing {raw_field} differs from one-4H-lagged detector feature: {source_key}")
+        reference_feature_snapshot,reference_feature,reference_feature_match_status=resolve_lagged_feature_reference(
+            feature_by_timestamp,asset,snap)
+        if reference_feature is not None:
+            for raw_field, feature_field in (
+                ("channel_width_pct","channel_width_pct"),
+                ("upper","upper"),("lower","lower"),
+            ):
+                if not math.isclose(float(r[raw_field]),float(reference_feature[feature_field]),rel_tol=0.0,abs_tol=1e-9):
+                    fail(f"G0-04 raw crossing {raw_field} differs from one-4H-lagged detector feature: {source_key}")
         next_snapshot=snap+14400000
         threshold=exact_threshold_for_snapshot(
             thresholds,asset,snap,"EXPANDING_PRIOR","UNIQUE_4H_FEATURE_ROWS")
@@ -1146,6 +1160,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
         cluster=breakout_cluster_map[source_event_key]
         breakout_rows.append({**snapshot_fields,
             "reference_feature_snapshot_ts_ms":reference_feature_snapshot,
+            "reference_feature_match_status":reference_feature_match_status,
             "source_event_id":source_event_key,
             "source_event_row_ids":source_event_key,
             "asset":asset,"source_event_key":source_event_key,
@@ -1213,16 +1228,15 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             thresholds,asset,snapshot,"EXPANDING_PRIOR","UNIQUE_4H_FEATURE_ROWS")
         if not source_ok:
             source_cohort="CAUSAL_THRESHOLD_WARMUP" if threshold is None else "CAUSAL_REGIME_NOT_ELIGIBLE"
-        reference_feature_snapshot=snapshot-14400000
-        reference_feature=feature_by_timestamp[asset].get(reference_feature_snapshot)
-        if reference_feature is None:
-            fail(f"failed-breakout source has no one-4H-lagged detector feature reference: {key}")
-        for raw_field, feature_field in (
-            ("channel_width_pct","channel_width_pct"),
-            ("upper","upper"),("lower","lower"),
-        ):
-            if not math.isclose(float(raw[raw_field]),float(reference_feature[feature_field]),rel_tol=0.0,abs_tol=1e-9):
-                fail(f"failed-breakout source {raw_field} differs from one-4H-lagged detector feature: {key}")
+        reference_feature_snapshot,reference_feature,reference_feature_match_status=resolve_lagged_feature_reference(
+            feature_by_timestamp,asset,snapshot)
+        if reference_feature is not None:
+            for raw_field, feature_field in (
+                ("channel_width_pct","channel_width_pct"),
+                ("upper","upper"),("lower","lower"),
+            ):
+                if not math.isclose(float(raw[raw_field]),float(reference_feature[feature_field]),rel_tol=0.0,abs_tol=1e-9):
+                    fail(f"failed-breakout source {raw_field} differs from one-4H-lagged detector feature: {key}")
         next_snapshot=snapshot+14400000
         feature_context={
             "available_at_ts_ms":str(snapshot),
@@ -1285,6 +1299,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             event_observed_at=confirmation
         failed_rows.append({**snapshot_fields,
             "reference_feature_snapshot_ts_ms":reference_feature_snapshot,
+            "reference_feature_match_status":reference_feature_match_status,
             "source_event_id":source_event_id,
             "source_breakout_source_event_id":source_event_key,
             "asset":asset,"source_event_key":source_event_key,
