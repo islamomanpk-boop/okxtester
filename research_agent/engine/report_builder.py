@@ -227,8 +227,16 @@ def render_markdown(report: dict[str, Any]) -> str:
         "## Limitations",
         _as_bullets(report["limitations"]),
         "",
-        "## Input provenance",
+        "## Declared input manifest",
+        "The paths and SHA-256 values below are declarations whose format was validated. "
+        "The renderer does not re-read these files or authenticate their relationship to the reported commit.",
         *manifest_lines,
+        "",
+        "## Verification boundaries",
+        "- Report metadata (repository, branch, commit SHA, run ID, and timestamp) is supplied by the caller and is not cryptographically authenticated by schema validation.",
+        "- Input hashes are declarations until verify_input_manifest_against_checkout() is run against the intended checkout.",
+        "- Checkout hash matching alone does not prove the checkout is clean or that its bytes belong to the reported commit.",
+        "- This report is an audit record, not task-completion evidence or human gate approval.",
         "",
     ]
     return "\n".join(sections)
