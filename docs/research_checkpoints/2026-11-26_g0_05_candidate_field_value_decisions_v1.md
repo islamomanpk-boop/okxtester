@@ -171,3 +171,21 @@ The independent verifier consumed the source-only disposition artifact produced 
 - Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; all five raw market files re-hashed and checked for strict ordering, minute alignment and continuity; 2,857/2,857 eligible timestamps present; 2,090 non-eligible rows have blank first-eligible timestamps.
 
 The manifest ID in the source audit rows remains `82bce2b7549efb959a2805641cfda46c1ea6a158e8e6c7d24cd8f3795ca80bbb`, and the independent minute check did not alter source populations.
+
+
+## 15. One-4H-lagged breakout context mapping correction
+
+The first canonical field-mapping attempt incorrectly tried to join G0-04 raw breakout `efficiency` and `overlap` to the original detector feature row at the same context timestamp. The source audit correctly failed closed on a BTC mismatch.
+
+Inspection of the accepted G0-04 reconstruction code showed the raw crossing ledger uses `historical_breakout_context`, whose channel is intentionally one completed 4H candle lagged. Its channel boundaries and width cross-check to the original detector feature row at:
+
+`reference_feature_snapshot_ts_ms = context_snapshot_ms - 14,400,000`
+
+The raw G0-04 row remains authoritative for its `efficiency` and `overlap` values; those are computed from the historical breakout context and are not required to equal the original detector feature row's directional efficiency/mean overlap.
+
+Correct family mapping:
+- Rejection: exact original detector feature row at `snapshot_ms`; `regime_definition_version=SIDEWAYS_DETECTOR_ORIGINAL_V1`.
+- Breakout / failed breakout: exact G0-04 raw context at `context_snapshot_ms`; verify `upper`, `lower` and `channel_width_pct` against the detector feature row one 4H bar earlier; use raw context `efficiency` and `overlap`; `regime_definition_version=HISTORICAL_BREAKOUT_CONTEXT_V1`.
+- Breakout/failed-breakout context validity ends at the next 4H context snapshot (`context_snapshot_ms + 14,400,000`), subject to the source's complete 4H grid.
+
+The source audit now performs this lagged channel cross-check and preserves `reference_feature_snapshot_ts_ms`. It no longer incorrectly compares historical-context efficiency/overlap to same-time detector values.
