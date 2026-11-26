@@ -273,3 +273,15 @@ The source audit imports and reports validator readiness but deliberately does n
 - Synthetic suite [45810463442](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810463442) — SUCCESS; **125/125 tests passed**.
 
 This completes the schema-validator implementation/preflight step without generating any real candidate IDs or canonical candidate rows.
+
+
+## 22. Independent minute verification after full schema-validator integration
+
+The independent verifier consumed the latest source-audit artifact from run `45810599246` / artifact `15113820073`:
+
+- Workflow [45810782593](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810782593) — SUCCESS; job `139877783145`.
+- Artifact ID `15112426887`.
+- ZIP SHA-256 `da386f639b49c4188bf2927f0c9edb8305abed08f542e3ef6cffa988df449d04`, independently recomputed after download.
+- Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; 2,857/2,857 eligible timestamps present; 2,090 non-eligible rows blank; all five raw 1m files re-hashed and minute grids validated.
+
+This confirms that importing/reporting the full 60-field validator did not change source dispositions or eligible-minute membership.
