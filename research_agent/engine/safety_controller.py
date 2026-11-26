@@ -24,6 +24,50 @@ READ_ONLY_OPERATIONS = {
     "evidence_lineage_review",
     "report_generation",
 }
+TASK_REQUIRED_FIELDS = {
+    "task_id", "phase", "operation", "title", "status",
+    "scope", "prohibited", "completion_authority",
+}
+TASK_OPTIONAL_FIELDS = {"workstream", "handoff_id"}
+MANDATORY_TASK_PROHIBITIONS = {
+    "execute_scripts", "execute_tests", "trigger_workflows",
+    "modify_code", "modify_research_data", "create_candidates",
+    "run_backtests", "make_pnl_claims", "select_strategies", "close_gates",
+}
+
+
+def _validate_task_contract(task: dict[str, Any]) -> str | None:
+    """Require a complete, narrowly scoped task contract before hash approval."""
+    keys = set(task)
+    missing = TASK_REQUIRED_FIELDS - keys
+    unknown = keys - TASK_REQUIRED_FIELDS - TASK_OPTIONAL_FIELDS
+    if missing:
+        return "Task is missing required contract fields: " + ", ".join(sorted(missing))
+    if unknown:
+        return "Task contains unsupported contract fields: " + ", ".join(sorted(unknown))
+    for field in ("task_id", "phase", "operation", "title", "status", "completion_authority"):
+        if not isinstance(task[field], str) or not task[field].strip():
+            return f"Task field {field!r} must be a non-empty string."
+    if task["status"] != "queued":
+        return "Task is not in queued status."
+    if task["completion_authority"] != "human_only":
+        return "Task completion authority must remain human_only."
+    if not isinstance(task["scope"], list) or not task["scope"] or not all(
+        isinstance(item, str) and item.strip() for item in task["scope"]
+    ):
+        return "Task scope must be a non-empty list of non-empty strings."
+    if not isinstance(task["prohibited"], list) or not all(
+        isinstance(item, str) and item.strip() for item in task["prohibited"]
+    ):
+        return "Task prohibited actions must be a list of non-empty strings."
+    if not MANDATORY_TASK_PROHIBITIONS.issubset(set(task["prohibited"])):
+        return "Task prohibited-action list is missing one or more mandatory safety restrictions."
+    for optional in TASK_OPTIONAL_FIELDS.intersection(keys):
+        if not isinstance(task[optional], str) or not task[optional].strip():
+            return f"Optional task field {optional!r} must be a non-empty string when present."
+    return None
+
+
 DENIED_OPERATIONS = {
     "modify_code",
     "modify_research_data",
@@ -169,8 +213,9 @@ def _authorize_task_impl(
     queued_task = queued_matches[0]
     if task != queued_task:
         return _deny("Submitted task differs from its trusted queue definition.")
-    if queued_task.get("status") != "queued":
-        return _deny("Task is not in queued status.")
+    contract_error = _validate_task_contract(queued_task)
+    if contract_error:
+        return _deny(contract_error)
 
     allow_matches = [row for row in approved if row["task_id"] == task_id]
     if len(allow_matches) != 1:
