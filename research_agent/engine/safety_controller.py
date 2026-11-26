@@ -137,6 +137,8 @@ def _authorize_task_impl(
         return _deny("Task queue execution is disabled.")
     if queue_policy.get("no_phase_skipping") is not True:
         return _deny("Queue does not enforce sequential phase order.")
+    if queue_policy.get("advance_only_after_current_phase_gate_is_human_authorized_closed") is not True:
+        return _deny("Queue does not require human-authorized gate closure before phase advancement.")
     if queue_policy.get("tasks_may_not_override_handoffs") is not True:
         return _deny("Queue does not preserve handoff restrictions.")
 
@@ -187,6 +189,18 @@ def _authorize_task_impl(
         return _deny("Phase order must contain unique, non-empty phase names.")
     if not isinstance(phase_rules, dict) or not isinstance(defaults, dict):
         return _deny("Phase permission configuration is malformed.")
+    if set(phase_rules) != set(phase_order):
+        return _deny("Phase permission entries must exactly match the declared phase order.")
+    active_phases = [
+        name for name, rule in phase_rules.items()
+        if isinstance(rule, dict) and rule.get("status") == "active_research_phase"
+    ]
+    if len(active_phases) != 1:
+        return _deny("Exactly one research phase must be marked active.")
+    for index, phase_name in enumerate(phase_order, start=1):
+        rule = phase_rules.get(phase_name)
+        if not isinstance(rule, dict) or rule.get("priority") != index:
+            return _deny("Phase priorities must match the declared sequential phase order.")
     if phase not in phase_order or phase not in phase_rules:
         return _deny("Unknown phase; no permission is granted.")
     if agent.get("phase_order") != phase_order or queue_policy.get("phase_order") != phase_order:
@@ -195,8 +209,15 @@ def _authorize_task_impl(
     phase_rule = phase_rules[phase]
     if not isinstance(phase_rule, dict):
         return _deny("Phase permission entry is malformed.")
-    if phase_rule.get("status") != "active_research_phase":
+    if phase_rule.get("status") != "active_research_phase" or active_phases[0] != phase:
         return _deny("Task belongs to a phase that is not currently active.")
+    for row in queue_tasks:
+        row_phase = row.get("phase")
+        if row_phase not in phase_order:
+            return _deny("Queue task references an unknown phase.")
+        expected_status = "queued" if row_phase == active_phases[0] else "blocked_until_prior_phases_complete"
+        if row.get("status") != expected_status:
+            return _deny("Queue task status conflicts with the active phase and sequential phase policy.")
 
     # Require an explicit read-only opt-in; missing, deny, and unknown values fail closed.
     if phase_rule.get("execution_override") != "allow_read_only":
