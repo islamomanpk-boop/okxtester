@@ -6,6 +6,12 @@
 
 This document defines the proposed boundary for the first agent workflow. It does not grant permission to execute research scripts, tests, or workflows. The active Phase 3 G0-05 handoff remains controlling.
 
+## Separate default-branch workflow discovered during audit
+
+Static inspection found `.github/workflows/phase3-overnight-research.yml` on default branch `main` (workflow revision `acb897e1de93f084a9d2a729b99f4d3e79b4a3d2`). It is a separate manual-only Phase 3 preflight workflow, not an agent workflow. It checks out `price-action-v1`, runs a syntax check and `research/phase3_overnight_worker_v1.py`, then uploads its output directory. The worker reads and validates canonical market-data CSVs and writes a recovery index.
+
+The active G0-05 handoff at `1e37eabee8dd17a206e4e848c421096d89482ddd` prohibits script, test, and workflow execution. Do not dispatch this workflow until an authoritative handoff permits that exact operation. Its presence does not provide an agent dispatcher or satisfy the agent's activation requirements; no run status was established during this static inspection.
+
 ## Current static findings
 
 The inherited workflow inventory on this branch contains 39 workflow files. Two G0-05 workflows were inspected directly:
