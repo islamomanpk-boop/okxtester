@@ -11,6 +11,7 @@ from typing import Any
 
 from research_agent.engine.event_ledger import (
     _SHA256_RE,
+    _strict_json_copy,
     append_event,
     validate_event_ledger,
 )
@@ -74,7 +75,7 @@ def prepare_append(
     if expected_head_event_sha256 != actual_head:
         return {
             "status": "stale_checkpoint",
-            "ledger": ledger,
+            "ledger": _strict_json_copy(ledger),
             "event": None,
             "appended": False,
             "conflict": True,
