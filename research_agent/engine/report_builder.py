@@ -137,6 +137,81 @@ def verify_report_task_binding(report: dict[str, Any], trusted_task: dict[str, A
         raise ValueError("Report task-definition hash does not match the trusted task definition.")
 
 
+def build_preflight_report(
+    task: dict[str, Any],
+    preflight_result: dict[str, Any],
+    *,
+    repository: str,
+    branch: str,
+    commit_sha: str,
+    run_id: str,
+    timestamp_utc: str,
+    input_manifest: list[dict[str, str]],
+) -> dict[str, Any]:
+    """Create a provenance-labelled report of a preflight decision only.
+
+    This helper does not execute the task, authenticate caller-supplied
+    workflow metadata, inspect the checkout, or claim task completion.
+    Trusted workflow context and manifest verification remain caller duties.
+    """
+    if not isinstance(task, dict):
+        raise TypeError("Task definition must be a JSON object.")
+    if not isinstance(preflight_result, dict):
+        raise TypeError("Preflight result must be a JSON object.")
+    expected_keys = {
+        "task_id", "queue_status", "decision", "authorized", "reason",
+        "execution_performed", "mode",
+    }
+    if set(preflight_result) != expected_keys:
+        raise ValueError("Preflight result has missing or unsupported fields.")
+    if preflight_result["task_id"] != task.get("task_id"):
+        raise ValueError("Preflight result task_id does not match task definition.")
+    if preflight_result["mode"] != "preflight_only":
+        raise ValueError("Only single-task preflight results can become preflight reports.")
+    if preflight_result["execution_performed"] is not False:
+        raise ValueError("Preflight report cannot represent task execution.")
+    if type(preflight_result["authorized"]) is not bool:
+        raise TypeError("Preflight authorization flag must be Boolean.")
+    if preflight_result["authorized"]:
+        if preflight_result["decision"] != "ALLOW_READ_ONLY":
+            raise ValueError("Authorized preflight must use ALLOW_READ_ONLY.")
+    elif preflight_result["decision"] != "DENY":
+        raise ValueError("Denied preflight must use DENY.")
+    reason = preflight_result["reason"]
+    if not isinstance(reason, str) or not reason.strip():
+        raise ValueError("Preflight reason must be a non-empty string.")
+
+    report = {
+        "schema_version": REPORT_SCHEMA_VERSION,
+        "agent_name": REPORT_AGENT_NAME,
+        "task_id": task.get("task_id"),
+        "phase": task.get("phase"),
+        "status": "preflight_only" if preflight_result["authorized"] else "blocked",
+        "repository": repository,
+        "branch": branch,
+        "commit_sha": commit_sha,
+        "task_definition_sha256": task_definition_digest(task),
+        "run_id": run_id,
+        "timestamp_utc": timestamp_utc,
+        "input_manifest": input_manifest,
+        "findings": (
+            ["Task passed read-only preflight; no task work was executed."]
+            if preflight_result["authorized"] else []
+        ),
+        "blockers": [] if preflight_result["authorized"] else [reason],
+        "skipped_checks": [
+            "Task execution was not performed by the preflight dispatcher."
+        ],
+        "limitations": [
+            "This report records a preflight decision only; it is not evidence of task completion.",
+            "Repository, branch, commit, timestamp, run ID, and input manifest are caller-supplied until independently verified.",
+            "A read-only preflight allowance does not override the active research handoff or authorize prohibited operations.",
+        ],
+    }
+    validate_report(report)
+    return report
+
+
 def validate_report(report: dict[str, Any]) -> None:
     """Reject incomplete or malformed reports instead of inventing metadata."""
     required = {
