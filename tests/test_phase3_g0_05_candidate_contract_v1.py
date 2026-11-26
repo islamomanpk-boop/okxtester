@@ -334,8 +334,10 @@ class G005ExpandedGateTests(unittest.TestCase):
 
     def test_disposition_ledger_requires_exact_population_and_unique_ids(self):
         rows = [
-            {"source_event_key": "a", "disposition": "ELIGIBLE_FOR_FURTHER_VALIDATION"},
-            {"source_event_key": "b", "disposition": "REJECTED"},
+            {"source_event_key": "a", "disposition": "ELIGIBLE_FOR_FURTHER_VALIDATION",
+             "reason_code": "NONE", "censoring_reason": ""},
+            {"source_event_key": "b", "disposition": "REJECTED",
+             "reason_code": "CAUSAL_THRESHOLD_WARMUP", "censoring_reason": ""},
         ]
         result = validate_disposition_ledger(rows, "source_event_key", 2)
         self.assertEqual(result["rows"], 2)
