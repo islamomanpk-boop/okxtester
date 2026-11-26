@@ -212,6 +212,29 @@ class TaskRunnerTests(unittest.TestCase):
         self.assertIn("failed unexpectedly", result["reason"])
 
 
+    def test_preflight_all_tasks_with_queue_uses_one_supplied_snapshot(self):
+        queue = {
+            "tasks": [
+                {"task_id": "P3-RO-001", "status": "queued"},
+                {"task_id": "P1-RO-001", "status": "blocked"},
+            ]
+        }
+        per_task = [
+            {"task_id": "P3-RO-001", "authorized": False, "execution_performed": False},
+            {"task_id": "P1-RO-001", "authorized": False, "execution_performed": False},
+        ]
+        with patch.object(task_runner, "load_queue", side_effect=AssertionError("must not reload")), patch.object(
+            task_runner, "_preflight_task_with_queue", side_effect=per_task
+        ) as preflight:
+            result = task_runner._preflight_all_tasks_with_queue(queue)
+        self.assertEqual(result["decision"], "SUMMARY_ONLY")
+        self.assertFalse(result["authorized"])
+        self.assertFalse(result["execution_performed"])
+        self.assertEqual(result["task_count"], 2)
+        self.assertEqual(preflight.call_count, 2)
+        self.assertIs(preflight.call_args_list[0].args[1], queue)
+        self.assertIs(preflight.call_args_list[1].args[1], queue)
+
     def test_preflight_all_tasks_is_summary_only_and_never_authorizes_queue(self):
         queue = {
             "tasks": [
