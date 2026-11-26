@@ -60,10 +60,12 @@ class AssignmentReturnTests(unittest.TestCase):
             "completion_claimed": True, "gate_closure_claimed": False,
         }
 
-    def review(self, package=None):
+    def review(self, package=None, package_digest=None):
+        selected_package = self.package if package is None else package
+        trusted_digest = self.package_digest if package_digest is None else package_digest
         return review_assignment_return(
-            self.task, self.package if package is None else package, self.submission,
-            expected_assignment_package_sha256=self.package_digest,
+            self.task, selected_package, self.submission,
+            expected_assignment_package_sha256=trusted_digest,
             expected_commit_sha=self.commit, commit_manifest=self.manifest,
             file_contents={self.path: self.content},
         )
@@ -80,7 +82,7 @@ class AssignmentReturnTests(unittest.TestCase):
         blocked_preflight = dict(self.preflight, decision="DENY", authorized=False)
         blocked = prepare_worker_assignment(self.task, blocked_preflight)
         with self.assertRaisesRegex(ValueError, "prepared, non-blocked"):
-            self.review(blocked)
+            self.review(blocked, package_digest=assignment_package_digest(blocked))
 
     def test_tampered_preflight_reason_is_rejected_by_trusted_package_digest(self):
         tampered = dict(self.package)
