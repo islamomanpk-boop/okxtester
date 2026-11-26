@@ -101,7 +101,9 @@ def cross_check(root,a,ctx):
  p=root/"reports/sideways_detector_original_v1"/f"{a}_features_original_v1.csv"
  if not p.is_file(): stop(f"missing detector ledger {p}")
  d=pd.read_csv(p)
- d["join_ts"]=pd.to_numeric(d.available_at_ts_ms).astype("int64")+H4
+ # Detector availability is the right-labelled 4H context snapshot itself.
+ # Adding another H4 shifts every detector row one bar into the future.
+ d["join_ts"]=pd.to_numeric(d.available_at_ts_ms).astype("int64")
  c=ctx.reset_index()
  c["join_ts"]=c.snapshot.astype("int64")//1_000_000
  m=c.merge(d,on="join_ts",how="outer",suffixes=("_src","_det"),indicator=True)
