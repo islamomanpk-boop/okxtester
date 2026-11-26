@@ -393,6 +393,79 @@ def audit_g004_artifact(artifact: Path) -> tuple[dict, dict, dict]:
                       "raw_keys": raw_keys, "raw_rows": raw, "threshold_by_key": threshold_by_key}
 
 
+def first_eligible_minute_or_blank(disposition: str, confirmation_ms: int | None) -> int | str:
+    """Only an eligible event may expose a first-eligible minute timestamp."""
+    if disposition != "ELIGIBLE_FOR_FURTHER_VALIDATION":
+        return ""
+    if confirmation_ms is None:
+        fail("eligible failed-breakout event is missing its confirmation minute")
+    return int(confirmation_ms)
+
+
+def validate_module_b_horizons(events: list[dict[str, str]],
+                               horizons: list[dict[str, str]]) -> dict:
+    """Reconcile all four horizon rows to each Module B event and its 12H outcome."""
+    expected_horizons = {"15M", "1H", "4H", "12H"}
+    event_by_id = {}
+    for event in events:
+        event_id = (event.get("event_id") or "").strip()
+        if not event_id or event_id in event_by_id:
+            fail(f"missing or duplicate Module B event_id: {event_id!r}")
+        event_by_id[event_id] = event
+
+    horizon_by_id = {}
+    seen_pairs = set()
+    for row in horizons:
+        event_id = (row.get("event_id") or "").strip()
+        horizon = (row.get("horizon") or "").strip()
+        if event_id not in event_by_id:
+            fail(f"horizon row has unknown event_id: {event_id!r}")
+        if horizon not in expected_horizons:
+            fail(f"unexpected Module B horizon label: {horizon!r}")
+        pair = (event_id, horizon)
+        if pair in seen_pairs:
+            fail(f"duplicate Module B horizon row: {pair}")
+        seen_pairs.add(pair)
+        horizon_by_id.setdefault(event_id, {})[horizon] = row
+
+    if set(horizon_by_id) != set(event_by_id):
+        missing = sorted(set(event_by_id) - set(horizon_by_id))
+        extra = sorted(set(horizon_by_id) - set(event_by_id))
+        fail(f"Module B horizon event coverage mismatch: missing={missing[:5]}, extra={extra[:5]}")
+
+    confirmations = 0
+    for event_id, event in event_by_id.items():
+        rows = horizon_by_id[event_id]
+        if set(rows) != expected_horizons:
+            fail(f"Module B event {event_id} does not have exactly 15M/1H/4H/12H horizons")
+        horizon_12h = rows["12H"]
+        event_complete = (event.get("complete_12h") or "").strip().lower()
+        horizon_complete = (horizon_12h.get("complete") or "").strip().lower()
+        if event_complete not in {"true", "false"} or horizon_complete not in {"true", "false"}:
+            fail(f"Module B event {event_id} has invalid 12H completion flag")
+        if event_complete != horizon_complete:
+            fail(f"Module B event {event_id} 12H completion flag mismatch")
+        event_confirmation = (event.get("first_15m_return_inside_close_ts_ms") or "").strip()
+        horizon_confirmation = (horizon_12h.get("first_15m_return_inside_close_ts_ms") or "").strip()
+        if event_confirmation != horizon_confirmation:
+            fail(f"Module B event {event_id} 12H confirmation timestamp mismatch")
+        if event_confirmation:
+            signal_ms = ms(event["signal_time_ms"], "Module B signal")
+            confirmation_ms = ms(event_confirmation, "Module B 12H confirmation")
+            if confirmation_ms <= signal_ms or confirmation_ms > signal_ms + 43200000:
+                fail(f"Module B event {event_id} confirmation outside 12-hour horizon")
+            confirmations += 1
+
+    return {
+        "events_reconciled": len(event_by_id),
+        "horizon_rows_reconciled": len(horizons),
+        "horizon_rows_per_event": 4,
+        "horizon_types": sorted(expected_horizons),
+        "twelve_hour_confirmations": confirmations,
+        "twelve_hour_completion_and_confirmation_match": True,
+    }
+
+
 def audit_module_b(root: Path, g004_raw_keys: set) -> dict:
     base = root / "reports/phase3_breakout_lifecycle_v1_1"
     metadata = json.loads((base / "run_metadata_v1_1.json").read_text(encoding="utf-8"))
@@ -407,12 +480,13 @@ def audit_module_b(root: Path, g004_raw_keys: set) -> dict:
     ef, events = read_csv(event_path)
     hf, horizons = read_csv(horizon_path)
     require_columns(str(event_path), ef, {"event_id", "asset", "definition", "direction",
-        "signal_time_ms", "snapshot", "zone_pct_of_channel"})
-    require_columns(str(horizon_path), hf, {"event_id"})
+        "signal_time_ms", "snapshot", "zone_pct_of_channel", "complete_12h",
+        "first_15m_return_inside_close_ts_ms"})
+    require_columns(str(horizon_path), hf, {"event_id", "horizon", "complete",
+        "first_15m_return_inside_close_ts_ms"})
     if len(events) != 1592 or len(horizons) != 6368:
         fail(f"Module B row counts differ: events={len(events)} horizons={len(horizons)}")
-    if len({r["event_id"] for r in events}) != len(events):
-        fail("duplicate Module B event_id")
+    horizon_reconciliation = validate_module_b_horizons(events, horizons)
     definitions = Counter(r["definition"] for r in events)
     if definitions != Counter({"BROAD_P40": 932, "STRICT_P25": 660}):
         fail(f"Module B cohort counts differ: {dict(definitions)}")
@@ -434,6 +508,7 @@ def audit_module_b(root: Path, g004_raw_keys: set) -> dict:
             "horizons_sha256": sha256_bytes(horizon_path.read_bytes()),
             "unique_source_keys": len(event_keys), "definition_rows": dict(definitions),
             "module_b_keys_missing_from_g004_raw": 0,
+            "horizon_reconciliation": horizon_reconciliation,
             "link_cardinality": "MODULE_B_COHORT_ROWS_TO_G004_RAW_IDENTITIES_RECONCILED"}
 
 
@@ -599,7 +674,8 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "source_event_row_ids":";".join(sorted(x["event_id"] for x in members)),
             "historical_cohort_memberships":";".join(sorted({x["definition"] for x in members})),"direction":direction,
             "family":"FAILED_BREAKOUT_REVERSAL","family_direction":"SHORT" if direction=="UPPER" else "LONG","signal_time_ms":signal,
-            "confirmation_ts_ms":confirmation or "","first_eligible_1m_open_ts_ms":confirmation or "",
+            "confirmation_ts_ms":confirmation or "",
+            "first_eligible_1m_open_ts_ms":first_eligible_minute_or_blank(status, confirmation),
             "causal_source_cohort":source_cohort,"disposition":status,"reason_code":reason})
     out.mkdir(parents=True,exist_ok=True)
     files={"rejection_source_dispositions.csv":rejection_rows,
