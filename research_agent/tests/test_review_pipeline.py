@@ -89,5 +89,5 @@ class IntegratedReviewPipelineTests(unittest.TestCase):
         self.assertEqual(result["evidence_verification"]["evidence_count"], 0)
 
 
-if __ (name) == "__main__":
+if __name__ == "__main__":
     unittest.main()
