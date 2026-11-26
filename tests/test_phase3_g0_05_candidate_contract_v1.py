@@ -15,6 +15,7 @@ from research.phase3_g0_05_candidate_contract_v1 import (
 from research.phase3_g0_05_source_manifest_audit_v1 import (
     first_eligible_minute_or_blank, validate_module_b_horizons,
     validate_disposition_ledger, grouped_disposition_counts, historical_membership_label,
+    assign_interval_graph_clusters,
 )
 
 
@@ -436,6 +437,57 @@ class G005SourceAuditTests(unittest.TestCase):
         self.assertEqual(first_eligible_minute_or_blank("REJECTED", 123000), "")
         self.assertEqual(first_eligible_minute_or_blank("EXPIRED", None), "")
         self.assertEqual(first_eligible_minute_or_blank("CENSORED", 123000), "")
+
+    def test_interval_graph_clusters_use_transitive_half_open_overlap(self):
+        events = [
+            {"asset": "BTC", "event_id": "a", "start": 0, "bars": 10},
+            {"asset": "BTC", "event_id": "b", "start": 9, "bars": 11},
+            {"asset": "BTC", "event_id": "c", "start": 19, "bars": 11},
+            {"asset": "BTC", "event_id": "d", "start": 30, "bars": 1},
+            {"asset": "ETH", "event_id": "e", "start": 0, "bars": 1},
+        ]
+        mapping, summary = assign_interval_graph_clusters(
+            events, asset_field="asset", event_id_field="event_id",
+            start_field="start", observed_bars_field="bars",
+            cluster_prefix="g0_05_raw_overlap")
+        self.assertEqual(mapping["a"]["overlap_cluster_id"], mapping["b"]["overlap_cluster_id"])
+        self.assertEqual(mapping["b"]["overlap_cluster_id"], mapping["c"]["overlap_cluster_id"])
+        self.assertNotEqual(mapping["c"]["overlap_cluster_id"], mapping["d"]["overlap_cluster_id"])
+        self.assertEqual(mapping["a"]["overlap_cluster_size"], 3)
+        self.assertEqual(mapping["d"]["overlap_cluster_size"], 1)
+        self.assertEqual(mapping["e"]["overlap_cluster_size"], 1)
+        self.assertEqual(summary["total"], 3)
+
+    def test_interval_graph_cluster_results_are_input_order_independent(self):
+        events = [
+            {"asset": "BTC", "event_id": "b", "start": 9, "bars": 11},
+            {"asset": "BTC", "event_id": "a", "start": 0, "bars": 10},
+        ]
+        args = dict(asset_field="asset", event_id_field="event_id",
+                    start_field="start", observed_bars_field="bars",
+                    cluster_prefix="g0_05_raw_overlap")
+        first = assign_interval_graph_clusters(events, **args)
+        second = assign_interval_graph_clusters(list(reversed(events)), **args)
+        self.assertEqual(first, second)
+
+    def test_interval_graph_clusters_reject_nonpositive_windows(self):
+        events = [{"asset": "BTC", "event_id": "a", "start": 0, "bars": 0}]
+        with self.assertRaisesRegex(ValueError, "at least one"):
+            assign_interval_graph_clusters(
+                events, asset_field="asset", event_id_field="event_id",
+                start_field="start", observed_bars_field="bars",
+                cluster_prefix="g0_05_raw_overlap")
+
+    def test_interval_graph_clusters_reject_duplicate_event_ids(self):
+        events = [
+            {"asset": "BTC", "event_id": "a", "start": 0, "bars": 2},
+            {"asset": "ETH", "event_id": "a", "start": 0, "bars": 2},
+        ]
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            assign_interval_graph_clusters(
+                events, asset_field="asset", event_id_field="event_id",
+                start_field="start", observed_bars_field="bars",
+                cluster_prefix="g0_05_raw_overlap")
 
     def test_historical_breakout_membership_maps_both_nested_cohorts(self):
         self.assertEqual(
