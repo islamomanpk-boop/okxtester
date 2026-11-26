@@ -119,3 +119,18 @@ Before candidate generation:
 ## 11. Authorization boundary
 
 This document freezes field values and identity semantics only. It does not authorize canonical candidate generation, execution simulation, strategy backtests, PnL or a phase transition.
+
+
+## 12. Confirmation OHLC ambiguity implementation evidence
+
+The source-only audit now independently aggregates every observed failed-breakout confirmation 15m candle from its exact 15 component 1m OHLC bars and emits `confirmation_status`, `confirmation_rule_id`, `confirmation_bar_interval_ms`, and `ambiguity_flags`.
+
+- Source audit [45805545548](https://github.com/islamomanpk-boop/okxtester/actions/runs/45805545548) — SUCCESS; artifact ID `15109271179`; ZIP SHA-256 `d4bde5c29d32ad1a2ccab7c9d1c35a26eec3e7f9e642dc01b0178d9b6e4c9d25`, independently recomputed after download.
+- Synthetic suite [45805565739](https://github.com/islamomanpk-boop/okxtester/actions/runs/45805565739) — SUCCESS; **102/102 tests passed**.
+- Rejection: 1,154/1,154 confirmation timestamps classified CONFIRMED.
+- Breakout continuation: 2,861/2,861 completed 15m crossing signals classified CONFIRMED.
+- Failed breakout: 756 observed return-inside confirmations were rebuilt from 15 exact 1m component bars and classified CONFIRMED; 176 rows had no return-inside confirmation and were classified NOT_CONFIRMED.
+- The 756 confirmation bars all had an OPEN_OUTSIDE_CLOSE_INSIDE ambiguity flag in this source population; no wick-only flag was observed. The flag is preserved and does not suppress or alter a close-confirmed event.
+- Family disposition totals did not change: 2,857 eligible, 1,884 rejected, 206 expired, 0 censored.
+
+The source audit checks the confirmation component bars and OHLC validity. The independent raw minute verifier separately checks the five full timestamp grids and eligible timestamp membership; its rerun against this artifact is tracked separately.
