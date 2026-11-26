@@ -126,7 +126,7 @@ class SafetyControllerTests(unittest.TestCase):
             phase_order=["phase3_sideways_range", "phase1_uptrend_bullish"],
             phase_rules={
                 "phase3_sideways_range": {
-                    "status": "active_research_phase",
+                    "status": "queued",
                     "execution_override": "deny",
                 },
                 "phase1_uptrend_bullish": {
