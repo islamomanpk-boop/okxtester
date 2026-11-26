@@ -83,6 +83,18 @@ class EventLedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "strict JSON"):
             self.make_event(payload={"bad": object()})
 
+    def test_non_string_event_type_and_source_are_rejected_cleanly(self):
+        with self.assertRaisesRegex(ValueError, "Unsupported ledger event type"):
+            self.make_event(event_type=["task_observed"])
+        with self.assertRaisesRegex(ValueError, "Unsupported event source"):
+            self.make_event(source=["github_workflow"])
+
+    def test_python_only_payload_values_and_non_string_keys_are_rejected(self):
+        with self.assertRaisesRegex(ValueError, "strict JSON"):
+            self.make_event(payload={"bad": (1, 2)})
+        with self.assertRaisesRegex(ValueError, "keys must be strings"):
+            self.make_event(payload={1: "bad"})
+
     def test_empty_ledger_is_valid_and_non_authorizing(self):
         result = validate_event_ledger([])
         self.assertTrue(result["valid"])
