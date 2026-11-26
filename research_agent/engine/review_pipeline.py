@@ -45,12 +45,28 @@ def review_submission_with_verified_evidence(
         return result
 
     evidence = submission["evidence"]
-    verification = verify_worker_evidence(
-        evidence,
-        expected_commit_sha=expected_commit_sha,
-        commit_manifest=commit_manifest,
-        file_contents=file_contents,
-    )
+    try:
+        verification = verify_worker_evidence(
+            evidence,
+            expected_commit_sha=expected_commit_sha,
+            commit_manifest=commit_manifest,
+            file_contents=file_contents,
+        )
+    except (TypeError, ValueError) as exc:
+        result["evidence_verification"] = {
+            "mode": "evidence_verification_only",
+            "verification_error": type(exc).__name__,
+            "all_evidence_verified": False,
+            "task_completion_approved": False,
+            "gate_closure_approved": False,
+            "human_review_required": True,
+        }
+        result["review_disposition"] = "return_for_revision"
+        result["limitations"].append(
+            "Evidence verification could not be completed because its supplied commit context or manifest was invalid."
+        )
+        return result
+
     result["evidence_verification"] = verification
     result["evidence_integrity_passed"] = (
         verification["evidence_count"] > 0 and verification["all_evidence_verified"]
