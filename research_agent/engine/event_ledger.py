@@ -77,9 +77,18 @@ def _validate_timestamp(value: Any) -> None:
     if not isinstance(value, str) or not _TIMESTAMP_RE.fullmatch(value):
         raise ValueError("Event time must be canonical ISO-8601 UTC ending in Z.")
     try:
-        datetime.fromisoformat(value[:-1] + "+00:00")
+        parsed = datetime.fromisoformat(value[:-1] + "+00:00")
     except ValueError as exc:
         raise ValueError("Event time is not a valid UTC timestamp.") from exc
+
+    # Require one stable representation: omit a zero fraction, otherwise use
+    # the shortest fractional form that preserves the parsed microseconds.
+    canonical = parsed.strftime("%Y-%m-%dT%H:%M:%S")
+    if parsed.microsecond:
+        canonical += "." + f"{parsed.microsecond:06d}".rstrip("0")
+    canonical += "Z"
+    if value != canonical:
+        raise ValueError("Event time must use canonical UTC timestamp formatting.")
 
 
 def _event_core(event: dict[str, Any]) -> dict[str, Any]:
