@@ -4,7 +4,7 @@
 
 **Status: hardened scaffold; runtime activation blocked.**
 
-The repository contains the configuration, ordered task queue, hash-bound safety controller, read-only preflight dispatcher, and deterministic report formatter. No agent-specific workflow has been added or enabled. No agent task, script, test, or workflow has been executed.
+The repository contains the configuration, ordered task queue, hash-bound safety controller, read-only preflight dispatcher, deterministic report formatter, and a preflight-to-artifact orchestration layer. No agent-specific workflow has been added or enabled. No agent task, script, test, or workflow has been executed.
 
 The current Phase 3 G0-05 handoff remains authoritative. It prohibits the relevant script/test/workflow execution and research code/data changes. The agent must not be used to bypass that restriction.
 
@@ -39,7 +39,9 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Added 50 report-builder regression tests covering deterministic rendering, malformed provenance, duplicate and unsafe paths, strict schema/timestamp validation, fixed agent identity, external paths, symlinks, Markdown injection, completion-claim status rejection, and explicit provenance/metadata limitation disclosures; authored but not executed.
 - [x] Markdown report rendering flattens untrusted line breaks and escapes Markdown control characters in findings and metadata; untrusted values are kept outside Markdown code spans to prevent delimiter breakout.
 - [x] Added 27 preflight tests for malformed queues and rows, duplicate task IDs and JSON keys, non-standard JSON constants, trusted-queue boundary, stable denial envelopes, inconsistent/malformed authorization results, and preflight-only behavior; authored but not executed.
-- [x] Total regression tests authored: 109 (32 safety-controller, 50 report-builder, 27 task-runner); none executed. Safety policy and CLI task JSON now reject duplicate object keys and non-standard NaN/Infinity constants.
+- [x] Added `artifact_preparation.py` to connect trusted queue lookup, single-task preflight, preflight-only report generation, and in-memory artifact bundling. It is restricted to the repository and isolated agent branch; denied preflight becomes a `blocked` report. It performs no task work, queue mutation, filesystem writes, upload, or scheduling. Workflow metadata remains caller-supplied until independently obtained and verified by a future workflow; authored but not runtime-tested.
+- [x] Added 7 artifact-preparation regression tests for blocked-artifact creation, branch/repository restrictions, dirty checkout, HEAD mismatch, and task identity; authored but not executed.
+- [x] Total regression tests authored: 116 (32 safety-controller, 50 report-builder, 27 task-runner, 7 artifact-preparation); none executed. Safety policy and CLI task JSON now reject duplicate object keys and non-standard NaN/Infinity constants.
 - [x] Static configuration/source consistency review completed against the branch files.
 - [x] Added `PHASE_SUPPORT_MATRIX.md` documenting reusable support and queue coverage across all five phases in the agreed order; later phases remain gated by predecessor closure and their own handoffs.
 - [x] Added a safety-controller regression test that checks the checked-in phase configuration, queue ordering, per-phase task presence, later-phase blocked statuses, and human-authorized gate dependency; authored but not executed.
