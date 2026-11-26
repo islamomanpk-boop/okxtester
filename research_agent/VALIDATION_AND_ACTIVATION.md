@@ -26,14 +26,14 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Task preflight uses the trusted repository policy rather than passing a caller-supplied queue into the authorization boundary.
 - [x] Added 17 focused safety-controller denial/allowance tests, including task-contract omissions, unsupported fields, non-human completion authority, relabelled Phase 3 tasks, malformed inputs, and public policy-injection rejection; authored but not executed.
 - [x] Read-only preflight dispatcher has no executor, subprocess, or write capability.
-- [x] Preflight dispatcher now returns DENY for malformed queue objects instead of raising an uncaught attribute error.
+- [x] Preflight dispatcher returns a stable result envelope for every path, rejects malformed queue objects and rows, and fails closed on malformed or internally inconsistent authorization results.
 - [x] Report formatter validates repository-contained inputs, rejection of symlinked path components, normalized unique manifest paths, SHA-256 values, commit SHA format, and canonical UTC timestamps ending in Z.
 - [x] Report schema rejects unsupported top-level fields, non-string finding entries, Boolean schema versions, Windows-style manifest paths, non-finite JSON values, and unsupported/completion-claim statuses; only preflight_only, blocked, skipped, and not_run are accepted.
 - [x] Added a checkout-manifest verifier that detects missing files and byte/hash mismatches. Its scope is explicitly limited to current checkout bytes; it does not assert that those bytes belong to the reported Git commit or that the checkout is clean.
 - [x] Added 18 report-builder regression tests covering deterministic rendering, malformed provenance, duplicate and unsafe paths, strict schema/timestamp validation, external paths, symlinks, Markdown injection, and completion-claim status rejection; authored but not executed.
 - [x] Markdown report rendering flattens untrusted line breaks and escapes Markdown control characters in findings and metadata.
-- [x] Added 5 preflight tests for malformed queues, duplicate task IDs, trusted-queue boundary, and preflight-only behavior; authored but not executed.
-- [x] Total regression tests authored: 40 (17 safety-controller, 18 report-builder, 5 task-runner); none executed.
+- [x] Added 10 preflight tests for malformed queues and rows, duplicate task IDs, trusted-queue boundary, stable denial envelopes, inconsistent/malformed authorization results, and preflight-only behavior; authored but not executed.
+- [x] Total regression tests authored: 45 (17 safety-controller, 18 report-builder, 10 task-runner); none executed.
 - [x] Static configuration/source consistency review completed against the branch files.
 
 ## Deferred validation
