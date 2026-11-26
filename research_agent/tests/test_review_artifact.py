@@ -110,6 +110,17 @@ class ReviewArtifactTests(unittest.TestCase):
         self.assertTrue(any("unrenderable worker value" in item for item in report["findings"]))
         self.assertTrue(report["blockers"])
 
+    def test_deeply_nested_worker_value_does_not_crash_artifact_rendering(self):
+        malformed = dict(self.submission)
+        nested = "too deep"
+        for _ in range(1500):
+            nested = [nested]
+        malformed["summary"] = nested
+        result, report = self.build(malformed)
+        self.assertEqual(result["report_status"], "not_run")
+        self.assertTrue(any("unrenderable worker value" in item for item in report["findings"]))
+        self.assertTrue(report["blockers"])
+
     def test_never_claims_dispatch_or_upload(self):
         result, _ = self.build()
         self.assertFalse(result["dispatch_or_delivery_verified"])
