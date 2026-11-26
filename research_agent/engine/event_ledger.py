@@ -10,6 +10,7 @@ from __future__ import annotations
 from datetime import datetime
 import hashlib
 import json
+import math
 import re
 from typing import Any
 
@@ -30,8 +31,30 @@ _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$")
 
 
+def _validate_json_value(value: Any) -> None:
+    """Reject Python values that JSON serialization would silently coerce."""
+    if value is None or isinstance(value, (str, bool, int)):
+        return
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError("Ledger values must contain finite JSON numbers.")
+        return
+    if isinstance(value, list):
+        for item in value:
+            _validate_json_value(item)
+        return
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if not isinstance(key, str):
+                raise ValueError("Ledger JSON object keys must be strings.")
+            _validate_json_value(item)
+        return
+    raise ValueError("Ledger values must contain strict JSON data.")
+
+
 def _strict_json_copy(value: Any) -> Any:
-    """Round-trip only unambiguous JSON values; reject NaN and Python objects."""
+    """Round-trip only unambiguous JSON values; reject coercible Python values."""
+    _validate_json_value(value)
     try:
         encoded = json.dumps(value, ensure_ascii=False, allow_nan=False)
         return json.loads(encoded)
