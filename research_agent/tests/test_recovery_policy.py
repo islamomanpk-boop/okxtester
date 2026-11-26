@@ -78,6 +78,8 @@ class RecoveryPolicyTests(unittest.TestCase):
             self.classify(delivery_state="sent_maybe", review_state="not_received")
         with self.assertRaisesRegex(ValueError, "review state"):
             self.classify(delivery_state="delivery_confirmed", review_state="done-ish")
+        with self.assertRaisesRegex(ValueError, "human disposition"):
+            self.classify(delivery_state="delivery_confirmed", review_state="review_completed", human_disposition=[])
 
     def test_no_outcome_claims_or_side_effects(self):
         result = self.classify(
