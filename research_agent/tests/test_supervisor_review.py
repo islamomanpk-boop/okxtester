@@ -80,6 +80,22 @@ class SupervisorReviewTests(unittest.TestCase):
         result = review_worker_submission(self.task, dict(self.submission, evidence=evidence))
         self.assertEqual(result["review_disposition"], "return_for_revision")
 
+    def test_rejects_unknown_action_alias_for_prohibited_operation(self):
+        submission = dict(self.submission, actions_performed=["run_tests"])
+        result = review_worker_submission(self.task, submission)
+        self.assertEqual(result["review_disposition"], "rejected_safety_violation")
+        self.assertIn("unsupported_action:run_tests", result["safety_violations"])
+
+    def test_rejects_completion_claim_on_partial_submission(self):
+        submission = dict(self.submission, status="partial", completion_claimed=True)
+        result = review_worker_submission(self.task, submission)
+        self.assertEqual(result["review_disposition"], "return_for_revision")
+
+    def test_rejects_completed_submission_without_declared_actions(self):
+        submission = dict(self.submission, actions_performed=[])
+        result = review_worker_submission(self.task, submission)
+        self.assertEqual(result["review_disposition"], "return_for_revision")
+
     def test_rejects_control_character_evidence_path(self):
         evidence = [dict(self.submission["evidence"][0], path="docs/bad\\nname.md")]
         result = review_worker_submission(self.task, dict(self.submission, evidence=evidence))
