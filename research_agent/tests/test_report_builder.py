@@ -60,6 +60,17 @@ class ReportBuilderTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "repository-relative"):
             report_builder.validate_report(report)
 
+    def test_manifest_hashing_rejects_symlink_inputs(self):
+        with tempfile.TemporaryDirectory(dir=report_builder.REPOSITORY_ROOT) as temporary:
+            directory = Path(temporary)
+            target = directory / "target.txt"
+            target.write_text("stable bytes", encoding="utf-8")
+            link = directory / "linked.txt"
+            link.symlink_to(target)
+            relative_link = link.relative_to(report_builder.REPOSITORY_ROOT)
+            with self.assertRaisesRegex(ValueError, "symlinks"):
+                report_builder.sha256_file(relative_link)
+
     def test_manifest_hashing_rejects_paths_outside_repository(self):
         with tempfile.TemporaryDirectory() as temporary:
             outside = Path(temporary) / "outside.txt"
