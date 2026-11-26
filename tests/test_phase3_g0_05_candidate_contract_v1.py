@@ -6,6 +6,7 @@ from research.phase3_g0_05_candidate_contract_v1 import (
     family_side, complete_15m_confirmation, failed_breakout_confirmation,
     candidate_id, classify_disposition, deterministic_json,
     causal_regime_eligible, validate_strict_broad_nesting,
+    exact_first_minute_disposition, failed_breakout_horizon_disposition,
     rejection_physical_identity, collapse_rejection_cohort_rows, causal_rejection_disposition,
 )
 
@@ -202,6 +203,34 @@ class G005ContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "not available"):
             causal_rejection_disposition(200_000, 2_000_000, 100_000, 1_000_000,
                                          2.0, 3.0, 2.0, 0.20, 0.80)
+
+
+    def test_exact_first_minute_requires_timestamp_match(self):
+        t = 60_000
+        self.assertEqual(exact_first_minute_disposition(t, {t, t + MINUTE_MS}),
+                         "EXACT_FIRST_MINUTE_AVAILABLE")
+        self.assertEqual(exact_first_minute_disposition(t, {t + MINUTE_MS}),
+                         "MISSING_OR_GAPPED_MINUTES")
+
+    def test_exact_first_minute_rejects_nonminute_availability(self):
+        with self.assertRaisesRegex(ValueError, "minute boundary"):
+            exact_first_minute_disposition(60_001, {60_001})
+
+    def test_failed_breakout_complete_horizon_without_confirmation_expires(self):
+        self.assertEqual(failed_breakout_horizon_disposition(0, None, True),
+                         "EXPIRED_NO_RETURN_INSIDE_WITHIN_12H")
+
+    def test_failed_breakout_incomplete_horizon_without_confirmation_is_censored(self):
+        self.assertEqual(failed_breakout_horizon_disposition(0, None, False),
+                         "CENSORED_SOURCE_END_BEFORE_RESOLUTION")
+
+    def test_failed_breakout_confirmation_at_12h_boundary_is_valid(self):
+        self.assertEqual(failed_breakout_horizon_disposition(0, FAILURE_HORIZON_MS, True),
+                         "CONFIRMED_WITHIN_12H")
+
+    def test_failed_breakout_confirmation_after_12h_fails(self):
+        with self.assertRaisesRegex(ValueError, "12-hour"):
+            failed_breakout_horizon_disposition(0, FAILURE_HORIZON_MS + 1, True)
 
     def test_deterministic_serialization(self):
         rows = [{"b": 2, "a": 1}]
