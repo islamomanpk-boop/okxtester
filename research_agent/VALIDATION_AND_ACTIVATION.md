@@ -41,6 +41,7 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Added 22 preflight tests for malformed queues and rows, duplicate task IDs and JSON keys, non-standard JSON constants, trusted-queue boundary, stable denial envelopes, inconsistent/malformed authorization results, and preflight-only behavior; authored but not executed.
 - [x] Total regression tests authored: 98 (29 safety-controller, 47 report-builder, 22 task-runner); none executed.
 - [x] Static configuration/source consistency review completed against the branch files.
+- [x] Verified repository default branch is `main`; GitHub requires a `workflow_dispatch` workflow file to exist on the default branch. The current agent-branch-only/manual-dispatch design is blocked unless the user authorizes a minimal main-branch dispatcher or chooses a separate agent repository. No such change is authorized or made.
 
 ## Deferred validation
 
@@ -58,13 +59,14 @@ A static source review is not a substitute for these runtime checks.
 ## Conditions before any activation
 
 1. The applicable research handoff must explicitly permit the proposed validation and execution scope. Do not infer permission from this checklist.
-2. A human reviewer must inspect the exact task definition and approve its SHA-256 hash in the trusted allowlist.
-3. The agent execution and queue execution switches must remain disabled until the validation checks above pass.
-4. The safety controller must be tested against both allowed and denied cases, including phase override denial, missing prior-gate closure, the active G0-05 lock, tampered task payloads, and missing/malformed policy files.
-5. A future workflow must use least-privilege GitHub permissions, explicit branch filters, concurrency protection, bounded artifact retention, and no secrets unless separately justified.
-6. Initial automation must be manual-dispatch only and preflight/report-only. Event-driven and scheduled triggers remain disabled until manual operation is independently validated.
-7. No automatic commits, merges, canonical research-data changes, VPS deployment, or secret/permission changes.
-8. Human authority remains required for gate closure and phase advancement.
+2. Resolve the default-branch activation constraint: either explicitly authorize a minimal reviewed dispatcher on `main`, or approve a separate agent repository; do not alter `main` or create another repository implicitly.
+4. A human reviewer must inspect the exact task definition and approve its SHA-256 hash in the trusted allowlist.
+4. The agent execution and queue execution switches must remain disabled until the validation checks above pass.
+5. The safety controller must be tested against both allowed and denied cases, including phase override denial, missing prior-gate closure, the active G0-05 lock, tampered task payloads, and missing/malformed policy files.
+6. A future workflow must use least-privilege GitHub permissions, explicit branch filters, concurrency protection, bounded artifact retention, and no secrets unless separately justified.
+7. Initial automation must be manual-dispatch only and preflight/report-only. Event-driven and scheduled triggers remain disabled until manual operation is independently validated.
+8. No automatic commits, merges, canonical research-data changes, VPS deployment, or secret/permission changes.
+9. Human authority remains required for gate closure and phase advancement.
 
 ## Completion definition
 
