@@ -517,3 +517,22 @@ The independent minute verifier was rerun against the latest source-audit artifa
 - Result `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; all five raw source hashes/grids and 2,857/2,857 eligible timestamp memberships passed.
 
 This confirms the timestamp/disposition semantics remain unchanged after cluster metadata was attached. The cluster algorithm is separately covered by the source audit and synthetic tests.
+
+
+## 25. Repeated-signal group IDs frozen and emitted — 2026-11-26
+
+A metadata-only repeated-signal grouping convention is frozen in `2026-11-26_g0_05_repeated_signal_group_metadata_decision_v1.md`:
+- Rejection: asset + direction + snapshot index + segment ID.
+- Breakout continuation: asset + direction + context snapshot.
+- Failed-breakout reversal: inherits the exact linked source breakout group.
+
+The grouping uses only immutable source context; it does not use future outcomes, suppress events, or change eligibility.
+
+Evidence:
+- Source audit [45804274324](https://github.com/islamomanpk-boop/okxtester/actions/runs/45804274324) — SUCCESS; artifact ID `15107399743`; ZIP SHA-256 `0b4ca8ab5e12129d988425d78786efc1d18b3be04be07afabc3b04398a23c124`.
+- Synthetic suite [45804297791](https://github.com/islamomanpk-boop/okxtester/actions/runs/45804297791) — SUCCESS; **97/97 tests passed**.
+- Rejection: 1,046 repeated-signal groups across 1,154 physical rows.
+- Breakout: 2,051 groups across 2,861 raw crossings.
+- Failed-breakout: 663 inherited source groups across 932 rows.
+
+These counts describe metadata groups only; they are not independent-event counts and are not used to remove or merge rows. The separate overlap-cluster IDs remain the dependence-window grouping.
