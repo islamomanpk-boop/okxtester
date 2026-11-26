@@ -243,6 +243,66 @@ class ReportBuilderTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "phase"):
             report_builder.verify_report_task_binding(report, dict(task, phase="phase1"))
 
+    def test_report_provenance_accepts_matching_clean_checkout(self):
+        with tempfile.TemporaryDirectory(dir=report_builder.REPOSITORY_ROOT) as temporary:
+            path = Path(temporary) / "evidence.txt"
+            path.write_text("commit-bound evidence", encoding="utf-8")
+            relative = path.relative_to(report_builder.REPOSITORY_ROOT).as_posix()
+            task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
+            report = valid_report()
+            report["task_definition_sha256"] = report_builder.task_definition_digest(task)
+            report["input_manifest"] = report_builder.build_input_manifest([relative])
+            report_builder.verify_report_provenance(
+                report, task,
+                expected_repository=report["repository"],
+                expected_branch=report["branch"],
+                expected_commit_sha=report["commit_sha"],
+                actual_head_sha=report["commit_sha"],
+                checkout_clean=True,
+            )
+
+    def test_report_provenance_rejects_head_commit_mismatch(self):
+        task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
+        report = valid_report()
+        report["task_definition_sha256"] = report_builder.task_definition_digest(task)
+        with self.assertRaisesRegex(ValueError, "HEAD does not match"):
+            report_builder.verify_report_provenance(
+                report, task,
+                expected_repository=report["repository"],
+                expected_branch=report["branch"],
+                expected_commit_sha=report["commit_sha"],
+                actual_head_sha="c" * 40,
+                checkout_clean=True,
+            )
+
+    def test_report_provenance_rejects_dirty_checkout(self):
+        task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
+        report = valid_report()
+        report["task_definition_sha256"] = report_builder.task_definition_digest(task)
+        with self.assertRaisesRegex(ValueError, "confirmed clean"):
+            report_builder.verify_report_provenance(
+                report, task,
+                expected_repository=report["repository"],
+                expected_branch=report["branch"],
+                expected_commit_sha=report["commit_sha"],
+                actual_head_sha=report["commit_sha"],
+                checkout_clean=False,
+            )
+
+    def test_report_provenance_rejects_untrusted_branch_claim(self):
+        task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
+        report = valid_report()
+        report["task_definition_sha256"] = report_builder.task_definition_digest(task)
+        with self.assertRaisesRegex(ValueError, "branch does not match"):
+            report_builder.verify_report_provenance(
+                report, task,
+                expected_repository=report["repository"],
+                expected_branch="price-action-v1",
+                expected_commit_sha=report["commit_sha"],
+                actual_head_sha=report["commit_sha"],
+                checkout_clean=True,
+            )
+
     def test_markdown_report_displays_task_definition_hash(self):
         rendered = report_builder.render_markdown(valid_report())
         self.assertIn("Task definition SHA-256", rendered)
