@@ -142,3 +142,36 @@ The descriptive lifecycle metadata records 1,592 events (932 broad, 660 strict),
 - G0-04 artifact: 2,861 raw crossing rows; 20/20 historical baseline; zero raw-source mismatches; 65,310 threshold rows; all six policy/population totals verified.
 
 The audit is read-only. It generated provenance/reconciliation reports only; it did not generate canonical candidate rows, orders, fills or outcomes.
+
+
+## 8. Causal source-only rejection disposition and full threshold-join audit — 2026-11-26
+
+Latest read-only source-audit workflow:
+- [Run 45782827341](https://github.com/islamomanpk-boop/okxtester/actions/runs/45782827341), job `139782184097` — SUCCESS.
+- Checked-out revision: `eb687af43292d06bdbb384caf126993256e8694c`.
+- Artifact: [phase3-g0-05-source-audit-45782827341](https://github.com/islamomanpk-boop/okxtester/actions/runs/45782827341/artifacts/15098494434).
+- Artifact ZIP SHA-256: `3dad432c4a9c8a81364b93b0a2e0cbd66c70e54716fc2e704536094c2a8f84ea`; independently verified after download.
+
+The latest audit extends the previous source checks:
+- **15,594** exact G0-04 event-to-threshold joins and stored-flag recomputations passed (2,599 non-warm-up raw crossings × six policy/population variants).
+- **262** raw crossing events had no causal threshold because they preceded the first 180-context calibration point. They are explicitly classified as warm-up, with all six eligibility flags false:
+  - BTC 54, ETH 48, SOL 53, DOGE 49, AVAX 58.
+- The six stored strict/broad eligibility flags were recomputed from exact snapshot thresholds, channel width, efficiency <= 0.30 and overlap >= 0.70. No mismatch was found.
+- Every raw crossing used a context snapshot no later than its signal close; every threshold calibration ended strictly before its classified snapshot.
+
+The 1,154 unique physical rejection events (not 1,992 cohort rows) now have a source-only causal disposition under `EXPANDING_PRIOR + UNIQUE_4H_FEATURE_ROWS`:
+
+| Disposition | Unique physical events |
+|---|---:|
+| CAUSAL_STRICT_ELIGIBLE | 942 |
+| CAUSAL_BROAD_ONLY_ELIGIBLE | 141 |
+| CAUSAL_REGIME_NOT_ELIGIBLE | 2 |
+| CAUSAL_THRESHOLD_WARMUP | 29 |
+| SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION | 40 |
+| **Total** | **1,154** |
+
+These are source-only eligibility/disposition counts, not emitted candidates. The audit preserves the 1,992 original definition-specific source rows and 1,992 anatomy rows; strict membership remains nested within broad membership. The 40 snapshot-expired physical events include 29 strict cohort rows and 40 broad cohort rows. No candidate ledger has been generated.
+
+Module B event/horizon file SHA-256 values were also rechecked against its frozen metadata:
+- events: `d47cc0c480f5175c7c07bc09b3878d00f30e847223df5aee517435bd6216c861`;
+- horizons: `532e68ecb7b1394457202b8c4cb4c3252ec11a8c1807ad91087e0d0341b06faf`.
