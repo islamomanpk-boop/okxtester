@@ -311,7 +311,7 @@ def audit_g004_artifact(artifact: Path) -> tuple[dict, dict, dict]:
                 fail(f"threshold missing after calibration warm-up: {asset}/{snapshot}")
             if any(value.lower() == "true" for value in flags):
                 fail(f"warm-up event incorrectly marked eligible: {asset}/{snapshot}")
-            warmup_keys.add((asset, row["direction"], snapshot))
+            warmup_keys.add((asset, row["direction"], ms(row["signal_time_ms"], "raw signal"), snapshot))
             warmup_by_asset[asset] += 1
         elif not all(present):
             fail(f"partial threshold policy/population coverage: {asset}/{snapshot}")
