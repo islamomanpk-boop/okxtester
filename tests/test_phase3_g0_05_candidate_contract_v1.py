@@ -4,7 +4,7 @@ from research.phase3_g0_05_candidate_contract_v1 import (
     MINUTE_MS, FIFTEEN_MIN_MS, FAILURE_HORIZON_MS,
     snapshot_is_valid, rejection_confirmation, first_eligible_minute,
     family_side, complete_15m_confirmation, failed_breakout_confirmation,
-    candidate_id, classify_disposition, deterministic_json,
+    candidate_id, classify_disposition, deterministic_json,\n    causal_regime_eligible, validate_strict_broad_nesting,
 )
 
 
@@ -101,6 +101,31 @@ class G005ContractTests(unittest.TestCase):
     def test_disposition_is_explicit(self):
         self.assertEqual(classify_disposition(0, 100, 99), "ELIGIBLE_FOR_FURTHER_VALIDATION")
         self.assertEqual(classify_disposition(0, 100, 100), "SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION")
+
+    def test_causal_regime_conditions_accept_boundary_values(self):
+        self.assertTrue(causal_regime_eligible(2.0, 2.0, 0.30, 0.70))
+
+    def test_causal_regime_rejects_width_above_threshold(self):
+        self.assertFalse(causal_regime_eligible(2.0001, 2.0, 0.20, 0.80))
+
+    def test_causal_regime_rejects_efficiency_above_limit(self):
+        self.assertFalse(causal_regime_eligible(1.0, 2.0, 0.3001, 0.80))
+
+    def test_causal_regime_rejects_overlap_below_limit(self):
+        self.assertFalse(causal_regime_eligible(1.0, 2.0, 0.20, 0.6999))
+
+    def test_causal_regime_rejects_nonfinite_inputs(self):
+        with self.assertRaisesRegex(ValueError, "finite"):
+            causal_regime_eligible(float("nan"), 2.0, 0.20, 0.80)
+
+    def test_strict_cohort_must_be_nested_in_broad(self):
+        validate_strict_broad_nesting([True, False], [True, True])
+        with self.assertRaisesRegex(ValueError, "not nested"):
+            validate_strict_broad_nesting([True, True], [True, False])
+
+    def test_strict_broad_cohort_length_mismatch_rejected(self):
+        with self.assertRaisesRegex(ValueError, "equal lengths"):
+            validate_strict_broad_nesting([True], [True, False])
 
     def test_deterministic_serialization(self):
         rows = [{"b": 2, "a": 1}]
