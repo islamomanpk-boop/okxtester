@@ -102,7 +102,7 @@ def validate_report(report: dict[str, Any]) -> None:
     unexpected = sorted(set(report).difference(required))
     if unexpected:
         raise ValueError("Report contains unsupported fields: " + ", ".join(unexpected))
-    if report["schema_version"] != REPORT_SCHEMA_VERSION:
+    if type(report["schema_version"]) is not int or report["schema_version"] != REPORT_SCHEMA_VERSION:
         raise ValueError("Unsupported report schema version.")
     list_fields = ("findings", "blockers", "skipped_checks", "limitations", "input_manifest")
     for field in list_fields:
