@@ -506,3 +506,14 @@ Evidence:
 The Module A and Module B accepted source outputs remain unchanged. G0-05 breakout cluster IDs are separately versioned because they cover the full 2,861 raw crossing population rather than only the historical Module B subset.
 
 **Remaining:** a separate repeated-signal group identifier has not been frozen; source event identities already preserve repeated rejection tests and distinct raw breakout crossings. Canonical candidate schema field mapping and deterministic candidate output remain open; no canonical candidate generation or trading work is authorized.
+
+
+## 24. Independent minute verification after cluster metadata — 2026-11-26
+
+The independent minute verifier was rerun against the latest source-audit artifact containing the overlap-cluster metadata:
+- Workflow [45804011434](https://github.com/islamomanpk-boop/okxtester/actions/runs/45804011434) — SUCCESS.
+- Artifact ID `15107528618`.
+- ZIP SHA-256 `3b3b7df9855f0b6a525b2209d6748b6aed20fe19e1d896f0d8191610c9c64000`, independently recomputed after download.
+- Result `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; all five raw source hashes/grids and 2,857/2,857 eligible timestamp memberships passed.
+
+This confirms the timestamp/disposition semantics remain unchanged after cluster metadata was attached. The cluster algorithm is separately covered by the source audit and synthetic tests.
