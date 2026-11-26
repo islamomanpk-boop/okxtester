@@ -338,6 +338,74 @@ def render_markdown(report: dict[str, Any]) -> str:
     return "\n".join(sections)
 
 
+def build_artifact_bundle(
+    report: dict[str, Any],
+    trusted_task: dict[str, Any],
+    *,
+    expected_repository: str,
+    expected_branch: str,
+    expected_commit_sha: str,
+    actual_head_sha: str,
+    checkout_clean: bool,
+    run_id: str,
+    run_attempt: str,
+) -> dict[str, Any]:
+    """Build a complete in-memory artifact bundle after provenance verification.
+
+    This function never writes or uploads files. The caller must publish the
+    returned files atomically as one artifact and fail the workflow if any
+    expected file is absent. Run identifiers must come from trusted workflow
+    context, not task or report content.
+    """
+    for name, value in (("run_id", run_id), ("run_attempt", run_attempt)):
+        if not isinstance(value, str) or not re.fullmatch(r"[1-9][0-9]*", value):
+            raise ValueError(f"{name} must be a positive decimal workflow identifier.")
+    if report.get("run_id") != run_id:
+        raise ValueError("Report run_id does not match trusted workflow context.")
+
+    verify_report_provenance(
+        report,
+        trusted_task,
+        expected_repository=expected_repository,
+        expected_branch=expected_branch,
+        expected_commit_sha=expected_commit_sha,
+        actual_head_sha=actual_head_sha,
+        checkout_clean=checkout_clean,
+    )
+    report_json = render_json(report)
+    report_markdown = render_markdown(report)
+    files = {
+        "report.json": report_json,
+        "report.md": report_markdown,
+    }
+    manifest = {
+        "schema_version": 1,
+        "artifact_name": f"okx-research-agent-{run_id}-{run_attempt}",
+        "task_id": report["task_id"],
+        "phase": report["phase"],
+        "run_id": run_id,
+        "run_attempt": run_attempt,
+        "commit_sha": expected_commit_sha,
+        "files": [
+            {"path": name, "sha256": hashlib.sha256(content.encode("utf-8")).hexdigest()}
+            for name, content in sorted(files.items())
+        ],
+        "limitations": [
+            "Bundle generated in memory; this function does not write or upload files.",
+            "Artifact integrity hashes detect later byte changes but do not authenticate the uploader or GitHub artifact service.",
+            "The caller must upload the complete bundle as one artifact and verify the uploaded artifact contains every declared file.",
+        ],
+    }
+    files["artifact_manifest.json"] = (
+        json.dumps(manifest, indent=2, sort_keys=True, ensure_ascii=False, allow_nan=False) + "\\n"
+    )
+    return {
+        "artifact_name": manifest["artifact_name"],
+        "files": files,
+        "manifest": manifest,
+    }
+
+
 def report_digest(report: dict[str, Any]) -> str:
     """Hash the canonical JSON representation of a report."""
     return hashlib.sha256(render_json(report).encode("utf-8")).hexdigest()
