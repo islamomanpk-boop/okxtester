@@ -401,3 +401,21 @@ Latest synthetic CI run: [45783013949](https://github.com/islamomanpk-boop/okxte
 The added tests cover physical identity collapse, preservation of both cohort source-row IDs, broad-only events, strict-without-broad rejection, duplicate membership rejection, strict/broad causal outcomes, threshold warm-up, snapshot endpoint expiry, exact completed-15-minute timing and snapshot availability at the rejection bar open.
 
 **Current status:** G0-04 ACCEPTED. G0-05 source provenance, raw identity reconciliation, causal threshold re-computation, candidate/disposition schema and 43 synthetic tests pass. The next controlled task is a deterministic row-level source-disposition dry-run with exact first-eligible-minute checks. It must remain a source disposition audit, not a candidate generator. Canonical candidate generation remains blocked until that dry-run reconciles every source row and its output is reviewed.
+
+## 17. Row-level G0-05 source-disposition dry-run — 2026-11-26
+
+The exact first-eligible-minute source-only dry-run is now implemented in `research/phase3_g0_05_source_manifest_audit_v1.py`. It runs only after the pinned source audit and G0-04 artifact checks. It verifies all five market 1-minute SHA-256 values and row counts before timestamp membership checks, then writes three row-level disposition CSVs.
+
+Latest workflow [45784746198](https://github.com/islamomanpk-boop/okxtester/actions/runs/45784746198), job `139788574173`, commit `5aeafd08f063cb4c515fa2b4c000fa526fb95a38` — SUCCESS. Artifact [15100091580](https://github.com/islamomanpk-boop/okxtester/actions/runs/45784746198/artifacts/15100091580), ZIP SHA-256 `8616483b6932bdd0e9976ba31e150b2d93882455365e51cad180a1d94e23eda9`, independently verified.
+
+| Population | Source rows | Eligible | Rejected | Expired | Censored |
+|---|---:|---:|---:|---:|---:|
+| Unique physical rejections | 1,154 | 1,083 | 31 | 40 | 0 |
+| Raw breakout crossings | 2,861 | 1,038 | 1,823 | 0 | 0 |
+| Unique failed-breakout events | 932 | 736 | 30 | 166 | 0 |
+
+All 2,857 rows marked eligible passed exact first-minute timestamp membership. There were zero missing/gapped first eligible minutes. No timestamp was shifted to a nearby bar. Failed-breakout expiry requires a complete 12-hour horizon; incomplete horizons remain censored by rule. The output ledgers preserve physical event identities, original cohort row IDs/memberships, family labels, and family direction mapping.
+
+The contract synthetic CI now reports **49/49 tests passing** in [run 45783985772](https://github.com/islamomanpk-boop/okxtester/actions/runs/45783985772), including exact-minute and 12-hour boundary cases.
+
+**Current status:** G0-04 ACCEPTED. G0-05 contract and 49 synthetic tests pass; source provenance, threshold recomputation, row-level source dispositions and exact first-minute checks pass. Next is independent row-level reconciliation/review of the three disposition CSVs and mapping semantics. Canonical candidate generation remains blocked until that review is complete. No orders, fills, execution simulation, PnL or strategy backtesting are authorized.
