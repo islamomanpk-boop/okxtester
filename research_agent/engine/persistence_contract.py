@@ -74,7 +74,7 @@ def prepare_append(
     if expected_head_event_sha256 != actual_head:
         return {
             "status": "stale_checkpoint",
-            "ledger": proposed["ledger"] if False else ledger,
+            "ledger": ledger,
             "event": None,
             "appended": False,
             "conflict": True,
