@@ -1,0 +1,51 @@
+{
+  "agent_name": "okx-research-agent",
+  "version": "1.0.0",
+  "operating_mode": "deterministic_research_operations",
+  "report_destination": "github_actions_artifacts",
+  "cost_policy": "free_only",
+  "repository_access": "read_only_by_default",
+  "branch_policy": {
+    "working_branch": "agent/okx-research-agent-v1",
+    "research_branch": "price-action-v1",
+    "automatic_merge": false,
+    "automatic_commit_to_research_branch": false
+  },
+  "scheduling": {
+    "mode": "event_driven_with_scheduled_fallback",
+    "enabled": false,
+    "triggers": [
+      "task_added",
+      "approved_job_completed",
+      "task_completed_with_queue_remaining",
+      "new_evidence_registered",
+      "manual_dispatch"
+    ],
+    "concurrency_group": "okx-research-agent",
+    "cancel_in_progress": false
+  },
+  "execution": {
+    "enabled": false,
+    "require_task_allowlist": true,
+    "require_phase_permission": true,
+    "require_safety_controller": true,
+    "current_g0_05_execution_lock": true
+  },
+  "phase_order": [
+    "phase3_sideways_range",
+    "phase1_uptrend_bullish",
+    "phase2_downtrend_bearish",
+    "phase4_choppy_high_volatility",
+    "phase5_transition_expansion"
+  ],
+  "prohibitions": [
+    "no_backtesting_without_explicit_gate_authorization",
+    "no_pnl_or_profitability_claims_without_validated_evidence",
+    "no_strategy_selection",
+    "no_candidate_generation_without_explicit_authorization",
+    "no_gate_closure",
+    "no_canonical_data_or_definition_changes",
+    "no_vps_deployment_or_secrets_changes",
+    "no_automatic_merge"
+  ]
+}
