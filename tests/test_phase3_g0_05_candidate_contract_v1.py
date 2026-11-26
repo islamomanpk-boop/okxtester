@@ -115,7 +115,8 @@ class G005ContractTests(unittest.TestCase):
         version = "G0_05_CANDIDATE_RULE_V1"
         source_breakout_id = "BTC|UPPER|1761287400000|1761278400000"
         breakout_id = candidate_id(source_breakout_id, "BREAKOUT_CONTINUATION", version)
-        failed_source_id = source_breakout_id + "|1761300000000"
+        confirmation_ts = "1761300000000"
+        failed_source_id = f"{breakout_id}|{confirmation_ts}|{version}"
         failed_id = candidate_id(failed_source_id, "FAILED_BREAKOUT_REVERSAL", version)
         return [
             {
@@ -132,6 +133,7 @@ class G005ContractTests(unittest.TestCase):
                 "candidate_rule_version": version,
                 "source_breakout_source_event_id": source_breakout_id,
                 "source_breakout_candidate_id": breakout_id,
+                "signal_available_at_ts_ms": confirmation_ts,
             },
         ]
 
@@ -152,6 +154,25 @@ class G005ContractTests(unittest.TestCase):
         rows[1]["candidate_id"] = rows[0]["candidate_id"]
         with self.assertRaisesRegex(ValueError, "duplicate candidate_id"):
             validate_candidate_identity_links(rows)
+
+    def test_candidate_identity_validator_rejects_failed_source_identity_mismatch(self):
+        rows = self._synthetic_candidate_identity_rows()
+        rows[1]["source_event_id"] += "|wrong"
+        rows[1]["candidate_id"] = candidate_id(
+            rows[1]["source_event_id"], rows[1]["family"], rows[1]["candidate_rule_version"])
+        with self.assertRaisesRegex(ValueError, "failed-breakout source_event_id"):
+            validate_candidate_identity_links(rows)
+
+    def test_candidate_identity_validator_supports_no_confirmation_sentinel(self):
+        rows = self._synthetic_candidate_identity_rows()
+        version = rows[0]["candidate_rule_version"]
+        linked = rows[0]["candidate_id"]
+        rows[1]["signal_available_at_ts_ms"] = ""
+        rows[1]["source_event_id"] = f"{linked}|NO_CONFIRMATION|{version}"
+        rows[1]["candidate_id"] = candidate_id(
+            rows[1]["source_event_id"], rows[1]["family"], version)
+        result = validate_candidate_identity_links(rows)
+        self.assertEqual(result["failed_breakout_source_links_validated"], 1)
 
     def test_candidate_identity_validator_rejects_broken_source_breakout_link(self):
         rows = self._synthetic_candidate_identity_rows()
