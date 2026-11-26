@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 REPORT_SCHEMA_VERSION = 1
+ALLOWED_REPORT_STATUSES = {"preflight_only", "blocked", "skipped", "not_run"}
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _COMMIT_RE = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
@@ -115,6 +116,10 @@ def validate_report(report: dict[str, Any]) -> None:
                   "branch", "commit_sha", "run_id", "timestamp_utc"):
         if not isinstance(report[field], str) or not report[field].strip():
             raise ValueError(f"Report field {field!r} must be a non-empty string.")
+    if report["status"] not in ALLOWED_REPORT_STATUSES:
+        raise ValueError(
+            "Report status must be one of the explicitly supported non-completion states."
+        )
     if not _COMMIT_RE.fullmatch(report["commit_sha"]):
         raise ValueError("Report commit_sha must be a 40- or 64-character lowercase hexadecimal SHA.")
     _validate_utc_timestamp(report["timestamp_utc"])
