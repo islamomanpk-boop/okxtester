@@ -144,6 +144,35 @@ class SafetyControllerTests(unittest.TestCase):
         self.assertFalse(result["authorized"])
         self.assertIn("all Phase 3 task authorization", result["reason"])
 
+    def test_denies_malformed_non_string_operation_without_raising(self):
+        result = self.evaluate(
+            {
+                "task_id": "P3-BAD-OP",
+                "phase": "phase3_sideways_range",
+                "operation": ["repository_inspection"],
+                "status": "queued",
+            }
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("operation must be a non-empty string", result["reason"])
+
+    def test_denies_malformed_nested_policy_without_raising(self):
+        task = {
+            "task_id": "P3-BAD-POLICY",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        result = authorize_task(
+            task,
+            allowlist={"approved_tasks": []},
+            agent_config={"execution": []},
+            phase_config={"phase_order": [], "phases": [], "global_defaults": []},
+            queue_config={"queue_policy": [], "tasks": []},
+        )
+        self.assertFalse(result["authorized"])
+        self.assertEqual(result["decision"], "DENY")
+
     def test_denies_duplicate_phase_order_entries(self):
         result = self.evaluate(
             {
