@@ -110,6 +110,16 @@ class WorkerAssignmentPackageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "human-only"):
             prepare_worker_assignment(task, preflight(task))
 
+    def test_rejects_empty_scope_or_prohibited_list(self):
+        task = make_task()
+        task["scope"] = []
+        with self.assertRaisesRegex(ValueError, "scope"):
+            prepare_worker_assignment(task, preflight(task))
+        task = make_task()
+        task["prohibited"] = []
+        with self.assertRaisesRegex(ValueError, "prohibited"):
+            prepare_worker_assignment(task, preflight(task))
+
 
 if __name__ == "__main__":
     unittest.main()
