@@ -27,6 +27,7 @@ def policy_fixture(task, *, phase_order=None, phase_rules=None, lock=False):
     phase_rules = phase_rules or {
         "phase3_sideways_range": {
             "status": "active_research_phase",
+            "task_scope": "follow_current_handoff_and_gate_status",
             "execution_override": "allow_read_only",
             "g0_05": {
                 "status": "read_only_reconciliation_only",
@@ -503,6 +504,71 @@ class SafetyControllerTests(unittest.TestCase):
         )
         self.assertFalse(result["authorized"])
         self.assertIn("priorities", result["reason"])
+
+
+    def test_denies_unsupported_top_level_policy_fields(self):
+        task = {
+            "task_id": "P3-EXTRA-POLICY-KEY",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        agent["unreviewed_override"] = True
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("unsupported top-level fields", result["reason"])
+
+    def test_denies_unsupported_phase_rule_fields(self):
+        task = {
+            "task_id": "P3-EXTRA-PHASE-KEY",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        phases["phases"]["phase3_sideways_range"]["unreviewed_override"] = True
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("Phase 3 rule", result["reason"])
+
+    def test_denies_unsupported_queue_policy_fields(self):
+        task = {
+            "task_id": "P3-EXTRA-QUEUE-KEY",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        queue["queue_policy"]["allow_anything"] = True
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("Queue policy", result["reason"])
+
+    def test_denies_integer_one_for_boolean_execution_flag(self):
+        task = {
+            "task_id": "P3-INT-BOOL",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        agent["execution"]["require_task_allowlist"] = 1
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("strict JSON booleans", result["reason"])
 
 
 if __name__ == "__main__":
