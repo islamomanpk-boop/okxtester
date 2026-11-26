@@ -6,7 +6,7 @@ The event ledger provides a deterministic, append-only audit format for task lif
 
 ## Event format and integrity
 
-Each event has an upstream stable `event_id`, an allowlisted event type, exact task ID and task-definition SHA-256, canonical UTC occurrence time, source category/reference, JSON payload, previous-event SHA-256, and its own SHA-256. Canonical JSON hashing makes the sequence tamper-evident. Duplicate delivery IDs with identical event facts are idempotent; reuse of an ID for different facts is rejected.
+Each event has an upstream stable `event_id`, an allowlisted event type, exact task ID and task-definition SHA-256, canonical UTC occurrence time (shortest fractional representation, with zero fractions omitted), source category/reference, JSON payload, previous-event SHA-256, and its own SHA-256. Canonical JSON hashing makes the sequence tamper-evident. Duplicate delivery IDs with identical event facts are idempotent; reuse of an ID for different facts is rejected.
 
 Supported observations are `task_observed`, `assignment_prepared`, `worker_submission_received`, `review_completed`, and `human_disposition_recorded`. Source categories are `github_workflow`, `human_review`, and `worker_return`.
 
