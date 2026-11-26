@@ -546,7 +546,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             eligible=True; cohort="CAUSAL_BROAD_ONLY"
         else:
             eligible=False; cohort="CAUSAL_THRESHOLD_WARMUP" if not any(
-                (asset,snap,pop,pol) in thresholds for pol in POLICIES for pop in POPS) else "CAUSAL_REGIME_NOT_ELIGIBLE"
+                (asset,snap,pol,pop) in thresholds for pol in ("FIXED_180","EXPANDING_PRIOR","ROLLING_180") for pop in ("UNIQUE_4H_FEATURE_ROWS","JOINED_15M_ROWS")) else "CAUSAL_REGIME_NOT_ELIGIBLE"
         status="ELIGIBLE_FOR_FURTHER_VALIDATION" if eligible else "REJECTED"
         reason=cohort if not eligible or cohort=="CAUSAL_BROAD_ONLY" else ""
         if eligible:
