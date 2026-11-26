@@ -648,6 +648,8 @@ def audit_module_b(root: Path, g004_raw_keys: set) -> dict:
     hf, horizons = read_csv(horizon_path)
     require_columns(str(event_path), ef, {"event_id", "asset", "definition", "direction",
         "signal_time_ms", "snapshot", "zone_pct_of_channel", "complete_12h",
+        "observed_bars_12h", "overlap_cluster_id", "overlap_cluster_size",
+        "overlap_cluster_start_ts_ms", "overlap_cluster_end_exclusive_ts_ms",
         "first_15m_return_inside_close_ts_ms"})
     require_columns(str(horizon_path), hf, {"event_id", "horizon", "complete",
         "first_15m_return_inside_close_ts_ms"})
@@ -658,6 +660,7 @@ def audit_module_b(root: Path, g004_raw_keys: set) -> dict:
     if definitions != Counter({"BROAD_P40": 932, "STRICT_P25": 660}):
         fail(f"Module B cohort counts differ: {dict(definitions)}")
     event_keys = set()
+    module_b_cluster_by_key = {}
     for row in events:
         if float(row["zone_pct_of_channel"]) != 10.0:
             fail("Module B primary event has unexpected zone definition")
@@ -665,6 +668,20 @@ def audit_module_b(root: Path, g004_raw_keys: set) -> dict:
                ms(row["signal_time_ms"], "Module B signal"),
                iso_ms(row["snapshot"], "Module B snapshot"))
         event_keys.add(key)
+        observed = int(row["observed_bars_12h"])
+        if observed <= 0 or observed > 720:
+            fail(f"Module B invalid observed 12H window: {key}")
+        cluster = (row["overlap_cluster_id"], int(row["overlap_cluster_size"]),
+                   ms(row["overlap_cluster_start_ts_ms"], "Module B cluster start"),
+                   ms(row["overlap_cluster_end_exclusive_ts_ms"], "Module B cluster end"))
+        if not cluster[0] or cluster[1] <= 0 or cluster[3] <= cluster[2]:
+            fail(f"Module B invalid overlap cluster metadata: {key}")
+        if key in module_b_cluster_by_key and module_b_cluster_by_key[key] != cluster:
+            fail(f"Module B cohort rows disagree on overlap cluster: {key}")
+        module_b_cluster_by_key[key] = cluster
+    expected_cluster_count = int(metadata["overlap_clusters"]["total"])
+    if len({v[0] for v in module_b_cluster_by_key.values()}) != expected_cluster_count:
+        fail("Module B overlap-cluster total differs from frozen metadata")
     try:
         validate_source_key_join(list(event_keys), list(g004_raw_keys), exact=False)
     except ValueError as exc:
@@ -684,6 +701,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
                             g004_data: dict, rejection_audit: dict) -> dict:
     """Emit source-only physical-event disposition ledgers; never candidates."""
     minute_opens = {}
+    minute_index = {}
     input_audit = {}
     for asset in ASSETS:
         p = root / "data/market_1m" / f"{asset}_USDT_USDT_1m.csv"
@@ -712,6 +730,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
                     fail(f"{asset} duplicate or off-grid 1m timestamp {t}")
                 stamps.add(t)
         minute_opens[asset] = stamps
+        minute_index[asset] = sorted(stamps)
         input_audit[asset] = {"rows":len(stamps),"sha256":h.hexdigest()}
 
     def minute_check(asset, timestamp):
@@ -744,6 +763,62 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
         d = physical.setdefault(key, {"members":[]})
         d["members"].append(row)
         d["event_ids"].append(eid) if "event_ids" in d else d.update({"event_ids":[eid]})
+    # Reuse accepted Module A 24H interval-graph clusters, then recount at physical-event grain.
+    module_a_base = root / "reports/phase3_rejection_lifecycle_v1_1"
+    module_a_meta = json.loads((module_a_base / "run_metadata_v1.json").read_text(encoding="utf-8"))
+    module_a_episode_path = module_a_base / "rejection_lifecycle_episodes_v1.csv"
+    if module_a_meta.get("status") != "ACCEPTED_DESCRIPTIVE_MODULE_A":
+        fail("Module A rejection lifecycle is not in its accepted descriptive state")
+    if git_blob_sha1(module_a_episode_path.read_bytes()) != "6486e89d5d40d2f1471f1fe1819cc44cbd969682":
+        fail("Module A episode cluster source blob mismatch")
+    if sha256_bytes(module_a_episode_path.read_bytes()) != "27c39aed94bbd9354603bce24ef6095d3f02eb5da20c48b514d453571db6d9af":
+        fail("Module A episode cluster source SHA-256 mismatch")
+    if sha256_bytes(module_a_episode_path.read_bytes()) != module_a_meta["output_sha256"]["rejection_lifecycle_episodes_v1.csv"]:
+        fail("Module A episode cluster source differs from its run metadata")
+    _, module_a_episodes = read_csv(module_a_episode_path)
+    if len(module_a_episodes) != 3028:
+        fail(f"Module A episode row count mismatch: {len(module_a_episodes)}")
+    module_a_cluster_by_event = {}
+    module_a_episode_ids = set()
+    for episode in module_a_episodes:
+        episode_id = (episode.get("episode_id") or "").strip()
+        event_id = (episode.get("event_id") or "").strip()
+        if not episode_id or episode_id in module_a_episode_ids or not event_id:
+            fail("Module A episode cluster source has blank/duplicate identity")
+        module_a_episode_ids.add(episode_id)
+        cluster = (
+            episode["overlap_cluster_id"],
+            int(episode["overlap_cluster_size"]),
+            ms(episode["overlap_cluster_start_ts_ms"], "Module A cluster start"),
+            ms(episode["overlap_cluster_end_exclusive_ts_ms"], "Module A cluster end"),
+        )
+        if not cluster[0] or cluster[1] <= 0 or cluster[3] <= cluster[2]:
+            fail(f"Module A invalid overlap cluster metadata: {event_id}")
+        if event_id in module_a_cluster_by_event and module_a_cluster_by_event[event_id] != cluster:
+            fail(f"Module A episodes disagree on event cluster: {event_id}")
+        module_a_cluster_by_event[event_id] = cluster
+    physical_event_ids = {event_id for item in physical.values() for event_id in item["event_ids"]}
+    if set(module_a_cluster_by_event) != physical_event_ids or len(module_a_cluster_by_event) != 1992:
+        fail("Module A event IDs do not exactly reconcile to physical rejection source rows")
+    rejection_cluster_by_physical = {
+        key: consistent_physical_cluster(item["event_ids"], module_a_cluster_by_event)
+        for key, item in physical.items()
+    }
+    rejection_cluster_sizes = Counter(cluster[0] for cluster in rejection_cluster_by_physical.values())
+    rejection_cluster_assets = {cluster[0]: key[0] for key, cluster in rejection_cluster_by_physical.items()}
+    rejection_cluster_size_distribution = Counter(rejection_cluster_sizes.values())
+    rejection_cluster_summary = {
+        "total": len(rejection_cluster_sizes),
+        "by_asset": {
+            asset: len({cluster_id for cluster_id, cluster_asset in rejection_cluster_assets.items()
+                        if cluster_asset == asset})
+            for asset in ASSETS
+        },
+        "largest_cluster_size": max(rejection_cluster_sizes.values()),
+        "size_distribution": {str(size): count for size, count in sorted(rejection_cluster_size_distribution.items())},
+        "method": "accepted Module A 24H interval-graph IDs; size recounted after strict/broad physical collapse",
+    }
+
     rejection_rows = []
     thresholds = g004_data["threshold_by_key"]
     for key, item in physical.items():
@@ -780,8 +855,13 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             status, minute_reason = minute_check(asset, confirm)
             if minute_reason:
                 reason = minute_reason
+        rejection_cluster = rejection_cluster_by_physical[key]
         rejection_rows.append({
             "asset":asset,"source_event_row_ids":";".join(sorted(item["event_ids"])),
+            "overlap_cluster_id":rejection_cluster[0],
+            "overlap_cluster_size":rejection_cluster_sizes[rejection_cluster[0]],
+            "overlap_cluster_start_ts_ms":rejection_cluster[2],
+            "overlap_cluster_end_exclusive_ts_ms":rejection_cluster[3],
             "historical_cohort_memberships":";".join(sorted({r["definition"].upper() for r in item["members"]})),
             "causal_cohort":causal_cohort,
             "direction":direction,"family":"SUPPORT_REJECTION" if direction.lower()=="lower" else "RESISTANCE_REJECTION",
@@ -796,11 +876,35 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
     base=root/"reports/phase3_breakout_lifecycle_v1_1"
     _, module_b_events=read_csv(base/"breakout_lifecycle_events_v1_1.csv")
     module_b_memberships={}
+    module_b_observed={}
     for event in module_b_events:
         event_key=(event["asset"],event["direction"],
                    ms(event["signal_time_ms"],"Module B signal"),
                    iso_ms(event["snapshot"],"Module B snapshot"))
         module_b_memberships.setdefault(event_key,set()).add(event["definition"])
+        observed=int(event["observed_bars_12h"])
+        if event_key in module_b_observed and module_b_observed[event_key] != observed:
+            fail(f"Module B cohort rows disagree on observed 12H bars: {event_key}")
+        module_b_observed[event_key]=observed
+    raw_cluster_events=[]
+    for raw in raw_rows:
+        asset=raw["asset"]
+        signal=ms(raw["signal_time_ms"],"raw breakout signal for overlap")
+        snapshot=ms(raw["context_snapshot_ms"],"raw breakout snapshot for overlap")
+        key=(asset,raw["direction"],signal,snapshot)
+        observed=observed_window_bars(minute_index[asset],signal,720)
+        if key in module_b_observed and module_b_observed[key] != observed:
+            fail(f"Module B observed 12H window differs from canonical 1m source: {key}")
+        raw_cluster_events.append({
+            "asset":asset,
+            "event_id":f"{asset}|{raw['direction']}|{signal}|{snapshot}",
+            "signal_time_ms":signal,
+            "observed_bars_12h":observed,
+        })
+    breakout_cluster_map, breakout_cluster_summary = assign_interval_graph_clusters(
+        raw_cluster_events, asset_field="asset", event_id_field="event_id",
+        start_field="signal_time_ms", observed_bars_field="observed_bars_12h",
+        cluster_prefix="g0_05_raw_overlap")
     for r in raw_rows:
         asset=r["asset"]; signal=ms(r["signal_time_ms"],"breakout signal")
         snap=ms(r["context_snapshot_ms"],"breakout snapshot")
@@ -820,11 +924,17 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             status, minute_reason=minute_check(asset,signal)
             if minute_reason:
                 reason=minute_reason
-        breakout_rows.append({"asset":asset,"source_event_key":f"{asset}|{r['direction']}|{signal}|{snap}",
+        source_event_key=f"{asset}|{r['direction']}|{signal}|{snap}"
+        cluster=breakout_cluster_map[source_event_key]
+        breakout_rows.append({"asset":asset,"source_event_key":source_event_key,
             "direction":r["direction"],"family":"BREAKOUT_CONTINUATION",
             "family_direction":"LONG" if r["direction"]=="UPPER" else "SHORT",
             "signal_time_ms":signal,"first_eligible_1m_open_ts_ms":first_eligible_minute_or_blank(status, signal),
             "historical_cohort_memberships":historical_membership,
+            "overlap_cluster_id":cluster["overlap_cluster_id"],
+            "overlap_cluster_size":cluster["overlap_cluster_size"],
+            "overlap_cluster_start_ts_ms":cluster["overlap_cluster_start_ts_ms"],
+            "overlap_cluster_end_exclusive_ts_ms":cluster["overlap_cluster_end_exclusive_ts_ms"],
             "causal_cohort":cohort,"disposition":status,"reason_code":reason,
             "censoring_reason":reason if status=="CENSORED" else ""})
     # Every G0-04 raw crossing must appear exactly once in the continuation ledger.
@@ -876,13 +986,20 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             status,reason=minute_check(asset,confirmation)
             if not reason:
                 reason="NONE"
-        failed_rows.append({"asset":asset,"source_event_key":f"{asset}|{direction}|{signal}|{snapshot}",
+        source_event_key=f"{asset}|{direction}|{signal}|{snapshot}"
+        cluster=breakout_cluster_map[source_event_key]
+        failed_rows.append({"asset":asset,"source_event_key":source_event_key,
             "source_event_row_ids":";".join(sorted(x["event_id"] for x in members)),
             "historical_cohort_memberships":";".join(sorted({x["definition"] for x in members})),"direction":direction,
             "family":"FAILED_BREAKOUT_REVERSAL","family_direction":"SHORT" if direction=="UPPER" else "LONG","signal_time_ms":signal,
             "confirmation_ts_ms":confirmation or "",
             "first_eligible_1m_open_ts_ms":first_eligible_minute_or_blank(status, confirmation),
-            "causal_source_cohort":source_cohort,"disposition":status,"reason_code":reason,
+            "causal_source_cohort":source_cohort,
+            "overlap_cluster_id":cluster["overlap_cluster_id"],
+            "overlap_cluster_size":cluster["overlap_cluster_size"],
+            "overlap_cluster_start_ts_ms":cluster["overlap_cluster_start_ts_ms"],
+            "overlap_cluster_end_exclusive_ts_ms":cluster["overlap_cluster_end_exclusive_ts_ms"],
+            "disposition":status,"reason_code":reason,
             "censoring_reason":reason if status=="CENSORED" else ""})
     out.mkdir(parents=True,exist_ok=True)
     files={"rejection_source_dispositions.csv":rejection_rows,
@@ -915,6 +1032,11 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             writer=csv.DictWriter(h,fieldnames=list(rows[0]))
             writer.writeheader(); writer.writerows(rows)
     return {"market_1m_inputs":input_audit,"row_level_outputs":counts,
+            "overlap_cluster_summaries":{
+                "rejection_physical_events_24h":rejection_cluster_summary,
+                "breakout_raw_crossings_12h":breakout_cluster_summary,
+                "failed_breakout_reversal":"inherits linked source breakout cluster; not counted as an additional source cluster",
+            },
             "scope":"SOURCE-ONLY DISPOSITION DRY-RUN; NO CANDIDATE GENERATION"}
 
 def main() -> None:
