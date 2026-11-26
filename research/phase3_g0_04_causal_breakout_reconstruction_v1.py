@@ -75,13 +75,17 @@ def overlap(high,low):
 
 def context(b4):
  x=b4.copy()
- x["upper"]=x.high.rolling(12).max().shift(1)
- x["lower"]=x.low.rolling(12).min().shift(1)
+ # b4 uses right-labelled candles: row t is complete and available at t.
+ # Match the historical detector's 12-candle channel and 12 close changes
+ # at that same close; do not shift these completed-candle features again.
+ x["upper"]=x.high.rolling(12).max()
+ x["lower"]=x.low.rolling(12).min()
  x["channel_width"]=(x.upper/x.lower-1)*100
- net=(x.close.shift(1)/x.close.shift(13)-1).abs()
- path=x.close.pct_change().abs().rolling(12).sum().shift(1)
+ net=(x.close/x.close.shift(12)-1).abs()
+ path=x.close.pct_change().abs().rolling(12).sum()
  x["efficiency"]=net/path.replace(0,np.nan)
- x["overlap"]=overlap(x.high,x.low).rolling(12).mean().shift(1)
+ # Twelve candles contain eleven adjacent-candle overlap pairs.
+ x["overlap"]=overlap(x.high,x.low).rolling(11).mean()
  x.index.name="snapshot"
  return x
 
