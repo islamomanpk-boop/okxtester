@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+"""Pure G0-05 causal candidate contract primitives; no market-data generation."""
+from __future__ import annotations
+import hashlib
+import json
+
+MINUTE_MS = 60_000
+FIFTEEN_MIN_MS = 900_000
+FOUR_HOUR_MS = 14_400_000
+FAILURE_HORIZON_MS = 12 * 60 * MINUTE_MS
+
+FAMILY_SIDE = {
+    "SUPPORT_REJECTION": ("LOWER", "LONG"),
+    "RESISTANCE_REJECTION": ("UPPER", "SHORT"),
+    "BREAKOUT_CONTINUATION_UPPER": ("UPPER", "LONG"),
+    "BREAKOUT_CONTINUATION_LOWER": ("LOWER", "SHORT"),
+    "FAILED_UPPER_BREAKOUT": ("UPPER", "SHORT"),
+    "FAILED_LOWER_BREAKOUT": ("LOWER", "LONG"),
+}
+
+
+def snapshot_is_valid(snapshot_available_ms: int, snapshot_next_ms: int,
+                      confirmation_ms: int) -> bool:
+    """Snapshot validity is [available, next_available), through confirmation."""
+    if snapshot_next_ms <= snapshot_available_ms:
+        raise ValueError("snapshot validity interval must be positive")
+    return snapshot_available_ms <= confirmation_ms < snapshot_next_ms
+
+
+def rejection_confirmation(rejection_bar_open_ms: int) -> int:
+    return int(rejection_bar_open_ms) + FIFTEEN_MIN_MS
+
+
+def first_eligible_minute(signal_available_ms: int, observed_minute_opens: list[int]) -> int:
+    """Require exact minute at availability; never shift to a nearby bar."""
+    if not observed_minute_opens:
+        raise ValueError("no post-confirmation minute bars")
+    if observed_minute_opens[0] != signal_available_ms:
+        raise ValueError("first post-confirmation minute must open exactly at availability")
+    if any(b - a != MINUTE_MS for a, b in zip(observed_minute_opens, observed_minute_opens[1:])):
+        raise ValueError("minute bars contain a gap, duplicate, or out-of-order timestamp")
+    return observed_minute_opens[0]
+
+
+def family_side(family: str) -> tuple[str, str]:
+    try:
+        return FAMILY_SIDE[family]
+    except KeyError as exc:
+        raise ValueError(f"unknown candidate family: {family}") from exc
+
+
+def complete_15m_confirmation(minute_open_timestamps: list[int], bar_open_ms: int) -> int:
+    """Return close-availability time only for exactly 15 consecutive minute opens."""
+    expected = [bar_open_ms + i * MINUTE_MS for i in range(15)]
+    if minute_open_timestamps != expected:
+        raise ValueError("15-minute confirmation requires exactly 15 consecutive component minutes")
+    return bar_open_ms + FIFTEEN_MIN_MS
+
+
+def failed_breakout_confirmation(direction: str, close: float, boundary: float,
+                                 confirmation_ms: int, signal_ms: int,
+                                 source_candidate_valid: bool) -> dict:
+    if not source_candidate_valid:
+        raise ValueError("failed-breakout reversal requires a valid linked source breakout")
+    if direction not in ("UPPER", "LOWER"):
+        raise ValueError("direction must be UPPER or LOWER")
+    if confirmation_ms <= signal_ms:
+        raise ValueError("failure confirmation must follow source breakout availability")
+    if confirmation_ms > signal_ms + FAILURE_HORIZON_MS:
+        raise ValueError("failed-breakout confirmation is outside the 12-hour observation horizon")
+    returned_inside = close <= boundary if direction == "UPPER" else close >= boundary
+    if not returned_inside:
+        raise ValueError("completed 15-minute close has not returned inside the original range")
+    family = "FAILED_UPPER_BREAKOUT" if direction == "UPPER" else "FAILED_LOWER_BREAKOUT"
+    boundary_side, side = family_side(family)
+    return {"family": "FAILED_BREAKOUT_REVERSAL", "boundary_side": boundary_side,
+            "side": side, "signal_available_at_ts_ms": confirmation_ms,
+            "source_breakout_signal_ts_ms": signal_ms}
+
+
+def candidate_id(source_identity: str, family: str, rule_version: str) -> str:
+    if not source_identity or not family or not rule_version:
+        raise ValueError("candidate identity inputs must be non-empty")
+    payload = "\x1f".join((source_identity, family, rule_version)).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def classify_disposition(snapshot_available_ms: int, snapshot_next_ms: int,
+                         confirmation_ms: int) -> str:
+    return ("ELIGIBLE_FOR_FURTHER_VALIDATION"
+            if snapshot_is_valid(snapshot_available_ms, snapshot_next_ms, confirmation_ms)
+            else "SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION")
+
+
+def deterministic_json(rows: list[dict]) -> str:
+    """Stable serialization helper for substantive output comparisons."""
+    return json.dumps(rows, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
