@@ -62,11 +62,10 @@ def authorize_task(
     agent_config: dict[str, Any] | None = None,
     phase_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Return a deterministic authorization decision for one proposed task.
+    """Authorize one task without executing it.
 
-    The allowlist must be supplied by a separately reviewed, trusted caller.
-    Expected shape: {"approved_task_ids": ["..."]}. A task cannot authorize
-    itself by setting an approved field.
+    The allowlist must come from a separately reviewed trusted source.
+    Expected shape: {"approved_task_ids": ["..."]}. A task cannot approve itself.
     """
     if not isinstance(task, dict):
         return _deny("Task must be a JSON object.")
@@ -77,9 +76,20 @@ def authorize_task(
     except PermissionConfigError as exc:
         return _deny(str(exc))
 
+    if not isinstance(agent, dict):
+        return _deny("Agent configuration is malformed.")
+    execution = agent.get("execution")
+    if not isinstance(execution, dict):
+        return _deny("Agent execution configuration is missing or malformed.")
+    if execution.get("require_task_allowlist") is not True:
+        return _deny("Agent configuration does not require an explicit task allowlist.")
+    if execution.get("require_phase_permission") is not True:
+        return _deny("Agent configuration does not require phase permissions.")
+    if execution.get("require_safety_controller") is not True:
+        return _deny("Agent configuration does not require the safety controller.")
+
     if not isinstance(allowlist, dict):
         return _deny("Trusted task allowlist was not supplied.")
-
     approved_ids = allowlist.get("approved_task_ids")
     if not isinstance(approved_ids, list) or not all(
         isinstance(item, str) and item.strip() for item in approved_ids
@@ -89,7 +99,6 @@ def authorize_task(
     task_id = task.get("task_id")
     phase = task.get("phase")
     operation = task.get("operation")
-
     if not isinstance(task_id, str) or not task_id.strip():
         return _deny("Task is missing a valid task_id.")
     if task_id not in approved_ids:
@@ -108,8 +117,6 @@ def authorize_task(
     # Global prohibitions override every phase-specific allowance.
     if operation in GLOBAL_DENY_OPERATIONS:
         return _deny(f"Operation is globally prohibited: {operation}")
-
-    # Only the explicitly enumerated read-only operations are recognized here.
     if operation not in READ_ONLY_OPERATIONS:
         return _deny(f"Unrecognized or non-read-only operation: {operation}")
 
@@ -117,42 +124,45 @@ def authorize_task(
     if not isinstance(phase_rule, dict):
         return _deny("Phase rule is malformed.")
 
-    # Phase 3 G0-05 is under a task-specific hard lock. Do not infer permission
-    # from a generic read-only operation if the task targets this restricted work.
+    # G0-05 permits only read-only reconciliation under its current handoff.
+    # The operation allowlist above excludes scripts, tests, workflows, and writes.
     if phase == "phase3_sideways_range":
         g0_05 = phase_rule.get("g0_05")
-        if isinstance(g0_05, dict):
-            handoff_id = task.get("handoff_id")
-            targets_g0_05 = (
-                handoff_id == "PHASE3_G0_05_RECONCILIATION_TASK_02"
-                or task.get("workstream") == "g0_05"
-            )
-            if targets_g0_05:
-                return _deny(
-                    "G0-05 handoff lock: no scripts, tests, workflows, code/data changes, "
-                    "candidate generation, backtesting, PnL, strategy selection, or gate closure. "
-                    "Only separately authorized read-only reconciliation may proceed."
-                )
+        if not isinstance(g0_05, dict):
+            return _deny("Phase 3 G0-05 lock configuration is missing.")
+        targets_g0_05 = (
+            task.get("handoff_id") == "PHASE3_G0_05_RECONCILIATION_TASK_02"
+            or task.get("workstream") == "g0_05"
+        )
+        if targets_g0_05 and (
+            g0_05.get("status") != "read_only_reconciliation_only"
+            or g0_05.get("scripts_tests_workflows") != "prohibited"
+            or g0_05.get("data_or_code_changes") != "prohibited"
+            or g0_05.get("backtesting_and_pnl") != "prohibited"
+            or g0_05.get("gate_closure") != "prohibited"
+        ):
+            return _deny("G0-05 safety lock is missing, weakened, or malformed.")
 
     if phase_rule.get("execution_override") == "deny" and operation not in READ_ONLY_OPERATIONS:
         return _deny("Phase execution override denies this operation.")
 
-    # The permission file must explicitly retain read-only defaults.
     default_key = {
         "repository_inspection": "repository_inspection",
         "evidence_lineage_review": "evidence_lineage_review",
         "report_generation": "report_generation",
     }[operation]
-    if defaults.get(default_key) not in {
-        "allow_read_only",
-        "allow_local_or_artifact_only",
-    }:
+    permitted_values = {
+        "repository_inspection": {"allow_read_only"},
+        "evidence_lineage_review": {"allow_read_only"},
+        "report_generation": {"allow_local_or_artifact_only"},
+    }
+    if defaults.get(default_key) not in permitted_values[operation]:
         return _deny("Global configuration does not explicitly permit this read-only operation.")
 
     return {
         "authorized": True,
         "decision": "ALLOW_READ_ONLY",
-        "reason": "Task is allowlisted and operation is within the recognized read-only scope.",
+        "reason": "Task is allowlisted and within the configured read-only scope.",
         "task_id": task_id,
         "phase": phase,
         "operation": operation,
@@ -161,7 +171,9 @@ def authorize_task(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Check an OKX research task's permissions; does not execute it.")
+    parser = argparse.ArgumentParser(
+        description="Check an OKX research task's permissions; this command does not execute it."
+    )
     parser.add_argument("task_file", type=Path, help="Path to a JSON task description.")
     parser.add_argument(
         "--allowlist-file",
@@ -170,14 +182,12 @@ def main() -> int:
         help="Trusted JSON allowlist containing approved_task_ids.",
     )
     args = parser.parse_args()
-
     try:
         task = json.loads(args.task_file.read_text(encoding="utf-8"))
         allowlist = json.loads(args.allowlist_file.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         print(json.dumps(_deny(f"Cannot read task or allowlist: {exc}"), indent=2))
         return 2
-
     result = authorize_task(task, allowlist=allowlist)
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0 if result["authorized"] else 1
