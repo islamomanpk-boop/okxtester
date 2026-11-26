@@ -81,7 +81,7 @@ class AssignmentReturnTests(unittest.TestCase):
     def test_blocked_preflight_package_cannot_accept_worker_return(self):
         blocked_preflight = dict(self.preflight, decision="DENY", authorized=False)
         blocked = prepare_worker_assignment(self.task, blocked_preflight)
-        with self.assertRaisesRegex(ValueError, "prepared, non-blocked"):
+        with self.assertRaisesRegex(ValueError, "canonical trusted package"):
             self.review(blocked, package_digest=assignment_package_digest(blocked))
 
     def test_tampered_preflight_reason_is_rejected_by_trusted_package_digest(self):
