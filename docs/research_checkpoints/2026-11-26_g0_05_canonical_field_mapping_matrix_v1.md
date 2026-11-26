@@ -148,7 +148,7 @@ The source-only ledgers now carry:
 
 Failed-breakout confirmation candles are rebuilt from 15 exact component 1m OHLC records. The current audit found 756 confirmed return-inside events, all with OPEN_OUTSIDE_CLOSE_INSIDE; 176 events had no return-inside confirmation. See source audit [45805545548](https://github.com/islamomanpk-boop/okxtester/actions/runs/45805545548), artifact ID `15109271179`, and tests [45805565739](https://github.com/islamomanpk-boop/okxtester/actions/runs/45805565739), 102/102 passed.
 
-Still to materialize: canonical candidate IDs/source-event IDs, instrument/version labels, per-row snapshot/threshold/feature provenance, manifest/path/blob lineage, source breakout candidate IDs, and all invalidation reference columns (type/value/timestamp) in the final canonical output.
+Still to materialize in the final canonical candidate ledger: `candidate_id` and `source_breakout_candidate_id`. The source-only disposition ledgers now carry `source_event_id`, instrument/version labels, per-row snapshot/threshold/feature provenance, manifest/path/blob lineage, source breakout source-event identity, and all invalidation reference columns (type/value/timestamp) as NOT_APPLICABLE.
 
 
 ## 12. Complete source lineage now emitted per source-only row
@@ -173,3 +173,28 @@ The corrected mapping:
 - Breakout/failed-breakout `snapshot_valid_until_ts_ms` is the next 4H context snapshot.
 
 The source audit preserves `reference_feature_snapshot_ts_ms` and `reference_feature_match_status`; it allows the single expected leading legacy context per asset that predates the detector feature ledger, but fails if more than one distinct leading context appears. It uses `HISTORICAL_BREAKOUT_CONTEXT_V1` for breakout/failed-breakout rows. This is a source-timing correction, not a change to G0-04 thresholds or eligibility decisions.
+
+
+## 14. Snapshot/threshold provenance and source-event IDs now emitted
+
+The latest source-only audit now emits:
+- exact family-specific `instrument_id`, regime definition version, candidate rule version and source pipeline version;
+- exact `snapshot_id`, availability, validity interval, upper/lower boundaries, channel width, efficiency and overlap values;
+- exact expanding-prior / unique-4H-feature threshold value, percentile, calibration start/end and prior observation count where available;
+- deterministic `source_event_id` for all 4,947 physical source rows;
+- `reference_feature_snapshot_ts_ms` and match status for G0-04's one-4H-lagged breakout context;
+- all source paths, Git blob IDs and complete manifest ID.
+
+Family-specific context:
+- Rejection uses the original detector feature at the exact rejection snapshot.
+- Breakout/failed-breakout use the G0-04 historical breakout context at its own context snapshot; channel values are checked against the detector feature one 4H bar earlier. Efficiency and overlap remain from the G0-04 raw context.
+- The expected leading legacy context before the detector feature ledger is explicitly labelled; only one distinct leading context per asset is allowed.
+
+Evidence:
+- Source audit [45808007422](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808007422) — SUCCESS; artifact ID `15110482845`; ZIP SHA-256 `f29bf78c7dbcaaca05f51ca10a5fc688f334664262debee6d37b7b657d390f2b`.
+- Complete manifest SHA-256 / row ID: `f851f6c65214f18a6f24cd7424cad0dedba26c2c2a1210dda269ddef84bc81d2`; independently recomputed from exact manifest bytes and matched the report.
+- Synthetic suite [45808027261](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808027261) — SUCCESS; **111/111 tests passed**.
+- Source rows: rejection 1,154; breakout 2,861; failed breakout 932. All 4,947 have unique source_event_id values and one manifest ID.
+- The independent minute verifier is running against this latest artifact.
+
+Only final candidate IDs and the failed-breakout `source_breakout_candidate_id` remain intentionally unmaterialized. No canonical candidate ledger has been generated.
