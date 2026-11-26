@@ -257,8 +257,14 @@ def audit_g004_artifact(artifact: Path) -> tuple[dict, dict, dict]:
         threshold_by_key[key] = row
         if float(row["p25"]) > float(row["p40"]):
             fail("G0-04 P25 exceeds P40")
+    first_threshold_by_asset = {}
+    for row in thresholds:
+        asset = row["asset"]
+        snapshot = ms(row["snapshot_ms"], "threshold snapshot")
+        first_threshold_by_asset[asset] = min(snapshot, first_threshold_by_asset.get(asset, snapshot))
     variants = {}
     recomputed = 0
+    warmup_by_asset = Counter()
     for policy in ("FIXED_180", "EXPANDING_PRIOR", "ROLLING_180"):
         for population in ("UNIQUE_4H_FEATURE_ROWS", "JOINED_15M_ROWS"):
             tag = policy + "__" + population
@@ -271,7 +277,7 @@ def audit_g004_artifact(artifact: Path) -> tuple[dict, dict, dict]:
                     fail(f"raw event uses future context: {asset}/{signal}")
                 threshold = threshold_by_key.get((asset, snapshot, policy, population))
                 if threshold is None:
-                    fail(f"raw event missing exact causal threshold row: {asset}/{snapshot}/{tag}")
+                    continue
                 width, efficiency, overlap_value = (float(row[k]) for k in
                     ("channel_width_pct", "efficiency", "overlap"))
                 strict_expected = (width <= float(threshold["p25"]) and
@@ -288,10 +294,34 @@ def audit_g004_artifact(artifact: Path) -> tuple[dict, dict, dict]:
                 broad_n += int(broad_actual)
                 recomputed += 1
             variants[tag] = {"strict": strict_n, "broad": broad_n}
+    # Raw crossings before the first available causal threshold are explicit
+    # warm-up exclusions. They must have no threshold row under any variant
+    # and all six stored eligibility flags must remain false.
+    warmup_keys = set()
+    for row in raw:
+        asset = row["asset"]
+        snapshot = ms(row["context_snapshot_ms"], "raw context snapshot")
+        keys = [(asset, snapshot, policy, population)
+                for policy in ("FIXED_180", "EXPANDING_PRIOR", "ROLLING_180")
+                for population in ("UNIQUE_4H_FEATURE_ROWS", "JOINED_15M_ROWS")]
+        present = [key in threshold_by_key for key in keys]
+        flags = [row[key] for key in row if key.endswith("__strict") or key.endswith("__broad")]
+        if not any(present):
+            if snapshot >= first_threshold_by_asset[asset]:
+                fail(f"threshold missing after calibration warm-up: {asset}/{snapshot}")
+            if any(value.lower() == "true" for value in flags):
+                fail(f"warm-up event incorrectly marked eligible: {asset}/{snapshot}")
+            warmup_keys.add((asset, row["direction"], snapshot))
+            warmup_by_asset[asset] += 1
+        elif not all(present):
+            fail(f"partial threshold policy/population coverage: {asset}/{snapshot}")
+    if len(warmup_keys) != 262:
+        fail(f"unexpected causal threshold warm-up event count: {len(warmup_keys)} != 262")
     return meta, {"raw_rows": len(raw), "unique_keys": len(raw_keys),
                   "historical_selected": 932, "baseline_passed": 20,
                   "reconciliation_rows": len(reconciliation), "raw_source_mismatches": 0,
                   "threshold_rows": len(thresholds), "threshold_event_joins_and_flag_recomputations": recomputed,
+                  "warmup_raw_events": len(warmup_keys), "warmup_by_asset": dict(warmup_by_asset),
                   "policy_population_counts": variants}, {
                       "raw_keys": raw_keys, "raw_rows": raw}
 
