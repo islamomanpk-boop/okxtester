@@ -24,34 +24,76 @@ def load_queue(path: Path = QUEUE_PATH) -> dict[str, Any]:
     return value
 
 
-def _preflight_task_with_queue(task_id: str, current_queue: dict[str, Any]) -> dict[str, Any]:
-    """Evaluate one exact queue entry; never invokes an executor or changes files."""
-    if not isinstance(task_id, str) or not task_id.strip():
-        return {"decision": "DENY", "reason": "A non-empty task ID is required."}
-
-    if not isinstance(current_queue, dict):
-        return {"decision": "DENY", "reason": "Task queue must be a JSON object."}
-    tasks = current_queue.get("tasks")
-    if not isinstance(tasks, list):
-        return {"decision": "DENY", "reason": "Task queue entries are malformed."}
-    matches = [
-        task for task in tasks
-        if isinstance(task, dict) and task.get("task_id") == task_id
-    ]
-    if len(matches) != 1:
-        return {"decision": "DENY", "reason": "Task ID must match exactly one queue entry."}
-
-    task = matches[0]
-    decision = authorize_task(task)
+def _preflight_result(
+    task_id: str | None,
+    *,
+    queue_status: str = "unknown",
+    decision: str = "DENY",
+    authorized: bool = False,
+    reason: str,
+) -> dict[str, Any]:
+    """Return one stable, explicitly non-executing preflight result shape."""
     return {
         "task_id": task_id,
-        "queue_status": task.get("status", "unknown"),
-        "decision": decision.get("decision", "DENY"),
-        "authorized": decision.get("authorized", False),
-        "reason": decision.get("reason", "Safety controller returned no reason."),
+        "queue_status": queue_status,
+        "decision": decision,
+        "authorized": authorized,
+        "reason": reason,
         "execution_performed": False,
         "mode": "preflight_only",
     }
+
+
+def _preflight_task_with_queue(task_id: str, current_queue: dict[str, Any]) -> dict[str, Any]:
+    """Evaluate one exact queue entry; never invokes an executor or changes files."""
+    if not isinstance(task_id, str) or not task_id.strip():
+        return _preflight_result(
+            None, reason="A non-empty task ID is required."
+        )
+
+    if not isinstance(current_queue, dict):
+        return _preflight_result(
+            task_id, reason="Task queue must be a JSON object."
+        )
+    tasks = current_queue.get("tasks")
+    if not isinstance(tasks, list):
+        return _preflight_result(
+            task_id, reason="Task queue entries are malformed."
+        )
+    # Fail closed on any malformed row rather than silently filtering it out.
+    if not all(isinstance(task, dict) for task in tasks):
+        return _preflight_result(
+            task_id, reason="Every task queue entry must be a JSON object."
+        )
+    matches = [task for task in tasks if task.get("task_id") == task_id]
+    if len(matches) != 1:
+        return _preflight_result(
+            task_id, reason="Task ID must match exactly one queue entry."
+        )
+
+    task = matches[0]
+    queue_status = task.get("status")
+    if not isinstance(queue_status, str) or not queue_status.strip():
+        queue_status = "unknown"
+    decision = authorize_task(task)
+    if not isinstance(decision, dict):
+        return _preflight_result(
+            task_id,
+            queue_status=queue_status,
+            reason="Safety controller returned a malformed decision; denied.",
+        )
+    authorized = decision.get("authorized") is True and decision.get("decision") == "ALLOW_READ_ONLY"
+    return _preflight_result(
+        task_id,
+        queue_status=queue_status,
+        decision="ALLOW_READ_ONLY" if authorized else "DENY",
+        authorized=authorized,
+        reason=(
+            decision.get("reason")
+            if isinstance(decision.get("reason"), str) and decision.get("reason").strip()
+            else "Safety controller returned no valid reason; denied."
+        ),
+    )
 
 
 def preflight_task(task_id: str) -> dict[str, Any]:
