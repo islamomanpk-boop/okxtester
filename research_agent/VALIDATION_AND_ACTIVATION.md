@@ -8,6 +8,18 @@ The repository contains the configuration, ordered task queue, hash-bound safety
 
 The current Phase 3 G0-05 handoff remains authoritative. It prohibits the relevant script/test/workflow execution and research code/data changes. The agent must not be used to bypass that restriction.
 
+## Separate default-branch Phase 3 workflow — not the agent
+
+A separate workflow was found by static inspection on the repository default branch `main`:
+
+- Workflow: `.github/workflows/phase3-overnight-research.yml`
+- Workflow revision inspected: `acb897e1de93f084a9d2a729b99f4d3e79b4a3d2`
+- Trigger: manual `workflow_dispatch` only; permissions declare `contents: read`.
+- It checks out `price-action-v1`, runs `py_compile` on `research/phase3_overnight_worker_v1.py`, executes that script, and uploads `phase3_overnight_output/` as an artifact.
+- The worker hashes and parses five canonical 1-minute market-data CSVs, checks documented gate status, and writes a JSON manifest, CSV gate table, and Markdown recovery index in the runner workspace.
+
+This is **not** the `okx-research-agent` workflow: it does not use the agent queue, assignment package, supervisor review, or isolated agent branch. It does not resolve the agent's default-branch activation design. The inspected G0-05 handoff at `1e37eabee8dd17a206e4e848c421096d89482ddd` explicitly prohibits script, test, and workflow execution; therefore this separate workflow must not be dispatched while that handoff remains controlling. Its workflow file's presence does not prove that it has run; run history was not established in this static review.
+
 ## Completed implementation
 
 - [x] Isolated agent branch created from the approved research-branch baseline.
@@ -38,10 +50,11 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Report schema requires a task-definition SHA-256 and provides canonical JSON hashing shared with the safety controller, plus a verifier that binds report task ID, phase, and digest to the exact trusted queue task; digest inputs are restricted to strict JSON values (string object keys, finite numbers, arrays, objects, and JSON scalars), rejecting Python-only values and ambiguous key coercion. The workflow must compute it from the exact trusted queue object.
 - [x] Added 50 report-builder regression tests covering deterministic rendering, malformed provenance, duplicate and unsafe paths, strict schema/timestamp validation, fixed agent identity, external paths, symlinks, Markdown injection, completion-claim status rejection, and explicit provenance/metadata limitation disclosures; authored but not executed.
 - [x] Markdown report rendering flattens untrusted line breaks and escapes Markdown control characters in findings and metadata; untrusted values are kept outside Markdown code spans to prevent delimiter breakout.
-- [x] Added 27 preflight tests for malformed queues and rows, duplicate task IDs and JSON keys, non-standard JSON constants, trusted-queue boundary, stable denial envelopes, inconsistent/malformed authorization results, and preflight-only behavior; authored but not executed.
+- [x] Added 28 preflight tests for malformed queues and rows, duplicate task IDs and JSON keys, non-standard JSON constants, trusted-queue boundary, stable denial envelopes, inconsistent/malformed authorization results, and preflight-only behavior; authored but not executed.
 - [x] Added `artifact_preparation.py` to connect trusted queue lookup, single-task preflight, preflight-only report generation, and in-memory artifact bundling. It is restricted to the repository and isolated agent branch; denied preflight becomes a `blocked` report. It performs no task work, queue mutation, filesystem writes, upload, or scheduling. Workflow metadata remains caller-supplied until independently obtained and verified by a future workflow; authored but not runtime-tested.
 - [x] Added 7 artifact-preparation regression tests for blocked-artifact creation, branch/repository restrictions, dirty checkout, HEAD mismatch, and task identity; authored but not executed.
 - [x] Added `batch_planner.py` with a pure planning/test seam and `build_runtime_batch_plan()`, which accepts no caller-supplied queue or preflight result and loads both from fixed runtime sources. It prepares a bounded batch only from exact per-task preflight approvals. It enforces the fixed five-phase sequence, stops at the earliest queued phase if nothing there passes preflight, caps batch size, and never authorizes the queue, executes tasks, or changes state.
+- [x] Hardened runtime planning to load the trusted queue once and derive every task's preflight result from that exact in-memory snapshot; the lower-level planner uses the same rule when it obtains preflight itself. This prevents a queue reload between the planning input and its authorization evidence.
 - [x] Batch planner assignments now carry the trusted task's handoff ID, full scope, prohibited-action list, and canonical task-definition digest so a future worker receives the complete boundary rather than a title-only prompt.
 - [x] Added `supervisor_review.py` to validate untrusted worker submissions against the exact trusted task digest, required evidence-reference structure, declared actions, and gate-authority boundary. Valid submissions are only ready for human review; evidence bytes and research correctness are explicitly unverified. No completion or gate is approved.
 - [x] Added 17 supervisor-review regression tests covering valid-but-human-review-only submissions, prohibited and unknown action labels, gate-closure claims, missing evidence, task digest/identity mismatch, unsafe traversal, Windows-drive and control-character paths, malformed hashes, blockers, unknown fields, malformed status types, and inconsistent completion claims; authored but not executed.
@@ -56,7 +69,7 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Added 13 assignment-return regression tests, including altered preflight-reason rejection against the independently retained digest, rejection of ambiguous/non-JSON fingerprint inputs, deterministic key-order hashing, and sensitivity to package-field changes; authored but not executed.
 - [x] Added `review_artifact.py` to connect assignment-bound review results to the existing strict report and in-memory artifact builder. Worker claims remain explicitly unverified declarations, report status stays `not_run`, and human completion/gate authority is preserved; see `docs/REVIEW_ARTIFACT.md`.
 - [x] Added 6 review-artifact regression tests for completion-claim containment, evidence-integrity blockers, tampered assignment rejection, repository/branch/commit boundaries, and no dispatch/upload claims; authored but not executed.
-- [x] Total regression tests authored: 188 (32 safety-controller, 50 report-builder, 27 task-runner, 7 artifact-preparation, 11 batch-planner, 17 supervisor-review, 10 evidence-verifier, 6 integrated-review, 9 assignment-package, 13 assignment-return, 6 review-artifact); none executed. Safety policy and CLI task JSON reject duplicate object keys and non-standard NaN/Infinity constants.
+- [x] Total regression tests authored: 189 (32 safety-controller, 50 report-builder, 27 task-runner, 7 artifact-preparation, 11 batch-planner, 17 supervisor-review, 10 evidence-verifier, 6 integrated-review, 9 assignment-package, 13 assignment-return, 6 review-artifact); none executed. Safety policy and CLI task JSON reject duplicate object keys and non-standard NaN/Infinity constants.
 - [x] Static configuration/source consistency review completed against the branch files.
 - [x] Added `PHASE_SUPPORT_MATRIX.md` documenting reusable support and queue coverage across all five phases in the agreed order; later phases remain gated by predecessor closure and their own handoffs.
 - [x] Added a safety-controller regression test that checks the checked-in phase configuration, queue ordering, per-phase task presence, later-phase blocked statuses, and human-authorized gate dependency; authored but not executed.
