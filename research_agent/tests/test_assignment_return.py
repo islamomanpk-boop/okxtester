@@ -2,7 +2,7 @@
 import hashlib
 import unittest
 
-from research_agent.engine.assignment_package import prepare_worker_assignment
+from research_agent.engine.assignment_package import assignment_package_digest, prepare_worker_assignment
 from research_agent.engine.assignment_return import review_assignment_return
 from research_agent.engine.report_builder import task_definition_digest
 
@@ -41,6 +41,7 @@ class AssignmentReturnTests(unittest.TestCase):
         self.package = prepare_worker_assignment(
             self.task, self.preflight, planned_assignment=plan
         )
+        self.package_digest = assignment_package_digest(self.package)
         self.commit = "1" * 40
         self.path = "docs/assistant_handoff/evidence.md"
         self.content = b"Evidence bytes from expected commit.\n"
@@ -62,6 +63,7 @@ class AssignmentReturnTests(unittest.TestCase):
     def review(self, package=None):
         return review_assignment_return(
             self.task, self.package if package is None else package, self.submission,
+            expected_assignment_package_sha256=self.package_digest,
             expected_commit_sha=self.commit, commit_manifest=self.manifest,
             file_contents={self.path: self.content},
         )
@@ -79,6 +81,12 @@ class AssignmentReturnTests(unittest.TestCase):
         blocked = prepare_worker_assignment(self.task, blocked_preflight)
         with self.assertRaisesRegex(ValueError, "prepared, non-blocked"):
             self.review(blocked)
+
+    def test_tampered_preflight_reason_is_rejected_by_trusted_package_digest(self):
+        tampered = dict(self.package)
+        tampered["preflight"] = dict(self.package["preflight"], reason="Forged reason")
+        with self.assertRaisesRegex(ValueError, "trusted prepared-package digest"):
+            self.review(tampered)
 
     def test_tampered_scope_is_rejected_before_submission_review(self):
         tampered = dict(self.package)
