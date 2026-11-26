@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
 from datetime import datetime
 from pathlib import Path
@@ -93,7 +94,7 @@ def _validate_json_value(value: Any, location: str = "task") -> None:
     if value is None or isinstance(value, (str, bool, int)):
         return
     if isinstance(value, float):
-        if not __import__("math").isfinite(value):
+        if not math.isfinite(value):
             raise ValueError(f"{location} contains a non-finite number.")
         return
     if isinstance(value, list):
