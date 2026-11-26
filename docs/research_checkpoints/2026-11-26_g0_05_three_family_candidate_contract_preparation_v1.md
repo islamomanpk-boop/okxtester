@@ -386,3 +386,18 @@ Latest source-only audit:
 - Module B's 1,592 definition rows map to 932 unique source identities; all 932 match the G0-04 raw crossing ledger.
 
 **Current status:** G0-04 ACCEPTED. G0-05 schema, 31 synthetic tests, and read-only source provenance/identity/causal-threshold audit are passing. Next task is to extend synthetic tests around the source-to-physical-event collapse and family-specific disposition accounting, then implement a deterministic source-only disposition dry-run. Canonical candidate generation remains blocked pending that dry-run and its review. No orders, fills, execution simulation, PnL, strategy backtests or Gate 2+ work are authorized.
+
+
+## 16. Expanded G0-05 synthetic suite — 2026-11-26
+
+The contract implementation now includes:
+- underlying physical rejection identity independent of historical strict/broad cohort labels;
+- lossless collapse of strict/broad source rows while preserving both original source row IDs;
+- fail-closed validation that strict historical membership is nested within broad;
+- source-only causal rejection disposition using the exact snapshot validity interval, completed 15-minute confirmation, expanding-prior P25/P40 thresholds, efficiency <= 0.30 and overlap >= 0.70.
+
+Latest synthetic CI run: [45783013949](https://github.com/islamomanpk-boop/okxtester/actions/runs/45783013949), job `139782802699` — SUCCESS. Python compilation passed and **43/43 tests passed**.
+
+The added tests cover physical identity collapse, preservation of both cohort source-row IDs, broad-only events, strict-without-broad rejection, duplicate membership rejection, strict/broad causal outcomes, threshold warm-up, snapshot endpoint expiry, exact completed-15-minute timing and snapshot availability at the rejection bar open.
+
+**Current status:** G0-04 ACCEPTED. G0-05 source provenance, raw identity reconciliation, causal threshold re-computation, candidate/disposition schema and 43 synthetic tests pass. The next controlled task is a deterministic row-level source-disposition dry-run with exact first-eligible-minute checks. It must remain a source disposition audit, not a candidate generator. Canonical candidate generation remains blocked until that dry-run reconciles every source row and its output is reviewed.
