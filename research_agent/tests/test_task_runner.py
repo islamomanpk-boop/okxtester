@@ -122,6 +122,39 @@ class TaskRunnerTests(unittest.TestCase):
         self.assertEqual(result["decision"], "DENY")
         self.assertFalse(result["authorized"])
 
+    def test_accepts_exact_identity_bound_allow_response(self):
+        task = {
+            "task_id": "P3-RO-001", "status": "queued",
+            "phase": "phase3_sideways_range", "operation": "repository_inspection",
+        }
+        response = {
+            "authorized": True, "decision": "ALLOW_READ_ONLY",
+            "reason": "exact approved task", "task_id": task["task_id"],
+            "phase": task["phase"], "operation": task["operation"],
+            "execution_performed": False,
+        }
+        with patch.object(task_runner, "authorize_task", return_value=response):
+            result = task_runner._preflight_task_with_queue("P3-RO-001", {"tasks": [task]})
+        self.assertEqual(result["decision"], "ALLOW_READ_ONLY")
+        self.assertTrue(result["authorized"])
+        self.assertFalse(result["execution_performed"])
+
+    def test_rejects_allow_response_with_wrong_task_identity(self):
+        task = {
+            "task_id": "P3-RO-001", "status": "queued",
+            "phase": "phase3_sideways_range", "operation": "repository_inspection",
+        }
+        response = {
+            "authorized": True, "decision": "ALLOW_READ_ONLY",
+            "reason": "wrong task", "task_id": "P3-RO-999",
+            "phase": task["phase"], "operation": task["operation"],
+            "execution_performed": False,
+        }
+        with patch.object(task_runner, "authorize_task", return_value=response):
+            result = task_runner._preflight_task_with_queue("P3-RO-001", {"tasks": [task]})
+        self.assertEqual(result["decision"], "DENY")
+        self.assertFalse(result["authorized"])
+
     def test_preflight_never_invokes_executor(self):
         queue = {"tasks": [{"task_id": "P3-RO-001", "status": "queued"}]}
         with patch.object(
