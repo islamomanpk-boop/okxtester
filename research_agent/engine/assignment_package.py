@@ -7,6 +7,8 @@ overrides an active research handoff.
 from __future__ import annotations
 
 from typing import Any
+import hashlib
+import json
 
 from .report_builder import task_definition_digest
 
@@ -22,6 +24,18 @@ _PREFLIGHT_FIELDS = {
     "task_id", "queue_status", "decision", "authorized", "reason",
     "execution_performed", "mode",
 }
+def assignment_package_digest(package: dict[str, Any]) -> str:
+    """Hash a canonical package; caller must retain this digest in a trusted channel."""
+    if not isinstance(package, dict):
+        raise TypeError("Assignment package must be an object.")
+    try:
+        canonical = json.dumps(package, sort_keys=True, separators=(",", ":"),
+                               ensure_ascii=False, allow_nan=False).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Assignment package is not strict JSON data.") from exc
+    return hashlib.sha256(canonical).hexdigest()
+
+
 _PLAN_FIELDS = {
     "task_id", "phase", "operation", "title", "handoff_id", "scope",
     "prohibited", "task_definition_sha256", "assignment_status",
@@ -105,7 +119,6 @@ def prepare_worker_assignment(
     elif planned_assignment is not None:
         raise ValueError("A denied preflight cannot be paired with a planned assignment.")
 
-    import json
     task_copy = json.loads(json.dumps(trusted_task, allow_nan=False))
     status = "prepared_not_dispatched" if allowed else "blocked_preflight"
     return {
