@@ -907,9 +907,23 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
     _, anatomy = read_csv(anatomy_path)
     anatomy_by_id = {r["event_id"]:r for r in anatomy}
     feature_by_asset = {}
+    feature_by_timestamp = {}
+    next_feature_snapshot = {}
     for asset in ASSETS:
         _, fr = read_csv(root / "reports/sideways_detector_original_v1" / f"{asset}_features_original_v1.csv")
         feature_by_asset[asset] = fr
+        by_timestamp = {}
+        for feature_row in fr:
+            available = ms(feature_row["available_at_ts_ms"], f"{asset} feature snapshot")
+            if available in by_timestamp:
+                fail(f"{asset} duplicate feature snapshot timestamp {available}")
+            by_timestamp[available] = feature_row
+        feature_by_timestamp[asset] = by_timestamp
+        ordered_snapshots = sorted(by_timestamp)
+        next_feature_snapshot[asset] = {
+            timestamp: (ordered_snapshots[i + 1] if i + 1 < len(ordered_snapshots) else "")
+            for i, timestamp in enumerate(ordered_snapshots)
+        }
     physical = {}
     for row in ledger:
         if not (row.get("first_strong_rejection_ts_ms") or "").strip():
@@ -979,8 +993,13 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
         broad = next((r for r in item["members"] if r["definition"].lower()=="broad"), None)
         if broad is None:
             fail(f"physical rejection missing broad cohort row: {key}")
-        feature = feature_by_asset[asset][idx]
-        snapshot = ms(feature["available_at_ts_ms"],"rejection feature snapshot")
+        snapshot = ms(broad["snapshot_available_at_ts_ms"],"rejection snapshot availability")
+        feature = feature_by_timestamp[asset].get(snapshot)
+        if feature is None or feature_by_asset[asset][idx] != feature:
+            fail(f"rejection source has no exact indexed feature snapshot: {key}")
+        next_snapshot = next_feature_snapshot[asset].get(snapshot, "")
+        if next_snapshot != ms(broad["snapshot_next_available_at_ts_ms"],"rejection next snapshot"):
+            fail(f"rejection snapshot validity endpoint differs from detector feature sequence: {key}")
         threshold = exact_threshold_for_snapshot(thresholds, asset, snapshot,
                                          "EXPANDING_PRIOR", "UNIQUE_4H_FEATURE_ROWS")
         confirm = ms(broad["first_strong_rejection_ts_ms"],"rejection open") + 900000
@@ -1008,8 +1027,14 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             status, minute_reason = minute_check(asset, confirm)
             if minute_reason:
                 reason = minute_reason
+        snapshot_fields = canonical_snapshot_provenance(
+            asset, snapshot, next_snapshot, feature, threshold, causal_cohort)
         rejection_cluster = rejection_cluster_by_physical[key]
         rejection_rows.append({
+            **snapshot_fields,
+            "source_event_id":rejection_physical_identity({
+                "asset":asset,"direction":direction,"snapshot_index":idx,
+                "segment_id":segment,"test_rank":rank,"test_start_ts_ms":start}),
             "asset":asset,"source_event_row_ids":";".join(sorted(item["event_ids"])),
             "overlap_cluster_id":rejection_cluster[0],
             "overlap_cluster_size":rejection_cluster_sizes[rejection_cluster[0]],
