@@ -407,6 +407,54 @@ class ReportBuilderTests(unittest.TestCase):
                     expected_task_definition_sha256=report["task_definition_sha256"],
                 )
 
+    def test_artifact_verifier_rejects_forged_report_and_manifest_identity(self):
+        with tempfile.TemporaryDirectory(dir=report_builder.REPOSITORY_ROOT) as temporary:
+            path = Path(temporary) / "evidence.txt"
+            path.write_text("trusted artifact evidence", encoding="utf-8")
+            relative = path.relative_to(report_builder.REPOSITORY_ROOT).as_posix()
+            task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
+            report = valid_report()
+            report["run_id"] = "12345"
+            report["task_definition_sha256"] = report_builder.task_definition_digest(task)
+            report["input_manifest"] = report_builder.build_input_manifest([relative])
+            bundle = report_builder.build_artifact_bundle(
+                report, task,
+                expected_repository=report["repository"],
+                expected_branch=report["branch"],
+                expected_commit_sha=report["commit_sha"],
+                actual_head_sha=report["commit_sha"],
+                checkout_clean=True,
+                run_id="12345",
+                run_attempt="1",
+            )
+            forged_report = dict(report)
+            forged_report["repository"] = "attacker/other-repo"
+            forged_files = dict(bundle["files"])
+            forged_files["report.json"] = report_builder.render_json(forged_report)
+            forged_files["report.md"] = report_builder.render_markdown(forged_report)
+            forged_manifest = dict(bundle["manifest"])
+            forged_manifest["repository"] = forged_report["repository"]
+            forged_manifest["files"] = [
+                {"path": name, "sha256": hashlib.sha256(forged_files[name].encode("utf-8")).hexdigest()}
+                for name in ("report.json", "report.md")
+            ]
+            forged_files["artifact_manifest.json"] = (
+                json.dumps(forged_manifest, indent=2, sort_keys=True) + "\\n"
+            )
+            with self.assertRaisesRegex(ValueError, "repository does not match trusted"):
+                report_builder.verify_artifact_files(
+                    forged_files, forged_manifest,
+                    actual_artifact_name=bundle["artifact_name"],
+                    expected_run_id="12345",
+                    expected_run_attempt="1",
+                    expected_repository=report["repository"],
+                    expected_branch=report["branch"],
+                    expected_commit_sha=report["commit_sha"],
+                    expected_task_id=report["task_id"],
+                    expected_phase=report["phase"],
+                    expected_task_definition_sha256=report["task_definition_sha256"],
+                )
+
     def test_artifact_verifier_rejects_downloaded_name_mismatch(self):
         with tempfile.TemporaryDirectory(dir=report_builder.REPOSITORY_ROOT) as temporary:
             path = Path(temporary) / "evidence.txt"
