@@ -49,7 +49,8 @@ CENSORED_REASON_CODES = frozenset({
 DISPOSITION_STATUSES = frozenset({
     "ELIGIBLE_FOR_FURTHER_VALIDATION", "REJECTED", "EXPIRED", "CENSORED",
 })
-\nCANONICAL_REQUIRED_FIELDS = frozenset({
+
+CANONICAL_REQUIRED_FIELDS = frozenset({
     "candidate_id", "source_event_id", "source_event_row_ids", "family",
     "instrument_id", "asset", "side", "boundary_side",
     "regime_definition_version", "candidate_rule_version", "source_pipeline_version",
