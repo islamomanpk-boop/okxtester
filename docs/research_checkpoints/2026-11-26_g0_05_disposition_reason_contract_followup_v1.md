@@ -82,3 +82,18 @@ This closes the reason-code mismatch for the source-only disposition audit. It d
 - All five raw 1-minute source hashes/row counts and all 2,857 eligible timestamp memberships passed again. All 2,090 non-eligible rows had blank first-eligible timestamps.
 
 This rerun confirms the exact-minute result against the newer artifact that also enforces the corrected reason-code contract.
+
+
+## 8. Independent minute verification against grouped-summary artifact
+
+The grouped-summary source audit at commit `a1ef8721f3f770fb46079c09ea039da75a7e920e` was also used as the input to a fresh independent minute-verification run:
+
+- Workflow [45802702444](https://github.com/islamomanpk-boop/okxtester/actions/runs/45802702444) — SUCCESS.
+- Job: `139849768606`.
+- Workflow commit: `e57e650cb5222bbf95f824996421e249721f6f54`.
+- Artifact ID: `15107996832`.
+- ZIP SHA-256: `e05759ff6fa9b73178de85a21f62f014e66c3dbbe3718ff675c21b3ebd7ff317`, independently recomputed after download.
+- JSON SHA-256: `b2ab8bf00572c54a60cb3548c3131dcd986ed020639a6b762ce9328187b1e679`.
+- Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; 2,857/2,857 eligible timestamps present, all five raw source hashes and timestamp grids pass, all 2,090 non-eligible first-minute fields blank.
+
+This is the current controlling independent minute-verification run because it consumes the latest source-audit artifact containing the reason-code validator and grouped disposition summaries.
