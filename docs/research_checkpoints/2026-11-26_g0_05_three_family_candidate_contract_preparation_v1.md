@@ -591,3 +591,13 @@ Evidence:
 - Independent minute verification [45808232768](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808232768) — SUCCESS; artifact ID `15109374812`; ZIP SHA-256 `6ba631e255aa433a50e00a708e4d4e05475e4fb35c10e058eab825c46c98bc4a`; 2,857/2,857 eligible timestamps present.
 
 **Remaining:** final candidate IDs and failed-breakout source-breakout candidate IDs are deliberately not materialized. The remaining work is deterministic ID/schema validation, full canonical serialization design, and independent review. G0-05 remains open; no canonical candidate generation, execution simulation, strategy backtests, PnL or phase transition is authorized.
+
+
+## 30. Deterministic candidate-ID/link validator tested — 2026-11-26
+
+A pure contract validator is now in place for the eventual canonical ledger. It verifies deterministic candidate IDs, uniqueness, a single candidate-rule version, exact failed-breakout-to-source-breakout candidate links, and absence of source-breakout links on other families.
+
+- Synthetic suite [45808764318](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808764318) — SUCCESS; **117/117 tests passed**.
+- Tests use synthetic identities only. No candidate IDs were generated for real source rows, and no canonical candidate ledger was created.
+
+Remaining gate work is the full family-specific candidate-record schema validator, deterministic serializer/reproduction and independent review. G0-05 remains open.
