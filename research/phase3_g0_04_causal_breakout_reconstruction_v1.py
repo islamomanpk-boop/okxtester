@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Read-only G0-04 causal breakout reconstruction; descriptive eligibility only."""
 from __future__ import annotations
-import argparse, hashlib, json, os, platform
+import argparse, hashlib, json, os, platform, subprocess
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -294,7 +294,7 @@ def run(root,out):
  pd.DataFrame(rec).to_csv(out/"historical_932_identity_reconciliation.csv",index=False)
  ids.groupby(["asset","direction"]).size().rename("raw_crossings").reset_index().to_csv(out/"raw_crossing_summary.csv",index=False)
  meta={"status":"DESCRIPTIVE_RECONSTRUCTION_COMPLETE_BASELINE_20_OF_20","common_1m_timestamps":len(common),
-  "input_hashes":input_audit,"code_revision":os.getenv("GITHUB_SHA","unknown"),
+  "input_hashes":input_audit,"code_revision":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
   "python":platform.python_version(),"numpy":np.__version__,"pandas":pd.__version__,
   "scope":"descriptive only; no candidates, orders, fills, outcomes, inference or PnL"}
  meta["output_sha256"]={p.name:digest(p) for p in out.iterdir() if p.is_file()}
