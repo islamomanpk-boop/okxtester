@@ -236,7 +236,7 @@ def _authorize_task_impl(
     }
 
 
-def authorize_task(
+def _authorize_task_with_policy(
     task: dict[str, Any],
     *,
     allowlist: dict[str, Any] | None = None,
@@ -244,7 +244,7 @@ def authorize_task(
     phase_config: dict[str, Any] | None = None,
     queue_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Fail closed if malformed policy data causes an unexpected validation error."""
+    """Test seam: evaluate against explicitly supplied policy fixtures only."""
     try:
         return _authorize_task_impl(
             task,
@@ -262,12 +262,13 @@ def authorize_task(
         )
 
 
-def authorize_trusted_task(task: dict[str, Any]) -> dict[str, Any]:
-    """Runtime boundary: evaluate only against policy files fixed in this checkout.
+def authorize_task(task: dict[str, Any]) -> dict[str, Any]:
+    """Runtime authorization using only policy files fixed in this checkout."""
+    return _authorize_task_with_policy(task)
 
-    Policy injection remains available only through authorize_task for isolated
-    unit-test fixtures. Production callers must use this trusted entry point.
-    """
+
+def authorize_trusted_task(task: dict[str, Any]) -> dict[str, Any]:
+    """Explicit alias for the trusted, non-injectable runtime boundary."""
     return authorize_task(task)
 
 
