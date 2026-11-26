@@ -88,10 +88,32 @@ def _validate_utc_timestamp(value: str) -> None:
         raise ValueError("Report timestamp must be a valid ISO-8601 UTC timestamp.") from exc
 
 
+def _validate_json_value(value: Any, location: str = "task") -> None:
+    """Reject Python-only values so task hashes have unambiguous JSON meaning."""
+    if value is None or isinstance(value, (str, bool, int)):
+        return
+    if isinstance(value, float):
+        if not __import__("math").isfinite(value):
+            raise ValueError(f"{location} contains a non-finite number.")
+        return
+    if isinstance(value, list):
+        for index, item in enumerate(value):
+            _validate_json_value(item, f"{location}[{index}]")
+        return
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if not isinstance(key, str):
+                raise TypeError(f"{location} object keys must be strings.")
+            _validate_json_value(item, f"{location}.{key}")
+        return
+    raise TypeError(f"{location} contains a value that is not JSON-compatible.")
+
+
 def task_definition_digest(task: dict[str, Any]) -> str:
-    """Hash the exact task object using canonical JSON serialization."""
+    """Hash a strict JSON task object using canonical JSON serialization."""
     if not isinstance(task, dict) or not task:
         raise TypeError("Task definition must be a non-empty JSON object.")
+    _validate_json_value(task)
     canonical = json.dumps(
         task, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
     )
