@@ -257,5 +257,25 @@ class TaskRunnerTests(unittest.TestCase):
         self.assertEqual(result["tasks"], [])
 
 
+
+    def test_cli_all_mode_emits_summary_without_authorizing_queue(self):
+        summary = {
+            "decision": "SUMMARY_ONLY", "authorized": False,
+            "execution_performed": False, "tasks": [],
+        }
+        with patch("sys.argv", ["task_runner", "--all"]), patch.object(
+            task_runner, "preflight_all_tasks", return_value=summary
+        ) as preflight, patch("builtins.print"):
+            exit_code = task_runner.main()
+        self.assertEqual(exit_code, 0)
+        preflight.assert_called_once_with()
+
+    def test_cli_requires_exactly_one_selection_mode(self):
+        with patch("sys.argv", ["task_runner"]), self.assertRaises(SystemExit):
+            task_runner.main()
+        with patch("sys.argv", ["task_runner", "--all", "--task-id", "P3-RO-001"]), self.assertRaises(SystemExit):
+            task_runner.main()
+
+
 if __name__ == "__main__":
     unittest.main()
