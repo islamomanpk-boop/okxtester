@@ -8,6 +8,7 @@ from research.phase3_g0_05_candidate_contract_v1 import (
     snapshot_is_valid, rejection_confirmation, first_eligible_minute,
     family_side, complete_15m_confirmation, failed_breakout_confirmation,
     candidate_id, classify_disposition, deterministic_json,
+    validate_candidate_identity_links,
     causal_regime_eligible, validate_strict_broad_nesting,
     exact_first_minute_disposition, failed_breakout_horizon_disposition,
     rejection_physical_identity, collapse_rejection_cohort_rows, causal_rejection_disposition,
@@ -109,6 +110,65 @@ class G005ContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "12-hour"):
             failed_breakout_confirmation("UPPER", 99.0, 100.0,
                                           FAILURE_HORIZON_MS + 1, 0, True)
+
+    def _synthetic_candidate_identity_rows(self):
+        version = "G0_05_CANDIDATE_RULE_V1"
+        source_breakout_id = "BTC|UPPER|1761287400000|1761278400000"
+        breakout_id = candidate_id(source_breakout_id, "BREAKOUT_CONTINUATION", version)
+        failed_source_id = source_breakout_id + "|1761300000000"
+        failed_id = candidate_id(failed_source_id, "FAILED_BREAKOUT_REVERSAL", version)
+        return [
+            {
+                "candidate_id": breakout_id,
+                "source_event_id": source_breakout_id,
+                "family": "BREAKOUT_CONTINUATION",
+                "candidate_rule_version": version,
+                "source_breakout_candidate_id": "NOT_APPLICABLE",
+            },
+            {
+                "candidate_id": failed_id,
+                "source_event_id": failed_source_id,
+                "family": "FAILED_BREAKOUT_REVERSAL",
+                "candidate_rule_version": version,
+                "source_breakout_source_event_id": source_breakout_id,
+                "source_breakout_candidate_id": breakout_id,
+            },
+        ]
+
+    def test_candidate_identity_validator_accepts_exact_failed_breakout_link(self):
+        result = validate_candidate_identity_links(self._synthetic_candidate_identity_rows())
+        self.assertEqual(result["candidate_rows"], 2)
+        self.assertEqual(result["failed_breakout_source_links_validated"], 1)
+        self.assertTrue(result["candidate_ids_unique"])
+
+    def test_candidate_identity_validator_rejects_wrong_candidate_hash(self):
+        rows = self._synthetic_candidate_identity_rows()
+        rows[0]["candidate_id"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "does not match"):
+            validate_candidate_identity_links(rows)
+
+    def test_candidate_identity_validator_rejects_duplicate_candidate_ids(self):
+        rows = self._synthetic_candidate_identity_rows()
+        rows[1]["candidate_id"] = rows[0]["candidate_id"]
+        with self.assertRaisesRegex(ValueError, "duplicate candidate_id"):
+            validate_candidate_identity_links(rows)
+
+    def test_candidate_identity_validator_rejects_broken_source_breakout_link(self):
+        rows = self._synthetic_candidate_identity_rows()
+        rows[1]["source_breakout_candidate_id"] = "f" * 64
+        with self.assertRaisesRegex(ValueError, "does not match"):
+            validate_candidate_identity_links(rows)
+
+    def test_candidate_identity_validator_requires_source_breakout_row(self):
+        rows = self._synthetic_candidate_identity_rows()[1:]
+        with self.assertRaisesRegex(ValueError, "does not resolve"):
+            validate_candidate_identity_links(rows)
+
+    def test_candidate_identity_validator_rejects_source_link_on_other_families(self):
+        rows = self._synthetic_candidate_identity_rows()
+        rows[0]["source_breakout_candidate_id"] = rows[1]["source_breakout_candidate_id"]
+        with self.assertRaisesRegex(ValueError, "non-failed-breakout"):
+            validate_candidate_identity_links(rows)
 
     def test_candidate_id_is_deterministic_and_rule_versioned(self):
         a = candidate_id("BTC|UPPER|1000", "BREAKOUT_CONTINUATION", "v1")
