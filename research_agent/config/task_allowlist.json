@@ -1,5 +1,5 @@
 {
   "schema_version": 1,
-  "description": "Trusted task IDs eligible for policy evaluation. Empty until tasks are independently reviewed and explicitly approved.",
-  "approved_task_ids": []
+  "description": "Trusted task hash approvals. Empty until each exact queue entry is independently reviewed and explicitly approved.",
+  "approved_tasks": []
 }
