@@ -518,6 +518,133 @@ def validate_candidate_identity_links(records: list[dict]) -> dict:
     }
 
 
+def _split_semicolon(value) -> list[str]:
+    if value is None or str(value).strip() == "":
+        return []
+    return [part for part in str(value).split(";") if part != ""]
+
+
+def _int_or_none(value):
+    if value is None or str(value).strip() == "":
+        return None
+    return int(value)
+
+
+def _float_or_none(value):
+    if value is None or str(value).strip() == "":
+        return None
+    return float(value)
+
+
+def _int_or_na(value):
+    if value is None or str(value).strip() in {"", "NOT_APPLICABLE"}:
+        return "NOT_APPLICABLE"
+    return int(value)
+
+
+def serialize_source_disposition_ledgers(rejection_rows: list[dict],
+                                          breakout_rows: list[dict],
+                                          failed_breakout_rows: list[dict]) -> list[dict]:
+    """Serialize source-only rows into canonical records; caller must authorize invocation."""
+    rule_version = "G0_05_CANDIDATE_RULE_V1"
+    breakout_candidate_ids = {}
+    for row in breakout_rows:
+        source_identity = str(row.get("source_event_id", "")).strip()
+        if not source_identity:
+            raise ValueError("breakout source-only row has no source_event_id")
+        if source_identity in breakout_candidate_ids:
+            raise ValueError("duplicate breakout source_event_id in source-only ledger")
+        breakout_candidate_ids[source_identity] = candidate_id(
+            source_identity, "BREAKOUT_CONTINUATION", rule_version)
+
+    def serialize(row: dict, failed: bool = False) -> dict:
+        family = row["family"]
+        source_breakout_candidate = "NOT_APPLICABLE"
+        if failed:
+            source_breakout_identity = str(row.get("source_breakout_source_event_id", "")).strip()
+            source_breakout_candidate = breakout_candidate_ids.get(source_breakout_identity)
+            if source_breakout_candidate is None:
+                raise ValueError("failed-breakout row has no exact source breakout source-event row")
+            confirmation = str(row.get("signal_available_at_ts_ms") or "NO_CONFIRMATION")
+            source_identity = f"{source_breakout_candidate}|{confirmation}|{rule_version}"
+        else:
+            source_identity = str(row["source_event_id"])
+        status = row["disposition"]
+        reason = "NONE" if status == "ELIGIBLE_FOR_FURTHER_VALIDATION" else row.get("reason_code") or ""
+        censoring_reason = (row.get("censoring_reason") or reason) if status == "CENSORED" else None
+        record = {
+            "source_event_id": source_identity,
+            "family": family,
+            "candidate_rule_version": rule_version,
+            "candidate_id": candidate_id(source_identity, family, rule_version),
+            "source_event_row_ids": _split_semicolon(row.get("source_event_row_ids")),
+            "instrument_id": row["instrument_id"],
+            "asset": row["asset"],
+            "side": row["side"],
+            "boundary_side": row["boundary_side"],
+            "regime_definition_version": row["regime_definition_version"],
+            "source_pipeline_version": row["source_pipeline_version"],
+            "historical_cohort_memberships": _split_semicolon(row.get("historical_cohort_memberships")),
+            "causal_cohort_label": row["causal_cohort_label"],
+            "overlap_cluster_id": row["overlap_cluster_id"],
+            "overlap_cluster_size": int(row["overlap_cluster_size"]),
+            "overlap_window_start_ts_ms": int(row["overlap_cluster_start_ts_ms"]),
+            "overlap_window_end_ts_ms": int(row["overlap_cluster_end_exclusive_ts_ms"]),
+            "repeated_signal_group_id": row["repeated_signal_group_id"],
+            "snapshot_id": row["snapshot_id"],
+            "snapshot_available_at_ts_ms": int(row["snapshot_available_at_ts_ms"]),
+            "snapshot_valid_from_ts_ms": int(row["snapshot_valid_from_ts_ms"]),
+            "snapshot_valid_until_ts_ms": int(row["snapshot_valid_until_ts_ms"]),
+            "frozen_upper_boundary": float(row["frozen_upper_boundary"]),
+            "frozen_lower_boundary": float(row["frozen_lower_boundary"]),
+            "channel_width_pct": float(row["channel_width_pct"]),
+            "threshold_policy_id": row["threshold_policy_id"],
+            "threshold_population_id": row["threshold_population_id"],
+            "threshold_value": _float_or_none(row.get("threshold_value")),
+            "threshold_percentile": _int_or_none(row.get("threshold_percentile")),
+            "threshold_calibration_start_ts_ms": _int_or_none(row.get("threshold_calibration_start_ts_ms")),
+            "threshold_calibration_end_ts_ms": _int_or_none(row.get("threshold_calibration_end_ts_ms")),
+            "threshold_prior_observation_count": _int_or_none(row.get("threshold_prior_observation_count")),
+            "efficiency_value": _float_or_none(row.get("efficiency_value")),
+            "efficiency_limit": float(row["efficiency_limit"]),
+            "overlap_value": _float_or_none(row.get("overlap_value")),
+            "overlap_minimum": float(row["overlap_minimum"]),
+            "source_file_paths": _split_semicolon(row.get("source_file_paths")),
+            "source_git_blob_ids": _split_semicolon(row.get("source_git_blob_ids")),
+            "source_sha256_manifest_id": row["source_sha256_manifest_id"],
+            "signal_candle_open_ts_ms": _int_or_none(row.get("signal_candle_open_ts_ms")),
+            "signal_candle_close_ts_ms": _int_or_none(row.get("signal_candle_close_ts_ms")),
+            "signal_available_at_ts_ms": _int_or_none(row.get("signal_available_at_ts_ms")),
+            "confirmation_rule_id": row["confirmation_rule_id"],
+            "confirmation_bar_interval_ms": int(row["confirmation_bar_interval_ms"]),
+            "confirmation_status": row["confirmation_status"],
+            "first_eligible_execution_bar_open_ts_ms": _int_or_none(row.get("first_eligible_1m_open_ts_ms")),
+            "event_observed_at_ts_ms": int(row["event_observed_at_ts_ms"]),
+            "ambiguity_flags": _split_semicolon(row.get("ambiguity_flags")),
+            "decluster_policy_id": row["decluster_policy_id"],
+            "candidate_status": status,
+            "exclusion_reason": reason,
+            "censoring_reason": censoring_reason,
+            "invalidation_reference_type": row["invalidation_reference_type"],
+            "invalidation_reference_value": row["invalidation_reference_value"],
+            "invalidation_reference_ts_ms": row["invalidation_reference_ts_ms"],
+            "expiry_rule_id": row["expiry_rule_id"],
+            "expiry_ts_ms": _int_or_na(row.get("expiry_ts_ms")),
+            "source_breakout_candidate_id": source_breakout_candidate,
+            "source_reconciliation_status": row["source_reconciliation_status"],
+            "source_join_cardinality": row["source_join_cardinality"],
+        }
+        return record
+
+    canonical = (
+        [serialize(row) for row in rejection_rows]
+        + [serialize(row) for row in breakout_rows]
+        + [serialize(row, failed=True) for row in failed_breakout_rows]
+    )
+    validate_canonical_candidate_ledger(canonical)
+    return canonical
+
+
 def classify_disposition(snapshot_available_ms: int, snapshot_next_ms: int,
                          confirmation_ms: int) -> str:
     return ("ELIGIBLE_FOR_FURTHER_VALIDATION"
