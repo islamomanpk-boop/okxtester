@@ -223,3 +223,6 @@ The candidate contract now includes a row-level validator for all 60 required ca
 The latest source audit [45810599246](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810599246) confirms both validators are importable while explicitly reporting that canonical candidate generation is not authorized. Artifact `15113820073`; manifest ID `d9c9878005eefa4de13671d7e68dc67859a2ee213524c3f5884e60cc1422d228`. Synthetic suite [45810463442](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810463442) passed **125/125 tests**.
 
 The validator has been tested only with synthetic candidate records; no real candidate IDs or canonical rows were created.
+
+
+Independent minute verification after schema-validator integration: [45810782593](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810782593) — SUCCESS; artifact ID `15112426887`; ZIP SHA-256 `da386f639b49c4188bf2927f0c9edb8305abed08f542e3ef6cffa988df449d04`; 2,857/2,857 eligible timestamps present.
