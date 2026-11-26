@@ -23,13 +23,15 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Safety controller rejects duplicate/empty phase-order entries and returns DENY for malformed task or policy inputs rather than propagating validation exceptions.
 - [x] Public runtime authorization accepts only the task payload and loads policy from fixed repository paths; policy injection is confined to a private test seam.
 - [x] Task preflight uses the trusted repository policy rather than passing a caller-supplied queue into the authorization boundary.
-- [x] Added focused safety-controller denial/allowance tests, including relabelled Phase 3 tasks, duplicate phase order, and malformed inputs; authored but not executed.
+- [x] Added 9 focused safety-controller denial/allowance tests, including relabelled Phase 3 tasks, duplicate phase order, malformed inputs, and public policy-injection rejection; authored but not executed.
 - [x] Read-only preflight dispatcher has no executor, subprocess, or write capability.
 - [x] Preflight dispatcher now returns DENY for malformed queue objects instead of raising an uncaught attribute error.
-- [x] Report formatter validates repository-contained inputs, rejection of symlinked path components, normalized unique manifest paths, SHA-256 values, commit SHA format, and UTC timestamps.
-- [x] Added report-builder tests for deterministic rendering, malformed provenance, duplicate paths, traversal, external paths, and Markdown injection; authored but not executed.
+- [x] Report formatter validates repository-contained inputs, rejection of symlinked path components, normalized unique manifest paths, SHA-256 values, commit SHA format, and canonical UTC timestamps ending in Z.
+- [x] Report schema rejects unsupported top-level fields, non-string finding entries, Boolean schema versions, Windows-style manifest paths, and non-finite JSON values.
+- [x] Added 13 report-builder regression tests covering deterministic rendering, malformed provenance, duplicate and unsafe paths, strict schema/timestamp validation, external paths, symlinks, and Markdown injection; authored but not executed.
 - [x] Markdown report rendering flattens untrusted line breaks and escapes Markdown control characters in findings and metadata.
-- [x] Added preflight tests for malformed queues, duplicate task IDs, and preflight-only behavior; authored but not executed.
+- [x] Added 5 preflight tests for malformed queues, duplicate task IDs, trusted-queue boundary, and preflight-only behavior; authored but not executed.
+- [x] Total regression tests authored: 27 (9 safety-controller, 13 report-builder, 5 task-runner); none executed.
 - [x] Static configuration/source consistency review completed against the branch files.
 
 ## Deferred validation
