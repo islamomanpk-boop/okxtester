@@ -419,3 +419,18 @@ All 2,857 rows marked eligible passed exact first-minute timestamp membership. T
 The contract synthetic CI now reports **49/49 tests passing** in [run 45783985772](https://github.com/islamomanpk-boop/okxtester/actions/runs/45783985772), including exact-minute and 12-hour boundary cases.
 
 **Current status:** G0-04 ACCEPTED. G0-05 contract and 49 synthetic tests pass; source provenance, threshold recomputation, row-level source dispositions and exact first-minute checks pass. Next is independent row-level reconciliation/review of the three disposition CSVs and mapping semantics. Canonical candidate generation remains blocked until that review is complete. No orders, fills, execution simulation, PnL or strategy backtesting are authorized.
+
+
+## 18. Independent raw 1-minute membership verification — 2026-11-26
+
+The previously recorded independent-review limitation concerning separate re-hashing of the five raw 1-minute datasets has now been resolved by a separate verifier and workflow. Full evidence is recorded in `2026-11-26_g0_05_independent_exact_minute_verification_v1.md`.
+
+- Corrected source audit: [45800976161](https://github.com/islamomanpk-boop/okxtester/actions/runs/45800976161) — SUCCESS; checked-out commit `7406bd52d93d10128bc8ea18416366917223b5dc`; artifact ID `15106648767`; ZIP SHA-256 `f8e7f802606ac4b6a977f79e3103b21fa44733cedae833d724a3c6260c2ea517`.
+- Independent verifier: [45801631819](https://github.com/islamomanpk-boop/okxtester/actions/runs/45801631819) — SUCCESS; job `139846060250`; artifact ID `15107586311`; ZIP SHA-256 `d40b1a565e47d65222836a20c625765b75d47108cb5b33c82c3b115c9b5f22fe`.
+- Five raw 1-minute inputs: all five SHA-256 values and expected row counts independently matched; all timestamp grids were strictly increasing, duplicate-free, minute-aligned and continuous.
+- All 2,857 eligible timestamps were independently found in the relevant raw asset timestamp index. All 2,090 non-eligible rows had blank first-eligible timestamp fields.
+- Family dispositions remained rejection 1,083/31/40/0; breakout continuation 1,038/1,823/0/0; failed-breakout reversal 736/30/166/0 (eligible/rejected/expired/censored).
+
+The first independent run [45801067586](https://github.com/islamomanpk-boop/okxtester/actions/runs/45801067586) intentionally failed closed because it consumed a stale artifact predating the eligible-only timestamp correction. The workflow was amended to select the successful source-audit artifact at the exact correction commit; the subsequent independent run passed. Both runs and the correction are retained in the evidence record.
+
+**Updated status:** The raw 1-minute hash/grid/membership limitation is closed. This does not close all G0-05 acceptance criteria. Complete contract review, remaining source/schema/reporting requirements, deterministic candidate-ledger implementation and its review remain open. Canonical candidate generation remains unauthorized; no execution simulation, strategy backtest, PnL or phase transition is authorized.
