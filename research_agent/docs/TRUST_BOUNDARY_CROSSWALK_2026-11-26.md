@@ -117,3 +117,10 @@ This is a documentation-level risk analysis and future test plan only. Likelihoo
 `docs/SECURITY_CONTROL_GAP_AUDIT_2026-11-26.md` maps the threat register to inspected pure modules and lifecycle proposals. It distinguishes present source-level restrictions from partial caller-supplied verification, design-only trust controls, and unestablished operational components. The main blockers are independent trust roots, atomic durable registry transactions, retained package digests, authenticated operation-boundary approval, authenticated dispatch/delivery/return, and anti-rollback recovery.
 
 This was a bounded static source/document review, not an exhaustive workflow or deployment audit. No tests, scripts, workflows, or failure injections were run. G0-05 remains controlling; the agent remains non-operational.
+
+
+## 12. Backend-neutral registry interface contract
+
+`docs/TRUSTED_REGISTRY_BACKEND_INTERFACE_SPEC.md` now consolidates the minimum future backend semantics: immutable record model; authenticated read ports; atomic lifecycle command ports; global and per-assignment concurrency tokens; replay-before-stale-check idempotency; exact operation-bound approval/revocation; provider idempotency/queryability; return/review/human-authority separation; error taxonomy; and independent anti-rollback recovery evidence.
+
+This is a contract for later design/implementation review, not a backend choice or implementation. It does not resolve repository topology, identity/approval provider, canonicalization vectors, provider selection, or checkpoint witness. No code, tests, workflows, dispatch, or protected-branch changes were made. G0-05 remains controlling and the agent remains non-operational.
