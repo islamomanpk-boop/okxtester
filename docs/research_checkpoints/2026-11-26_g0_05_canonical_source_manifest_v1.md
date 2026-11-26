@@ -173,3 +173,38 @@ These are source-only eligibility/disposition counts, not emitted candidates. Th
 Module B event/horizon file SHA-256 values were also rechecked against its frozen metadata:
 - events: `d47cc0c480f5175c7c07bc09b3878d00f30e847223df5aee517435bd6216c861`;
 - horizons: `532e68ecb7b1394457202b8c4cb4c3252ec11a8c1807ad91087e0d0341b06faf`.
+
+## 9. Row-level source-disposition dry-run and exact first-minute audit — 2026-11-26
+
+Latest read-only workflow: [45784746198](https://github.com/islamomanpk-boop/okxtester/actions/runs/45784746198), job `139788574173` — SUCCESS.
+- Checked-out revision: `5aeafd08f063cb4c515fa2b4c000fa526fb95a38`.
+- Artifact: [phase3-g0-05-source-audit-45784746198](https://github.com/islamomanpk-boop/okxtester/actions/runs/45784746198/artifacts/15100091580).
+- Artifact ZIP SHA-256: `8616483b6932bdd0e9976ba31e150b2d93882455365e51cad180a1d94e23eda9`; independently downloaded and verified.
+- `source_audit_report.json` SHA-256: `9cdd341a172d1d1ae9ce2eccf1ca4cbd89e05d9c915b54e5d294cbf13c0db9b4`.
+- `source_manifest.json` SHA-256: `abd869c9c11a31f42ae916bc56492977dce79dd18f5e2c9c9b1f23584629a440`.
+
+The workflow now verifies each of the five canonical 1-minute market files against the frozen G0-04 SHA-256 and row count before exact timestamp lookup. All five hashes and row counts matched. The row-level dry-run emitted three source-only disposition ledgers (no candidate IDs or candidate records):
+
+| Source population | Rows | Eligible for further validation | Rejected | Expired | Censored |
+|---|---:|---:|---:|---:|---:|
+| Physical rejection events | 1,154 | 1,083 | 31 | 40 | 0 |
+| Raw breakout crossings | 2,861 | 1,038 | 1,823 | 0 | 0 |
+| Unique Module B failed-breakout events | 932 | 736 | 30 | 166 | 0 |
+| **Total source rows** | **4,947** | **2,857** | **1,884** | **206** | **0** |
+
+Disposition detail:
+- Rejections: 942 causal strict + 141 causal broad-only; 29 warm-up + 2 regime-ineligible; 40 expired at the next snapshot endpoint.
+- Raw breakouts: 794 strict + 244 broad-only eligible; 262 warm-up + 1,561 regime-ineligible.
+- Failed breakouts: 736 eligible with a completed 15-minute return-inside confirmation; 166 had a complete 12-hour horizon with no return-inside and are expired; 30 were rejected because their linked source breakout was not causally eligible. Strict/broad source membership is preserved per physical identity (broad-only rows remain broad-only).
+
+**Exact first-eligible-minute result:** every eligible row passed exact timestamp membership in its asset's canonical 1-minute open-time index. No nearest-minute substitution was used and no eligible row had `MISSING_OR_GAPPED_MINUTES`. The exact checks were:
+- rejection: first eligible minute open equals completed rejection 15-minute confirmation timestamp;
+- breakout continuation: first eligible minute open equals the raw breakout signal timestamp;
+- failed-breakout reversal: first eligible minute open equals the completed 15-minute return-inside confirmation timestamp.
+
+The three output CSV SHA-256 values:
+- `rejection_source_dispositions.csv`: `797456556a4dd6c55dc5a14dc891860a7235c3d759cac371bb770cd32334eea4`.
+- `breakout_source_dispositions.csv`: `71df0aa38be5e90767009dbb71616baf45e99ca3a2e8104a319f50342b2b7ff0`.
+- `failed_breakout_source_dispositions.csv`: `910cf2b54eae40e97fc38e105632dde070a8c4f33371a918a4e10f7c5aebd2ce`.
+
+This is a deterministic source-disposition dry-run only. It does not emit canonical candidates, order instructions, fills, PnL, or strategy results. The next step is independent row-level review/reconciliation of these three ledgers and their disposition mappings. Canonical candidate generation remains blocked.
