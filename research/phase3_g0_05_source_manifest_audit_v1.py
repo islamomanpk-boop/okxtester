@@ -289,6 +289,10 @@ def audit_module_b(root: Path, g004_raw_keys: set) -> dict:
     if unmatched:
         fail(f"Module B source identities absent from G0-04 raw ledger: {len(unmatched)}")
     return {"event_rows": len(events), "horizon_rows": len(horizons),
+            "events_git_blob_sha1": git_blob_sha1(event_path.read_bytes()),
+            "events_sha256": sha256_bytes(event_path.read_bytes()),
+            "horizons_git_blob_sha1": git_blob_sha1(horizon_path.read_bytes()),
+            "horizons_sha256": sha256_bytes(horizon_path.read_bytes()),
             "unique_source_keys": len(event_keys), "definition_rows": dict(definitions),
             "module_b_keys_missing_from_g004_raw": 0,
             "link_cardinality": "MODULE_B_COHORT_ROWS_TO_G004_RAW_IDENTITIES_RECONCILED"}
