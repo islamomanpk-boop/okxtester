@@ -27,7 +27,7 @@ _EVENT_FIELDS = {
     "previous_event_sha256", "event_sha256",
 }
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-_TIMESTAMP_RE = re.compile(r"^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$")
+_TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$")
 
 
 def _strict_json_copy(value: Any) -> Any:
@@ -72,7 +72,7 @@ def _validate_event_shape(event: Any) -> dict[str, Any]:
         raise ValueError("Event ID must be a non-empty string.")
     if len(event["event_id"]) > 200:
         raise ValueError("Event ID exceeds the 200-character limit.")
-    if event["event_type"] not in EVENT_TYPES:
+    if not isinstance(event["event_type"], str) or event["event_type"] not in EVENT_TYPES:
         raise ValueError("Unsupported ledger event type.")
     if not isinstance(event["task_id"], str) or not event["task_id"].strip():
         raise ValueError("Event task ID must be a non-empty string.")
@@ -81,7 +81,7 @@ def _validate_event_shape(event: Any) -> dict[str, Any]:
     ):
         raise ValueError("Event task-definition digest must be lowercase SHA-256.")
     _validate_timestamp(event["occurred_at_utc"])
-    if event["source"] not in EVENT_SOURCES:
+    if not isinstance(event["source"], str) or event["source"] not in EVENT_SOURCES:
         raise ValueError("Unsupported event source category.")
     if not isinstance(event["source_ref"], str) or not event["source_ref"].strip():
         raise ValueError("Event source reference must be a non-empty string.")
