@@ -39,9 +39,10 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Added 47 report-builder regression tests covering deterministic rendering, malformed provenance, duplicate and unsafe paths, strict schema/timestamp validation, fixed agent identity, external paths, symlinks, Markdown injection, completion-claim status rejection, and explicit provenance/metadata limitation disclosures; authored but not executed.
 - [x] Markdown report rendering flattens untrusted line breaks and escapes Markdown control characters in findings and metadata; untrusted values are kept outside Markdown code spans to prevent delimiter breakout.
 - [x] Added 22 preflight tests for malformed queues and rows, duplicate task IDs and JSON keys, non-standard JSON constants, trusted-queue boundary, stable denial envelopes, inconsistent/malformed authorization results, and preflight-only behavior; authored but not executed.
-- [x] Total regression tests authored: 100 (31 safety-controller, 47 report-builder, 22 task-runner); none executed. Safety policy and CLI task JSON now reject duplicate object keys and non-standard NaN/Infinity constants.
+- [x] Total regression tests authored: 101 (32 safety-controller, 47 report-builder, 22 task-runner); none executed. Safety policy and CLI task JSON now reject duplicate object keys and non-standard NaN/Infinity constants.
 - [x] Static configuration/source consistency review completed against the branch files.
 - [x] Added `PHASE_SUPPORT_MATRIX.md` documenting reusable support and queue coverage across all five phases in the agreed order; later phases remain gated by predecessor closure and their own handoffs.
+- [x] Added a safety-controller regression test that checks the checked-in phase configuration, queue ordering, per-phase task presence, later-phase blocked statuses, and human-authorized gate dependency; authored but not executed.
 - [x] Verified repository default branch is `main`; GitHub requires a `workflow_dispatch` workflow file to exist on the default branch. The current agent-branch-only/manual-dispatch design is blocked unless the user authorizes a minimal main-branch dispatcher or chooses a separate agent repository. No such change is authorized or made.
 
 ## Deferred validation
