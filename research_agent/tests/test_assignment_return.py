@@ -70,6 +70,14 @@ class AssignmentReturnTests(unittest.TestCase):
             file_contents={self.path: self.content},
         )
 
+    def test_assignment_digest_rejects_non_string_object_keys(self):
+        with self.assertRaises(TypeError):
+            assignment_package_digest({"1": "value", 1: "ambiguous"})
+
+    def test_assignment_digest_rejects_python_only_nested_values(self):
+        with self.assertRaises(TypeError):
+            assignment_package_digest({"nested": ("tuple",)})
+
     def test_valid_return_is_bound_but_still_human_review_only(self):
         result = self.review()
         self.assertTrue(result["assignment_binding_verified"])
