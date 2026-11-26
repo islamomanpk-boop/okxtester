@@ -108,3 +108,20 @@ Record PASS / FAIL / NOT VERIFIED and evidence for every item.
 **Reviewer explanation and evidence links:**  
 
 A reviewer must not select ACCEPT if any required item is FAIL or NOT VERIFIED. If rejected or inconclusive, G0-04 stays open and G0-05 stays blocked. The reviewer must submit their own signed review/comment or commit; this packet must not be self-approved by its preparer.
+
+
+## Review addendum — corrected validator revision and raw-data audit — 2026-11-26
+
+The original frozen review target above remains preserved for audit history. A subsequent defensive validation repair produced a new canonical execution target:
+
+- Corrected source commit: `86b49598d676b6ab00649bf31d4490ffbb1e608f`
+- Workflow run: [45756061179](https://github.com/islamomanpk-boop/okxtester/actions/runs/45756061179)
+- Job: `139694830125`, SUCCESS
+- Artifact ID: `15087542445`
+- Artifact ZIP SHA-256: `ef6204b546b49880675514ff76b4f6cb86e2821ba2b0d1d5412549927388f0a1`
+
+The new run's seven output files are byte-identical to the prior corrected artifact, and all seven output hashes match the new metadata. The only code change between those runs is defensive rejection of null/non-numeric zone levels; the actual source classification ledger contains no such values.
+
+A separate direct raw-input audit is recorded in `2026-11-26_g0_04_implementation_checkpoint_v1.md`. It independently verified all five input SHA-256 values, 569,125 identical common timestamps, timestamp cadence and OHLCV validity, reproduced all 20 historical baseline counts and 10 P25/P40 quantiles from raw market data, and matched all 2,358 detector feature-ledger rows per asset within (10^{-9}). It also checked the 4,776-row historical classification ledger: 932 identities, expected definitions and zone levels, no null zones and no duplicate full-grain rows.
+
+The separate AI review by Kimi remains recorded as INCONCLUSIVE because that reviewer did not personally inspect the raw input files. The additional checks above are an assistant-side audit, not a human sign-off and not a retroactive change to Kimi's disposition. The project owner must decide whether the combined evidence satisfies the review standard and record ACCEPT / REJECT / CONDITIONAL HOLD. Until that decision is recorded, G0-04 is not formally accepted and G0-05 remains blocked.
