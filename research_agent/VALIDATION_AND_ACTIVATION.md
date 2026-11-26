@@ -38,8 +38,8 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Report schema requires a task-definition SHA-256 and provides canonical JSON hashing shared with the safety controller, plus a verifier that binds report task ID, phase, and digest to the exact trusted queue task; digest inputs are restricted to strict JSON values (string object keys, finite numbers, arrays, objects, and JSON scalars), rejecting Python-only values and ambiguous key coercion. The workflow must compute it from the exact trusted queue object.
 - [x] Added 44 report-builder regression tests covering deterministic rendering, malformed provenance, duplicate and unsafe paths, strict schema/timestamp validation, external paths, symlinks, Markdown injection, completion-claim status rejection, and explicit provenance/metadata limitation disclosures; authored but not executed.
 - [x] Markdown report rendering flattens untrusted line breaks and escapes Markdown control characters in findings and metadata; untrusted values are kept outside Markdown code spans to prevent delimiter breakout.
-- [x] Added 17 preflight tests for malformed queues and rows, duplicate task IDs, trusted-queue boundary, stable denial envelopes, inconsistent/malformed authorization results, and preflight-only behavior; authored but not executed.
-- [x] Total regression tests authored: 83 (22 safety-controller, 44 report-builder, 17 task-runner); none executed.
+- [x] Added 18 preflight tests for malformed queues and rows, duplicate task IDs, trusted-queue boundary, stable denial envelopes, inconsistent/malformed authorization results, and preflight-only behavior; authored but not executed.
+- [x] Total regression tests authored: 84 (22 safety-controller, 44 report-builder, 18 task-runner); none executed.
 - [x] Static configuration/source consistency review completed against the branch files.
 
 ## Deferred validation
