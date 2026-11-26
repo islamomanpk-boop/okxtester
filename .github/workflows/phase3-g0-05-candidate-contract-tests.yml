@@ -39,4 +39,4 @@ jobs:
 
       - name: Run synthetic contract tests
         run: |
-          python -m unittest -v tests.test_phase3_g0_05_candidate_contract_v1
+          python -m unittest discover -s tests -p 'test_phase3_g0_05_candidate_contract_v1.py' -v
