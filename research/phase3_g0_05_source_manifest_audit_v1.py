@@ -936,7 +936,17 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "causal_cohort":causal_cohort,
             "direction":direction,"family":"SUPPORT_REJECTION" if direction.lower()=="lower" else "RESISTANCE_REJECTION",
             "family_direction":"LONG" if direction.lower()=="lower" else "SHORT",
-            "confirmation_ts_ms":confirm,"first_eligible_1m_open_ts_ms":first_eligible_minute_or_blank(status, confirm),
+            "signal_candle_open_ts_ms":ms(broad["first_strong_rejection_ts_ms"],"rejection signal candle open"),
+            "signal_candle_close_ts_ms":confirm,"signal_available_at_ts_ms":confirm,
+            "confirmation_ts_ms":confirm,"confirmation_rule_id":"STRONG_REJECTION_15M_CLOSE_V1",
+            "confirmation_bar_interval_ms":900000,"confirmation_status":"CONFIRMED",
+            "event_observed_at_ts_ms":confirm,
+            "first_eligible_1m_open_ts_ms":first_eligible_minute_or_blank(status, confirm),
+            "ambiguity_flags":"NONE","decluster_policy_id":"G0_05_INTERVAL_GRAPH_METADATA_V1",
+            "expiry_rule_id":"NOT_APPLICABLE","expiry_ts_ms":"NOT_APPLICABLE",
+            "invalidation_reference_type":"NOT_APPLICABLE",
+            "source_reconciliation_status":"EXACT_PHYSICAL_EVENT_COLLAPSE",
+            "source_join_cardinality":"ONE_PHYSICAL_EVENT_TO_ONE_OR_TWO_COHORT_ROWS",
             "disposition":status,"reason_code":reason,
             "censoring_reason":reason if status=="CENSORED" else ""})
     # Raw breakout crossings: retain one row per raw source crossing.
@@ -1001,7 +1011,17 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
         breakout_rows.append({"asset":asset,"source_event_key":source_event_key,
             "direction":r["direction"],"family":"BREAKOUT_CONTINUATION",
             "family_direction":"LONG" if r["direction"]=="UPPER" else "SHORT",
-            "signal_time_ms":signal,"first_eligible_1m_open_ts_ms":first_eligible_minute_or_blank(status, signal),
+            "signal_time_ms":signal,"signal_candle_open_ts_ms":signal-900000,
+            "signal_candle_close_ts_ms":signal,"signal_available_at_ts_ms":signal,
+            "confirmation_rule_id":"BOUNDARY_CROSSING_15M_CLOSE_V1",
+            "confirmation_bar_interval_ms":900000,"confirmation_status":"CONFIRMED",
+            "event_observed_at_ts_ms":signal,
+            "first_eligible_1m_open_ts_ms":first_eligible_minute_or_blank(status, signal),
+            "ambiguity_flags":"NONE","decluster_policy_id":"G0_05_INTERVAL_GRAPH_METADATA_V1",
+            "expiry_rule_id":"NOT_APPLICABLE","expiry_ts_ms":"NOT_APPLICABLE",
+            "invalidation_reference_type":"NOT_APPLICABLE",
+            "source_reconciliation_status":"EXACT_SOURCE_MATCH",
+            "source_join_cardinality":"ONE_RAW_CROSSING_TO_ONE_DISPOSITION",
             "historical_cohort_memberships":historical_membership,
             "overlap_cluster_id":cluster["overlap_cluster_id"],
             "overlap_cluster_size":cluster["overlap_cluster_size"],
@@ -1046,6 +1066,12 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
         elif raw[tag+"__broad"].lower()=="true": source_ok=True; source_cohort="CAUSAL_BROAD_ONLY"
         else: source_ok=False; source_cohort="NOT_ELIGIBLE"
         confirmation=next(iter(confirmations)) if confirmations else None
+        observed_windows={int(x["observed_bars_12h"]) for x in members}
+        if len(observed_windows)!=1:
+            fail(f"Module B cohort rows disagree on observed 12H bars: {key}")
+        observed_window=next(iter(observed_windows))
+        if observed_window<=0 or observed_window>720:
+            fail(f"Module B invalid observed 12H bars: {key}")
         if not source_ok:
             status,reason="REJECTED","NO_VALID_SOURCE_BREAKOUT"
         elif confirmation is None:
@@ -1056,17 +1082,57 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
         else:
             if confirmation<=signal or confirmation>signal+43200000:
                 fail(f"Module B failure confirmation outside 12h horizon: {key}")
-            status,reason=minute_check(asset,confirmation)
-            if not reason:
-                reason="NONE"
+            confirmation_bar=aggregate_completed_15m_bar(minute_bars[asset],confirmation)
+            if confirmation_bar is None:
+                if source_ok:
+                    status,reason="CENSORED","INCOMPLETE_15M_CONFIRMATION"
+                else:
+                    fail(f"Module B confirmation has incomplete component bars for rejected source {key}")
+            else:
+                status,reason=minute_check(asset,confirmation)
+                if not reason:
+                    reason="NONE"
         source_event_key=f"{asset}|{direction}|{signal}|{snapshot}"
         cluster=breakout_cluster_map[source_event_key]
+        if confirmation is not None and confirmation_bar is not None:
+            source_boundary=float(raw["upper"] if direction=="UPPER" else raw["lower"])
+            ambiguity=confirmation_ambiguity_flag(direction,source_boundary,confirmation_bar)
+            confirmation_status="CONFIRMED"
+            confirmation_open=confirmation-900000
+            event_observed_at=confirmation
+        elif confirmation is None and next(iter(complete)):
+            ambiguity="NONE"
+            confirmation_status="NOT_CONFIRMED"
+            confirmation_open=""
+            event_observed_at=signal+43200000
+        elif confirmation is None:
+            ambiguity="NONE"
+            confirmation_status="CENSORED"
+            confirmation_open=""
+            event_observed_at=signal+observed_window*60000
+        else:
+            ambiguity="NONE"
+            confirmation_status="CENSORED"
+            confirmation_open=confirmation-900000
+            event_observed_at=confirmation
         failed_rows.append({"asset":asset,"source_event_key":source_event_key,
             "source_event_row_ids":";".join(sorted(x["event_id"] for x in members)),
             "historical_cohort_memberships":";".join(sorted({x["definition"] for x in members})),"direction":direction,
             "family":"FAILED_BREAKOUT_REVERSAL","family_direction":"SHORT" if direction=="UPPER" else "LONG","signal_time_ms":signal,
+            "signal_candle_open_ts_ms":confirmation_open,
+            "signal_candle_close_ts_ms":confirmation or "",
+            "signal_available_at_ts_ms":confirmation or "",
             "confirmation_ts_ms":confirmation or "",
+            "confirmation_rule_id":"RETURN_INSIDE_15M_CLOSE_V1",
+            "confirmation_bar_interval_ms":900000,"confirmation_status":confirmation_status,
+            "event_observed_at_ts_ms":event_observed_at,
             "first_eligible_1m_open_ts_ms":first_eligible_minute_or_blank(status, confirmation),
+            "ambiguity_flags":ambiguity,"decluster_policy_id":"G0_05_INTERVAL_GRAPH_METADATA_V1",
+            "expiry_rule_id":"SOURCE_BREAKOUT_12H_RETURN_INSIDE_V1",
+            "expiry_ts_ms":signal+43200000,
+            "invalidation_reference_type":"NOT_APPLICABLE",
+            "source_reconciliation_status":"EXACT_LINKED_SOURCE_BREAKOUT",
+            "source_join_cardinality":"ONE_FAILED_BREAKOUT_TO_ONE_SOURCE_BREAKOUT",
             "causal_source_cohort":source_cohort,
             "overlap_cluster_id":cluster["overlap_cluster_id"],
             "overlap_cluster_size":cluster["overlap_cluster_size"],
