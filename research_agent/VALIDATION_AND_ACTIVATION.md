@@ -21,10 +21,11 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Safety controller requires explicit human-authorized closure of every prior phase gate before a later phase can be authorized.
 - [x] Safety controller enforces the active global G0-05 lock against every Phase 3 task, regardless of task labels, preventing relabelling bypasses.
 - [x] Safety controller rejects duplicate/empty phase-order entries, duplicate JSON object keys, malformed queue entries, duplicate queue IDs, malformed allowlist hashes, duplicate allowlist IDs, phase-priority mismatches, and missing human-gate advancement rules; malformed inputs fail closed.
+- [x] Safety controller validates the complete contract of every queue entry, including blocked future-phase tasks, rather than validating only the selected task; duplicate scope/prohibition entries are rejected.
 - [x] Safety controller enforces a strict task contract: required fields, non-empty scope, mandatory prohibited-action list, human-only completion authority, and no unsupported task fields, even when a changed task is re-hashed.
 - [x] Public runtime authorization accepts only the task payload and loads policy from fixed repository paths; policy injection is confined to a private test seam.
 - [x] Task preflight uses the trusted repository policy rather than passing a caller-supplied queue into the authorization boundary.
-- [x] Added 17 focused safety-controller denial/allowance tests, including task-contract omissions, unsupported fields, non-human completion authority, relabelled Phase 3 tasks, malformed inputs, and public policy-injection rejection; authored but not executed.
+- [x] Added 19 focused safety-controller denial/allowance tests, including task-contract omissions, unsupported fields, non-human completion authority, relabelled Phase 3 tasks, malformed inputs, public policy-injection rejection, malformed unrelated queue contracts, and duplicate prohibition entries; authored but not executed.
 - [x] Read-only preflight dispatcher has no executor, subprocess, or write capability.
 - [x] Preflight dispatcher returns a stable result envelope for every path, rejects malformed queue objects and rows, and fails closed on malformed or internally inconsistent authorization results.
 - [x] Report formatter validates repository-contained inputs, rejection of symlinked path components, normalized unique manifest paths, SHA-256 values, commit SHA format, and canonical UTC timestamps ending in Z.
@@ -34,7 +35,7 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Added 19 report-builder regression tests covering deterministic rendering, malformed provenance, duplicate and unsafe paths, strict schema/timestamp validation, external paths, symlinks, Markdown injection, completion-claim status rejection, and explicit provenance/metadata limitation disclosures; authored but not executed.
 - [x] Markdown report rendering flattens untrusted line breaks and escapes Markdown control characters in findings and metadata.
 - [x] Added 10 preflight tests for malformed queues and rows, duplicate task IDs, trusted-queue boundary, stable denial envelopes, inconsistent/malformed authorization results, and preflight-only behavior; authored but not executed.
-- [x] Total regression tests authored: 46 (17 safety-controller, 19 report-builder, 10 task-runner); none executed.
+- [x] Total regression tests authored: 48 (19 safety-controller, 19 report-builder, 10 task-runner); none executed.
 - [x] Static configuration/source consistency review completed against the branch files.
 
 ## Deferred validation
