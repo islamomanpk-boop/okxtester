@@ -58,6 +58,75 @@ def validate_strict_broad_nesting(strict_flags: list[bool], broad_flags: list[bo
         raise ValueError("strict cohort is not nested within broad cohort")
 
 
+def rejection_physical_identity(row: dict) -> str:
+    """Underlying boundary test identity; historical definition is cohort membership."""
+    required = ("asset", "direction", "snapshot_index", "segment_id", "test_rank", "test_start_ts_ms")
+    if any(key not in row or row[key] is None for key in required):
+        raise ValueError("rejection physical identity is incomplete")
+    return "|".join((str(row["asset"]), str(row["direction"]).upper(),
+                     str(int(row["snapshot_index"])), str(int(row["segment_id"])),
+                     str(int(row["test_rank"])), str(int(row["test_start_ts_ms"]))))
+
+
+def collapse_rejection_cohort_rows(rows: list[dict]) -> list[dict]:
+    """Collapse strict/broad duplicate source rows to one physical event without losing row IDs."""
+    grouped = {}
+    for row in rows:
+        definition = str(row.get("definition", "")).upper()
+        if definition not in ("BROAD_P40", "STRICT_P25"):
+            raise ValueError("unknown historical cohort definition")
+        row_id = row.get("event_id")
+        if not row_id:
+            raise ValueError("missing immutable source event_id")
+        identity = rejection_physical_identity(row)
+        item = grouped.setdefault(identity, {})
+        if definition in item:
+            raise ValueError("duplicate physical event cohort membership")
+        item[definition] = str(row_id)
+    collapsed = []
+    for identity, memberships in sorted(grouped.items()):
+        if "BROAD_P40" not in memberships:
+            raise ValueError("strict historical cohort is not nested within broad")
+        collapsed.append({
+            "source_event_id": identity,
+            "source_event_row_ids": [memberships[k] for k in ("BROAD_P40", "STRICT_P25") if k in memberships],
+            "historical_cohort_memberships": [k for k in ("BROAD_P40", "STRICT_P25") if k in memberships],
+        })
+    return collapsed
+
+
+def causal_rejection_disposition(snapshot_available_ms: int, snapshot_next_ms: int,
+                                 rejection_bar_open_ms: int, confirmation_ms: int,
+                                 threshold_p25: float | None, threshold_p40: float | None,
+                                 channel_width_pct: float, efficiency: float,
+                                 overlap: float) -> str:
+    """Return source-only causal disposition; no candidate or order is created."""
+    if snapshot_next_ms <= snapshot_available_ms:
+        raise ValueError("snapshot validity interval must be positive")
+    if snapshot_available_ms > rejection_bar_open_ms:
+        raise ValueError("snapshot was not available at rejection bar open")
+    if confirmation_ms != rejection_bar_open_ms + FIFTEEN_MIN_MS:
+        raise ValueError("rejection confirmation must be completed 15-minute close")
+    if confirmation_ms >= snapshot_next_ms:
+        return "SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION"
+    if threshold_p25 is None and threshold_p40 is None:
+        return "CAUSAL_THRESHOLD_WARMUP"
+    if threshold_p25 is None or threshold_p40 is None:
+        raise ValueError("both causal threshold quantiles must be present")
+    values = (threshold_p25, threshold_p40, channel_width_pct, efficiency, overlap)
+    if not all(map(lambda x: isinstance(x, (int, float)) and x == x and abs(x) != float("inf"), values)):
+        raise ValueError("causal threshold and detector values must be finite")
+    if threshold_p25 > threshold_p40:
+        raise ValueError("P25 threshold cannot exceed P40")
+    if efficiency > 0.30 or overlap < 0.70:
+        return "CAUSAL_REGIME_NOT_ELIGIBLE"
+    if channel_width_pct <= threshold_p25:
+        return "CAUSAL_STRICT_ELIGIBLE"
+    if channel_width_pct <= threshold_p40:
+        return "CAUSAL_BROAD_ONLY_ELIGIBLE"
+    return "CAUSAL_REGIME_NOT_ELIGIBLE"
+
+
 def family_side(family: str) -> tuple[str, str]:
     try:
         return FAMILY_SIDE[family]
