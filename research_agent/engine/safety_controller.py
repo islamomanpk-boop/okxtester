@@ -154,6 +154,21 @@ def _validate_policy_shapes(
         "require_safety_controller", "current_g0_05_execution_lock",
     }):
         return "Execution policy has missing or unsupported fields."
+    if (
+        agent["agent_name"] != "okx-research-agent"
+        or agent["version"] != "1.0.0"
+        or agent["operating_mode"] != "deterministic_research_operations"
+        or agent["report_destination"] != "github_actions_artifacts"
+        or agent["cost_policy"] != "free_only"
+    ):
+        return "Agent identity or operating policy differs from the approved design."
+    if (
+        agent["scheduling"]["mode"] != "event_driven_with_scheduled_fallback"
+        or not isinstance(agent["scheduling"]["triggers"], list)
+        or not all(isinstance(item, str) and item.strip() for item in agent["scheduling"]["triggers"])
+        or agent["scheduling"]["concurrency_group"] != "okx-research-agent"
+    ):
+        return "Scheduling metadata is malformed or differs from the approved design."
     for parent, key in ((agent, "phase_order"), (agent, "prohibitions")):
         if not isinstance(parent[key], list) or not all(
             isinstance(item, str) and item.strip() for item in parent[key]
@@ -191,6 +206,34 @@ def _validate_policy_shapes(
         for item in phases["approval_required_for"]
     ):
         return "Approval requirements must be a list of non-empty strings."
+    if not isinstance(phases["phases"], dict):
+        return "Phase rules must be an object."
+    for phase_name, rule in phases["phases"].items():
+        if not isinstance(rule, dict):
+            return f"Phase rule {phase_name!r} must be an object."
+        if phase_name == "phase3_sideways_range":
+            if not _has_exact_keys(rule, {
+                "priority", "status", "task_scope", "execution_override", "g0_05",
+            }):
+                return "Phase 3 rule has missing or unsupported fields."
+            if not isinstance(rule["g0_05"], dict) or not _has_exact_keys(
+                rule["g0_05"], {
+                    "status", "scripts_tests_workflows", "data_or_code_changes",
+                    "candidate_generation", "backtesting_and_pnl", "gate_closure",
+                    "lock_reason",
+                }
+            ):
+                return "G0-05 rule has missing or unsupported fields."
+        else:
+            if not _has_exact_keys(rule, {
+                "priority", "status", "execution_override",
+            }):
+                return f"Phase rule {phase_name!r} has missing or unsupported fields."
+        if type(rule.get("priority")) is not int:
+            return f"Phase priority for {phase_name!r} must be a strict integer."
+        if not all(isinstance(rule.get(key), str) and rule[key].strip()
+                   for key in ("status", "execution_override")):
+            return f"Phase rule {phase_name!r} contains invalid status or override."
     if not _has_exact_keys(queue, {"schema_version", "queue_policy", "tasks"}):
         return "Task queue has missing or unsupported top-level fields."
     if type(queue["schema_version"]) is not int or queue["schema_version"] != 1:
