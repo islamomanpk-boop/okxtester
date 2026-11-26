@@ -97,3 +97,23 @@ Before canonical candidate generation, continue with contract-only and source-on
 ## 6. Authorization boundary
 
 This audit is descriptive and read-only. It does not authorize canonical candidate generation. No candidate rows, orders, fills, positions, execution simulation, PnL, strategy backtests, or phase transition were produced or authorized.
+
+
+## 7. Structured disposition summaries added — 2026-11-26
+
+The source-only audit now emits deterministic grouped counts for each family ledger:
+- asset × disposition;
+- family × LONG/SHORT × disposition × reason;
+- source direction × disposition;
+- causal cohort × disposition;
+- reason code.
+
+Implementation commit: `a1ef8721f3f770fb46079c09ea039da75a7e920e`.
+
+Evidence:
+- Source-audit workflow [45802587303](https://github.com/islamomanpk-boop/okxtester/actions/runs/45802587303) — SUCCESS; artifact ID `15108166636`; ZIP SHA-256 `456c683375d20ebef8a852421d235e745d2c79f62be29d2eea18045d59b455cc`, independently recomputed after download.
+- Synthetic workflow [45802605906](https://github.com/islamomanpk-boop/okxtester/actions/runs/45802605906) — SUCCESS; **81/81 tests passed**. Added a deterministic grouped-count test confirming row totals reconcile regardless of input order.
+
+This closes the previously noted absence of asset/family/side/causal-cohort/reason grouped disposition summaries in the source-audit report. The summary is descriptive and does not alter or collapse source rows.
+
+Remaining reporting gaps include historical strict/broad membership detail for the raw breakout family, overlap-cluster/repeated-signal metadata and cluster-size reporting. Their construction convention must be frozen without removing overlapping events or using future outcomes. The canonical candidate fields listed in Sections 2–3 above remain unmaterialized.
