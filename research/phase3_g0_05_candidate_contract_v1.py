@@ -180,3 +180,23 @@ def classify_disposition(snapshot_available_ms: int, snapshot_next_ms: int,
 def deterministic_json(rows: list[dict]) -> str:
     """Stable serialization helper for substantive output comparisons."""
     return json.dumps(rows, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+def exact_first_minute_disposition(availability_ms: int, observed_minute_opens: set[int]) -> str:
+    """Require the exact 1m bar open at availability; never shift to a neighbor."""
+    if availability_ms % MINUTE_MS:
+        raise ValueError("availability must align to an exact minute boundary")
+    return ("EXACT_FIRST_MINUTE_AVAILABLE" if availability_ms in observed_minute_opens
+            else "MISSING_OR_GAPPED_MINUTES")
+
+
+def failed_breakout_horizon_disposition(signal_ms: int, confirmation_ms: int | None,
+                                        complete_12h: bool) -> str:
+    """Classify the observed 12h source horizon without inventing a failure."""
+    if confirmation_ms is None:
+        return ("EXPIRED_NO_RETURN_INSIDE_WITHIN_12H" if complete_12h
+                else "CENSORED_SOURCE_END_BEFORE_RESOLUTION")
+    if confirmation_ms <= signal_ms:
+        raise ValueError("failure confirmation must follow source breakout")
+    if confirmation_ms > signal_ms + FAILURE_HORIZON_MS:
+        raise ValueError("failure confirmation is outside the 12-hour horizon")
+    return "CONFIRMED_WITHIN_12H"
