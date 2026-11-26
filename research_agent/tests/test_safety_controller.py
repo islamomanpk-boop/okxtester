@@ -5,6 +5,7 @@ Run only after the active research handoff permits test execution.
 import hashlib
 import json
 import unittest
+from pathlib import Path
 
 from research_agent.engine.report_builder import task_definition_digest
 from research_agent.engine.safety_controller import (
@@ -142,6 +143,44 @@ def policy_fixture(task, *, phase_order=None, phase_rules=None, lock=False):
 
 
 class SafetyControllerTests(unittest.TestCase):
+    def test_repository_configuration_covers_all_five_phases_in_order(self):
+        root = Path(__file__).resolve().parents[2]
+        phase_config = _strict_json_loads(
+            (root / "research_agent/config/phase_permissions.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        queue_config = _strict_json_loads(
+            (root / "research_agent/config/task_queue.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        expected = [
+            "phase3_sideways_range",
+            "phase1_uptrend_bullish",
+            "phase2_downtrend_bearish",
+            "phase4_choppy_high_volatility",
+            "phase5_transition_expansion",
+        ]
+        self.assertEqual(phase_config["phase_order"], expected)
+        self.assertEqual(queue_config["queue_policy"]["phase_order"], expected)
+        self.assertEqual(set(phase_config["phases"]), set(expected))
+        tasks = queue_config["tasks"]
+        for phase in expected:
+            self.assertTrue(any(task["phase"] == phase for task in tasks), phase)
+        for task in tasks:
+            if task["phase"] == expected[0]:
+                self.assertEqual(task["status"], "queued")
+            else:
+                self.assertEqual(
+                    task["status"], "blocked_until_prior_phases_complete"
+                )
+        self.assertTrue(
+            queue_config["queue_policy"][
+                "advance_only_after_current_phase_gate_is_human_authorized_closed"
+            ]
+        )
+
     def test_safety_and_report_builders_share_identical_task_digest(self):
         task = {
             "task_id": "P3-RO-CROSS-CHECK",
