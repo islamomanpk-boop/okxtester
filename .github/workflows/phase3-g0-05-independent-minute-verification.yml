@@ -37,7 +37,7 @@ jobs:
             --workflow phase3-g0-05-source-audit.yml \
             --branch price-action-v1 --status success --limit 20 \
             --json databaseId,headSha,status,conclusion)"
-          RUN_ID="$(python -c 'import json,sys; rows=json.load(sys.stdin); expected="63e659f7aa68e0b60062409ab3bff963ebea64f7"; matches=[r for r in rows if r.get("headSha")==expected and r.get("conclusion")=="success"]; print(matches[0]["databaseId"] if matches else "")' <<< "$RUN_JSON")"
+          RUN_ID="$(python -c 'import json,sys; rows=json.load(sys.stdin); expected="dbc584a48bdff5cb1117189de3db96384f88813e"; matches=[r for r in rows if r.get("headSha")==expected and r.get("conclusion")=="success"]; print(matches[0]["databaseId"] if matches else "")' <<< "$RUN_JSON")"
           test -n "$RUN_ID"
           gh run download "$RUN_ID" \
             --repo "${{ github.repository }}" \
