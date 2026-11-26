@@ -329,3 +329,42 @@ Canonical candidate generation remains blocked until:
 6. Reproducibility and row-level reconciliation checks are specified and reviewed.
 
 **Current status:** G0-04 ACCEPTED. G0-05 CONTRACT IMPLEMENTATION / SOURCE INVENTORY IN PROGRESS. CANONICAL CANDIDATE GENERATION NOT AUTHORIZED. Gate 0 remains CONDITIONAL HOLD. No execution simulation, strategy backtest, or PnL work is authorized.
+
+
+## 14. G0-05 implementation progress — 2026-11-26
+
+### 14.1 Contract primitives and synthetic CI
+
+- Pure contract primitives: `research/phase3_g0_05_candidate_contract_v1.py`.
+- Synthetic suite: `tests/test_phase3_g0_05_candidate_contract_v1.py`.
+- Workflow: `.github/workflows/phase3-g0-05-candidate-contract-tests.yml`.
+- Latest verified run: [45781945291](https://github.com/islamomanpk-boop/okxtester/actions/runs/45781945291), checked-out revision `eeb6cdb0dbb3eda2cc7c03a5e11e9c56a60c3fb6`, job `139779287523`.
+- Python compile: PASS.
+- Synthetic tests: **31/31 PASS**.
+
+The suite covers half-open snapshot validity, rejection close confirmation, exact first eligible minute, minute gaps, family direction mapping, complete 15-minute component bars, linked failed-breakout reversal, completed-close return-inside, 12-hour expiry, deterministic IDs/serialization, causal width/efficiency/overlap thresholds, and strict-within-broad validation.
+
+Two intermediate CI failures were traced to an escaped newline in the test import statement; the corrected test file was committed and the final 31-test run passed. These failures were test-source syntax defects, not failures in the market data or G0-04 evidence.
+
+### 14.2 G0-04 artifact independently rechecked
+
+The G0-04 artifact was downloaded again and its ZIP SHA-256 independently matched the recorded digest. All seven member-file hashes match `run_metadata.json`. The direct checks found:
+- 2,861 raw crossing rows, all unique at (asset, direction, signal_time_ms, context_snapshot_ms);
+- 932 historical selected identities present;
+- 20/20 historical baseline rows passed;
+- 120 historical reconciliation rows and zero raw-source mismatches;
+- 65,310 threshold rows, 21,770 per policy, P25 <= P40 throughout and at least 180 prior contexts;
+- all six policy/population event totals reproduce the threshold decision record.
+
+The detailed ZIP and member hashes are recorded in `2026-11-26_g0_05_canonical_source_manifest_v1.md`.
+
+### 14.3 Remaining G0-05 work
+
+The following remain before canonical candidate generation:
+1. Independently compute SHA-256 for the rejection boundary ledger, event-anatomy ledger, five detector feature ledgers, and Module B event/horizon ledgers.
+2. Freeze and test exact source join keys, cardinality expectations and all unmatched-row disposition rules.
+3. Implement a read-only source reconciliation/dry-run that produces disposition coverage only and emits no candidate ledger.
+4. Expand synthetic tests for source joins, duplicate keys, causal threshold lookup at exact snapshot availability, invalid feature values, missing source rows, and failed-breakout lifecycle censoring.
+5. Only after these pass, request/record authorization to run the canonical candidate generator.
+
+**Current status:** G0-04 ACCEPTED; G0-05 contract primitives and 31 synthetic tests pass. G0-05 source manifest is partially verified; source reconciliation dry-run remains pending. Candidate generation, execution simulation, strategy backtesting and PnL remain prohibited.
