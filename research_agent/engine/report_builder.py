@@ -151,6 +151,26 @@ def validate_report(report: dict[str, Any]) -> None:
             raise ValueError("Manifest SHA-256 must be 64 lowercase hexadecimal characters.")
 
 
+def verify_input_manifest_against_checkout(report: dict[str, Any]) -> list[str]:
+    """Compare declared input hashes with files in the current checkout.
+
+    This verifies current working-tree bytes only. It does not prove that the
+    files came from report['commit_sha'] or that the checkout is clean.
+    Returns an empty list when every declared input matches.
+    """
+    validate_report(report)
+    mismatches: list[str] = []
+    for entry in report["input_manifest"]:
+        try:
+            actual = sha256_file(entry["path"])
+        except (OSError, ValueError) as exc:
+            mismatches.append(f"{entry['path']}: unavailable ({exc})")
+            continue
+        if actual != entry["sha256"]:
+            mismatches.append(f"{entry['path']}: SHA-256 does not match current checkout.")
+    return mismatches
+
+
 def render_json(report: dict[str, Any]) -> str:
     """Return stable, human-readable JSON with deterministic key ordering."""
     validate_report(report)
