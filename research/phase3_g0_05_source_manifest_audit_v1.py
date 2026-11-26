@@ -506,13 +506,19 @@ def aggregate_completed_15m_bar(minute_bars: dict[int, tuple], confirmation_clos
 
 
 def confirmation_ambiguity_flag(direction: str, boundary: float, bar: dict) -> str:
-    """Flag a completed return-inside bar whose wick still extends beyond the boundary."""
+    """Distinguish an outside open from an outside wick on a completed return-inside bar."""
     side = direction.upper()
     level = float(boundary)
-    if side == "UPPER" and float(bar["high"]) > level and float(bar["close"]) <= level:
-        return "CONFIRMATION_CANDLE_WICK_OUTSIDE_CLOSE_INSIDE"
-    if side == "LOWER" and float(bar["low"]) < level and float(bar["close"]) >= level:
-        return "CONFIRMATION_CANDLE_WICK_OUTSIDE_CLOSE_INSIDE"
+    if side == "UPPER" and float(bar["close"]) <= level:
+        if float(bar["open"]) > level:
+            return "CONFIRMATION_CANDLE_OPEN_OUTSIDE_CLOSE_INSIDE"
+        if float(bar["high"]) > level:
+            return "CONFIRMATION_CANDLE_WICK_OUTSIDE_CLOSE_INSIDE"
+    if side == "LOWER" and float(bar["close"]) >= level:
+        if float(bar["open"]) < level:
+            return "CONFIRMATION_CANDLE_OPEN_OUTSIDE_CLOSE_INSIDE"
+        if float(bar["low"]) < level:
+            return "CONFIRMATION_CANDLE_WICK_OUTSIDE_CLOSE_INSIDE"
     if side not in {"UPPER", "LOWER"}:
         raise ValueError(f"unknown breakout direction for ambiguity check: {direction}")
     return "NONE"
