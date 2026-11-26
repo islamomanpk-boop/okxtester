@@ -8,22 +8,24 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
 REPORT_SCHEMA_VERSION = 1
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+_COMMIT_RE = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
 
 
 def _repository_file(path: str | Path) -> Path:
     """Resolve a report input and reject paths outside the repository."""
     supplied = Path(path)
-    if supplied.is_absolute():
-        raise ValueError("Report input paths must be repository-relative.")
+    if supplied.is_absolute() or ".." in supplied.parts:
+        raise ValueError("Report input paths must be safe repository-relative paths.")
     resolved = (REPOSITORY_ROOT / supplied).resolve(strict=True)
     try:
-        resolved.relative_to(REPOSITORY_ROOT)
+        resolved.relative_to(REPOSITORY_ROOT.resolve())
     except ValueError as exc:
         raise ValueError("Report input resolves outside the repository.") from exc
     if not resolved.is_file():
@@ -44,13 +46,27 @@ def sha256_file(path: str | Path) -> str:
 def build_input_manifest(paths: Iterable[str | Path]) -> list[dict[str, str]]:
     """Create a sorted path/hash manifest for repository-contained inputs."""
     manifest = []
+    seen: set[str] = set()
     for item in paths:
         relative = Path(item)
-        if relative.is_absolute() or ".." in relative.parts:
+        if relative.is_absolute() or not relative.parts or ".." in relative.parts:
             raise ValueError("Manifest paths must be safe repository-relative paths.")
+        canonical_path = relative.as_posix()
+        if canonical_path in seen:
+            raise ValueError(f"Duplicate manifest input path: {canonical_path}")
+        seen.add(canonical_path)
         digest = sha256_file(relative)
-        manifest.append({"path": relative.as_posix(), "sha256": digest})
+        manifest.append({"path": canonical_path, "sha256": digest})
     return sorted(manifest, key=lambda row: row["path"])
+
+
+def _validate_utc_timestamp(value: str) -> None:
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("Report timestamp must be an ISO-8601 UTC timestamp.") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() != timezone.utc.utcoffset(parsed):
+        raise ValueError("Report timestamp must include a UTC timezone.")
 
 
 def validate_report(report: dict[str, Any]) -> None:
@@ -75,15 +91,27 @@ def validate_report(report: dict[str, Any]) -> None:
                   "branch", "commit_sha", "run_id", "timestamp_utc"):
         if not isinstance(report[field], str) or not report[field].strip():
             raise ValueError(f"Report field {field!r} must be a non-empty string.")
+    if not _COMMIT_RE.fullmatch(report["commit_sha"]):
+        raise ValueError("Report commit_sha must be a 40- or 64-character lowercase hexadecimal SHA.")
+    _validate_utc_timestamp(report["timestamp_utc"])
+
+    seen_paths: set[str] = set()
     for entry in report["input_manifest"]:
         if not isinstance(entry, dict):
             raise TypeError("Each input manifest entry must be an object.")
         if set(entry) != {"path", "sha256"}:
             raise ValueError("Each input manifest entry must contain only path and sha256.")
-        if not isinstance(entry["path"], str) or not entry["path"].strip():
+        path_value = entry["path"]
+        if not isinstance(path_value, str) or not path_value.strip():
             raise ValueError("Manifest path must be a non-empty string.")
-        if Path(entry["path"]).is_absolute() or ".." in Path(entry["path"]).parts:
-            raise ValueError("Manifest paths must be repository-relative.")
+        relative = Path(path_value)
+        if relative.is_absolute() or not relative.parts or ".." in relative.parts:
+            raise ValueError("Manifest paths must be safe repository-relative paths.")
+        if relative.as_posix() != path_value:
+            raise ValueError("Manifest paths must use normalized POSIX relative paths.")
+        if path_value in seen_paths:
+            raise ValueError(f"Duplicate manifest input path: {path_value}")
+        seen_paths.add(path_value)
         if not isinstance(entry["sha256"], str) or not _SHA256_RE.fullmatch(entry["sha256"]):
             raise ValueError("Manifest SHA-256 must be 64 lowercase hexadecimal characters.")
 
