@@ -13,6 +13,8 @@
 - No automatic merge or write to the research branch is permitted.
 - The safety controller, task queue, and report builder have not been runtime-tested; no scripts, tests, or workflows have been run as part of this setup.
 - The safety controller binds approvals to the SHA-256 hash of the exact queued task definition; changing its phase, operation, scope, or restrictions invalidates that approval.
+- The public runtime authorization function loads policy only from fixed repository configuration paths; policy injection is isolated to a private test seam.
+- Markdown report rendering flattens line breaks and escapes Markdown control characters in untrusted findings and metadata.
 - While the current G0-05 lock is active, all Phase 3 task authorization is denied, regardless of task labels.
 - Only tasks marked `queued` in the currently active phase are eligible for future evaluation; later phases remain blocked.
 
@@ -40,7 +42,7 @@ A missing, ambiguous, malformed, or conflicting permission means **deny**. The t
 - `config/task_allowlist.json` — trusted task-definition hash approvals; currently empty.
 - `engine/safety_controller.py` — fail-closed evaluator that requires an exact queue match, a trusted SHA-256 approval, an active phase, and read-only permission; it never executes tasks.
 - `engine/task_runner.py` — preflight-only queue dispatcher; it selects an exact queue entry and asks the safety controller for a decision, but has no subprocess, script, test, workflow, or research executor.
-- `engine/report_builder.py` — deterministic JSON/Markdown report formatting, repository-contained input SHA-256 manifests with symlink rejection, report validation, and report digest; not runtime-tested.
+- `engine/report_builder.py` — deterministic JSON/Markdown report formatting, repository-contained input SHA-256 manifests with symlink rejection, escaped untrusted Markdown values, report validation, and report digest; not runtime-tested.
 - `.github/workflows/` — no agent-specific workflow is installed yet. The first future workflow must be manual-dispatch only and preflight/report-only; event-driven and scheduled triggers require separate validation and approval.
 
 ## Validation and activation gates
