@@ -209,6 +209,11 @@ def run(root,out):
  if (ids[strict].fillna(False).to_numpy() & ~ids[broad].fillna(False).to_numpy()).any():
   stop("strict is not nested in broad")
  oldset=set(map(tuple,old[KEYS].to_numpy())); rawset=set(map(tuple,ev[KEYS].to_numpy()))
+ source_mismatch=oldset-rawset
+ if source_mismatch:
+  out.mkdir(parents=True,exist_ok=True)
+  pd.DataFrame(list(source_mismatch),columns=KEYS).to_csv(out/"historical_identity_source_mismatches.csv",index=False)
+  stop(f"historical 932 identity reconciliation failed: {len(source_mismatch)} source identities absent from raw scan")
  rec=[]
  for pol in POLICIES:
   for pop in POPS:
@@ -222,7 +227,7 @@ def run(root,out):
       r={k for k in rawset if k[0]==a and k[1]==direction}
       e={k for k in eset if k[0]==a and k[1]==direction}
       rec.append({"asset":a,"direction":direction,"policy":pol,"population":pop,"definition":definition,
-       "unchanged_eligible":len(o&r&e),"newly_eligible":len((r-o)&e),
+       "eligible_event_count":len(e),"unchanged_eligible":len(o&r&e),"newly_eligible":len((r-o)&e),
        "no_longer_eligible":len((o&r)-e),"raw_source_mismatch":len(o-r)})
  out.mkdir(parents=True,exist_ok=True)
  base.to_csv(out/"historical_baseline_reproduction.csv",index=False)
