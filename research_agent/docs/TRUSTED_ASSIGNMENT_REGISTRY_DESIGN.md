@@ -48,7 +48,7 @@ Approval must be single-use for the exact operation it authorizes. A readiness-r
 
 Keep delivery identity separate from assignment identity. Required fields include the authenticated provider/channel namespace, stable upstream delivery ID, assignment ID/revision, expected package digest, dispatch-attempt identity, trusted request timestamp, delivery state, and authenticated provider receipt/reference when one exists.
 
-Enforce a durable unique constraint on `(source_namespace, delivery_id)` and on the provider's idempotency key where supported. A timeout must remain pending/unknown until reconciled; it must not create a new delivery identity or trigger an automatic retry.
+Enforce a durable unique provider-delivery identity on `(source_namespace, delivery_id)` and a separate event-level idempotency identity on `(source_namespace, delivery_id, event_role)` when one delivery legitimately produces multiple lifecycle events. The event role is closed and schema-defined. Enforce the provider's idempotency key where supported. A timeout must remain pending/unknown until reconciled; it must not create a new delivery identity or trigger an automatic retry.
 
 ### Return and review records
 
