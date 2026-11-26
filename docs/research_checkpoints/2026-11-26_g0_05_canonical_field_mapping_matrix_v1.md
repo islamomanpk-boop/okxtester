@@ -76,11 +76,13 @@ Do not recompute thresholds in the candidate builder. The source audit already p
 
 ## 4. Source-file lineage and manifest
 
-The current G0-05 source manifest is `source_manifest.json` from source-audit run [45804274324](https://github.com/islamomanpk-boop/okxtester/actions/runs/45804274324), artifact ID `15107399743`. Its SHA-256 is:
+The current complete G0-05 source manifest V2 is `source_manifest.json` from source-audit run [45806239609](https://github.com/islamomanpk-boop/okxtester/actions/runs/45806239609), artifact ID `15109506588`. Its SHA-256 is:
 
-`abd869c9c11a31f42ae916bc56492977dce79dd18f5e2c9c9b1f23584629a440`
+`82bce2b7549efb959a2805641cfda46c1ea6a158e8e6c7d24cd8f3795ca80bbb`
 
-Use this value as the current `source_sha256_manifest_id` only for that exact manifest version. A later source manifest must receive a new ID.
+This manifest includes repository inputs, G0-04 artifact members, Module A/Module B source outputs and metadata, all five raw 1-minute inputs, and the source-audit revision/run identity. Each source-only disposition row carries this exact manifest ID, family/asset-specific source paths, and the corresponding Git blob IDs. G0-04 artifact members are identified by artifact path and SHA-256 in the manifest.
+
+The earlier seven-file-only manifest is superseded. Every later source-audit run must use its own computed manifest ID.
 
 Family source paths:
 - Rejection: `reports/sideways_boundary_events_historical_v1/boundary_tests_historical_v1.csv`; `reports/sideways_phase3_research_archive_v1/episode_retest_anatomy_v1/event_anatomy_v1.csv`; per-asset `reports/sideways_detector_original_v1/{ASSET}_features_original_v1.csv`; `data/market_1m/{ASSET}_USDT_USDT_1m.csv`; G0-04 causal threshold artifact.
@@ -147,3 +149,14 @@ The source-only ledgers now carry:
 Failed-breakout confirmation candles are rebuilt from 15 exact component 1m OHLC records. The current audit found 756 confirmed return-inside events, all with OPEN_OUTSIDE_CLOSE_INSIDE; 176 events had no return-inside confirmation. See source audit [45805545548](https://github.com/islamomanpk-boop/okxtester/actions/runs/45805545548), artifact ID `15109271179`, and tests [45805565739](https://github.com/islamomanpk-boop/okxtester/actions/runs/45805565739), 102/102 passed.
 
 Still to materialize: canonical candidate IDs/source-event IDs, instrument/version labels, per-row snapshot/threshold/feature provenance, manifest/path/blob lineage, source breakout candidate IDs, and all invalidation reference columns (type/value/timestamp) in the final canonical output.
+
+
+## 12. Complete source lineage now emitted per source-only row
+
+The complete-manifest audit now emits `source_sha256_manifest_id`, `source_file_paths`, and `source_git_blob_ids` on all three source-only disposition ledgers. It covers all five raw 1m files and the G0-04 artifact hashes in addition to the repository and lifecycle inputs.
+
+- Source audit [45806239609](https://github.com/islamomanpk-boop/okxtester/actions/runs/45806239609) — SUCCESS; artifact ID `15109506588`; ZIP SHA-256 `c87808aaac2be5d7013d42d3f93fcbb0ed44d1602470c030642fcf6ffc75efcb`.
+- Manifest SHA-256 / row ID: `82bce2b7549efb959a2805641cfda46c1ea6a158e8e6c7d24cd8f3795ca80bbb`; recomputed from the exact manifest bytes and matched every row.
+- 4,947 rows carry exactly one manifest ID; each row's paths point to the correct asset-specific feature and market file.
+
+Remaining canonical materialization includes candidate/source-event IDs, version labels, snapshot/threshold/feature values, and failed-breakout source-breakout candidate IDs. The independent minute verifier is being rerun against this latest manifest artifact.
