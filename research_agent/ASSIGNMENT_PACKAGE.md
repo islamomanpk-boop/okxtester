@@ -13,8 +13,9 @@ task-bound handoff for a worker without dispatching that worker.
 The builder recomputes the task-definition SHA-256 digest and compares the
 planned task ID, phase, operation, title, handoff ID, scope, prohibited-action
 list, digest, assignment status, and human-only completion authority against
-the trusted task. Unknown preflight fields and inconsistent decisions fail
-closed.
+the trusted task. Unknown preflight fields, non-`queued` queue status, and inconsistent decisions fail
+closed. This prevents completed, blocked, or otherwise ineligible tasks from being
+repackaged as new worker assignments.
 
 A denied preflight can produce a blocked audit handoff. An allowed preflight
 can produce a prepared package only when the planner entry matches exactly.
