@@ -201,6 +201,25 @@ class ReportBuilderTests(unittest.TestCase):
             report_builder.task_definition_digest(second),
         )
 
+    def test_task_definition_digest_rejects_non_string_object_keys(self):
+        with self.assertRaisesRegex(TypeError, "keys must be strings"):
+            report_builder.task_definition_digest({"task_id": "x", 1: "ambiguous"})
+
+    def test_task_definition_digest_rejects_python_only_values(self):
+        with self.assertRaisesRegex(TypeError, "not JSON-compatible"):
+            report_builder.task_definition_digest({"task_id": "x", "scope": ("a", "b")})
+
+    def test_task_definition_digest_rejects_non_finite_numbers(self):
+        for value in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(ValueError, "non-finite"):
+                    report_builder.task_definition_digest({"task_id": "x", "weight": value})
+
+    def test_task_definition_digest_accepts_nested_json_values(self):
+        task = {"task_id": "x", "policy": {"enabled": True, "thresholds": [1, 2.5, None]}}
+        digest = report_builder.task_definition_digest(task)
+        self.assertRegex(digest, r"^[0-9a-f]{64}$")
+
     def test_markdown_report_displays_task_definition_hash(self):
         rendered = report_builder.render_markdown(valid_report())
         self.assertIn("Task definition SHA-256", rendered)
