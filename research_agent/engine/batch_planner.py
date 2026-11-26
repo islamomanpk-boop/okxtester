@@ -16,6 +16,23 @@ EXPECTED_PHASE_ORDER = [
 ]
 
 
+def build_runtime_batch_plan(*, max_tasks: int = 5) -> dict[str, Any]:
+    """Build a plan only from the repository's fixed runtime queue and preflight.
+
+    Unlike the pure planning/test seam below, this entry point accepts no
+    caller-supplied queue or preflight summary. It remains non-authorizing.
+    """
+    if type(max_tasks) is not int or not 1 <= max_tasks <= MAX_BATCH_SIZE:
+        raise ValueError(f"max_tasks must be an integer from 1 to {MAX_BATCH_SIZE}.")
+    trusted_queue = load_queue()
+    trusted_preflight = preflight_all_tasks()
+    return build_batch_plan(
+        max_tasks=max_tasks,
+        queue=trusted_queue,
+        preflight_summary=trusted_preflight,
+    )
+
+
 def build_batch_plan(
     *,
     max_tasks: int = 5,
