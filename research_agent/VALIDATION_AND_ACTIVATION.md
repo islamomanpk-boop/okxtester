@@ -4,7 +4,7 @@
 
 **Status: hardened scaffold; runtime activation blocked.**
 
-The repository contains the configuration, ordered task queue, hash-bound safety controller, read-only preflight dispatcher, deterministic report formatter, preflight-to-artifact orchestration, and bounded batch planner. No agent-specific workflow has been added or enabled. No agent task, script, test, or workflow has been executed.
+The repository contains the configuration, ordered task queue, hash-bound safety controller, read-only preflight dispatcher, deterministic report formatter, preflight-to-artifact orchestration, bounded batch planner, and supervisor review gate. No agent-specific workflow has been added or enabled. No agent task, script, test, or workflow has been executed.
 
 The current Phase 3 G0-05 handoff remains authoritative. It prohibits the relevant script/test/workflow execution and research code/data changes. The agent must not be used to bypass that restriction.
 
@@ -42,8 +42,10 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Added `artifact_preparation.py` to connect trusted queue lookup, single-task preflight, preflight-only report generation, and in-memory artifact bundling. It is restricted to the repository and isolated agent branch; denied preflight becomes a `blocked` report. It performs no task work, queue mutation, filesystem writes, upload, or scheduling. Workflow metadata remains caller-supplied until independently obtained and verified by a future workflow; authored but not runtime-tested.
 - [x] Added 7 artifact-preparation regression tests for blocked-artifact creation, branch/repository restrictions, dirty checkout, HEAD mismatch, and task identity; authored but not executed.
 - [x] Added `batch_planner.py` to prepare a bounded batch only from exact per-task preflight approvals. It enforces the fixed five-phase sequence, stops at the earliest queued phase if nothing there passes preflight, caps batch size, and never authorizes the queue, executes tasks, or changes state.
-- [x] Added 9 batch-planner regression tests covering phase-order enforcement, no skipping, exact preflight binding, batch limits, malformed/duplicate identities, and no queue mutation; authored but not executed.
-- [x] Total regression tests authored: 125 (32 safety-controller, 50 report-builder, 27 task-runner, 7 artifact-preparation, 9 batch-planner); none executed. Safety policy and CLI task JSON now reject duplicate object keys and non-standard NaN/Infinity constants.
+- [x] Batch planner assignments now carry the trusted task's handoff ID, full scope, prohibited-action list, and canonical task-definition digest so a future worker receives the complete boundary rather than a title-only prompt.
+- [x] Added `supervisor_review.py` to validate untrusted worker submissions against the exact trusted task digest, required evidence-reference structure, declared actions, and gate-authority boundary. Valid submissions are only ready for human review; evidence bytes and research correctness are explicitly unverified. No completion or gate is approved.
+- [x] Added 11 supervisor-review regression tests covering valid-but-human-review-only submissions, prohibited action and gate-closure claims, missing evidence, task digest/identity mismatch, unsafe paths, malformed hashes, blockers, unknown fields, and malformed status types; authored but not executed.
+- [x] Total regression tests authored: 136 (32 safety-controller, 50 report-builder, 27 task-runner, 7 artifact-preparation, 9 batch-planner, 11 supervisor-review); none executed. Safety policy and CLI task JSON now reject duplicate object keys and non-standard NaN/Infinity constants.
 - [x] Static configuration/source consistency review completed against the branch files.
 - [x] Added `PHASE_SUPPORT_MATRIX.md` documenting reusable support and queue coverage across all five phases in the agreed order; later phases remain gated by predecessor closure and their own handoffs.
 - [x] Added a safety-controller regression test that checks the checked-in phase configuration, queue ordering, per-phase task presence, later-phase blocked statuses, and human-authorized gate dependency; authored but not executed.
