@@ -354,5 +354,42 @@ class SafetyControllerTests(unittest.TestCase):
         self.assertIn("G0-05 execution lock is active", result["reason"])
 
 
+    def test_denies_unrelated_queue_task_with_incomplete_contract(self):
+        task = {
+            "task_id": "P3-QUEUE-CONTRACT",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        unrelated = dict(queued)
+        unrelated["task_id"] = "P3-UNRELATED"
+        unrelated.pop("title")
+        queue["tasks"].append(unrelated)
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("invalid contract", result["reason"])
+
+    def test_denies_duplicate_prohibited_entries_even_if_rehashed(self):
+        task = {
+            "task_id": "P3-DUPLICATE-PROHIBITION",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        queued["prohibited"].append("execute_tests")
+        allowlist["approved_tasks"][0]["task_sha256"] = digest(queued)
+        queue["tasks"][0] = queued
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("duplicate entries", result["reason"])
+
 if __name__ == "__main__":
     unittest.main()
