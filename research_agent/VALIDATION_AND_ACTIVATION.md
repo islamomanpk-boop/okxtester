@@ -43,6 +43,7 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Static configuration/source consistency review completed against the branch files.
 - [x] Added `PHASE_SUPPORT_MATRIX.md` documenting reusable support and queue coverage across all five phases in the agreed order; later phases remain gated by predecessor closure and their own handoffs.
 - [x] Added a safety-controller regression test that checks the checked-in phase configuration, queue ordering, per-phase task presence, later-phase blocked statuses, and human-authorized gate dependency; authored but not executed.
+- [x] Documented the future event-driven operating model and all-phase research capability categories; logical event names are not yet wired to GitHub triggers, and event/scheduled automation remains disabled.
 - [x] Verified repository default branch is `main`; GitHub requires a `workflow_dispatch` workflow file to exist on the default branch. The current agent-branch-only/manual-dispatch design is blocked unless the user authorizes a minimal main-branch dispatcher or chooses a separate agent repository. No such change is authorized or made.
 
 ## Deferred validation
