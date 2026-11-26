@@ -76,6 +76,13 @@ class ReportBuilderTests(unittest.TestCase):
         self.assertEqual(len(mismatches), 1)
         self.assertIn("unavailable", mismatches[0])
 
+    def test_markdown_states_provenance_and_metadata_limits(self):
+        rendered = report_builder.render_markdown(valid_report())
+        self.assertIn("Declared input manifest", rendered)
+        self.assertIn("not cryptographically authenticated", rendered)
+        self.assertIn("does not prove the checkout is clean", rendered)
+        self.assertIn("not task-completion evidence", rendered)
+
     def test_valid_report_renders_deterministically(self):
         report = valid_report()
         first = report_builder.render_json(report)
