@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-26  
 **Branch:** price-action-v1  
-**Status:** IMPLEMENTED IN REPOSITORY; NOT YET EXECUTED ON CANONICAL DATA
+**Status:** CANONICAL EXECUTION PASSED; FORMAL ACCEPTANCE PENDING INDEPENDENT REVIEW
 
 ## Files added
 
@@ -31,7 +31,7 @@ The workflow is manual-dispatch only, checks out price-action-v1, grants content
 
 The script's --self-test covers right-labelled 15M bars, incomplete 4H exclusion, equal-time context availability, rejection of future context assignment, 180-context warm-up, the six policy/population rows, fixed/rolling/expanding prior counts, exclusion of current-context width, exclusion of a partial prior context, strict/broad percentile nesting, and duplicate historical identity collapse.
 
-These checks have been added but have **not yet been executed**. The full canonical-data reconstruction has also **not been executed**. No causal results, event counts, threshold policy choice or Gate 0 closure are claimed.
+The original implementation checkpoint was superseded by the execution evidence below. No threshold policy has been selected and no Gate 0 closure is claimed.
 
 ## Run instructions
 
@@ -48,3 +48,21 @@ GitHub Actions continues running if the phone is locked or switched off. ChatGPT
 ## Stop / governance
 
 A successful workflow run would only produce descriptive causal-eligibility evidence for G0-04. It would not close G0-04/G0-05 by itself, authorize candidate generation, or permit execution simulation, Gate 2, strategy backtesting or PnL. Gate 0 remains CONDITIONAL HOLD until all required evidence and independent reviews pass.
+
+
+## Canonical execution record — 2026-11-26
+
+**Disposition:** TECHNICAL PASS; FORMAL G0-04 ACCEPTANCE PENDING INDEPENDENT REVIEW.
+
+- Workflow run: [45749524341](https://github.com/islamomanpk-boop/okxtester/actions/runs/45749524341), attempt 6; job 139679417084 completed with conclusion SUCCESS.
+- Checked-out branch and code revision: `price-action-v1`, `29e59e010d48ce6f9de7066b88e91795ee126ea8`. The metadata now records the actual checked-out commit using `git rev-parse HEAD`.
+- Python 3.11.18, NumPy 2.1.3 and pandas 2.2.3. Compile and synthetic contract tests passed.
+- Canonical reconstruction completed with `DESCRIPTIVE_RECONSTRUCTION_COMPLETE_BASELINE_20_OF_20`; all 20 historical baseline counts reproduced.
+- Five-asset input manifest: exact common 1-minute index of 569,125 timestamps; SHA-256 hashes recorded for all five source files. SOL/DOGE/AVAX have 1/1/2 rows respectively outside the common intersection, as recorded in the manifest.
+- Detector cross-pipeline feature checks: 2,358 matched contexts per asset, tolerance 1e-9. Historical one-bar-lag channel checks: 2,357 matched contexts per asset, tolerance 1e-9.
+- Each asset has one explicitly reported final partial 15-minute context containing 10 rows; it is not treated as a fully covered prior calibration context.
+- Historical 932-identity reconciliation: zero raw-source mismatches across all 120 asset/direction/policy/population/definition summary rows.
+- Outputs: 65,310 threshold-context rows and 2,861 unique raw crossing rows. Seven output-file SHA-256 values in run metadata were independently recomputed and all matched.
+- Artifact: [phase3-g0-04-causal-reconstruction-45749524341](https://github.com/islamomanpk-boop/okxtester/actions/runs/45749524341/artifacts/15086205202), artifact ID 15086205202; ZIP SHA-256 `ad9087acfcf71d17125b503fc2cd6aeeab06a486d57be1d742dfc0a65528dab6`.
+
+**Review limitations / next gate:** This is a descriptive reconstruction, not a selected causal threshold policy and not an execution or profitability test. The expected partial-tail coverage exception is documented, not silently discarded. The independent review must still inspect the complete output semantics and confirm the frozen controls before formal G0-04 acceptance. G0-05 implementation/candidate generation remains blocked until that acceptance. Gate 0 remains CONDITIONAL HOLD; no strategy backtest, orders, fills, execution simulation or PnL work is authorized.
