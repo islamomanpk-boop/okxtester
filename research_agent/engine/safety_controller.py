@@ -66,7 +66,7 @@ def _deny(reason: str) -> dict[str, Any]:
     return {"authorized": False, "decision": "DENY", "reason": reason}
 
 
-def authorize_task(
+def _authorize_task_impl(
     task: dict[str, Any],
     *,
     allowlist: dict[str, Any] | None = None,
@@ -184,6 +184,8 @@ def authorize_task(
                 f"Prior phase gate is not explicitly human-authorized closed: {prior_phase}"
             )
 
+    if not isinstance(operation, str) or not operation.strip():
+        return _deny("Task operation must be a non-empty string.")
     if operation in DENIED_OPERATIONS:
         return _deny(f"Operation is prohibited: {operation}")
     if operation not in READ_ONLY_OPERATIONS:
@@ -232,6 +234,32 @@ def authorize_task(
         "operation": operation,
         "execution_performed": False,
     }
+
+
+def authorize_task(
+    task: dict[str, Any],
+    *,
+    allowlist: dict[str, Any] | None = None,
+    agent_config: dict[str, Any] | None = None,
+    phase_config: dict[str, Any] | None = None,
+    queue_config: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Fail closed if malformed policy data causes an unexpected validation error."""
+    try:
+        return _authorize_task_impl(
+            task,
+            allowlist=allowlist,
+            agent_config=agent_config,
+            phase_config=phase_config,
+            queue_config=queue_config,
+        )
+    except Exception as exc:
+        # Do not leak configuration contents or allow malformed inputs to crash
+        # the authorization boundary. Runtime tests should still expose bugs.
+        return _deny(
+            "Malformed task or policy input; authorization denied "
+            f"({type(exc).__name__})."
+        )
 
 
 def main() -> int:
