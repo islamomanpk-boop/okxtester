@@ -20,6 +20,16 @@ _EXPECTED_FIELDS = {
     "completion_claimed", "gate_closure_claimed",
 }
 _EVIDENCE_FIELDS = {"path", "sha256", "source_ref", "description"}
+# Worker declarations are deliberately limited to benign, read-only/reporting actions.
+# Unknown labels fail closed; they cannot disguise prohibited operations.
+_ALLOWED_DECLARED_ACTIONS = {
+    "read_existing_documentation",
+    "inspect_repository_metadata",
+    "compare_documented_values",
+    "trace_source_references",
+    "hash_evidence_file",
+    "prepare_report",
+}
 
 
 def _nonempty_string(value: Any) -> bool:
@@ -28,6 +38,8 @@ def _nonempty_string(value: Any) -> bool:
 
 def _safe_evidence_path(value: str) -> bool:
     if not value or value.startswith(("/", "\\")) or "\\" in value:
+        return False
+    if re.match(r"^[A-Za-z]:", value):
         return False
     parts = value.split("/")
     return all(part not in {"", ".", ".."} for part in parts)
@@ -114,6 +126,8 @@ def review_worker_submission(
     for action in actions:
         if action in prohibited:
             safety_violations.append(action)
+        elif action not in _ALLOWED_DECLARED_ACTIONS:
+            safety_violations.append("unsupported_action:" + action)
 
     limitations = submission.get("limitations")
     if not isinstance(limitations, list) or any(not _nonempty_string(item) for item in limitations):
@@ -130,6 +144,10 @@ def review_worker_submission(
         issues.append("A completed status must explicitly identify itself as a worker completion claim.")
     if status == "completed" and not evidence:
         issues.append("A completed submission requires at least one evidence reference.")
+    if status == "completed" and not actions:
+        issues.append("A completed submission must declare at least one permitted action.")
+    if status != "completed" and submission.get("completion_claimed") is True:
+        issues.append("Only a completed status may carry a worker completion claim.")
     if status == "blocked" and not limitations:
         issues.append("A blocked submission must explain its limitations or blocker.")
 
