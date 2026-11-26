@@ -9,7 +9,7 @@ from research.phase3_g0_05_candidate_contract_v1 import (
     family_side, complete_15m_confirmation, failed_breakout_confirmation,
     candidate_id, classify_disposition, deterministic_json,
     validate_candidate_identity_links, validate_canonical_candidate_record,
-    validate_canonical_candidate_ledger,
+    validate_canonical_candidate_ledger, serialize_source_disposition_ledgers,
     causal_regime_eligible, validate_strict_broad_nesting,
     exact_first_minute_disposition, failed_breakout_horizon_disposition,
     rejection_physical_identity, collapse_rejection_cohort_rows, causal_rejection_disposition,
@@ -111,6 +111,102 @@ class G005ContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "12-hour"):
             failed_breakout_confirmation("UPPER", 99.0, 100.0,
                                           FAILURE_HORIZON_MS + 1, 0, True)
+
+    def _source_only_fixture_from_canonical(self, record, provisional_source_event_id=None,
+                                             source_breakout_source_event_id=None):
+        return {
+            "source_event_id": provisional_source_event_id or record["source_event_id"],
+            "source_breakout_source_event_id": source_breakout_source_event_id or "",
+            "family": record["family"],
+            "instrument_id": record["instrument_id"],
+            "asset": record["asset"],
+            "side": record["side"],
+            "boundary_side": record["boundary_side"],
+            "regime_definition_version": record["regime_definition_version"],
+            "source_pipeline_version": record["source_pipeline_version"],
+            "source_event_row_ids": ";".join(record["source_event_row_ids"]),
+            "historical_cohort_memberships": ";".join(record["historical_cohort_memberships"]),
+            "causal_cohort_label": record["causal_cohort_label"],
+            "overlap_cluster_id": record["overlap_cluster_id"],
+            "overlap_cluster_size": str(record["overlap_cluster_size"]),
+            "overlap_cluster_start_ts_ms": str(record["overlap_window_start_ts_ms"]),
+            "overlap_cluster_end_exclusive_ts_ms": str(record["overlap_window_end_ts_ms"]),
+            "repeated_signal_group_id": record["repeated_signal_group_id"],
+            "snapshot_id": record["snapshot_id"],
+            "snapshot_available_at_ts_ms": str(record["snapshot_available_at_ts_ms"]),
+            "snapshot_valid_from_ts_ms": str(record["snapshot_valid_from_ts_ms"]),
+            "snapshot_valid_until_ts_ms": str(record["snapshot_valid_until_ts_ms"]),
+            "frozen_upper_boundary": str(record["frozen_upper_boundary"]),
+            "frozen_lower_boundary": str(record["frozen_lower_boundary"]),
+            "channel_width_pct": str(record["channel_width_pct"]),
+            "threshold_policy_id": record["threshold_policy_id"],
+            "threshold_population_id": record["threshold_population_id"],
+            "threshold_value": "" if record["threshold_value"] is None else str(record["threshold_value"]),
+            "threshold_percentile": "" if record["threshold_percentile"] is None else str(record["threshold_percentile"]),
+            "threshold_calibration_start_ts_ms": "" if record["threshold_calibration_start_ts_ms"] is None else str(record["threshold_calibration_start_ts_ms"]),
+            "threshold_calibration_end_ts_ms": "" if record["threshold_calibration_end_ts_ms"] is None else str(record["threshold_calibration_end_ts_ms"]),
+            "threshold_prior_observation_count": "" if record["threshold_prior_observation_count"] is None else str(record["threshold_prior_observation_count"]),
+            "efficiency_value": "" if record["efficiency_value"] is None else str(record["efficiency_value"]),
+            "efficiency_limit": str(record["efficiency_limit"]),
+            "overlap_value": "" if record["overlap_value"] is None else str(record["overlap_value"]),
+            "overlap_minimum": str(record["overlap_minimum"]),
+            "source_file_paths": ";".join(record["source_file_paths"]),
+            "source_git_blob_ids": ";".join(record["source_git_blob_ids"]),
+            "source_sha256_manifest_id": record["source_sha256_manifest_id"],
+            "signal_candle_open_ts_ms": "" if record["signal_candle_open_ts_ms"] is None else str(record["signal_candle_open_ts_ms"]),
+            "signal_candle_close_ts_ms": "" if record["signal_candle_close_ts_ms"] is None else str(record["signal_candle_close_ts_ms"]),
+            "signal_available_at_ts_ms": "" if record["signal_available_at_ts_ms"] is None else str(record["signal_available_at_ts_ms"]),
+            "confirmation_rule_id": record["confirmation_rule_id"],
+            "confirmation_bar_interval_ms": str(record["confirmation_bar_interval_ms"]),
+            "confirmation_status": record["confirmation_status"],
+            "first_eligible_1m_open_ts_ms": "" if record["first_eligible_execution_bar_open_ts_ms"] is None else str(record["first_eligible_execution_bar_open_ts_ms"]),
+            "event_observed_at_ts_ms": str(record["event_observed_at_ts_ms"]),
+            "ambiguity_flags": ";".join(record["ambiguity_flags"]),
+            "decluster_policy_id": record["decluster_policy_id"],
+            "disposition": record["candidate_status"],
+            "reason_code": record["exclusion_reason"],
+            "censoring_reason": record["censoring_reason"] or "",
+            "invalidation_reference_type": record["invalidation_reference_type"],
+            "invalidation_reference_value": record["invalidation_reference_value"],
+            "invalidation_reference_ts_ms": record["invalidation_reference_ts_ms"],
+            "expiry_rule_id": record["expiry_rule_id"],
+            "expiry_ts_ms": str(record["expiry_ts_ms"]),
+            "source_reconciliation_status": record["source_reconciliation_status"],
+            "source_join_cardinality": record["source_join_cardinality"],
+        }
+
+    def test_source_disposition_serializer_builds_valid_canonical_ledger(self):
+        rejection_identity = "BTC|LOWER|rejection|1761287400000"
+        rejection = self._canonical_candidate_fixture(
+            "SUPPORT_REJECTION", rejection_identity, 1761287400000, "LOWER", "LONG")
+        rejection["source_reconciliation_status"] = "EXACT_PHYSICAL_EVENT_COLLAPSE"
+        rejection["source_join_cardinality"] = "ONE_PHYSICAL_EVENT_TO_ONE_OR_TWO_COHORT_ROWS"
+        rejection_source = self._source_only_fixture_from_canonical(rejection)
+
+        breakout_identity = "BTC|UPPER|1761287400000|1761278400000"
+        breakout = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", breakout_identity, 1761287400000, "UPPER", "LONG")
+        breakout_source = self._source_only_fixture_from_canonical(breakout)
+
+        confirmation = 1761291000000
+        source_breakout_id = breakout["candidate_id"]
+        failed_identity = f"{source_breakout_id}|{confirmation}|G0_05_CANDIDATE_RULE_V1"
+        failed = self._canonical_candidate_fixture(
+            "FAILED_BREAKOUT_REVERSAL", failed_identity, confirmation, "UPPER", "SHORT",
+            source_breakout_candidate_id=source_breakout_id,
+            source_breakout_signal_available=breakout["signal_available_at_ts_ms"])
+        failed["source_reconciliation_status"] = "EXACT_LINKED_SOURCE_BREAKOUT"
+        failed["source_join_cardinality"] = "ONE_FAILED_BREAKOUT_TO_ONE_SOURCE_BREAKOUT"
+        failed_source = self._source_only_fixture_from_canonical(
+            failed, provisional_source_event_id="PROVISIONAL|FAILED",
+            source_breakout_source_event_id=breakout_identity)
+
+        records = serialize_source_disposition_ledgers(
+            [rejection_source], [breakout_source], [failed_source])
+        self.assertEqual(len(records), 3)
+        failed_record = next(x for x in records if x["family"] == "FAILED_BREAKOUT_REVERSAL")
+        self.assertEqual(failed_record["source_breakout_candidate_id"], source_breakout_id)
+        self.assertEqual(failed_record["source_event_id"], failed_identity)
 
     def _canonical_candidate_fixture(self, family, source_event_id, signal_available,
                                       boundary_side, side, source_breakout_candidate_id="NOT_APPLICABLE",
