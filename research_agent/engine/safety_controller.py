@@ -36,7 +36,9 @@ MANDATORY_TASK_PROHIBITIONS = {
 }
 
 
-def _validate_task_contract(task: dict[str, Any]) -> str | None:
+def _validate_task_contract(
+    task: dict[str, Any], *, expected_status: str = "queued"
+) -> str | None:
     """Require a complete, narrowly scoped task contract before hash approval."""
     keys = set(task)
     missing = TASK_REQUIRED_FIELDS - keys
@@ -48,8 +50,8 @@ def _validate_task_contract(task: dict[str, Any]) -> str | None:
     for field in ("task_id", "phase", "operation", "title", "status", "completion_authority"):
         if not isinstance(task[field], str) or not task[field].strip():
             return f"Task field {field!r} must be a non-empty string."
-    if task["status"] != "queued":
-        return "Task is not in queued status."
+    if task["status"] != expected_status:
+        return f"Task status must be {expected_status!r}."
     if task["completion_authority"] != "human_only":
         return "Task completion authority must remain human_only."
     if not isinstance(task["scope"], list) or not task["scope"] or not all(
@@ -60,6 +62,10 @@ def _validate_task_contract(task: dict[str, Any]) -> str | None:
         isinstance(item, str) and item.strip() for item in task["prohibited"]
     ):
         return "Task prohibited actions must be a list of non-empty strings."
+    if len(task["scope"]) != len(set(task["scope"])):
+        return "Task scope must not contain duplicate entries."
+    if len(task["prohibited"]) != len(set(task["prohibited"])):
+        return "Task prohibited-action list must not contain duplicate entries."
     if not MANDATORY_TASK_PROHIBITIONS.issubset(set(task["prohibited"])):
         return "Task prohibited-action list is missing one or more mandatory safety restrictions."
     for optional in TASK_OPTIONAL_FIELDS.intersection(keys):
@@ -263,6 +269,14 @@ def _authorize_task_impl(
         expected_status = "queued" if row_phase == active_phases[0] else "blocked_until_prior_phases_complete"
         if row.get("status") != expected_status:
             return _deny("Queue task status conflicts with the active phase and sequential phase policy.")
+        row_contract_error = _validate_task_contract(
+            row, expected_status=expected_status
+        )
+        if row_contract_error:
+            return _deny(
+                f"Queue task {row.get('task_id')!r} has an invalid contract: "
+                f"{row_contract_error}"
+            )
 
     # Require an explicit read-only opt-in; missing, deny, and unknown values fail closed.
     if phase_rule.get("execution_override") != "allow_read_only":
