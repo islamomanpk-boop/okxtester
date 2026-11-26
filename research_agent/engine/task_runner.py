@@ -24,15 +24,10 @@ def load_queue(path: Path = QUEUE_PATH) -> dict[str, Any]:
     return value
 
 
-def preflight_task(task_id: str, queue: dict[str, Any] | None = None) -> dict[str, Any]:
+def _preflight_task_with_queue(task_id: str, current_queue: dict[str, Any]) -> dict[str, Any]:
     """Evaluate one exact queue entry; never invokes an executor or changes files."""
     if not isinstance(task_id, str) or not task_id.strip():
         return {"decision": "DENY", "reason": "A non-empty task ID is required."}
-
-    try:
-        current_queue = queue if queue is not None else load_queue()
-    except (OSError, json.JSONDecodeError, ValueError) as exc:
-        return {"decision": "DENY", "reason": f"Cannot load task queue: {exc}"}
 
     if not isinstance(current_queue, dict):
         return {"decision": "DENY", "reason": "Task queue must be a JSON object."}
@@ -57,6 +52,15 @@ def preflight_task(task_id: str, queue: dict[str, Any] | None = None) -> dict[st
         "execution_performed": False,
         "mode": "preflight_only",
     }
+
+
+def preflight_task(task_id: str) -> dict[str, Any]:
+    """Runtime preflight against the queue stored in this repository only."""
+    try:
+        trusted_queue = load_queue()
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        return {"decision": "DENY", "reason": f"Cannot load task queue: {exc}"}
+    return _preflight_task_with_queue(task_id, trusted_queue)
 
 
 def main() -> int:
