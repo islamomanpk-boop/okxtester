@@ -463,9 +463,9 @@ class G005SourceAuditTests(unittest.TestCase):
     def test_interval_graph_clusters_use_transitive_half_open_overlap(self):
         events = [
             {"asset": "BTC", "event_id": "a", "start": 0, "bars": 10},
-            {"asset": "BTC", "event_id": "b", "start": 9, "bars": 11},
-            {"asset": "BTC", "event_id": "c", "start": 19, "bars": 11},
-            {"asset": "BTC", "event_id": "d", "start": 30, "bars": 1},
+            {"asset": "BTC", "event_id": "b", "start": 9 * MINUTE_MS, "bars": 11},
+            {"asset": "BTC", "event_id": "c", "start": 19 * MINUTE_MS, "bars": 11},
+            {"asset": "BTC", "event_id": "d", "start": 30 * MINUTE_MS, "bars": 1},
             {"asset": "ETH", "event_id": "e", "start": 0, "bars": 1},
         ]
         mapping, summary = assign_interval_graph_clusters(
