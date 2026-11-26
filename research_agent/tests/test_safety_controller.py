@@ -195,6 +195,38 @@ class SafetyControllerTests(unittest.TestCase):
             json.loads('{"execution":{"enabled":false,"enabled":true}}',
                        object_pairs_hook=_unique_json_object)
 
+    def test_denies_malformed_unrelated_queue_entry(self):
+        task = {
+            "task_id": "P3-QUEUE-CHECK",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        queue["tasks"].append("not-an-object")
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("Every task queue entry", result["reason"])
+
+    def test_denies_duplicate_ids_in_trusted_allowlist(self):
+        task = {
+            "task_id": "P3-DUPLICATE-ALLOW",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        allowlist["approved_tasks"].append(dict(allowlist["approved_tasks"][0]))
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("duplicate task IDs", result["reason"])
+
 
     def test_public_runtime_authorizer_rejects_policy_injection(self):
         task = {
