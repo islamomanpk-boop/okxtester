@@ -421,6 +421,8 @@ class ReportBuilderTests(unittest.TestCase):
                 report_builder.verify_artifact_files(
                     tampered, bundle["manifest"],
                     actual_artifact_name=bundle["artifact_name"],
+                    expected_run_id="12345",
+                    expected_run_attempt="1",
                 )
 
     def test_artifact_verifier_rejects_missing_or_unexpected_files(self):
