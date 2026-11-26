@@ -100,3 +100,30 @@ The 26 write-permission findings are a static regex census of explicit permissio
 This workflow must not merge branches, commit to the research branch, alter canonical definitions or data, close gates, advance phases, select strategies, make PnL claims, deploy to a VPS, or change secrets or repository permissions.
 
 **Activation rule:** until every applicable checklist item is satisfied and the required human authorization is recorded, no agent workflow is to be created or run.
+
+
+## Deep static workflow review — actions, writes, checkout, and VPS boundary
+
+A second read-only pass fetched the full text of all 39 workflow files in batches. This pass inspected action references, explicit permission declarations, checkout refs, secret references, and shell-command indicators. No workflow was run.
+
+### Confirmed high-risk inherited patterns
+
+- Action references are tag-based, including `actions/checkout@v4`, `actions/setup-python@v5`, and `actions/upload-artifact@v4`; these are not immutable full-SHA pins. This is an inventory observation, not a claim that these first-party actions are malicious.
+- The Phase 1 source-preflight workflow grants `contents: write`, checks out `price-action-v1`, permanently archives outputs into the research tree, commits, and pushes to `price-action-v1`.
+- The Phase 3 breakout-lifecycle workflow grants `contents: write`, checks out `price-action-v1`, runs tests and a historical research script, archives reports, and pushes to `price-action-v1`. Its output-contract assertions explicitly include the five outside-retest fields, so it is especially unsuitable as an agent-side shortcut under the current G0-05 handoff.
+- The Phase 3 funding mark-price audit grants `contents: write`, creates a candidate-proxy snapshot and manifest, then commits and pushes data to `price-action-v1`. It also embeds a prior VPS reproduction run ID and digest in its workflow environment; this is provenance metadata, not evidence of live SSH access.
+- Multiple other inherited Phase 3 and sideways workflows likewise declare `contents: write` and archive outputs into Git. They are not agent-safe merely because they can be manually dispatched.
+- The G0-05 source-audit and independent-minute-verification workflows explicitly check out `price-action-v1`, use the GitHub token to retrieve/download the relevant source artifact, and execute G0-05 scripts. They remain prohibited by the controlling handoff.
+- The VPS health-monitor workflow is materially different: it uses a `self-hosted, linux, x64` runner, with read-only repository permission and no explicit named secret reference. Its shell commands inspect host/memory/disk/load, the OKX downloader process, a download log, and SQLite filenames under the runner user's home directory, then write the report to the GitHub step summary. This is direct VPS-side execution and can expose operational metadata/log content to the workflow run; it must never be repurposed for the research agent. The agent design therefore explicitly excludes self-hosted runners and all VPS access.
+
+### What the scan did and did not establish
+
+- The scan found no explicit `secrets.NAME` references and no literal SSH/SCP/rsync deployment commands in the 39 workflow files. It did find the self-hosted VPS health workflow described above.
+- This does not rule out credentials supplied implicitly by GitHub, runner environment variables, actions, scripts, or repository settings. Static workflow text cannot establish effective token permissions or runner isolation.
+- Shell/network indicators were treated as triage signals only; a false result is not a security certification.
+- Several workflows do not explicitly declare permissions. Their effective permissions must be evaluated against repository and organization defaults before any future use.
+- The inventory is complete at the workflow-file level for this branch snapshot, but it is not a line-by-line audit of every invoked Python script, dependency, action implementation, or runner configuration.
+
+### Agent boundary decision
+
+The agent must run only on a fresh GitHub-hosted runner, with an explicit agent-branch checkout, no inherited workflow invocation, no self-hosted labels, no repository secrets, no write token, and no dynamic action or shell selection. The first future workflow remains manual-dispatch and report-only, and cannot be installed or run until the G0-05 handoff permits the exact validation scope and a human authorizes it.
