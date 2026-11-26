@@ -149,3 +149,44 @@ A second read-only pass fetched the full text of all 39 workflow files in batche
 ### Agent boundary decision
 
 The agent must run only on a fresh GitHub-hosted runner, with an explicit agent-branch checkout, no inherited workflow invocation, no self-hosted labels, no repository secrets, no write token, and no dynamic action or shell selection. The first future workflow remains manual-dispatch and report-only, and cannot be installed or run until the G0-05 handoff permits the exact validation scope and a human authorizes it.
+
+
+## Full-project operation after Phase 3
+
+The agent is intended to serve all five phases, not just the currently active Phase 3. The shared queue, safety controller, provenance checks, and report format are phase-agnostic. See [PHASE_SUPPORT_MATRIX.md](PHASE_SUPPORT_MATRIX.md) for the phase-by-phase support contract.
+
+When a later phase becomes eligible, the agent must not merely repeat a generic readiness scan. Its work plan should be derived from that phase's own approved handoff and research plan and may include, where permitted:
+
+- inventory of existing phase-specific datasets, reports, manifests, scripts, tests, and checkpoints;
+- source-to-output lineage and data-quality evidence mapping;
+- definition/schema consistency and boundary-condition reconciliation;
+- event/cohort accounting and overlap/deduplication checks using existing evidence;
+- unresolved edge cases, missing artifacts, and dependency tracking;
+- deterministic evidence reports with citations to repository paths and commit identities.
+
+These are capability categories, not blanket permission to execute the listed scripts/tests or reproduce calculations. Each phase handoff controls the exact permitted scope. Do not transplant Phase 3/G0-05 definitions or restrictions into other phases; read and obey each phase's own current handoff.
+
+## Event-driven operating model — future stage, not active
+
+The intended steady-state preference is **event-driven work when eligible tasks or new evidence become available**, rather than relying on a twice-daily schedule. The configured logical event categories are:
+
+- `task_added`: a new valid task appears in the trusted queue;
+- `approved_job_completed`: a previously authorized job finishes and may unlock dependent work;
+- `task_completed_with_queue_remaining`: a task finishes while another eligible task remains;
+- `new_evidence_registered`: new, relevant evidence is registered for a phase;
+- `manual_dispatch`: a human requests a controlled run.
+
+These are semantic event categories in configuration, not currently wired GitHub event triggers. They must be mapped to an authenticated event source and a durable, replayable queue before activation. The initial workflow remains manual-only and preflight/report-only.
+
+Before event-driven activation, the implementation must provide:
+
+- **Trusted event origin:** reject events not issued by the configured repository/workflow or other explicitly trusted source.
+- **Task binding:** resolve an event to an exact task already present in the trusted queue; never accept a task definition, shell command, path, or permission from an event payload.
+- **Idempotency:** deduplicate repeated deliveries using a stable event/task identity and record the result so retries do not duplicate work.
+- **No lost work:** ensure pending tasks remain discoverable if multiple events arrive close together or a workflow is cancelled. A simple concurrency setting is not, by itself, a durable queue.
+- **Phase gating:** re-check current handoff, phase order, predecessor gate closure, task hash approval, and all safety switches at execution time.
+- **Bounded processing:** one bounded task per run or another explicitly bounded batch; no unbounded loops.
+- **Loop prevention:** agent-generated reports/artifacts must not recursively trigger more work unless a distinct, explicitly trusted event is registered.
+- **Fallback reconciliation:** a low-frequency scheduled scan may recover missed events, but it is secondary to event-driven triggers. Its cadence should be selected only after the event source and free-tier limits are validated; no twice-daily schedule is currently enabled or committed.
+
+Event-driven and scheduled triggers remain disabled until manual validation succeeds, the G0-05 handoff permits the exact scope, the default-branch/repository activation constraint is resolved, and the required human authorization is recorded. GitHub Actions cannot guarantee instantaneous execution; repository event delivery, concurrency, quotas, and runner availability impose limits.
