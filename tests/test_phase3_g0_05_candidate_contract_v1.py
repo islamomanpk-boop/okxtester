@@ -20,7 +20,7 @@ from research.phase3_g0_05_source_manifest_audit_v1 import (
     validate_disposition_ledger, grouped_disposition_counts, historical_membership_label,
     assign_interval_graph_clusters, observed_window_bars, consistent_physical_cluster,
     make_repeated_signal_group_id, aggregate_completed_15m_bar, file_manifest_entry, git_blob_sha1,
-    confirmation_ambiguity_flag,
+    confirmation_ambiguity_flag, canonical_snapshot_provenance,
 )
 
 
@@ -442,6 +442,52 @@ class G005SourceAuditTests(unittest.TestCase):
         self.assertEqual(first_eligible_minute_or_blank("REJECTED", 123000), "")
         self.assertEqual(first_eligible_minute_or_blank("EXPIRED", None), "")
         self.assertEqual(first_eligible_minute_or_blank("CENSORED", 123000), "")
+
+    def test_canonical_snapshot_provenance_uses_exact_prior_threshold(self):
+        feature = {
+            "available_at_ts_ms": "1000000", "upper": "110", "lower": "90",
+            "channel_width_pct": "20", "directional_efficiency": "0.2",
+            "mean_overlap": "0.8",
+        }
+        threshold = {
+            "p25": "18", "p40": "22", "first_prior_context_ms": "1000",
+            "last_prior_context_ms": "900000", "prior_context_count": "200",
+        }
+        strict = canonical_snapshot_provenance("BTC", 1000000, 2000000,
+                                               feature, threshold, "CAUSAL_STRICT")
+        broad = canonical_snapshot_provenance("BTC", 1000000, 2000000,
+                                              feature, threshold, "CAUSAL_BROAD_ONLY")
+        self.assertEqual(strict["threshold_value"], 18.0)
+        self.assertEqual(strict["threshold_percentile"], 25)
+        self.assertEqual(broad["threshold_value"], 22.0)
+        self.assertEqual(broad["threshold_percentile"], 40)
+        self.assertEqual(strict["instrument_id"], "BTC-USDT-SWAP")
+        self.assertEqual(strict["snapshot_valid_until_ts_ms"], 2000000)
+        self.assertEqual(strict["threshold_prior_observation_count"], 200)
+
+    def test_canonical_snapshot_provenance_rejects_nonexact_snapshot(self):
+        feature = {
+            "available_at_ts_ms": "1000001", "upper": "110", "lower": "90",
+            "channel_width_pct": "20", "directional_efficiency": "0.2",
+            "mean_overlap": "0.8",
+        }
+        with self.assertRaisesRegex(ValueError, "exact match"):
+            canonical_snapshot_provenance("BTC", 1000000, 2000000,
+                                           feature, None, "WARMUP")
+
+    def test_canonical_snapshot_provenance_rejects_future_calibration(self):
+        feature = {
+            "available_at_ts_ms": "1000000", "upper": "110", "lower": "90",
+            "channel_width_pct": "20", "directional_efficiency": "0.2",
+            "mean_overlap": "0.8",
+        }
+        threshold = {
+            "p25": "18", "p40": "22", "first_prior_context_ms": "1000",
+            "last_prior_context_ms": "1000000", "prior_context_count": "200",
+        }
+        with self.assertRaisesRegex(ValueError, "prior-only"):
+            canonical_snapshot_provenance("BTC", 1000000, 2000000,
+                                           feature, threshold, "CAUSAL_STRICT")
 
     def test_streaming_file_manifest_matches_git_blob_and_sha256(self):
         data = b"frozen source bytes\n"
