@@ -18,6 +18,7 @@ the existing deterministic report and artifact builder.
 - Evidence integrity means only that supplied bytes match the supplied manifest.
   The caller/workflow must independently authenticate checkout, exact commit,
   cleanliness, manifest origin, run identifiers, and timestamp.
+- Assignment binding requires an expected package SHA-256 retained independently by a trusted dispatcher/channel; a worker-returned digest is not trusted.
 - Assignment binding does not prove worker dispatch or delivery.
 - A passing review is only eligible for human review. Completion and gate closure
   remain human-only.
@@ -27,7 +28,7 @@ the existing deterministic report and artifact builder.
 - This module does not override the active Phase 3 G0-05 handoff.
 
 ## Inputs and output
-The caller supplies the exact task/package/submission, evidence manifest and
+The caller supplies the exact task/package/submission, the independently retained expected assignment-package SHA-256, evidence manifest and
 bytes, workflow metadata, and report input manifest. The module restricts
 repository and branch, and requires report commit to equal evidence-review
 commit. Output includes the supervisor review and an in-memory bundle containing
