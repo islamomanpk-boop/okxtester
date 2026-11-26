@@ -397,7 +397,7 @@ class ReportBuilderTests(unittest.TestCase):
             tampered_manifest["repository"] = "attacker/other-repo"
             tampered_files = dict(bundle["files"])
             tampered_files["artifact_manifest.json"] = (
-                json.dumps(tampered_manifest, sort_keys=True, indent=2) + "\\n"
+                json.dumps(tampered_manifest, sort_keys=True, indent=2) + "\n"
             )
             with self.assertRaisesRegex(ValueError, "identity does not match"):
                 report_builder.verify_artifact_files(
@@ -445,7 +445,7 @@ class ReportBuilderTests(unittest.TestCase):
                 for name in ("report.json", "report.md")
             ]
             forged_files["artifact_manifest.json"] = (
-                json.dumps(forged_manifest, indent=2, sort_keys=True) + "\\n"
+                json.dumps(forged_manifest, indent=2, sort_keys=True) + "\n"
             )
             with self.assertRaisesRegex(ValueError, "repository does not match trusted"):
                 report_builder.verify_artifact_files(
@@ -516,7 +516,7 @@ class ReportBuilderTests(unittest.TestCase):
                 run_attempt="1",
             )
             tampered = dict(bundle["files"])
-            tampered["report.md"] += "\\nInjected content"
+            tampered["report.md"] += "\nInjected content"
             with self.assertRaisesRegex(ValueError, "hash mismatch"):
                 report_builder.verify_artifact_files(
                     tampered, bundle["manifest"],
