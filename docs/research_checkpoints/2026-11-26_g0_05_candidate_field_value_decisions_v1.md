@@ -100,9 +100,9 @@ Additional flags require a versioned contract amendment before emission.
 
 ## 9. Source manifest identifier
 
-`source_sha256_manifest_id` is the SHA-256 of the exact `source_manifest.json` bytes included in the source-audit artifact. For the latest complete source-audit manifest V2 in run 45808007422 / artifact 15110482845, the value is:
+`source_sha256_manifest_id` is the SHA-256 of the exact `source_manifest.json` bytes included in the source-audit artifact. For the latest complete source-audit manifest V2 in run 45809114333 / artifact 15109854146, the value is:
 
-`f851f6c65214f18a6f24cd7424cad0dedba26c2c2a1210dda269ddef84bc81d2`
+`dcc2bc9b6af890a81f0ecf109d34843fcc34b2a8431116b766aa97acdfc7082f`
 
 This is the SHA-256 of the exact `source_manifest.json` bytes. Earlier 7-file-only and prior V2 run IDs are superseded. Every later source-audit run must use its own computed hash; never reuse this ID after the manifest or source-audit revision changes.
 
@@ -230,3 +230,17 @@ Synthetic tests use only invented identities. No IDs were computed for the 4,947
 - Synthetic suite [45808764318](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808764318) — SUCCESS; **117/117 tests passed**.
 
 This closes the deterministic ID/link validator design gap, while the real candidate IDs and linked candidate ledger remain intentionally unmaterialized until G0-05 approval.
+
+
+## 19. Schema-normalized source-only fields and final failed-breakout identity validation
+
+The latest source-only audit now emits schema-normalized `causal_cohort_label` values:
+`STRICT_P25`, `BROAD_ONLY`, `NOT_ELIGIBLE`, `WARMUP`, `NOT_APPLICABLE`; plus explicit `side` and `boundary_side` fields.
+
+- Source audit [45809114333](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809114333) — SUCCESS; artifact ID `15109854146`; ZIP SHA-256 `256dd55f22f0dc6c17732a4462c7cf88229af6ec57e42ec2becbc2fea9d6c85d`.
+- Complete manifest ID: `dcc2bc9b6af890a81f0ecf109d34843fcc34b2a8431116b766aa97acdfc7082f`; exact-byte hash matched report.
+- All 4,947 rows have unique source-event IDs; family side/boundary mapping and cohort enums match the frozen schema.
+- Synthetic contract suite [45809254233](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809254233) — SUCCESS; **120/120 tests passed**.
+- The identity validator now checks the final canonical failed-breakout identity composition: linked source breakout candidate ID + confirmation timestamp (or `NO_CONFIRMATION`) + candidate rule version. Tests use synthetic IDs only.
+
+The source-only failed-breakout ledger still carries a provisional source identity and source breakout source-event ID; the final candidate ID and linked source candidate ID remain unmaterialized.
