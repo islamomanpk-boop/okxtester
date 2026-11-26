@@ -14,9 +14,9 @@ def _as_text(value: Any) -> str:
     else:
         try:
             rendered = json.dumps(value, sort_keys=True, ensure_ascii=False, allow_nan=False)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, RecursionError):
             # Malformed worker values must remain reviewable as invalid input;
-            # rendering an audit artifact must not crash on NaN or mixed keys.
+            # rendering must not crash on NaN, mixed keys, or excessive nesting.
             rendered = f"<unrenderable worker value: {type(value).__name__}>"
     rendered = " ".join(rendered.split())
     return rendered if len(rendered) <= 2000 else rendered[:1997] + "..."
