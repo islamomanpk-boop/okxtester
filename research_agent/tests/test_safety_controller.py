@@ -36,12 +36,16 @@ def policy_fixture(task, *, phase_order=None, phase_rules=None, lock=False):
             },
         }
     }
+    for index, phase_name in enumerate(phase_order, start=1):
+        if phase_name in phase_rules:
+            phase_rules[phase_name].setdefault("priority", index)
     queued_task = dict(task)
     queue = {
         "queue_policy": {
             "phase_order": phase_order,
             "execution_enabled": True,
             "no_phase_skipping": True,
+            "advance_only_after_current_phase_gate_is_human_authorized_closed": True,
             "tasks_may_not_override_handoffs": True,
         },
         "tasks": [queued_task],
@@ -210,6 +214,43 @@ class SafetyControllerTests(unittest.TestCase):
         )
         self.assertFalse(result["authorized"])
         self.assertIn("Every task queue entry", result["reason"])
+
+    def test_denies_phase_priority_mismatch(self):
+        result = self.evaluate(
+            {
+                "task_id": "P3-PRIORITY-MISMATCH",
+                "phase": "phase3_sideways_range",
+                "operation": "repository_inspection",
+                "status": "queued",
+            },
+            phase_rules={
+                "phase3_sideways_range": {
+                    "priority": 2,
+                    "status": "active_research_phase",
+                    "execution_override": "allow_read_only",
+                }
+            },
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("priorities", result["reason"])
+
+    def test_denies_queue_without_human_gate_advancement_rule(self):
+        task = {
+            "task_id": "P3-NO-GATE-RULE",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        queue["queue_policy"].pop(
+            "advance_only_after_current_phase_gate_is_human_authorized_closed"
+        )
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("human-authorized gate closure", result["reason"])
 
     def test_denies_duplicate_ids_in_trusted_allowlist(self):
         task = {
