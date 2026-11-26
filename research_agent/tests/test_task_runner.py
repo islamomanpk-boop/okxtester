@@ -99,6 +99,14 @@ class TaskRunnerTests(unittest.TestCase):
             result = task_runner._preflight_task_with_queue("P3-RO-001", queue)
         self.assertEqual(result["decision"], "DENY")
 
+    def test_rejects_non_string_authorizer_decision_without_raising(self):
+        queue = {"tasks": [{"task_id": "P3-RO-001", "status": "queued"}]}
+        response = {"decision": ["ALLOW_READ_ONLY"], "authorized": True, "reason": "bad type"}
+        with patch.object(task_runner, "authorize_task", return_value=response):
+            result = task_runner._preflight_task_with_queue("P3-RO-001", queue)
+        self.assertEqual(result["decision"], "DENY")
+        self.assertFalse(result["authorized"])
+
     def test_rejects_unknown_authorizer_decision(self):
         queue = {"tasks": [{"task_id": "P3-RO-001", "status": "queued"}]}
         response = {"decision": "ALLOW", "authorized": True, "reason": "unknown"}
