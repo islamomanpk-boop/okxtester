@@ -15,7 +15,7 @@ def _as_text(value: Any) -> str:
 
 def build_assignment_review_artifact(
     trusted_task: dict[str, Any], assignment_package: dict[str, Any], submission: dict[str, Any], *,
-    expected_commit_sha: str, commit_manifest: dict[str, Any], file_contents: dict[str, bytes],
+    expected_assignment_package_sha256: str, expected_commit_sha: str, commit_manifest: dict[str, Any], file_contents: dict[str, bytes],
     repository: str, branch: str, commit_sha: str, actual_head_sha: str, checkout_clean: bool,
     run_id: str, run_attempt: str, timestamp_utc: str, input_manifest: list[dict[str, str]],
 ) -> dict[str, Any]:
@@ -33,6 +33,7 @@ def build_assignment_review_artifact(
 
     review = review_assignment_return(
         trusted_task, assignment_package, submission,
+        expected_assignment_package_sha256=expected_assignment_package_sha256,
         expected_commit_sha=expected_commit_sha, commit_manifest=commit_manifest,
         file_contents=file_contents,
     )
@@ -88,7 +89,7 @@ def build_assignment_review_artifact(
 
     limitations = [
         "Report status is not_run because this reporting layer did not execute the research task; worker status is retained only as an unverified declaration.",
-        "Assignment binding does not prove that a worker was dispatched or received the package.",
+        "Assignment binding requires a separately retained trusted package digest; it does not prove that a worker was dispatched or received the package.",
         "Evidence integrity means only that supplied bytes match the supplied commit manifest; the caller must independently authenticate checkout, commit, and manifest.",
         "Evidence integrity does not establish research correctness, completeness, source truth, or whether findings support a research conclusion.",
         "Repository, branch, commit, run ID, timestamp, input manifest, and checkout-clean assertion are caller-supplied until independently authenticated by the workflow.",
