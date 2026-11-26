@@ -385,6 +385,9 @@ def build_artifact_bundle(
         "artifact_name": f"okx-research-agent-{run_id}-{run_attempt}",
         "task_id": report["task_id"],
         "phase": report["phase"],
+        "repository": report["repository"],
+        "branch": report["branch"],
+        "task_definition_sha256": report["task_definition_sha256"],
         "run_id": run_id,
         "run_attempt": run_attempt,
         "commit_sha": expected_commit_sha,
@@ -457,8 +460,9 @@ def verify_artifact_files(
     except (TypeError, json.JSONDecodeError, ValueError) as exc:
         raise ValueError("Artifact JSON files are not valid strict JSON.") from exc
     if not isinstance(manifest, dict) or set(manifest) != {
-        "schema_version", "artifact_name", "task_id", "phase", "run_id",
-        "run_attempt", "commit_sha", "files", "limitations",
+        "schema_version", "artifact_name", "task_id", "phase", "repository",
+        "branch", "task_definition_sha256", "run_id", "run_attempt",
+        "commit_sha", "files", "limitations",
     }:
         raise ValueError("Artifact manifest schema is invalid.")
     if embedded_manifest != manifest:
@@ -485,6 +489,13 @@ def verify_artifact_files(
         raise ValueError("Artifact manifest task_id is invalid.")
     if not isinstance(manifest["phase"], str) or not manifest["phase"].strip():
         raise ValueError("Artifact manifest phase is invalid.")
+    for field in ("repository", "branch"):
+        if not isinstance(manifest[field], str) or not manifest[field].strip():
+            raise ValueError(f"Artifact manifest {field} is invalid.")
+    if not isinstance(manifest["task_definition_sha256"], str) or not _SHA256_RE.fullmatch(
+        manifest["task_definition_sha256"]
+    ):
+        raise ValueError("Artifact manifest task-definition hash is invalid.")
     if not isinstance(manifest["commit_sha"], str) or not _COMMIT_RE.fullmatch(manifest["commit_sha"]):
         raise ValueError("Artifact manifest commit SHA is invalid.")
     if not isinstance(manifest["limitations"], list) or not all(
@@ -519,6 +530,9 @@ def verify_artifact_files(
         or report["phase"] != manifest["phase"]
         or report["run_id"] != manifest["run_id"]
         or report["commit_sha"] != manifest["commit_sha"]
+        or report["repository"] != manifest["repository"]
+        or report["branch"] != manifest["branch"]
+        or report["task_definition_sha256"] != manifest["task_definition_sha256"]
     ):
         raise ValueError("Artifact report identity does not match its manifest.")
 
