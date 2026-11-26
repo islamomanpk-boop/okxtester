@@ -1,0 +1,42 @@
+name: Phase 3 G0-05 Candidate Contract Synthetic Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - price-action-v1
+    paths:
+      - research/phase3_g0_05_candidate_contract_v1.py
+      - tests/test_phase3_g0_05_candidate_contract_v1.py
+      - .github/workflows/phase3-g0-05-candidate-contract-tests.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase3-g0-05-contract-tests
+  cancel-in-progress: false
+
+jobs:
+  synthetic-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+        with:
+          ref: price-action-v1
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Compile contract and tests
+        run: |
+          python -m py_compile research/phase3_g0_05_candidate_contract_v1.py tests/test_phase3_g0_05_candidate_contract_v1.py
+
+      - name: Run synthetic contract tests
+        run: |
+          python -m unittest -v tests.test_phase3_g0_05_candidate_contract_v1
