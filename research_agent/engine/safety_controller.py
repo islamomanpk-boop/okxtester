@@ -201,6 +201,25 @@ def _validate_policy_shapes(
         phases["global_defaults"], global_default_keys
     ):
         return "Global phase defaults have missing or unsupported fields."
+    expected_global_defaults = {
+        "repository_inspection": "allow_read_only",
+        "evidence_lineage_review": "allow_read_only",
+        "report_generation": "allow_local_or_artifact_only",
+        "execute_scripts": "deny_unless_task_and_phase_allowlisted",
+        "execute_tests": "deny_unless_task_and_phase_allowlisted",
+        "trigger_workflows": "deny",
+        "modify_research_data": "deny",
+        "modify_canonical_definitions": "deny",
+        "create_candidates": "deny",
+        "run_backtests": "deny",
+        "make_pnl_claims": "deny",
+        "select_strategies": "deny",
+        "close_gates": "deny",
+        "deploy_to_vps": "deny",
+        "change_secrets_or_permissions": "deny",
+    }
+    if phases["global_defaults"] != expected_global_defaults:
+        return "Global phase defaults differ from the approved allow/deny policy."
     if not isinstance(phases["approval_required_for"], list) or not all(
         isinstance(item, str) and item.strip()
         for item in phases["approval_required_for"]
