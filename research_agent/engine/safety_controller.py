@@ -106,12 +106,25 @@ def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     return result
 
 
+def _reject_json_constant(value: str) -> None:
+    """Reject Python's non-standard NaN and Infinity JSON extensions."""
+    raise PermissionConfigError(
+        f"Non-standard JSON numeric constant is not allowed: {value}"
+    )
+
+
+def _strict_json_loads(value: str) -> Any:
+    """Parse JSON while rejecting duplicate keys and non-standard constants."""
+    return json.loads(
+        value,
+        object_pairs_hook=_unique_json_object,
+        parse_constant=_reject_json_constant,
+    )
+
+
 def _load_json(path: Path) -> dict[str, Any]:
     try:
-        value = json.loads(
-            path.read_text(encoding="utf-8"),
-            object_pairs_hook=_unique_json_object,
-        )
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError, PermissionConfigError) as exc:
         raise PermissionConfigError(f"Cannot load configuration: {path.name}") from exc
     if not isinstance(value, dict):
@@ -578,8 +591,8 @@ def main() -> int:
     parser.add_argument("task_file", type=Path, help="JSON task copied exactly from the queue.")
     args = parser.parse_args()
     try:
-        task = json.loads(args.task_file.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+        task = _strict_json_loads(args.task_file.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, PermissionConfigError) as exc:
         result = _deny(f"Cannot read task file: {exc}")
     else:
         result = authorize_task(task)
