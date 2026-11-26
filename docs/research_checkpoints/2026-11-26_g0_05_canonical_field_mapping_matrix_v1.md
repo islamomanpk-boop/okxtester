@@ -191,8 +191,8 @@ Family-specific context:
 - The expected leading legacy context before the detector feature ledger is explicitly labelled; only one distinct leading context per asset is allowed.
 
 Evidence:
-- Source audit [45809114333](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809114333) — SUCCESS; artifact ID `15109854146`; ZIP SHA-256 `256dd55f22f0dc6c17732a4462c7cf88229af6ec57e42ec2becbc2fea9d6c85d`.
-- Complete manifest SHA-256 / row ID: `dcc2bc9b6af890a81f0ecf109d34843fcc34b2a8431116b766aa97acdfc7082f`; independently recomputed from exact manifest bytes and matched the report.
+- Source audit [45810599246](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810599246) — SUCCESS; artifact ID `15113820073`; ZIP SHA-256 `1f5cf8b095834dda03b8c4615babb86e96ed9232838551cb1d2e7a7b0822a149`.
+- Complete manifest SHA-256 / row ID: `d9c9878005eefa4de13671d7e68dc67859a2ee213524c3f5884e60cc1422d228`; independently recomputed from exact manifest bytes and matched the report.
 - Synthetic suite [45808027261](https://github.com/islamomanpk-boop/okxtester/actions/runs/45808027261) — SUCCESS; **111/111 tests passed**.
 - Source rows: rejection 1,154; breakout 2,861; failed breakout 932. All 4,947 have unique source_event_id values and one manifest ID.
 - The independent minute verifier is running against this latest artifact.
@@ -214,3 +214,12 @@ The final canonical failed-breakout `source_event_id` will use the linked source
 
 
 Independent minute verification after this schema normalization: workflow [45809422866](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809422866) — SUCCESS; artifact ID `15110639152`; ZIP SHA-256 `5836d3212c56cfc72ab31db17d6704e03c1413d8c783c6f9049c4be083361798`; 2,857/2,857 eligible timestamps present.
+
+
+## 16. Full canonical schema validator readiness
+
+The candidate contract now includes a row-level validator for all 60 required canonical fields and a full-ledger validator for deterministic IDs, unique identities, failed-breakout source-candidate links and 12-hour expiry reconciliation.
+
+The latest source audit [45810599246](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810599246) confirms both validators are importable while explicitly reporting that canonical candidate generation is not authorized. Artifact `15113820073`; manifest ID `d9c9878005eefa4de13671d7e68dc67859a2ee213524c3f5884e60cc1422d228`. Synthetic suite [45810463442](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810463442) passed **125/125 tests**.
+
+The validator has been tested only with synthetic candidate records; no real candidate IDs or canonical rows were created.
