@@ -46,7 +46,7 @@ The source-only disposition artifact now emits family, side, historical/causal c
 ### 3.1 Exact join keys
 
 - Rejection source row → detector feature row: `asset + snapshot_index`; confirm that the feature row's `available_at_ts_ms` matches the boundary ledger's frozen snapshot timestamp.
-- Breakout raw crossing → detector feature row: `asset + context_snapshot_ms == available_at_ts_ms`; do not use nearest timestamp.
+- Breakout raw crossing → historical detector channel cross-check: `asset + (context_snapshot_ms - 14,400,000) == available_at_ts_ms` for upper/lower/channel-width only. G0-04 raw context is authoritative for efficiency/overlap and for the snapshot's own availability timestamp; do not compare those two metrics to same-time detector features.
 - Failed breakout → inherit the source breakout's snapshot and frozen boundaries. A later 4-hour snapshot must not replace the source breakout context.
 - All families → G0-04 threshold row: `asset + exact snapshot_ms + EXPANDING_PRIOR + UNIQUE_4H_FEATURE_ROWS`.
 
@@ -57,9 +57,9 @@ The source-only disposition artifact now emits family, side, historical/causal c
 | `snapshot_id` | Stable asset + exact snapshot availability timestamp; rejection may also retain original snapshot index. |
 | `snapshot_available_at_ts_ms` | Exact detector feature `available_at_ts_ms`. |
 | `snapshot_valid_from_ts_ms` | Same as snapshot availability. |
-| `snapshot_valid_until_ts_ms` | Next detector feature snapshot availability for that asset; half-open interval endpoint. Rejection source ledger already carries the next-available timestamp. |
-| `frozen_upper_boundary`, `frozen_lower_boundary` | Exact detector feature row or G0-04 raw crossing row; failed breakout inherits the original source breakout values. |
-| `channel_width_pct` | Exact detector feature / G0-04 raw crossing value. |
+| `snapshot_valid_until_ts_ms` | Rejection: next detector feature snapshot availability. Breakout/failed: next 4H historical context snapshot = context snapshot + 14,400,000 ms. |
+| `frozen_upper_boundary`, `frozen_lower_boundary` | Rejection: exact detector feature row at snapshot. Breakout: G0-04 historical raw context; verify channel values against detector feature one 4H bar earlier. Failed breakout inherits original source breakout values. |
+| `channel_width_pct` | Rejection: exact detector feature value. Breakout/failed: G0-04 historical raw context value, cross-checked to detector feature one 4H bar earlier. |
 | `threshold_policy_id` | `EXPANDING_PRIOR`. |
 | `threshold_population_id` | `UNIQUE_4H_FEATURE_ROWS`. |
 | `threshold_value` | Exact G0-04 p25 for causal strict; exact p40 for causal broad-only or broad-threshold rejection. Blank only when no exact threshold exists due warm-up. |
@@ -67,9 +67,9 @@ The source-only disposition artifact now emits family, side, historical/causal c
 | `threshold_calibration_start_ts_ms` | G0-04 `first_prior_context_ms`. |
 | `threshold_calibration_end_ts_ms` | G0-04 `last_prior_context_ms`; must be strictly before the classified snapshot. |
 | `threshold_prior_observation_count` | G0-04 `prior_context_count`; require at least 180. |
-| `efficiency_value` | Exact feature `directional_efficiency` / G0-04 raw crossing `efficiency`. |
+| `efficiency_value` | Rejection: exact feature `directional_efficiency`. Breakout/failed: G0-04 historical raw context `efficiency`; it is not expected to equal the original detector feature at the same timestamp. |
 | `efficiency_limit` | Frozen constant 0.30. |
-| `overlap_value` | Exact feature `mean_overlap` / G0-04 raw crossing `overlap`. |
+| `overlap_value` | Rejection: exact feature `mean_overlap`. Breakout/failed: G0-04 historical raw context `overlap`; it is not expected to equal the original detector feature at the same timestamp. |
 | `overlap_minimum` | Frozen constant 0.70. |
 
 Do not recompute thresholds in the candidate builder. The source audit already proves exact snapshot-key lookup, prior-only calibration and minimum prior count.
@@ -160,3 +160,16 @@ The complete-manifest audit now emits `source_sha256_manifest_id`, `source_file_
 - 4,947 rows carry exactly one manifest ID; each row's paths point to the correct asset-specific feature and market file.
 
 Remaining canonical materialization includes candidate/source-event IDs, version labels, snapshot/threshold/feature values, and failed-breakout source-breakout candidate IDs. The independent minute verifier is being rerun against this latest manifest artifact.
+
+
+## 13. One-4H-lagged breakout context correction
+
+The source audit initially rejected an incorrect same-timestamp join between G0-04 raw crossing `efficiency` and the original detector feature's `directional_efficiency`. Inspection of the accepted G0-04 code established that breakout raw events use the historical breakout context, whose channel is one 4H candle lagged.
+
+The corrected mapping:
+- Rejection uses the original detector feature at the exact rejection snapshot.
+- Breakout and failed-breakout use the exact G0-04 raw context at `context_snapshot_ms`; `upper`, `lower` and `channel_width_pct` are cross-checked against the original detector feature at `context_snapshot_ms - 14,400,000`.
+- Breakout/failed-breakout `efficiency_value` and `overlap_value` are sourced from the G0-04 raw context, not same-time detector features.
+- Breakout/failed-breakout `snapshot_valid_until_ts_ms` is the next 4H context snapshot.
+
+The source audit preserves `reference_feature_snapshot_ts_ms` and uses `HISTORICAL_BREAKOUT_CONTEXT_V1` for breakout/failed-breakout rows. This is a source-timing correction, not a change to G0-04 thresholds or eligibility decisions.
