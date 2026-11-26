@@ -127,7 +127,7 @@ No candidate may disappear without a recorded disposition. A source event may pr
 - Set `rejection_confirmed_at_ts_ms = first_strong_rejection_ts_ms + 900000`, subject to verifying the complete 15-minute candle and source mapping.
 - Set the first eligible 1-minute execution bar open to the confirmation timestamp, never to a minute inside the rejection candle.
 - Support rejection maps to LONG; resistance rejection maps to SHORT, unless a separately approved rule explicitly rejects that mapping.
-- Verify that the exact frozen boundary snapshot was available no later than signal availability and that the event falls inside its declared validity interval.
+- Verify that the exact frozen boundary snapshot was available no later than signal availability and remains valid through confirmation. Snapshot validity is the half-open interval `[snapshot_available_at_ts_ms, snapshot_next_available_at_ts_ms)`. Require `rejection_confirmed_at_ts_ms < snapshot_next_available_at_ts_ms`; equality is expired, not inclusive. The source audit found 40 broad and 29 nested strict rejection events whose 15-minute confirmation equals the next snapshot availability; preserve their source rows but disposition them as `SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION`, not candidates. See `2026-11-26_g0_05_rejection_snapshot_validity_audit_v1.md`.
 - Freeze the repeated-test/de-clustering rule, minimum separation, invalidation reference, and expiry before producing candidate rows. Do not infer these from future outcomes.
 - Keep support and resistance results separate.
 
@@ -158,7 +158,7 @@ Reject or quarantine the affected event with a machine-readable reason if any of
 1. A required source file, row, column, source identity, hash, or snapshot is missing.
 2. A source identity or candidate identity is duplicated unexpectedly.
 3. Input bars are non-monotonic, duplicated, malformed, or incomplete under the frozen bar-completeness rule.
-4. A context snapshot was not available at or before signal availability.
+4. A context snapshot was not available at or before signal availability, or its half-open validity interval ended at or before confirmation.
 5. The event lies outside the snapshot's declared validity interval.
 6. The signal availability timestamp precedes the confirmation timestamp.
 7. The first eligible execution bar opens before signal availability.
@@ -195,9 +195,9 @@ Before canonical data execution, write deterministic synthetic tests for:
 1. Rejection candle open is not treated as confirmation; confirmation is at completed 15-minute close.
 2. No 1-minute execution bar inside the rejection candle is eligible.
 3. First eligible 1-minute bar equals or follows signal availability.
-4. Snapshot available exactly at signal close is accepted under the frozen inclusive convention.
+4. Snapshot available exactly at signal close is accepted only if it is also within the declared validity interval.
 5. Snapshot available one millisecond after signal close is rejected.
-6. Event at the snapshot validity end follows the explicitly frozen inclusive/exclusive boundary rule.
+6. Confirmation exactly at `snapshot_next_available_at_ts_ms` is rejected as expired; confirmation one millisecond before the endpoint is eligible if all other rules pass.
 7. Partial 15-minute and 4-hour bars are excluded.
 8. Missing source rows and hash mismatches fail closed.
 9. Duplicate source and candidate identities are detected.
