@@ -424,6 +424,15 @@ def validate_canonical_candidate_record(row: dict) -> None:
         raise ValueError("invalid source_join_cardinality")
 
 
+def validate_canonical_candidate_ledger(records: list[dict]) -> dict:
+    """Validate all canonical records and cross-row source-breakout identity links."""
+    if not records:
+        raise ValueError("canonical candidate ledger must not be empty")
+    for row in records:
+        validate_canonical_candidate_record(row)
+    return validate_candidate_identity_links(records)
+
+
 def validate_candidate_identity_links(records: list[dict]) -> dict:
     """Validate deterministic candidate IDs and failed-breakout source-candidate links."""
     if not records:
@@ -469,6 +478,11 @@ def validate_candidate_identity_links(records: list[dict]) -> dict:
                 f"{linked}|{confirmation_ts}|{row['candidate_rule_version']}")
             if row["source_event_id"] != expected_failed_identity:
                 raise ValueError("failed-breakout source_event_id does not match linked candidate, confirmation and rule version")
+            source_signal_available = source_breakout_row.get("signal_available_at_ts_ms")
+            if not isinstance(source_signal_available, int):
+                raise ValueError("linked source breakout lacks a completed signal availability timestamp")
+            if row.get("expiry_ts_ms") != source_signal_available + FAILURE_HORIZON_MS:
+                raise ValueError("failed-breakout expiry does not match linked source breakout 12-hour horizon")
         elif linked not in (None, "", "NOT_APPLICABLE"):
             raise ValueError("non-failed-breakout row must not carry a source breakout candidate link")
 
