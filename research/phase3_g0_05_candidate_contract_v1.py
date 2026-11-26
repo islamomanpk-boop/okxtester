@@ -302,8 +302,14 @@ def validate_canonical_candidate_record(row: dict) -> None:
         raise ValueError("source_event_row_ids contain duplicates")
     if not set(row["historical_cohort_memberships"]).issubset({"BROAD_P40", "STRICT_P25"}):
         raise ValueError("invalid historical_cohort_memberships")
-    if not row["source_event_id"] or not row["candidate_id"]:
+    if not isinstance(row["historical_cohort_memberships"], list):
+        raise ValueError("historical_cohort_memberships must be a list")
+    if len(set(row["historical_cohort_memberships"])) != len(row["historical_cohort_memberships"]):
+        raise ValueError("historical_cohort_memberships contain duplicates")
+    if not isinstance(row["source_event_id"], str) or not row["source_event_id"] or not isinstance(row["candidate_id"], str):
         raise ValueError("candidate/source event identity is blank")
+    if not re.fullmatch(r"[0-9a-f]{64}", row["candidate_id"]):
+        raise ValueError("candidate_id must be a SHA-256 hex digest")
     if row["candidate_id"] != candidate_id(
         row["source_event_id"], family, row["candidate_rule_version"]):
         raise ValueError("candidate_id does not match deterministic identity")
@@ -317,6 +323,10 @@ def validate_canonical_candidate_record(row: dict) -> None:
         value = row[field]
         if value is not None and (isinstance(value, bool) or not isinstance(value, int)):
             raise ValueError(f"{field} must be an integer timestamp or null")
+    if any(row[field] is None for field in ("snapshot_available_at_ts_ms", "snapshot_valid_from_ts_ms",
+                                             "snapshot_valid_until_ts_ms", "event_observed_at_ts_ms",
+                                             "overlap_window_start_ts_ms", "overlap_window_end_ts_ms")):
+        raise ValueError("snapshot, event and overlap-window timestamps cannot be null")
     if row["snapshot_valid_from_ts_ms"] != row["snapshot_available_at_ts_ms"]:
         raise ValueError("snapshot_valid_from must equal snapshot availability")
     if row["snapshot_valid_until_ts_ms"] <= row["snapshot_available_at_ts_ms"]:
@@ -356,6 +366,8 @@ def validate_canonical_candidate_record(row: dict) -> None:
             raise ValueError(f"{field} must be a non-empty list of strings")
         if len(set(values)) != len(values):
             raise ValueError(f"{field} contains duplicates")
+    if any(not re.fullmatch(r"[0-9a-f]{40}", value) for value in row["source_git_blob_ids"]):
+        raise ValueError("source_git_blob_ids must contain Git SHA-1 blob IDs")
     if not re.fullmatch(r"[0-9a-f]{64}", str(row["source_sha256_manifest_id"])):
         raise ValueError("source_sha256_manifest_id must be a SHA-256 hex digest")
     if row["confirmation_bar_interval_ms"] != FIFTEEN_MIN_MS:
@@ -392,14 +404,22 @@ def validate_canonical_candidate_record(row: dict) -> None:
         raise ValueError("dependence metadata IDs must be non-empty")
     if row["decluster_policy_id"] != "G0_05_INTERVAL_GRAPH_METADATA_V1":
         raise ValueError("decluster_policy_id mismatch")
+    if row["signal_candle_open_ts_ms"] is None and row["confirmation_status"] == "CONFIRMED":
+        raise ValueError("confirmed event must carry its completed confirmation candle")
+    if row["signal_candle_open_ts_ms"] is not None and row["confirmation_status"] != "CONFIRMED":
+        raise ValueError("observed confirmation candle must have CONFIRMED status")
     status = row["candidate_status"]
     reason = row["exclusion_reason"]
     if status not in DISPOSITION_STATUSES:
         raise ValueError("invalid candidate_status")
     if status == "ELIGIBLE_FOR_FURTHER_VALIDATION":
-        if reason != "NONE" or row["first_eligible_execution_bar_open_ts_ms"] != row["signal_available_at_ts_ms"]:
+        if (reason != "NONE" or not isinstance(row["first_eligible_execution_bar_open_ts_ms"], int)
+                or row["first_eligible_execution_bar_open_ts_ms"] != row["signal_available_at_ts_ms"]):
             raise ValueError("eligible candidate requires NONE reason and exact first eligible minute")
-    elif reason == "NONE" or reason not in REJECTED_REASON_CODES | EXPIRED_REASON_CODES | CENSORED_REASON_CODES:
+    else:
+        if row["first_eligible_execution_bar_open_ts_ms"] is not None:
+            raise ValueError("non-eligible candidate must not expose a first eligible minute")
+    if status != "ELIGIBLE_FOR_FURTHER_VALIDATION" and (reason == "NONE" or reason not in REJECTED_REASON_CODES | EXPIRED_REASON_CODES | CENSORED_REASON_CODES):
         raise ValueError("non-eligible candidate requires a controlled exclusion reason")
     censor = row["censoring_reason"]
     if status == "CENSORED":
@@ -412,8 +432,8 @@ def validate_canonical_candidate_record(row: dict) -> None:
     if family == "FAILED_BREAKOUT_REVERSAL":
         if row["expiry_rule_id"] != "SOURCE_BREAKOUT_12H_RETURN_INSIDE_V1" or not isinstance(row["expiry_ts_ms"], int):
             raise ValueError("failed-breakout row requires its source 12-hour expiry")
-        if not row["source_breakout_candidate_id"] or row["source_breakout_candidate_id"] == "NOT_APPLICABLE":
-            raise ValueError("failed-breakout row requires source_breakout_candidate_id")
+        if not re.fullmatch(r"[0-9a-f]{64}", str(row["source_breakout_candidate_id"])):
+            raise ValueError("failed-breakout row requires a SHA-256 source_breakout_candidate_id")
     elif row["expiry_rule_id"] != "NOT_APPLICABLE" or row["expiry_ts_ms"] != "NOT_APPLICABLE":
         raise ValueError("rejection/continuation expiry fields must be NOT_APPLICABLE")
     if family != "FAILED_BREAKOUT_REVERSAL" and row["source_breakout_candidate_id"] != "NOT_APPLICABLE":
