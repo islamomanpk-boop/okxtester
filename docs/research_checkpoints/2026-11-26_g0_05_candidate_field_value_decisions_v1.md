@@ -64,9 +64,9 @@ Use the existing pure helper `candidate_id(source_identity, family, rule_version
 
 - Rejection `source_event_id`: existing physical identity `asset|direction|snapshot_index|segment_id|test_rank|test_start_ts_ms`.
 - Breakout `source_event_id`: `asset|direction|signal_time_ms|context_snapshot_ms`.
-- Failed-breakout `source_event_id`: `source_breakout_candidate_id|confirmation_ts_ms`; if no completed return-inside confirmation exists, use the literal sentinel `NO_CONFIRMATION` in place of the timestamp. Such a row is an EXPIRED/CENSORED/REJECTED disposition record, not a confirmed reversal candidate.
+- Failed-breakout `source_event_id`: `source_breakout_source_event_id|confirmation_ts_ms`; if no completed return-inside confirmation exists, use the literal sentinel `NO_CONFIRMATION` in place of the timestamp. Such a row is an EXPIRED/CENSORED/REJECTED disposition record, not a confirmed reversal candidate.
 
-`source_breakout_candidate_id` is the deterministic candidate ID of the exact source breakout row under `BREAKOUT_CONTINUATION` and the same `G0_05_CANDIDATE_RULE_V1`, regardless of whether that source breakout's own disposition is eligible or rejected. This preserves an auditable link for failed-breakout rows rejected due to an invalid source breakout.
+`source_breakout_candidate_id` is derived at the final canonical build from the exact source breakout `source_event_id` using the deterministic candidate-ID helper and `G0_05_CANDIDATE_RULE_V1`, regardless of whether that source breakout's own disposition is eligible or rejected. The source-only disposition ledger preserves `source_breakout_source_event_id` but does not emit candidate IDs. This preserves an auditable link for failed-breakout rows rejected due to an invalid source breakout.
 
 ## 6. Event-observed timestamp
 
