@@ -243,6 +243,11 @@ def validate_candidate_identity_links(records: list[dict]) -> dict:
                 raise ValueError("source_breakout_candidate_id does not match the exact source breakout identity")
             if expected_link not in candidate_ids:
                 raise ValueError("source_breakout_candidate_id does not resolve to a source breakout candidate row")
+            confirmation_ts = str(row.get("signal_available_at_ts_ms") or "NO_CONFIRMATION")
+            expected_failed_identity = (
+                f"{linked}|{confirmation_ts}|{row['candidate_rule_version']}")
+            if row["source_event_id"] != expected_failed_identity:
+                raise ValueError("failed-breakout source_event_id does not match linked candidate, confirmation and rule version")
         elif linked not in (None, "", "NOT_APPLICABLE"):
             raise ValueError("non-failed-breakout row must not carry a source breakout candidate link")
 
