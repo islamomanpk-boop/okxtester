@@ -101,6 +101,11 @@ class SupervisorReviewTests(unittest.TestCase):
         result = review_worker_submission(self.task, dict(self.submission, evidence=evidence))
         self.assertEqual(result["review_disposition"], "return_for_revision")
 
+    def test_rejects_tab_character_evidence_path(self):
+        evidence = [dict(self.submission["evidence"][0], path="docs/bad\\tname.md")]
+        result = review_worker_submission(self.task, dict(self.submission, evidence=evidence))
+        self.assertEqual(result["review_disposition"], "return_for_revision")
+
     def test_rejects_invalid_evidence_digest(self):
         evidence = [dict(self.submission["evidence"][0], sha256="not-a-hash")]
         result = review_worker_submission(self.task, dict(self.submission, evidence=evidence))
