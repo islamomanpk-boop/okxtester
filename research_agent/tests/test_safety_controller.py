@@ -6,9 +6,11 @@ import hashlib
 import json
 import unittest
 
+from research_agent.engine.report_builder import task_definition_digest
 from research_agent.engine.safety_controller import (
     _authorize_task_with_policy,
     _unique_json_object,
+    _canonical_hash,
     authorize_task,
 )
 
@@ -94,6 +96,15 @@ def policy_fixture(task, *, phase_order=None, phase_rules=None, lock=False):
 
 
 class SafetyControllerTests(unittest.TestCase):
+    def test_safety_and_report_builders_share_identical_task_digest(self):
+        task = {
+            "task_id": "P3-RO-CROSS-CHECK",
+            "phase": "phase3_sideways_range",
+            "scope": ["read-only", "lineage"],
+            "policy": {"enabled": False, "thresholds": [1, 2.5, None]},
+        }
+        self.assertEqual(_canonical_hash(task), task_definition_digest(task))
+
     def evaluate(self, task, **kwargs):
         queued, agent, phases, queue, allowlist = policy_fixture(task, **kwargs)
         return _authorize_task_with_policy(
