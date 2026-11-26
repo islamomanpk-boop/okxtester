@@ -236,21 +236,63 @@ def audit_g004_artifact(artifact: Path) -> tuple[dict, dict, dict]:
     _, thresholds = read_csv(artifact / "causal_thresholds_by_context.csv")
     if len(thresholds) != 65310:
         fail("G0-04 threshold row count mismatch")
-    if any(float(r["p25"]) > float(r["p40"]) for r in thresholds):
-        fail("G0-04 P25 exceeds P40")
+    threshold_by_key = {}
+    for row in thresholds:
+        key = (row["asset"], ms(row["snapshot_ms"], "threshold snapshot"),
+               row["policy"], row["population"])
+        if key in threshold_by_key:
+            fail(f"duplicate threshold key {key}")
+        snapshot = key[1]
+        prior_count = int(row["prior_context_count"])
+        if prior_count < 180:
+            fail(f"threshold row has fewer than 180 prior contexts: {key}")
+        if int(row["prior_15m_row_count"]) != prior_count * 16:
+            fail(f"threshold prior 15M row count mismatch: {key}")
+        if ms(row["last_prior_context_ms"], "last prior context") >= snapshot:
+            fail(f"threshold includes current/future context: {key}")
+        if ms(row["first_prior_context_ms"], "first prior context") > ms(row["last_prior_context_ms"], "last prior context"):
+            fail(f"threshold calibration interval is reversed: {key}")
+        if row["policy"] in ("FIXED_180", "ROLLING_180") and prior_count != 180:
+            fail(f"fixed/rolling threshold does not use 180 contexts: {key}")
+        threshold_by_key[key] = row
+        if float(row["p25"]) > float(row["p40"]):
+            fail("G0-04 P25 exceeds P40")
     variants = {}
+    recomputed = 0
     for policy in ("FIXED_180", "EXPANDING_PRIOR", "ROLLING_180"):
         for population in ("UNIQUE_4H_FEATURE_ROWS", "JOINED_15M_ROWS"):
             tag = policy + "__" + population
-            strict_n = sum(r[tag + "__strict"].lower() == "true" for r in raw)
-            broad_n = sum(r[tag + "__broad"].lower() == "true" for r in raw)
-            if strict_n > broad_n:
-                fail(f"strict cohort not nested for {tag}")
+            strict_n = broad_n = 0
+            for row in raw:
+                asset = row["asset"]
+                snapshot = ms(row["context_snapshot_ms"], "raw context snapshot")
+                signal = ms(row["signal_time_ms"], "raw signal")
+                if snapshot > signal:
+                    fail(f"raw event uses future context: {asset}/{signal}")
+                threshold = threshold_by_key.get((asset, snapshot, policy, population))
+                if threshold is None:
+                    fail(f"raw event missing exact causal threshold row: {asset}/{snapshot}/{tag}")
+                width, efficiency, overlap_value = (float(row[k]) for k in
+                    ("channel_width_pct", "efficiency", "overlap"))
+                strict_expected = (width <= float(threshold["p25"]) and
+                                   efficiency <= 0.30 and overlap_value >= 0.70)
+                broad_expected = (width <= float(threshold["p40"]) and
+                                  efficiency <= 0.30 and overlap_value >= 0.70)
+                strict_actual = row[tag + "__strict"].lower() == "true"
+                broad_actual = row[tag + "__broad"].lower() == "true"
+                if strict_actual != strict_expected or broad_actual != broad_expected:
+                    fail(f"stored threshold flags do not recompute: {asset}/{signal}/{tag}")
+                if strict_actual and not broad_actual:
+                    fail(f"strict cohort not nested for {tag}")
+                strict_n += int(strict_actual)
+                broad_n += int(broad_actual)
+                recomputed += 1
             variants[tag] = {"strict": strict_n, "broad": broad_n}
     return meta, {"raw_rows": len(raw), "unique_keys": len(raw_keys),
                   "historical_selected": 932, "baseline_passed": 20,
                   "reconciliation_rows": len(reconciliation), "raw_source_mismatches": 0,
-                  "threshold_rows": len(thresholds), "policy_population_counts": variants}, {
+                  "threshold_rows": len(thresholds), "threshold_event_joins_and_flag_recomputations": recomputed,
+                  "policy_population_counts": variants}, {
                       "raw_keys": raw_keys, "raw_rows": raw}
 
 
