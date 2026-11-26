@@ -37,6 +37,8 @@ def classify_assignment_recovery(
         raise ValueError("Unsupported assignment delivery state.")
     if not isinstance(review_state, str) or review_state not in _REVIEW_STATES:
         raise ValueError("Unsupported assignment review state.")
+    if human_disposition is not None and not isinstance(human_disposition, str):
+        raise ValueError("Unsupported human disposition.")
     if human_disposition not in _HUMAN_DISPOSITIONS:
         raise ValueError("Unsupported human disposition.")
 
