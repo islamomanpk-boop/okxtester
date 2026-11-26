@@ -367,6 +367,40 @@ class ReportBuilderTests(unittest.TestCase):
                 expected_run_attempt="2",
             )
 
+    def test_artifact_verifier_binds_repository_branch_and_task_hash(self):
+        with tempfile.TemporaryDirectory(dir=report_builder.REPOSITORY_ROOT) as temporary:
+            path = Path(temporary) / "evidence.txt"
+            path.write_text("artifact identity binding", encoding="utf-8")
+            relative = path.relative_to(report_builder.REPOSITORY_ROOT).as_posix()
+            task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
+            report = valid_report()
+            report["run_id"] = "12345"
+            report["task_definition_sha256"] = report_builder.task_definition_digest(task)
+            report["input_manifest"] = report_builder.build_input_manifest([relative])
+            bundle = report_builder.build_artifact_bundle(
+                report, task,
+                expected_repository=report["repository"],
+                expected_branch=report["branch"],
+                expected_commit_sha=report["commit_sha"],
+                actual_head_sha=report["commit_sha"],
+                checkout_clean=True,
+                run_id="12345",
+                run_attempt="1",
+            )
+            tampered_manifest = dict(bundle["manifest"])
+            tampered_manifest["repository"] = "attacker/other-repo"
+            tampered_files = dict(bundle["files"])
+            tampered_files["artifact_manifest.json"] = (
+                json.dumps(tampered_manifest, sort_keys=True, indent=2) + "\\n"
+            )
+            with self.assertRaisesRegex(ValueError, "identity does not match"):
+                report_builder.verify_artifact_files(
+                    tampered_files, tampered_manifest,
+                    actual_artifact_name=bundle["artifact_name"],
+                    expected_run_id="12345",
+                    expected_run_attempt="1",
+                )
+
     def test_artifact_verifier_rejects_downloaded_name_mismatch(self):
         with tempfile.TemporaryDirectory(dir=report_builder.REPOSITORY_ROOT) as temporary:
             path = Path(temporary) / "evidence.txt"
