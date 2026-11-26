@@ -99,11 +99,11 @@ Additional flags require a versioned contract amendment before emission.
 
 ## 9. Source manifest identifier
 
-`source_sha256_manifest_id` is the SHA-256 of the exact `source_manifest.json` bytes included in the source-audit artifact. For source-audit run 45804274324 / artifact 15107399743, the value is:
+`source_sha256_manifest_id` is the SHA-256 of the exact `source_manifest.json` bytes included in the source-audit artifact. For the complete source-audit manifest V2 in run 45806239609 / artifact 15109506588, the value is:
 
-`abd869c9c11a31f42ae916bc56492977dce79dd18f5e2c9c9b1f23584629a440`
+`82bce2b7549efb959a2805641cfda46c1ea6a158e8e6c7d24cd8f3795ca80bbb`
 
-Any later source manifest must use its own computed hash. Never reuse this ID after the source manifest changes.
+This is the SHA-256 of the exact `source_manifest.json` bytes. The earlier 7-file-only manifest ID is superseded. Every later source-audit run must use its own computed hash; never reuse this ID after the manifest or source-audit revision changes.
 
 ## 10. Remaining implementation checks
 
@@ -134,3 +134,28 @@ The source-only audit now independently aggregates every observed failed-breakou
 - Family disposition totals did not change: 2,857 eligible, 1,884 rejected, 206 expired, 0 censored.
 
 The source audit checks the confirmation component bars and OHLC validity. The independent raw minute verifier separately checks the five full timestamp grids and eligible timestamp membership; its rerun against this artifact is tracked separately.
+
+
+## 13. Complete source manifest V2 and per-row lineage
+
+The source audit now emits a complete `G0_05_COMPLETE_SOURCE_MANIFEST_V2` containing:
+- all seven pinned repository input files;
+- the frozen G0-04 artifact identity, ZIP hash, code revision and all eight artifact member hashes (including run metadata);
+- accepted Module A event output and run metadata;
+- Module B event, horizon and run-metadata files;
+- all five raw 1-minute market files with row counts, SHA-256 and Git blob SHA-1;
+- the source-audit code revision and Actions run identity.
+
+Each source-only disposition row now carries:
+- `source_sha256_manifest_id` equal to the SHA-256 of the exact manifest bytes;
+- family- and asset-specific `source_file_paths`;
+- the corresponding repository `source_git_blob_ids`. G0-04 artifact members are linked by path and SHA-256 in the complete manifest rather than Git blob IDs.
+
+Evidence:
+- Source audit [45806239609](https://github.com/islamomanpk-boop/okxtester/actions/runs/45806239609) — SUCCESS; job `139862147342`; artifact ID `15109506588`.
+- Artifact ZIP SHA-256: `c87808aaac2be5d7013d42d3f93fcbb0ed44d1602470c030642fcf6ffc75efcb`, independently recomputed after download.
+- Exact `source_manifest.json` SHA-256 / row manifest ID: `82bce2b7549efb959a2805641cfda46c1ea6a158e8e6c7d24cd8f3795ca80bbb`; independently recomputed and matched the report and every row.
+- The manifest includes 7 repository inputs, 8 G0-04 artifact files, 2 Module A files, 3 Module B files, and 5 raw market inputs.
+- All 4,947 disposition rows have exactly one identical manifest ID; per-row source paths correctly select the matching asset's feature and 1m market file.
+
+This supersedes the earlier incomplete source manifest. The independent minute verifier is being rerun against this complete-manifest artifact.
