@@ -17,7 +17,9 @@ Supported observations are `task_observed`, `assignment_prepared`, `worker_submi
 - Event source references and payloads are declarations until a future verifier independently checks them against trusted GitHub run context, worker-return bytes, or a human review record.
 - The ledger does not authorize execution, mutate task queue status, prove dispatch/delivery, approve task completion, or close phase gates.
 - A `human_disposition_recorded` event is only a record of a human decision claimed by its source; the future integration must authenticate the human actor and decision through an independently trusted channel.
-- The module is pure: it performs no file I/O, network calls, GitHub operations, scheduling, or workflow dispatch. It returns a new list; it never overwrites the caller's ledger.
+- The module is pure: it performs no file I/O, network calls, GitHub operations, scheduling, or workflow dispatch. It returns a new list; it never overwrites the caller's ledger. Strict JSON validation rejects non-string object keys, tuples, non-finite numbers, and other values that serializers might otherwise coerce.
+
+`engine/persistence_contract.py` adds a pure optimistic-concurrency preparation step: it accepts a new event only when an independently trusted expected head matches the validated ledger head, reports stale-checkpoint conflicts without changing the ledger, and recognizes exact delivery replays. It does not provide atomic compare-and-swap or persistence; see [docs/PERSISTENCE_CONTRACT.md](docs/PERSISTENCE_CONTRACT.md).
 
 ## Future persistence requirements
 
