@@ -78,7 +78,7 @@ The 26 write-permission findings are a static regex census of explicit permissio
 - Set a short, explicit retention period (initial proposal: 7 days).
 - Fail if the expected report is missing; do not silently upload an empty or partial directory.
 - Never execute, source, or trust files recovered from an artifact.
-- Record repository, branch, commit SHA, task ID, exact task-definition hash, UTC generation time, and input-manifest hashes in the report.
+- Record repository, branch, commit SHA, task ID, canonical task-definition SHA-256 (computed from the exact trusted queue object), UTC generation time, and input-manifest hashes in the report. The report schema checks hash format; provenance still requires the workflow to compute it from the trusted queue entry and bind it to the checked-out commit/run.
 - Artifact output is evidence for review, not authorization to advance a gate.
 
 ## Pre-installation review checklist
