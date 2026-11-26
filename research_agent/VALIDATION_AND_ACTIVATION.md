@@ -2,9 +2,9 @@
 
 ## Current decision
 
-**Status: scaffold complete; runtime activation blocked.**
+**Status: hardened scaffold; runtime activation blocked.**
 
-The repository contains the configuration, ordered task queue, hash-bound safety controller, read-only preflight dispatcher, and deterministic report formatter. No workflow has been added or enabled. No agent task, script, test, or workflow has been executed.
+The repository contains the configuration, ordered task queue, hash-bound safety controller, read-only preflight dispatcher, and deterministic report formatter. No agent-specific workflow has been added or enabled. No agent task, script, test, or workflow has been executed.
 
 The current Phase 3 G0-05 handoff remains authoritative. It prohibits the relevant script/test/workflow execution and research code/data changes. The agent must not be used to bypass that restriction.
 
@@ -20,9 +20,12 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Safety controller requires an explicit phase-level read-only opt-in; missing, denied, or unknown overrides fail closed.
 - [x] Safety controller requires explicit human-authorized closure of every prior phase gate before a later phase can be authorized.
 - [x] Safety controller enforces the global G0-05 execution lock as an unconditional denial for G0-05 tasks.
-- [x] Added focused safety-controller denial/allowance tests; these are authored but not executed.
-- [x] Read-only preflight dispatcher created; it has no executor, subprocess, or write capability.
-- [x] Report formatter created with required provenance fields, repository-contained input hashing, validation, and report digest.
+- [x] Added focused safety-controller denial/allowance tests; authored but not executed.
+- [x] Read-only preflight dispatcher has no executor, subprocess, or write capability.
+- [x] Preflight dispatcher now returns DENY for malformed queue objects instead of raising an uncaught attribute error.
+- [x] Report formatter validates repository-contained inputs, normalized unique manifest paths, SHA-256 values, commit SHA format, and UTC timestamps.
+- [x] Added report-builder tests for deterministic rendering, malformed provenance, duplicate paths, traversal, and external paths; authored but not executed.
+- [x] Added preflight tests for malformed queues, duplicate task IDs, and preflight-only behavior; authored but not executed.
 - [x] Static configuration/source consistency review completed against the branch files.
 
 ## Deferred validation
@@ -31,7 +34,8 @@ These checks must not be run while the current G0-05 handoff prohibits them:
 
 - [ ] Python syntax/import validation.
 - [ ] Execute safety-controller tests, including phase override denial, missing prior-gate closure, and the active G0-05 lock, plus allowlist mismatch, task mutation, unknown operation, and disabled switches.
-- [ ] Report-builder tests for valid reports, malformed manifests, path traversal, and deterministic digests.
+- [ ] Execute report-builder tests for valid reports, malformed manifests, path traversal, UTC timestamps, commit SHA format, and deterministic digests.
+- [ ] Execute preflight tests for malformed queues, duplicate task IDs, and no-execution behavior.
 - [ ] End-to-end dry-run of the preflight dispatcher.
 - [ ] GitHub Actions workflow validation and a manual workflow run.
 
