@@ -88,11 +88,21 @@ def _validate_utc_timestamp(value: str) -> None:
         raise ValueError("Report timestamp must be a valid ISO-8601 UTC timestamp.") from exc
 
 
+def task_definition_digest(task: dict[str, Any]) -> str:
+    """Hash the exact task object using canonical JSON serialization."""
+    if not isinstance(task, dict) or not task:
+        raise TypeError("Task definition must be a non-empty JSON object.")
+    canonical = json.dumps(
+        task, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
 def validate_report(report: dict[str, Any]) -> None:
     """Reject incomplete or malformed reports instead of inventing metadata."""
     required = {
         "schema_version", "agent_name", "task_id", "phase", "status",
-        "repository", "branch", "commit_sha", "run_id", "timestamp_utc",
+        "repository", "branch", "commit_sha", "task_definition_sha256", "run_id", "timestamp_utc",
         "input_manifest", "findings", "blockers", "skipped_checks", "limitations",
     }
     if not isinstance(report, dict):
@@ -113,7 +123,7 @@ def validate_report(report: dict[str, Any]) -> None:
         if not all(isinstance(item, str) and item.strip() for item in report[field]):
             raise ValueError(f"Every item in report field {field!r} must be a non-empty string.")
     for field in ("agent_name", "task_id", "phase", "status", "repository",
-                  "branch", "commit_sha", "run_id", "timestamp_utc"):
+                  "branch", "commit_sha", "task_definition_sha256", "run_id", "timestamp_utc"):
         if not isinstance(report[field], str) or not report[field].strip():
             raise ValueError(f"Report field {field!r} must be a non-empty string.")
     if report["status"] not in ALLOWED_REPORT_STATUSES:
@@ -122,6 +132,8 @@ def validate_report(report: dict[str, Any]) -> None:
         )
     if not _COMMIT_RE.fullmatch(report["commit_sha"]):
         raise ValueError("Report commit_sha must be a 40- or 64-character lowercase hexadecimal SHA.")
+    if not _SHA256_RE.fullmatch(report["task_definition_sha256"]):
+        raise ValueError("Report task_definition_sha256 must be 64 lowercase hexadecimal characters.")
     _validate_utc_timestamp(report["timestamp_utc"])
 
     seen_paths: set[str] = set()
@@ -212,6 +224,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- **Repository:** {_markdown_safe(report['repository'])}",
         f"- **Branch:** {_markdown_safe(report['branch'])}",
         f"- **Commit SHA:** {_markdown_safe(report['commit_sha'])}",
+        f"- **Task definition SHA-256:** {_markdown_safe(report['task_definition_sha256'])}",
         f"- **Run ID:** {_markdown_safe(report['run_id'])}",
         f"- **Timestamp (UTC):** {_markdown_safe(report['timestamp_utc'])}",
         "",
@@ -233,7 +246,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         *manifest_lines,
         "",
         "## Verification boundaries",
-        "- Report metadata (repository, branch, commit SHA, run ID, and timestamp) is supplied by the caller and is not cryptographically authenticated by schema validation.",
+        "- Report metadata (repository, branch, commit SHA, task-definition hash, run ID, and timestamp) is supplied by the caller and is not cryptographically authenticated by schema validation.",
+        "- The task-definition hash identifies the canonical task object only when produced with task_definition_digest() from the exact trusted queue entry; the schema validates its format, not its origin.",
         "- Input hashes are declarations until verify_input_manifest_against_checkout() is run against the intended checkout.",
         "- Checkout hash matching alone does not prove the checkout is clean or that its bytes belong to the reported commit.",
         "- This report is an audit record, not task-completion evidence or human gate approval.",
