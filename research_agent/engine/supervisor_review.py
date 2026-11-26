@@ -71,9 +71,13 @@ def review_worker_submission(
     issues: list[str] = []
     safety_violations: list[str] = []
 
-    if set(submission) != _EXPECTED_FIELDS:
-        missing = sorted(_EXPECTED_FIELDS - set(submission))
-        extra = sorted(set(submission) - _EXPECTED_FIELDS)
+    non_string_keys = [key for key in submission if not isinstance(key, str)]
+    submission_keys = {key for key in submission if isinstance(key, str)}
+    if non_string_keys:
+        issues.append("Submission field names must all be strings.")
+    if submission_keys != _EXPECTED_FIELDS:
+        missing = sorted(_EXPECTED_FIELDS - submission_keys)
+        extra = sorted(submission_keys - _EXPECTED_FIELDS)
         if missing:
             issues.append("Missing required submission fields: " + ", ".join(missing))
         if extra:
