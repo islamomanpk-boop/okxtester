@@ -16,6 +16,7 @@ from research.phase3_g0_05_source_manifest_audit_v1 import (
     first_eligible_minute_or_blank, validate_module_b_horizons,
     validate_disposition_ledger, grouped_disposition_counts, historical_membership_label,
     assign_interval_graph_clusters, observed_window_bars, consistent_physical_cluster,
+    make_repeated_signal_group_id,
 )
 
 
@@ -437,6 +438,47 @@ class G005SourceAuditTests(unittest.TestCase):
         self.assertEqual(first_eligible_minute_or_blank("REJECTED", 123000), "")
         self.assertEqual(first_eligible_minute_or_blank("EXPIRED", None), "")
         self.assertEqual(first_eligible_minute_or_blank("CENSORED", 123000), "")
+
+    def test_rejection_repeated_signal_group_uses_snapshot_and_segment(self):
+        first = make_repeated_signal_group_id(
+            "SUPPORT_REJECTION", "BTC", "lower", 12, segment_id=4)
+        repeated = make_repeated_signal_group_id(
+            "SUPPORT_REJECTION", "BTC", "lower", 12, segment_id=4)
+        different_segment = make_repeated_signal_group_id(
+            "SUPPORT_REJECTION", "BTC", "lower", 12, segment_id=5)
+        different_snapshot = make_repeated_signal_group_id(
+            "SUPPORT_REJECTION", "BTC", "lower", 13, segment_id=4)
+        self.assertEqual(first, repeated)
+        self.assertNotEqual(first, different_segment)
+        self.assertNotEqual(first, different_snapshot)
+
+    def test_breakout_repeated_signal_group_uses_context_and_direction(self):
+        first = make_repeated_signal_group_id(
+            "BREAKOUT_CONTINUATION", "BTC", "UPPER", 1761278400000)
+        repeated = make_repeated_signal_group_id(
+            "BREAKOUT_CONTINUATION", "BTC", "UPPER", 1761278400000)
+        other_side = make_repeated_signal_group_id(
+            "BREAKOUT_CONTINUATION", "BTC", "LOWER", 1761278400000)
+        other_snapshot = make_repeated_signal_group_id(
+            "BREAKOUT_CONTINUATION", "BTC", "UPPER", 1761292800000)
+        self.assertEqual(first, repeated)
+        self.assertNotEqual(first, other_side)
+        self.assertNotEqual(first, other_snapshot)
+
+    def test_failed_breakout_inherits_source_repeated_signal_group(self):
+        source = "BTC|breakout|UPPER|snapshot_1761278400000"
+        child = make_repeated_signal_group_id(
+            "FAILED_BREAKOUT_REVERSAL", "BTC", "UPPER", 1761278400000,
+            source_group_id=source)
+        self.assertEqual(child, source)
+
+    def test_repeated_signal_group_requires_frozen_source_context(self):
+        with self.assertRaisesRegex(ValueError, "segment_id"):
+            make_repeated_signal_group_id("SUPPORT_REJECTION", "BTC", "lower", 12)
+        with self.assertRaisesRegex(ValueError, "snapshot"):
+            make_repeated_signal_group_id("BREAKOUT_CONTINUATION", "BTC", "UPPER", "")
+        with self.assertRaisesRegex(ValueError, "inherit"):
+            make_repeated_signal_group_id("FAILED_BREAKOUT_REVERSAL", "BTC", "UPPER", 12)
 
     def test_observed_window_bars_requires_exact_start_and_stops_at_gap(self):
         minute_index = [0, 60000, 120000, 240000, 300000]
