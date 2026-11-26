@@ -143,11 +143,17 @@ def cross_check_legacy_channel_lag(root,a,legacy):
  c=legacy.dropna(subset=["upper","lower","channel_width"]).reset_index()
  c["join_ts"]=c.snapshot.astype("int64")//1_000_000
  m=c.merge(d,on="join_ts",how="outer",suffixes=("_legacy","_det"),indicator=True)
- if (m._merge!="both").any(): stop(f"{a} historical one-bar-lag channel timestamp mismatch")
+ # One leading legacy channel window predates the detector's 13-close ER
+ # ledger; one newest detector row has no later legacy snapshot. Both are
+ # expected boundary rows, while all 2,357 overlapping rows must match.
+ if int((m._merge=="left_only").sum())!=1 or int((m._merge=="right_only").sum())!=1:
+  stop(f"{a} historical one-bar-lag channel timestamp mismatch")
+ m=m[m._merge=="both"]
+ if len(m)!=len(d)-1: stop(f"{a} historical lag overlap row-count mismatch")
  for x,y in [("upper_legacy","upper_det"),("lower_legacy","lower_det"),("channel_width","channel_width_pct")]:
   if not np.isclose(m[x].to_numpy(float),m[y].to_numpy(float),rtol=0,atol=ATOL,equal_nan=True).all():
    stop(f"{a} historical one-bar-lag channel mismatch: {x}/{y}")
- return {"asset":a,"matched_rows":len(m),"lag_bars":1,"tolerance_abs":ATOL}
+ return {"asset":a,"matched_rows":len(m),"expected_boundary_rows":2,"lag_bars":1,"tolerance_abs":ATOL}
 
 def baseline(z,a):
  w=z.channel_width.dropna()
