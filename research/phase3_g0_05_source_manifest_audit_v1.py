@@ -759,8 +759,19 @@ def audit_module_b(root: Path, g004_raw_keys: set) -> dict:
 def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
                             g004_data: dict, rejection_audit: dict) -> dict:
     """Emit source-only physical-event disposition ledgers; never candidates."""
+    base = root / "reports/phase3_breakout_lifecycle_v1_1"
+    _, module_b_events = read_csv(base / "breakout_lifecycle_events_v1_1.csv")
+    confirmation_minutes_needed = {asset: set() for asset in ASSETS}
+    for event in module_b_events:
+        raw_confirmation = (event.get("first_15m_return_inside_close_ts_ms") or "").strip()
+        if raw_confirmation:
+            close_ms = ms(raw_confirmation, "Module B confirmation close")
+            bar_open_ms = close_ms - 900000
+            confirmation_minutes_needed[event["asset"]].update(
+                bar_open_ms + i * 60000 for i in range(15))
     minute_opens = {}
     minute_index = {}
+    minute_bars = {asset: {} for asset in ASSETS}
     input_audit = {}
     for asset in ASSETS:
         p = root / "data/market_1m" / f"{asset}_USDT_USDT_1m.csv"
@@ -788,6 +799,8 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
                 if t % 60000 or t in stamps:
                     fail(f"{asset} duplicate or off-grid 1m timestamp {t}")
                 stamps.add(t)
+                if t in confirmation_minutes_needed[asset]:
+                    minute_bars[asset][t] = (row["open"], row["high"], row["low"], row["close"])
         minute_opens[asset] = stamps
         minute_index[asset] = sorted(stamps)
         input_audit[asset] = {"rows":len(stamps),"sha256":h.hexdigest()}
@@ -930,8 +943,6 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
     raw_rows = g004_data["raw_rows"]
     breakout_rows = []
     tag="EXPANDING_PRIOR__UNIQUE_4H_FEATURE_ROWS"
-    base=root/"reports/phase3_breakout_lifecycle_v1_1"
-    _, module_b_events=read_csv(base/"breakout_lifecycle_events_v1_1.csv")
     module_b_memberships={}
     module_b_observed={}
     for event in module_b_events:
