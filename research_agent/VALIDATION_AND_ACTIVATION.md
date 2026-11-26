@@ -19,8 +19,9 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Safety controller requires exact queue-task equality and a trusted SHA-256 approval for that exact task definition.
 - [x] Safety controller requires an explicit phase-level read-only opt-in; missing, denied, or unknown overrides fail closed.
 - [x] Safety controller requires explicit human-authorized closure of every prior phase gate before a later phase can be authorized.
-- [x] Safety controller enforces the global G0-05 execution lock as an unconditional denial for G0-05 tasks.
-- [x] Added focused safety-controller denial/allowance tests; authored but not executed.
+- [x] Safety controller enforces the active global G0-05 lock against every Phase 3 task, regardless of task labels, preventing relabelling bypasses.
+- [x] Safety controller rejects duplicate/empty phase-order entries and returns DENY for malformed task or policy inputs rather than propagating validation exceptions.
+- [x] Added focused safety-controller denial/allowance tests, including relabelled Phase 3 tasks, duplicate phase order, and malformed inputs; authored but not executed.
 - [x] Read-only preflight dispatcher has no executor, subprocess, or write capability.
 - [x] Preflight dispatcher now returns DENY for malformed queue objects instead of raising an uncaught attribute error.
 - [x] Report formatter validates repository-contained inputs, normalized unique manifest paths, SHA-256 values, commit SHA format, and UTC timestamps.
@@ -33,7 +34,7 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 These checks must not be run while the current G0-05 handoff prohibits them:
 
 - [ ] Python syntax/import validation.
-- [ ] Execute safety-controller tests, including phase override denial, missing prior-gate closure, and the active G0-05 lock, plus allowlist mismatch, task mutation, unknown operation, and disabled switches.
+- [ ] Execute safety-controller tests, including phase override denial, missing prior-gate closure, active global Phase 3 lock with relabelled tasks, duplicate phase order, malformed input denial, allowlist mismatch, task mutation, unknown operation, and disabled switches.
 - [ ] Execute report-builder tests for valid reports, malformed manifests, path traversal, UTC timestamps, commit SHA format, and deterministic digests.
 - [ ] Execute preflight tests for malformed queues, duplicate task IDs, and no-execution behavior.
 - [ ] End-to-end dry-run of the preflight dispatcher.
