@@ -262,6 +262,15 @@ def authorize_task(
         )
 
 
+def authorize_trusted_task(task: dict[str, Any]) -> dict[str, Any]:
+    """Runtime boundary: evaluate only against policy files fixed in this checkout.
+
+    Policy injection remains available only through authorize_task for isolated
+    unit-test fixtures. Production callers must use this trusted entry point.
+    """
+    return authorize_task(task)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Evaluate an OKX research task's permissions; does not execute it."
