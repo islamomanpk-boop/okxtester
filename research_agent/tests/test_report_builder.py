@@ -365,6 +365,12 @@ class ReportBuilderTests(unittest.TestCase):
                 actual_artifact_name=bundle["artifact_name"],
                 expected_run_id="12345",
                 expected_run_attempt="2",
+                expected_repository=report["repository"],
+                expected_branch=report["branch"],
+                expected_commit_sha=report["commit_sha"],
+                expected_task_id=report["task_id"],
+                expected_phase=report["phase"],
+                expected_task_definition_sha256=report["task_definition_sha256"],
             )
 
     def test_artifact_verifier_binds_repository_branch_and_task_hash(self):
