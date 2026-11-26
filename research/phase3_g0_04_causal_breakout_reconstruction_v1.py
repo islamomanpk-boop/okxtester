@@ -73,19 +73,34 @@ def overlap(high,low):
  small=np.minimum(high-low,ph-pl)
  return (inter/small.replace(0,np.nan)).clip(0,1)
 
-def context(b4):
+def detector_context(b4):
+ # Exact original sideways-detector features, available at the close of the
+ # twelfth completed 4H candle. These are checked against its feature ledger.
  x=b4.copy()
- # b4 uses right-labelled candles: row t is complete and available at t.
- # Match the historical detector's 12-candle channel and 12 close changes
- # at that same close; do not shift these completed-candle features again.
  x["upper"]=x.high.rolling(12).max()
  x["lower"]=x.low.rolling(12).min()
  x["channel_width"]=(x.upper/x.lower-1)*100
- net=(x.close/x.close.shift(12)-1).abs()
- path=x.close.pct_change().abs().rolling(12).sum()
+ net=(x.close-x.close.shift(12)).abs()
+ path=x.close.diff().abs().rolling(12).sum()
  x["efficiency"]=net/path.replace(0,np.nan)
- # Twelve candles contain eleven adjacent-candle overlap pairs.
+ x.loc[path.eq(0),"efficiency"]=0.0
  x["overlap"]=overlap(x.high,x.low).rolling(11).mean()
+ x.index.name="snapshot"
+ return x
+
+
+def historical_breakout_context(b4):
+ # Preserve the exact one-4H-bar-lagged context used by the earlier
+ # breakout-count study. Do not substitute the detector's current-candle
+ # ledger here: that changes the historical 20 baseline counts.
+ x=b4.copy()
+ x["upper"]=x.high.rolling(12).max().shift(1)
+ x["lower"]=x.low.rolling(12).min().shift(1)
+ x["channel_width"]=(x.upper/x.lower-1)*100
+ net=(x.close.shift(1)/x.close.shift(13)-1).abs()
+ path=x.close.pct_change().abs().rolling(12).sum().shift(1)
+ x["efficiency"]=net/path.replace(0,np.nan)
+ x["overlap"]=overlap(x.high,x.low).rolling(12).mean().shift(1)
  x.index.name="snapshot"
  return x
 
@@ -112,10 +127,27 @@ def cross_check(root,a,ctx):
  c["join_ts"]=c.snapshot.astype("int64")//1_000_000
  m=c.merge(d,on="join_ts",how="outer",suffixes=("_src","_det"),indicator=True)
  if (m._merge!="both").any(): stop(f"{a} detector ledger timestamp mismatch")
- for x,y in [("upper_src","upper_det"),("lower_src","lower_det"),("channel_width","channel_width_pct")]:
+ for x,y in [("upper_src","upper_det"),("lower_src","lower_det"),("channel_width","channel_width_pct"),
+              ("efficiency","directional_efficiency"),("overlap","mean_overlap")]:
   if not np.isclose(m[x].to_numpy(float),m[y].to_numpy(float),rtol=0,atol=ATOL,equal_nan=True).all():
    stop(f"{a} detector ledger value mismatch: {x}/{y}")
  return {"asset":a,"matched_rows":len(m),"tolerance_abs":ATOL}
+
+
+def cross_check_legacy_channel_lag(root,a,legacy):
+ # Historical breakout context at snapshot t uses the prior 4H candle set;
+ # its channel must equal detector-ledger features available at t-H4.
+ p=root/"reports/sideways_detector_original_v1"/f"{a}_features_original_v1.csv"
+ d=pd.read_csv(p)
+ d["join_ts"]=pd.to_numeric(d.available_at_ts_ms).astype("int64")+H4
+ c=legacy.dropna(subset=["upper","lower","channel_width"]).reset_index()
+ c["join_ts"]=c.snapshot.astype("int64")//1_000_000
+ m=c.merge(d,on="join_ts",how="outer",suffixes=("_legacy","_det"),indicator=True)
+ if (m._merge!="both").any(): stop(f"{a} historical one-bar-lag channel timestamp mismatch")
+ for x,y in [("upper_legacy","upper_det"),("lower_legacy","lower_det"),("channel_width","channel_width_pct")]:
+  if not np.isclose(m[x].to_numpy(float),m[y].to_numpy(float),rtol=0,atol=ATOL,equal_nan=True).all():
+   stop(f"{a} historical one-bar-lag channel mismatch: {x}/{y}")
+ return {"asset":a,"matched_rows":len(m),"lag_bars":1,"tolerance_abs":ATOL}
 
 def baseline(z,a):
  w=z.channel_width.dropna()
@@ -181,15 +213,21 @@ def run(root,out):
  # No causal thresholds or raw-event outputs are calculated before this gate passes.
  for a in ASSETS:
   b15,b4=bars(mins[a],"15min",15),bars(mins[a],"4h",240)
-  ctx=context(b4)
-  finite=ctx.dropna(subset=["upper","lower","channel_width","efficiency","overlap"])
-  z=joined15(b15,ctx)
+  detector_ctx=detector_context(b4)
+  detector_finite=detector_ctx.dropna(subset=["upper","lower","channel_width","efficiency","overlap"])
+  legacy_ctx=historical_breakout_context(b4)
+  legacy_finite=legacy_ctx.dropna(subset=["upper","lower","channel_width","efficiency","overlap"])
+  # Historical counts must use the exact legacy context that generated them.
+  z=joined15(b15,legacy_ctx)
   counts=z.groupby("snapshot").size()
   exceptions=[{"snapshot_ms":int(t.value//1_000_000),"rows":int(n)} for t,n in counts.items() if n!=16]
-  ctx_audit.append({"asset":a,"bars15":len(b15),"bars4h":len(b4),"finite_contexts":len(finite),
-    "coverage_exceptions":exceptions,"cross_pipeline":cross_check(root,a,finite)})
+  ctx_audit.append({"asset":a,"bars15":len(b15),"bars4h":len(b4),
+    "detector_finite_contexts":len(detector_finite),"historical_finite_contexts":len(legacy_finite),
+    "coverage_exceptions":exceptions,
+    "detector_cross_pipeline":cross_check(root,a,detector_finite),
+    "historical_channel_lag_cross_check":cross_check_legacy_channel_lag(root,a,legacy_ctx)})
   baseline_rows+=baseline(z,a)
-  cache[a]=(finite,z)
+  cache[a]=(legacy_finite,z)
  base=pd.DataFrame(baseline_rows)
  if len(base)!=20 or not base.passed.all():
   out.mkdir(parents=True,exist_ok=True)
