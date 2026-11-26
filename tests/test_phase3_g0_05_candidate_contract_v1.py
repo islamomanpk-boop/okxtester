@@ -6,6 +6,7 @@ from research.phase3_g0_05_candidate_contract_v1 import (
     family_side, complete_15m_confirmation, failed_breakout_confirmation,
     candidate_id, classify_disposition, deterministic_json,
     causal_regime_eligible, validate_strict_broad_nesting,
+    rejection_physical_identity, collapse_rejection_cohort_rows, causal_rejection_disposition,
 )
 
 
@@ -127,6 +128,80 @@ class G005ContractTests(unittest.TestCase):
     def test_strict_broad_cohort_length_mismatch_rejected(self):
         with self.assertRaisesRegex(ValueError, "equal lengths"):
             validate_strict_broad_nesting([True], [True, False])
+
+    def test_rejection_physical_identity_ignores_historical_definition(self):
+        broad = {"asset": "BTC", "direction": "upper", "snapshot_index": 7,
+                 "segment_id": 3, "test_rank": 2, "test_start_ts_ms": 9000,
+                 "definition": "BROAD_P40"}
+        strict = dict(broad, definition="STRICT_P25")
+        self.assertEqual(rejection_physical_identity(broad), rejection_physical_identity(strict))
+
+    def test_collapse_preserves_both_historical_cohort_source_ids(self):
+        base = {"asset": "BTC", "direction": "upper", "snapshot_index": 7,
+                "segment_id": 3, "test_rank": 2, "test_start_ts_ms": 9000}
+        rows = [dict(base, definition="BROAD_P40", event_id="broad-row"),
+                dict(base, definition="STRICT_P25", event_id="strict-row")]
+        result = collapse_rejection_cohort_rows(rows)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["source_event_row_ids"], ["broad-row", "strict-row"])
+        self.assertEqual(result[0]["historical_cohort_memberships"], ["BROAD_P40", "STRICT_P25"])
+
+    def test_broad_only_rejection_remains_one_physical_event(self):
+        row = {"asset": "ETH", "direction": "lower", "snapshot_index": 8,
+               "segment_id": 1, "test_rank": 1, "test_start_ts_ms": 10000,
+               "definition": "BROAD_P40", "event_id": "broad-only"}
+        result = collapse_rejection_cohort_rows([row])
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["historical_cohort_memberships"], ["BROAD_P40"])
+
+    def test_strict_without_broad_membership_fails_closed(self):
+        row = {"asset": "ETH", "direction": "lower", "snapshot_index": 8,
+               "segment_id": 1, "test_rank": 1, "test_start_ts_ms": 10000,
+               "definition": "STRICT_P25", "event_id": "strict-only"}
+        with self.assertRaisesRegex(ValueError, "not nested"):
+            collapse_rejection_cohort_rows([row])
+
+    def test_duplicate_definition_membership_fails_closed(self):
+        row = {"asset": "BTC", "direction": "upper", "snapshot_index": 7,
+               "segment_id": 3, "test_rank": 2, "test_start_ts_ms": 9000,
+               "definition": "BROAD_P40", "event_id": "broad-row"}
+        with self.assertRaisesRegex(ValueError, "duplicate physical"):
+            collapse_rejection_cohort_rows([row, dict(row, event_id="duplicate")])
+
+    def test_causal_rejection_disposition_strict(self):
+        result = causal_rejection_disposition(0, 2_000_000, 100_000, 1_000_000,
+                                              2.0, 3.0, 2.0, 0.30, 0.70)
+        self.assertEqual(result, "CAUSAL_STRICT_ELIGIBLE")
+
+    def test_causal_rejection_disposition_broad_only(self):
+        result = causal_rejection_disposition(0, 2_000_000, 100_000, 1_000_000,
+                                              2.0, 3.0, 2.5, 0.20, 0.80)
+        self.assertEqual(result, "CAUSAL_BROAD_ONLY_ELIGIBLE")
+
+    def test_causal_rejection_disposition_not_regime_eligible(self):
+        result = causal_rejection_disposition(0, 2_000_000, 100_000, 1_000_000,
+                                              2.0, 3.0, 2.5, 0.31, 0.80)
+        self.assertEqual(result, "CAUSAL_REGIME_NOT_ELIGIBLE")
+
+    def test_causal_rejection_disposition_warmup(self):
+        result = causal_rejection_disposition(0, 2_000_000, 100_000, 1_000_000,
+                                              None, None, 2.5, 0.20, 0.80)
+        self.assertEqual(result, "CAUSAL_THRESHOLD_WARMUP")
+
+    def test_causal_rejection_snapshot_endpoint_expires(self):
+        result = causal_rejection_disposition(0, 1_000_000, 100_000, 1_000_000,
+                                              2.0, 3.0, 2.0, 0.20, 0.80)
+        self.assertEqual(result, "SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION")
+
+    def test_causal_rejection_requires_confirmation_at_15m_close(self):
+        with self.assertRaisesRegex(ValueError, "completed 15-minute"):
+            causal_rejection_disposition(0, 2_000_000, 100_000, 999_999,
+                                         2.0, 3.0, 2.0, 0.20, 0.80)
+
+    def test_causal_rejection_requires_snapshot_available_at_bar_open(self):
+        with self.assertRaisesRegex(ValueError, "not available"):
+            causal_rejection_disposition(200_000, 2_000_000, 100_000, 1_000_000,
+                                         2.0, 3.0, 2.0, 0.20, 0.80)
 
     def test_deterministic_serialization(self):
         rows = [{"b": 2, "a": 1}]
