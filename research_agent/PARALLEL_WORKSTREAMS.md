@@ -34,5 +34,5 @@ Reduce total project time by advancing the research-agent infrastructure and per
 
 ## Current status
 
-- Agent branch: implementation scaffold and documentation are under continued development; runtime validation and activation remain incomplete.
+- Agent branch: implementation scaffold, assignment/review pipeline, and append-only event-ledger integrity primitives are under continued development; no trusted persistence adapter or dispatcher exists, and runtime validation and activation remain incomplete.
 - Phase 3 review: Issue #3 has been created with the scope, prohibitions, and expected report format. It has not been represented as assigned to Copilot or completed.
