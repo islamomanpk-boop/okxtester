@@ -646,5 +646,70 @@ class ReportBuilderTests(unittest.TestCase):
         self.assertIn("Task definition SHA-256", rendered)
         self.assertIn("d" * 64, rendered)
 
+    def test_preflight_report_factory_records_only_read_only_preflight(self):
+        task = {
+            "task_id": "P3-RO-TEST",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+        }
+        preflight = {
+            "task_id": "P3-RO-TEST",
+            "queue_status": "queued",
+            "decision": "DENY",
+            "authorized": False,
+            "reason": "Active G0-05 handoff lock; denied.",
+            "execution_performed": False,
+            "mode": "preflight_only",
+        }
+        report = report_builder.build_preflight_report(
+            task, preflight,
+            repository="islamomanpk-boop/okxtester",
+            branch="agent/okx-research-agent-v1",
+            commit_sha="a" * 40,
+            run_id="12345",
+            timestamp_utc="2026-11-26T12:00:00Z",
+            input_manifest=[{"path": "docs/source.md", "sha256": "b" * 64}],
+        )
+        self.assertEqual(report["status"], "blocked")
+        self.assertEqual(report["blockers"], ["Active G0-05 handoff lock; denied."])
+        self.assertEqual(report["findings"], [])
+        self.assertIn("preflight decision only", report["limitations"][0])
+        report_builder.validate_report(report)
+
+    def test_preflight_report_factory_rejects_execution_claim(self):
+        task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range"}
+        preflight = {
+            "task_id": "P3-RO-TEST", "queue_status": "queued",
+            "decision": "ALLOW_READ_ONLY", "authorized": True,
+            "reason": "Read-only preflight passed.",
+            "execution_performed": True, "mode": "preflight_only",
+        }
+        with self.assertRaisesRegex(ValueError, "cannot represent task execution"):
+            report_builder.build_preflight_report(
+                task, preflight,
+                repository="islamomanpk-boop/okxtester",
+                branch="agent/okx-research-agent-v1",
+                commit_sha="a" * 40, run_id="12345",
+                timestamp_utc="2026-11-26T12:00:00Z",
+                input_manifest=[],
+            )
+
+    def test_preflight_report_factory_rejects_queue_summary(self):
+        task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range"}
+        summary = {
+            "decision": "SUMMARY_ONLY", "authorized": False,
+            "execution_performed": False, "mode": "queue_preflight_only",
+        }
+        with self.assertRaisesRegex(ValueError, "missing or unsupported fields"):
+            report_builder.build_preflight_report(
+                task, summary,
+                repository="islamomanpk-boop/okxtester",
+                branch="agent/okx-research-agent-v1",
+                commit_sha="a" * 40, run_id="12345",
+                timestamp_utc="2026-11-26T12:00:00Z",
+                input_manifest=[],
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
