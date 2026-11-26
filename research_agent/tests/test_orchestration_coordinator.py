@@ -175,14 +175,14 @@ class OrchestrationCoordinatorTests(unittest.TestCase):
                 },
             )
 
-    def test_unhashable_recovery_task_key_fails_with_validation_error(self):
+    def test_non_string_recovery_task_key_fails_with_validation_error(self):
         queue, preflight = fixture(False)
         with self.assertRaisesRegex(ValueError, "known string task ID"):
             build_orchestration_snapshot(
                 queue=queue,
                 preflight_summary=preflight,
                 recovery_observations={
-                    ["malformed"]: {
+                    7: {
                         "delivery_state": "not_dispatched",
                         "review_state": "not_received",
                         "human_disposition": None,
