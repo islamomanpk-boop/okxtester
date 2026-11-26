@@ -133,3 +133,10 @@ A focused cross-document review found that the store-adapter and assignment-regi
 The documents are now aligned: the pair is the unique authenticated provider-delivery identity; the triple is the unique event-level idempotency identity with a closed schema-defined role. Each derived event ID is based on the event-level tuple. The provider-delivery record links its per-role event receipts, and replay checks complete normalized facts before stale-checkpoint rejection. A fixed single role may be used where one delivery maps to exactly one event.
 
 This is a documentation-level consistency correction only. No event schema, hash, code, test, workflow, dispatch, or research artifact was changed or executed. G0-05 remains controlling.
+
+
+## 14. Backend selection decision framework
+
+`docs/TRUSTED_BACKEND_SELECTION_FRAMEWORK.md` translates the registry contract and threat model into mandatory qualification gates, architecture-class comparisons, trust-domain topology, a weighted scorecard, unresolved owner decisions and a staged proof-of-capability process. It identifies managed relational transaction stores as the first class worth evaluating, not as a selected provider; every candidate must prove atomic dual-version updates, replay behavior, identity separation and independent anti-rollback.
+
+No provider was researched/selected, no account or resource created, no credential provisioned, and no tests or workflows run. This remains a design artifact; G0-05 is still controlling.
