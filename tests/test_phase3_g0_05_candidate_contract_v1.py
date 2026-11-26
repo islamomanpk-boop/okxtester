@@ -435,6 +435,41 @@ class G005SourceAuditTests(unittest.TestCase):
         self.assertEqual(first_eligible_minute_or_blank("EXPIRED", None), "")
         self.assertEqual(first_eligible_minute_or_blank("CENSORED", 123000), "")
 
+    def test_disposition_ledger_enforces_frozen_reason_codes(self):
+        rows = [
+            {"id": "a", "disposition": "ELIGIBLE_FOR_FURTHER_VALIDATION",
+             "reason_code": "NONE", "censoring_reason": ""},
+            {"id": "b", "disposition": "REJECTED",
+             "reason_code": "CAUSAL_THRESHOLD_WARMUP", "censoring_reason": ""},
+            {"id": "c", "disposition": "EXPIRED",
+             "reason_code": "SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION", "censoring_reason": ""},
+            {"id": "d", "disposition": "CENSORED",
+             "reason_code": "MISSING_OR_GAPPED_MINUTES",
+             "censoring_reason": "MISSING_OR_GAPPED_MINUTES"},
+        ]
+        result = validate_disposition_ledger(rows, "id", 4)
+        self.assertEqual(result["rows"], 4)
+
+    def test_disposition_ledger_rejects_non_enum_broad_only_reason(self):
+        rows = [{"id": "a", "disposition": "ELIGIBLE_FOR_FURTHER_VALIDATION",
+                 "reason_code": "CAUSAL_BROAD_ONLY", "censoring_reason": ""}]
+        with self.assertRaisesRegex(RuntimeError, "reason contract violation"):
+            validate_disposition_ledger(rows, "id", 1)
+
+    def test_disposition_ledger_rejects_unfrozen_failed_breakout_reason(self):
+        rows = [{"id": "a", "disposition": "REJECTED",
+                 "reason_code": "SOURCE_BREAKOUT_NOT_CAUSALLY_ELIGIBLE",
+                 "censoring_reason": ""}]
+        with self.assertRaisesRegex(RuntimeError, "reason contract violation"):
+            validate_disposition_ledger(rows, "id", 1)
+
+    def test_disposition_ledger_rejects_censor_reason_mismatch(self):
+        rows = [{"id": "a", "disposition": "CENSORED",
+                 "reason_code": "MISSING_OR_GAPPED_MINUTES",
+                 "censoring_reason": "SOURCE_END_BEFORE_RESOLUTION"}]
+        with self.assertRaisesRegex(RuntimeError, "reason contract violation"):
+            validate_disposition_ledger(rows, "id", 1)
+
     def test_eligible_failed_breakout_requires_confirmation_minute(self):
         with self.assertRaisesRegex(RuntimeError, "missing its confirmation minute"):
             first_eligible_minute_or_blank("ELIGIBLE_FOR_FURTHER_VALIDATION", None)
