@@ -340,6 +340,65 @@ class ReportBuilderTests(unittest.TestCase):
                 self.assertEqual(actual, row["sha256"])
             self.assertTrue(bundle["files"]["artifact_manifest.json"].endswith("\n"))
 
+    def test_artifact_verifier_accepts_complete_bundle(self):
+        with tempfile.TemporaryDirectory(dir=report_builder.REPOSITORY_ROOT) as temporary:
+            path = Path(temporary) / "evidence.txt"
+            path.write_text("artifact evidence", encoding="utf-8")
+            relative = path.relative_to(report_builder.REPOSITORY_ROOT).as_posix()
+            task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
+            report = valid_report()
+            report["run_id"] = "12345"
+            report["task_definition_sha256"] = report_builder.task_definition_digest(task)
+            report["input_manifest"] = report_builder.build_input_manifest([relative])
+            bundle = report_builder.build_artifact_bundle(
+                report, task,
+                expected_repository=report["repository"],
+                expected_branch=report["branch"],
+                expected_commit_sha=report["commit_sha"],
+                actual_head_sha=report["commit_sha"],
+                checkout_clean=True,
+                run_id="12345",
+                run_attempt="2",
+            )
+            report_builder.verify_artifact_files(
+                bundle["files"], bundle["manifest"]
+            )
+
+    def test_artifact_verifier_rejects_tampered_report_bytes(self):
+        with tempfile.TemporaryDirectory(dir=report_builder.REPOSITORY_ROOT) as temporary:
+            path = Path(temporary) / "evidence.txt"
+            path.write_text("artifact evidence", encoding="utf-8")
+            relative = path.relative_to(report_builder.REPOSITORY_ROOT).as_posix()
+            task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
+            report = valid_report()
+            report["run_id"] = "12345"
+            report["task_definition_sha256"] = report_builder.task_definition_digest(task)
+            report["input_manifest"] = report_builder.build_input_manifest([relative])
+            bundle = report_builder.build_artifact_bundle(
+                report, task,
+                expected_repository=report["repository"],
+                expected_branch=report["branch"],
+                expected_commit_sha=report["commit_sha"],
+                actual_head_sha=report["commit_sha"],
+                checkout_clean=True,
+                run_id="12345",
+                run_attempt="1",
+            )
+            tampered = dict(bundle["files"])
+            tampered["report.md"] += "\\nInjected content"
+            with self.assertRaisesRegex(ValueError, "hash mismatch"):
+                report_builder.verify_artifact_files(tampered, bundle["manifest"])
+
+    def test_artifact_verifier_rejects_missing_or_unexpected_files(self):
+        files = {
+            "report.json": "{}",
+            "report.md": "report",
+            "artifact_manifest.json": "{}",
+            "extra.txt": "unexpected",
+        }
+        with self.assertRaisesRegex(ValueError, "exactly the three"):
+            report_builder.verify_artifact_files(files, {})
+
     def test_artifact_bundle_rejects_run_id_mismatch(self):
         task = {"task_id": "P3-RO-TEST", "phase": "phase3_sideways_range", "scope": ["inspect"]}
         report = valid_report()
