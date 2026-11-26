@@ -80,8 +80,11 @@ The event-observed timestamp is not a fill or execution timestamp.
 
 Use a semicolon-delimited, sorted list of controlled flags; use `NONE` when no flag applies.
 
-The first mandatory flag is:
-- `CONFIRMATION_CANDLE_WICK_OUTSIDE_CLOSE_INSIDE` — for failed-breakout reversal, the completed 15m confirmation candle's high/low still extends beyond the original breakout boundary while its close returns inside. The close-based rule still confirms the event; the flag records unknown intrabar ordering.
+The mandatory failed-breakout confirmation flags distinguish:
+- `CONFIRMATION_CANDLE_OPEN_OUTSIDE_CLOSE_INSIDE` — the completed 15m confirmation candle opens beyond the original breakout boundary and closes back inside.
+- `CONFIRMATION_CANDLE_WICK_OUTSIDE_CLOSE_INSIDE` — the candle opens at/inside the boundary, but its high/low extends beyond the boundary before the close returns inside.
+
+The close-based rule still confirms the event; the flag records that the 15m OHLC does not reveal the intrabar path. The flags are mutually exclusive for a single boundary-side confirmation candle.
 
 This flag must be computed from the exact 15 component 1m bars. If any component is missing, do not infer OHLC; disposition the event under the frozen incomplete/gap rule. Do not substitute later Module B retest ambiguity fields for confirmation-candle ambiguity.
 
