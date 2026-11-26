@@ -441,6 +441,12 @@ def verify_artifact_files(
     actual_artifact_name: str,
     expected_run_id: str,
     expected_run_attempt: str,
+    expected_repository: str,
+    expected_branch: str,
+    expected_commit_sha: str,
+    expected_task_id: str,
+    expected_phase: str,
+    expected_task_definition_sha256: str,
 ) -> None:
     """Verify a downloaded/in-memory artifact file map against its manifest.
 
@@ -482,6 +488,23 @@ def verify_artifact_files(
             raise ValueError(f"Artifact manifest {name} is invalid.")
     if manifest["run_id"] != expected_run_id or manifest["run_attempt"] != expected_run_attempt:
         raise ValueError("Artifact manifest run identifiers do not match trusted workflow context.")
+    trusted_identity = {
+        "repository": expected_repository,
+        "branch": expected_branch,
+        "commit_sha": expected_commit_sha,
+        "task_id": expected_task_id,
+        "phase": expected_phase,
+        "task_definition_sha256": expected_task_definition_sha256,
+    }
+    for field, value in trusted_identity.items():
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"Trusted expected {field} must be a non-empty string.")
+        if manifest.get(field) != value:
+            raise ValueError(f"Artifact manifest {field} does not match trusted workflow context.")
+    if not _COMMIT_RE.fullmatch(expected_commit_sha):
+        raise ValueError("Trusted expected commit SHA is invalid.")
+    if not _SHA256_RE.fullmatch(expected_task_definition_sha256):
+        raise ValueError("Trusted expected task-definition hash is invalid.")
     expected_name = f"okx-research-agent-{expected_run_id}-{expected_run_attempt}"
     if manifest["artifact_name"] != expected_name or actual_artifact_name != expected_name:
         raise ValueError("Artifact name does not match its trusted run identifiers.")
