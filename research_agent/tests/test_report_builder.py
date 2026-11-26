@@ -73,13 +73,12 @@ class ReportBuilderTests(unittest.TestCase):
 
     def test_markdown_renderer_flattens_and_escapes_untrusted_findings(self):
         report = valid_report()
-        report["findings"] = ["# Forged heading\\n[click](https://example.invalid)"]
+        report["findings"] = ["# Forged heading\n[click](https://example.invalid)"]
         rendered = report_builder.render_markdown(report)
-        self.assertNotIn("\\n[click]", rendered)
+        self.assertIn("Forged heading [click]", rendered)
         self.assertIn("\\\\#", rendered)
         self.assertNotIn("## Forged heading", rendered)
         self.assertNotIn("[click](", rendered)
-
     def test_manifest_hashing_rejects_paths_outside_repository(self):
         with tempfile.TemporaryDirectory() as temporary:
             outside = Path(temporary) / "outside.txt"
