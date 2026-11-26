@@ -122,6 +122,105 @@ def _load_json(path: Path) -> dict[str, Any]:
 def _deny(reason: str) -> dict[str, Any]:
     return {"authorized": False, "decision": "DENY", "reason": reason}
 
+def _has_exact_keys(value: dict[str, Any], expected: set[str]) -> bool:
+    """Reject both missing and unsupported keys in trusted policy objects."""
+    return set(value) == expected
+
+
+def _validate_policy_shapes(
+    agent: dict[str, Any],
+    phases: dict[str, Any],
+    queue: dict[str, Any],
+    allowlist: dict[str, Any],
+) -> str | None:
+    agent_keys = {
+        "agent_name", "version", "operating_mode", "report_destination",
+        "cost_policy", "repository_access", "branch_policy", "scheduling",
+        "execution", "phase_order", "prohibitions",
+    }
+    if not _has_exact_keys(agent, agent_keys):
+        return "Agent configuration has missing or unsupported top-level fields."
+    if not _has_exact_keys(agent["branch_policy"], {
+        "working_branch", "research_branch", "automatic_merge",
+        "automatic_commit_to_research_branch",
+    }):
+        return "Branch policy has missing or unsupported fields."
+    if not _has_exact_keys(agent["scheduling"], {
+        "mode", "enabled", "triggers", "concurrency_group", "cancel_in_progress",
+    }):
+        return "Scheduling policy has missing or unsupported fields."
+    if not _has_exact_keys(agent["execution"], {
+        "enabled", "require_task_allowlist", "require_phase_permission",
+        "require_safety_controller", "current_g0_05_execution_lock",
+    }):
+        return "Execution policy has missing or unsupported fields."
+    for parent, key in ((agent, "phase_order"), (agent, "prohibitions")):
+        if not isinstance(parent[key], list) or not all(
+            isinstance(item, str) and item.strip() for item in parent[key]
+        ):
+            return f"Agent configuration field {key!r} must be a list of non-empty strings."
+    if not all(type(agent["execution"][key]) is bool for key in (
+        "enabled", "require_task_allowlist", "require_phase_permission",
+        "require_safety_controller", "current_g0_05_execution_lock",
+    )):
+        return "Execution policy flags must be strict JSON booleans."
+    if type(agent["scheduling"]["enabled"]) is not bool or type(
+        agent["scheduling"]["cancel_in_progress"]
+    ) is not bool:
+        return "Scheduling flags must be strict JSON booleans."
+    if not _has_exact_keys(phases, {
+        "schema_version", "phase_order", "global_defaults", "phases",
+        "approval_required_for",
+    }):
+        return "Phase configuration has missing or unsupported top-level fields."
+    if type(phases["schema_version"]) is not int or phases["schema_version"] != 1:
+        return "Unsupported phase configuration schema version."
+    global_default_keys = {
+        "repository_inspection", "evidence_lineage_review", "report_generation",
+        "execute_scripts", "execute_tests", "trigger_workflows",
+        "modify_research_data", "modify_canonical_definitions", "create_candidates",
+        "run_backtests", "make_pnl_claims", "select_strategies", "close_gates",
+        "deploy_to_vps", "change_secrets_or_permissions",
+    }
+    if not isinstance(phases["global_defaults"], dict) or not _has_exact_keys(
+        phases["global_defaults"], global_default_keys
+    ):
+        return "Global phase defaults have missing or unsupported fields."
+    if not isinstance(phases["approval_required_for"], list) or not all(
+        isinstance(item, str) and item.strip()
+        for item in phases["approval_required_for"]
+    ):
+        return "Approval requirements must be a list of non-empty strings."
+    if not _has_exact_keys(queue, {"schema_version", "queue_policy", "tasks"}):
+        return "Task queue has missing or unsupported top-level fields."
+    if type(queue["schema_version"]) is not int or queue["schema_version"] != 1:
+        return "Unsupported task queue schema version."
+    if not _has_exact_keys(queue["queue_policy"], {
+        "phase_order", "advance_only_after_current_phase_gate_is_human_authorized_closed",
+        "no_phase_skipping", "execution_enabled", "tasks_may_not_override_handoffs",
+    }):
+        return "Queue policy has missing or unsupported fields."
+    for key in (
+        "advance_only_after_current_phase_gate_is_human_authorized_closed",
+        "no_phase_skipping", "execution_enabled", "tasks_may_not_override_handoffs",
+    ):
+        if type(queue["queue_policy"][key]) is not bool:
+            return "Queue policy flags must be strict JSON booleans."
+    if not _has_exact_keys(allowlist, {"schema_version", "description", "approved_tasks"}):
+        return "Trusted allowlist has missing or unsupported top-level fields."
+    if type(allowlist["schema_version"]) is not int or allowlist["schema_version"] != 1:
+        return "Unsupported allowlist schema version."
+    if not isinstance(allowlist["description"], str):
+        return "Allowlist description must be a string."
+    if not isinstance(allowlist["approved_tasks"], list):
+        return "Trusted allowlist must contain an approved_tasks list."
+    for item in allowlist["approved_tasks"]:
+        if not isinstance(item, dict) or not _has_exact_keys(
+            item, {"task_id", "task_sha256"}
+        ):
+            return "Trusted allowlist entry has missing or unsupported fields."
+    return None
+
 
 def _authorize_task_impl(
     task: dict[str, Any],
@@ -149,6 +248,14 @@ def _authorize_task_impl(
 
     if not all(isinstance(item, dict) for item in (agent, phases, queue, trusted_allowlist)):
         return _deny("One or more policy documents are malformed.")
+    try:
+        shape_error = _validate_policy_shapes(
+            agent, phases, queue, trusted_allowlist
+        )
+    except (KeyError, TypeError):
+        return _deny("One or more policy documents are malformed.")
+    if shape_error:
+        return _deny(shape_error)
 
     if agent.get("repository_access") != "read_only_by_default":
         return _deny("Repository access must remain read_only_by_default.")
