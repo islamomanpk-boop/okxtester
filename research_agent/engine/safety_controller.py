@@ -81,6 +81,8 @@ def authorize_task(
     execution = agent.get("execution")
     if not isinstance(execution, dict):
         return _deny("Agent execution configuration is missing or malformed.")
+    if execution.get("enabled") is not True:
+        return _deny("Agent execution is disabled; authorization checks are non-operational.")
     if execution.get("require_task_allowlist") is not True:
         return _deny("Agent configuration does not require an explicit task allowlist.")
     if execution.get("require_phase_permission") is not True:
