@@ -487,3 +487,22 @@ The independent minute verifier was rerun against the source-audit artifact cont
 - Report `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; 2,857/2,857 eligible timestamps present; five raw market files independently re-hashed and their timestamp grids checked.
 
 The current source-only checks therefore pass for identity, historical/causal cohort separation, disposition reason codes, grouped counts and exact first-minute membership. The canonical candidate output field mapping and overlap/repeated-signal metadata convention remain unresolved. G0-05 remains open and candidate generation remains unauthorized.
+
+
+## 23. Overlap-cluster metadata attached to source dispositions — 2026-11-26
+
+The source-only disposition audit now attaches frozen interval-graph overlap clusters:
+- Rejection uses accepted Module A 24H cluster IDs and bounds, with cluster sizes recounted at unique physical-event grain after strict/broad collapse.
+- Breakout continuation applies the frozen Module B 12H interval-graph method to all 2,861 unique raw G0-04 crossings, with observed 1M window lengths verified against the 932 Module B source events.
+- Failed-breakout reversal inherits its linked source breakout's cluster. It is not counted as another independent source cluster.
+
+Evidence:
+- Source audit [45803856975](https://github.com/islamomanpk-boop/okxtester/actions/runs/45803856975) — SUCCESS; artifact ID `15108946054`; ZIP SHA-256 `a3c5ca3bc224ea457134253506b5222248cc409563a2bfdeaa14a34ffecc62f9`.
+- Synthetic suite [45803874401](https://github.com/islamomanpk-boop/okxtester/actions/runs/45803874401) — SUCCESS; **93/93 tests passed**.
+- Rejection physical events: 380 clusters; largest physical cluster size 16.
+- Breakout raw crossings: 1,037 clusters; largest cluster size 14.
+- No source event was deleted, deduplicated or re-labelled by clustering.
+
+The Module A and Module B accepted source outputs remain unchanged. G0-05 breakout cluster IDs are separately versioned because they cover the full 2,861 raw crossing population rather than only the historical Module B subset.
+
+**Remaining:** a separate repeated-signal group identifier has not been frozen; source event identities already preserve repeated rejection tests and distinct raw breakout crossings. Canonical candidate schema field mapping and deterministic candidate output remain open; no canonical candidate generation or trading work is authorized.
