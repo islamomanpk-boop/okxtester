@@ -443,5 +443,38 @@ class SafetyControllerTests(unittest.TestCase):
         self.assertFalse(result["authorized"])
         self.assertIn("Branch policy differs", result["reason"])
 
+    def test_denies_integer_zero_instead_of_boolean_false_in_branch_policy(self):
+        task = {
+            "task_id": "P3-BRANCH-BOOL-TYPE",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        agent["branch_policy"]["automatic_merge"] = 0
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("Branch policy differs", result["reason"])
+
+    def test_denies_boolean_phase_priority_instead_of_integer(self):
+        task = {
+            "task_id": "P3-PRIORITY-BOOL-TYPE",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        phases["phases"]["phase3_sideways_range"]["priority"] = True
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("priorities", result["reason"])
+
+
 if __name__ == "__main__":
     unittest.main()
