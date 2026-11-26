@@ -29,10 +29,11 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Preflight dispatcher now returns DENY for malformed queue objects instead of raising an uncaught attribute error.
 - [x] Report formatter validates repository-contained inputs, rejection of symlinked path components, normalized unique manifest paths, SHA-256 values, commit SHA format, and canonical UTC timestamps ending in Z.
 - [x] Report schema rejects unsupported top-level fields, non-string finding entries, Boolean schema versions, Windows-style manifest paths, non-finite JSON values, and unsupported/completion-claim statuses; only preflight_only, blocked, skipped, and not_run are accepted.
-- [x] Added 15 report-builder regression tests covering deterministic rendering, malformed provenance, duplicate and unsafe paths, strict schema/timestamp validation, external paths, symlinks, Markdown injection, and completion-claim status rejection; authored but not executed.
+- [x] Added a checkout-manifest verifier that detects missing files and byte/hash mismatches. Its scope is explicitly limited to current checkout bytes; it does not assert that those bytes belong to the reported Git commit or that the checkout is clean.
+- [x] Added 18 report-builder regression tests covering deterministic rendering, malformed provenance, duplicate and unsafe paths, strict schema/timestamp validation, external paths, symlinks, Markdown injection, and completion-claim status rejection; authored but not executed.
 - [x] Markdown report rendering flattens untrusted line breaks and escapes Markdown control characters in findings and metadata.
 - [x] Added 5 preflight tests for malformed queues, duplicate task IDs, trusted-queue boundary, and preflight-only behavior; authored but not executed.
-- [x] Total regression tests authored: 37 (17 safety-controller, 15 report-builder, 5 task-runner); none executed.
+- [x] Total regression tests authored: 40 (17 safety-controller, 18 report-builder, 5 task-runner); none executed.
 - [x] Static configuration/source consistency review completed against the branch files.
 
 ## Deferred validation
