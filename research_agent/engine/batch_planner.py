@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .report_builder import task_definition_digest
 from .task_runner import load_queue, preflight_all_tasks
 
 MAX_BATCH_SIZE = 10
@@ -107,6 +108,10 @@ def build_batch_plan(
                     "phase": phase,
                     "operation": task.get("operation"),
                     "title": task.get("title"),
+                    "handoff_id": task.get("handoff_id"),
+                    "scope": list(task.get("scope", [])),
+                    "prohibited": list(task.get("prohibited", [])),
+                    "task_definition_sha256": task_definition_digest(task),
                     "assignment_status": "preflight_allowed_not_executed",
                     "completion_authority": "human_only",
                 })
