@@ -17,7 +17,10 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 - [x] Initial six-task queue created; later phases remain blocked.
 - [x] Trusted task allowlist created and intentionally left empty.
 - [x] Safety controller requires exact queue-task equality and a trusted SHA-256 approval for that exact task definition.
-- [x] Safety controller checks the active phase, queue execution switch, agent execution switch, and G0-05 restrictions.
+- [x] Safety controller requires an explicit phase-level read-only opt-in; missing, denied, or unknown overrides fail closed.
+- [x] Safety controller requires explicit human-authorized closure of every prior phase gate before a later phase can be authorized.
+- [x] Safety controller enforces the global G0-05 execution lock as an unconditional denial for G0-05 tasks.
+- [x] Added focused safety-controller denial/allowance tests; these are authored but not executed.
 - [x] Read-only preflight dispatcher created; it has no executor, subprocess, or write capability.
 - [x] Report formatter created with required provenance fields, repository-contained input hashing, validation, and report digest.
 - [x] Static configuration/source consistency review completed against the branch files.
@@ -27,7 +30,7 @@ The current Phase 3 G0-05 handoff remains authoritative. It prohibits the releva
 These checks must not be run while the current G0-05 handoff prohibits them:
 
 - [ ] Python syntax/import validation.
-- [ ] Unit tests for allowlist mismatch, task mutation, phase mismatch, unknown operation, disabled switches, and G0-05 hard lock.
+- [ ] Execute safety-controller tests, including phase override denial, missing prior-gate closure, and the active G0-05 lock, plus allowlist mismatch, task mutation, unknown operation, and disabled switches.
 - [ ] Report-builder tests for valid reports, malformed manifests, path traversal, and deterministic digests.
 - [ ] End-to-end dry-run of the preflight dispatcher.
 - [ ] GitHub Actions workflow validation and a manual workflow run.
@@ -39,7 +42,7 @@ A static source review is not a substitute for these runtime checks.
 1. The applicable research handoff must explicitly permit the proposed validation and execution scope. Do not infer permission from this checklist.
 2. A human reviewer must inspect the exact task definition and approve its SHA-256 hash in the trusted allowlist.
 3. The agent execution and queue execution switches must remain disabled until the validation checks above pass.
-4. The safety controller must be tested against both allowed and denied cases, including tampered task payloads and missing/malformed policy files.
+4. The safety controller must be tested against both allowed and denied cases, including phase override denial, missing prior-gate closure, the active G0-05 lock, tampered task payloads, and missing/malformed policy files.
 5. A future workflow must use least-privilege GitHub permissions, explicit branch filters, concurrency protection, bounded artifact retention, and no secrets unless separately justified.
 6. Initial automation must be manual-dispatch only and preflight/report-only. Event-driven and scheduled triggers remain disabled until manual operation is independently validated.
 7. No automatic commits, merges, canonical research-data changes, VPS deployment, or secret/permission changes.
