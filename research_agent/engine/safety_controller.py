@@ -123,6 +123,16 @@ def _authorize_task_impl(
     queue_tasks = queue.get("tasks")
     if not isinstance(queue_policy, dict) or not isinstance(queue_tasks, list):
         return _deny("Task queue policy is missing or malformed.")
+    queue_ids: list[str] = []
+    for row in queue_tasks:
+        if not isinstance(row, dict):
+            return _deny("Every task queue entry must be a JSON object.")
+        row_id = row.get("task_id")
+        if not isinstance(row_id, str) or not row_id.strip():
+            return _deny("Every task queue entry must have a non-empty task_id.")
+        queue_ids.append(row_id)
+    if len(queue_ids) != len(set(queue_ids)):
+        return _deny("Task queue contains duplicate task IDs.")
     if queue_policy.get("execution_enabled") is not True:
         return _deny("Task queue execution is disabled.")
     if queue_policy.get("no_phase_skipping") is not True:
@@ -136,10 +146,16 @@ def _authorize_task_impl(
     if not all(
         isinstance(row, dict)
         and isinstance(row.get("task_id"), str)
+        and row.get("task_id", "").strip()
         and isinstance(row.get("task_sha256"), str)
+        and len(row.get("task_sha256", "")) == 64
+        and all(character in "0123456789abcdef" for character in row.get("task_sha256", ""))
         for row in approved
     ):
         return _deny("Trusted allowlist entries are malformed.")
+    approved_ids = [row["task_id"] for row in approved]
+    if len(approved_ids) != len(set(approved_ids)):
+        return _deny("Trusted allowlist contains duplicate task IDs.")
 
     task_id = task.get("task_id")
     if not isinstance(task_id, str) or not task_id.strip():
