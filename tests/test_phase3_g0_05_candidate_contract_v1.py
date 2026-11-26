@@ -15,7 +15,7 @@ from research.phase3_g0_05_candidate_contract_v1 import (
 from research.phase3_g0_05_source_manifest_audit_v1 import (
     first_eligible_minute_or_blank, validate_module_b_horizons,
     validate_disposition_ledger, grouped_disposition_counts, historical_membership_label,
-    assign_interval_graph_clusters,
+    assign_interval_graph_clusters, observed_window_bars, consistent_physical_cluster,
 )
 
 
@@ -437,6 +437,28 @@ class G005SourceAuditTests(unittest.TestCase):
         self.assertEqual(first_eligible_minute_or_blank("REJECTED", 123000), "")
         self.assertEqual(first_eligible_minute_or_blank("EXPIRED", None), "")
         self.assertEqual(first_eligible_minute_or_blank("CENSORED", 123000), "")
+
+    def test_observed_window_bars_requires_exact_start_and_stops_at_gap(self):
+        minute_index = [0, 60000, 120000, 240000, 300000]
+        self.assertEqual(observed_window_bars(minute_index, 60000, 10), 2)
+        with self.assertRaisesRegex(ValueError, "missing exact"):
+            observed_window_bars(minute_index, 180000, 10)
+
+    def test_physical_cluster_requires_matching_cohort_rows(self):
+        cluster = ("BTC|overlap|0001", 2, 1000, 2000)
+        self.assertEqual(
+            consistent_physical_cluster(["broad", "strict"],
+                                         {"broad": cluster, "strict": cluster}),
+            cluster,
+        )
+
+    def test_physical_cluster_rejects_cohort_cluster_mismatch(self):
+        with self.assertRaisesRegex(ValueError, "disagree"):
+            consistent_physical_cluster(
+                ["broad", "strict"],
+                {"broad": ("BTC|overlap|0001", 2, 1000, 2000),
+                 "strict": ("BTC|overlap|0002", 1, 1000, 2000)},
+            )
 
     def test_interval_graph_clusters_use_transitive_half_open_overlap(self):
         events = [
