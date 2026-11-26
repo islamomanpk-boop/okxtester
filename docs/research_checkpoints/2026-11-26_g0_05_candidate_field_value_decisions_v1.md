@@ -244,3 +244,15 @@ The latest source-only audit now emits schema-normalized `causal_cohort_label` v
 - The identity validator now checks the final canonical failed-breakout identity composition: linked source breakout candidate ID + confirmation timestamp (or `NO_CONFIRMATION`) + candidate rule version. Tests use synthetic IDs only.
 
 The source-only failed-breakout ledger still carries a provisional source identity and source breakout source-event ID; the final candidate ID and linked source candidate ID remain unmaterialized.
+
+
+## 20. Independent minute verification after schema normalization
+
+The independent minute verifier consumed source-audit run `45809114333` / artifact `15109854146`:
+
+- Workflow [45809422866](https://github.com/islamomanpk-boop/okxtester/actions/runs/45809422866) — SUCCESS; job `139873073163`.
+- Artifact ID `15110639152`.
+- ZIP SHA-256 `5836d3212c56cfc72ab31db17d6704e03c1413d8c783c6f9049c4be083361798`, independently recomputed after download.
+- Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; 2,857/2,857 eligible timestamps present, 2,090 non-eligible rows blank, all five raw files re-hashed and minute grids validated.
+
+The schema-normalized cohort and side fields did not change raw-minute membership or disposition counts.
