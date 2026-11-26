@@ -66,3 +66,23 @@ Test:
 ## 5. Authorization boundary
 
 This decision authorizes only deterministic metadata fields in the source-only disposition ledger and their tests. It does not authorize canonical candidate generation, execution simulation, backtesting, PnL or strategy selection.
+
+
+## 6. Implementation and source-audit evidence
+
+The frozen group IDs are now emitted in all three source-only disposition ledgers:
+- Rejection groups use asset + boundary direction + snapshot index + segment ID.
+- Breakout continuation groups use asset + boundary direction + context snapshot.
+- Failed-breakout reversal inherits the exact linked breakout group.
+
+Implementation commit: `63e659f7aa68e0b60062409ab3bff963ebea64f7`.
+
+- Source audit [45804274324](https://github.com/islamomanpk-boop/okxtester/actions/runs/45804274324) — SUCCESS; artifact ID `15107399743`; ZIP SHA-256 `0b4ca8ab5e12129d988425d78786efc1d18b3be04be07afabc3b04398a23c124`, independently recomputed after download.
+- Synthetic suite [45804297791](https://github.com/islamomanpk-boop/okxtester/actions/runs/45804297791) — SUCCESS; **97/97 tests passed**.
+
+Group cardinality from the artifact:
+- Rejection: 1,154 physical rows, 1,046 repeated-signal groups; largest group size 3.
+- Breakout continuation: 2,861 raw crossings, 2,051 repeated-signal groups; largest group size 5.
+- Failed-breakout reversal: 932 rows, 663 inherited source groups; largest group size 5.
+
+These are metadata group counts, not independent-event counts. No rows are removed, merged, filtered or relabelled because of group membership.
