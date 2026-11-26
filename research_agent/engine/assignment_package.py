@@ -56,11 +56,11 @@ def prepare_worker_assignment(
     if not all(isinstance(value, str) and value.strip()
                for value in (task_id, phase, operation, handoff_id)):
         raise ValueError("Trusted task identity and handoff fields must be non-empty strings.")
-    if not isinstance(scope, list) or not all(
+    if not isinstance(scope, list) or not scope or not all(
         isinstance(item, str) and item.strip() for item in scope
     ):
         raise ValueError("Trusted task scope must be a list of non-empty strings.")
-    if not isinstance(prohibited, list) or not all(
+    if not isinstance(prohibited, list) or not prohibited or not all(
         isinstance(item, str) and item.strip() for item in prohibited
     ):
         raise ValueError("Trusted task prohibited list must be a list of non-empty strings.")
@@ -70,6 +70,8 @@ def prepare_worker_assignment(
     if (
         preflight_result.get("task_id") != task_id
         or preflight_result.get("mode") != "preflight_only"
+        or not isinstance(preflight_result.get("queue_status"), str)
+        or not preflight_result["queue_status"].strip()
         or preflight_result.get("execution_performed") is not False
         or type(preflight_result.get("authorized")) is not bool
         or not isinstance(preflight_result.get("reason"), str)
