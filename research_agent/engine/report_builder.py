@@ -419,6 +419,12 @@ def verify_artifact_files(files: dict[str, str], manifest: dict[str, Any]) -> No
         raise ValueError("Artifact must contain exactly the three expected files.")
     if not all(isinstance(name, str) and isinstance(content, str) for name, content in files.items()):
         raise TypeError("Artifact file names and contents must be strings.")
+    try:
+        embedded_manifest = json.loads(files["artifact_manifest.json"])
+    except (TypeError, json.JSONDecodeError) as exc:
+        raise ValueError("artifact_manifest.json is not valid JSON.") from exc
+    if embedded_manifest != manifest:
+        raise ValueError("Supplied artifact manifest does not match artifact_manifest.json.")
     if not isinstance(manifest, dict) or set(manifest) != {
         "schema_version", "artifact_name", "task_id", "phase", "run_id",
         "run_attempt", "commit_sha", "files", "limitations",
@@ -452,7 +458,7 @@ def verify_artifact_files(files: dict[str, str], manifest: dict[str, Any]) -> No
             raise ValueError("Artifact file manifest entry is invalid.")
         path = entry["path"]
         digest = entry["sha256"]
-        if path not in expected_paths or path in seen:
+        if not isinstance(path, str) or path not in expected_paths or path in seen:
             raise ValueError("Artifact manifest contains a missing, duplicate, or unexpected path.")
         if not isinstance(digest, str) or not _SHA256_RE.fullmatch(digest):
             raise ValueError("Artifact file hash is malformed.")
