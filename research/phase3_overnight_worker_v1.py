@@ -92,7 +92,7 @@ def main():
   failures.append("common index not computed because one or more assets failed validation")
  gates=[
   ("G0","Source / event / execution readiness","CONDITIONAL_HOLD","This run checks canonical market inputs and governance-file presence only. Causal event availability, three-family candidate generator, funding/fee/mark-price and engine readiness remain separately gated."),
-  ("G1","Descriptive lifecycle","PARTIALLY_COMPLETE_REVIEW_REQUIRED","Existing rejection and breakout descriptive archives are preserved; remaining failed-breakout and execution lifecycle scope needs reconciliation."),
+  ("G1","Descriptive lifecycle","COMPLETE_ACCEPTED_DESCRIPTIVE_SCOPE","P3-13 rejection Module A and P3-14 breakout/failed-breakout Module B are formally accepted as descriptive lifecycle evidence. This does not authorize candidate generation, execution simulation or PnL."),
   ("G2","Execution-resolution comparison","BLOCKED_PENDING_G0_AND_CAUSAL_COHORT","No 1M/3M/5M/15M comparison before an accepted causal common 15M signal cohort and frozen fill rules."),
   ("G3","Entry-method comparison","BLOCKED_PENDING_G2_AND_FROZEN_ORDER_RULES","No entry variants before activation, fill, expiry, cancellation and adverse-selection rules are frozen."),
   ("G4","Stops / targets / trade management","BLOCKED_PENDING_FROZEN_EVENT_AND_ENTRY_CONTRACTS","No levels are optimized or outcomes calculated before causal events and predeclared hypotheses are accepted."),
@@ -118,13 +118,13 @@ def main():
   "","## Gate status","","| Gate | Status |","|---|---|"]
  for g,_,s,_ in gates: lines.append(f"| {g} | {s} |")
  lines += ["","## Work not performed","",
-  "- No causal breakout reconstruction or threshold-policy selection.",
+  "- No causal breakout reconstruction or threshold-policy selection; G0-04/G0-05 remain open.",
   "- No candidates, matched controls, orders, fills, forward outcomes, inference or PnL.",
   "- No Gate 2-7 experiments; dependent gates remain blocked until prerequisites pass.",
   "- No repository, raw-data, VPS, database or service changes.","","## Failures / stop reasons",""]
  lines += [f"- {x}" for x in failures] if failures else ["- None."]
  lines += ["","## Morning continuation","",
-  "Start with input_manifest.json and gate_status.csv. If integrity passes, implement and synthetic-test the separate causal event reconstruction module under the frozen preflight contract. Do not bypass Gate 0.",""]
+  "Start with input_manifest.json and gate_status.csv. Gate 1 descriptive lifecycle scope is accepted; next work is the separate G0-04 causal breakout reconstruction under the frozen preflight contract, followed by the independent three-family candidate contract for G0-05. Do not bypass Gate 0 or run strategy/PnL tests.",""]
  (OUT/"PHASE3_OVERNIGHT_INDEX.md").write_text("\n".join(lines),encoding="utf-8")
  print("PHASE3_WORKER_STATUS="+m["status"])
  return 0 if not failures else 2
