@@ -236,10 +236,17 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Preflight a queued research task. This tool never executes tasks."
     )
-    parser.add_argument("--task-id", required=True, help="Exact task ID from task_queue.json.")
+    selection = parser.add_mutually_exclusive_group(required=True)
+    selection.add_argument("--task-id", help="Exact task ID from task_queue.json.")
+    selection.add_argument(
+        "--all", action="store_true",
+        help="Show bounded preflight results for every queued task; does not authorize the queue.",
+    )
     args = parser.parse_args()
-    result = preflight_task(args.task_id)
+    result = preflight_all_tasks() if args.all else preflight_task(args.task_id)
     print(json.dumps(result, indent=2, sort_keys=True))
+    if args.all:
+        return 0 if result.get("decision") == "SUMMARY_ONLY" else 1
     return 0 if result.get("authorized") else 1
 
 
