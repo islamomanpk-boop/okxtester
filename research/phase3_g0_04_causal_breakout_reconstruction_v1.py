@@ -211,9 +211,11 @@ def old_events(root):
  required=["asset","direction","signal_time","snapshot"]
  if any(c not in d.columns for c in required): stop("historical classification ledger missing identity columns")
  if d[required].isna().any().any(): stop("historical classification ledger contains null identity fields")
- d["signal_time_ms"]=pd.to_datetime(d.signal_time,utc=True,errors="coerce").astype("int64")//1_000_000
- d["context_snapshot_ms"]=pd.to_datetime(d.snapshot,utc=True,errors="coerce").astype("int64")//1_000_000
- if d[["signal_time_ms","context_snapshot_ms"]].isna().any().any(): stop("historical classification ledger contains invalid identity timestamps")
+ signal_ts=pd.to_datetime(d.signal_time,utc=True,errors="coerce")
+ snapshot_ts=pd.to_datetime(d.snapshot,utc=True,errors="coerce")
+ if signal_ts.isna().any() or snapshot_ts.isna().any(): stop("historical classification ledger contains invalid identity timestamps")
+ d["signal_time_ms"]=signal_ts.astype("int64")//1_000_000
+ d["context_snapshot_ms"]=snapshot_ts.astype("int64")//1_000_000
  if d.duplicated(KEYS).any(): stop("historical classification ledger contains duplicate identity rows")
  return d[KEYS].assign(was_historical_selected=True)
 
