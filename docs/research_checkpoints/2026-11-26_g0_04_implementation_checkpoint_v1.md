@@ -119,7 +119,7 @@ Additional direct repository inspection performed after that report:
 - This confirms the reported zone-null condition is a **validator robustness gap**, not a defect present in the actual frozen ledger.
 - The repository connector returned no contents for the five 1-minute market CSV paths, so their hashes and full market-data recomputation remain outstanding. Detector-ledger files were retrieved but have not yet been independently recomputed against the missing market inputs.
 
-The reviewer also recorded descriptive-only observations to preserve: 262 raw events are in calibration warm-up and ineligible under all variants; two SOL events have undefined efficiency/overlap and are ineligible; and 12 legacy ratio-based efficiency values exceed 1. These are not automatically defects; preserve the legacy formula and explicitly document its interpretation rather than imposing the detector efficiency's [0,1] bound. The baseline percentile population question (joined 15-minute rows versus unique 4-hour contexts) remains a methodology question requiring comparison with the original breakout-count study.
+The reviewer also recorded descriptive-only observations to preserve: 262 raw events are in calibration warm-up and ineligible under all variants; two SOL events have undefined efficiency/overlap and are ineligible; and 12 legacy ratio-based efficiency values exceed 1. These are not automatically defects; preserve the legacy formula and explicitly document its interpretation rather than imposing the detector efficiency's [0,1] bound. The baseline percentile population question is resolved: the original `research/breakout_test_count/breakout_test_count_study_v1.py` computes P25/P40 from `joined[\"channel_width\"].dropna()`, i.e. the joined 15-minute observation population. The G0-04 historical baseline uses the same joined-row population, so this aspect matches the original study. Supporting archive: `docs/research_checkpoints/2026-11-24_breakout_prior_test_count_study_audit_v1.md`.
 
 ### Defensive validation repair
 
@@ -131,3 +131,13 @@ The historical classification validator previously dropped null values before ch
 - The frozen review target remains commit `8326c1edea66c11391ab614b9ce4afa9be5bc1fd` and its artifact. The repair is a subsequent defensive validation revision and must pass its own workflow before it can replace the canonical implementation target.
 
 **Current disposition:** G0-04 remains technically executed and substantially artifact-audited, but formally **INCONCLUSIVE / acceptance pending** because raw input hash verification and independent market-data baseline regeneration remain open. G0-05 implementation and candidate generation remain blocked; Gate 0 remains CONDITIONAL HOLD. No execution simulation, strategy backtest, or PnL work is authorized.
+
+
+### Follow-up verification of original quantile population — 2026-11-26
+
+The independent AI review left a question about whether historical P25/P40 quantiles were calculated over joined 15-minute observations or unique 4-hour contexts. This was resolved by inspecting the original prior-test study implementation and its audit checkpoint:
+- Original implementation: `research/breakout_test_count/breakout_test_count_study_v1.py`; `original_events()` calculates `widths = joined["channel_width"].dropna()`, then `quantile(0.25)` and `quantile(0.40)`.
+- Original audit: `docs/research_checkpoints/2026-11-24_breakout_prior_test_count_study_audit_v1.md`; records 20/20 event counts and 10/10 quantile reproductions.
+- Conclusion: the historical baseline's joined-15-minute population is consistent with the original study method; this reviewer question is closed.
+
+The actual historical classification ledger was also independently fetched and checked at repository branch `price-action-v1`: 4,776 rows, 932 distinct signal identities, definitions exactly STRICT_P25/BROAD_P40, zone levels exactly 5/10/15, zero null/invalid zone values, and zero duplicate full classification rows. This confirms the zone-null concern is a validator robustness issue only; the actual ledger contains no null zone values.
