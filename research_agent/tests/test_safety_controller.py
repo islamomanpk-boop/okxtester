@@ -59,6 +59,14 @@ def policy_fixture(task, *, phase_order=None, phase_rules=None, lock=False):
         "tasks": [queued_task],
     }
     agent = {
+        "repository_access": "read_only_by_default",
+        "branch_policy": {
+            "working_branch": "agent/okx-research-agent-v1",
+            "research_branch": "price-action-v1",
+            "automatic_merge": False,
+            "automatic_commit_to_research_branch": False,
+        },
+        "scheduling": {"enabled": False},
         "execution": {
             "enabled": True,
             "require_task_allowlist": True,
@@ -390,6 +398,39 @@ class SafetyControllerTests(unittest.TestCase):
         )
         self.assertFalse(result["authorized"])
         self.assertIn("duplicate entries", result["reason"])
+
+
+    def test_denies_enabled_scheduling(self):
+        task = {
+            "task_id": "P3-SCHEDULE-ON",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        agent["scheduling"]["enabled"] = True
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("Scheduling must remain explicitly disabled", result["reason"])
+
+    def test_denies_branch_policy_drift(self):
+        task = {
+            "task_id": "P3-BRANCH-DRIFT",
+            "phase": "phase3_sideways_range",
+            "operation": "repository_inspection",
+            "status": "queued",
+        }
+        queued, agent, phases, queue, allowlist = policy_fixture(task)
+        agent["branch_policy"]["automatic_merge"] = True
+        result = _authorize_task_with_policy(
+            queued, allowlist=allowlist, agent_config=agent,
+            phase_config=phases, queue_config=queue,
+        )
+        self.assertFalse(result["authorized"])
+        self.assertIn("Branch policy differs", result["reason"])
 
 if __name__ == "__main__":
     unittest.main()
