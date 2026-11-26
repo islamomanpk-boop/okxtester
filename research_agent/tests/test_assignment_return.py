@@ -70,6 +70,19 @@ class AssignmentReturnTests(unittest.TestCase):
             file_contents={self.path: self.content},
         )
 
+    def test_assignment_digest_is_stable_for_key_order(self):
+        self.assertEqual(
+            assignment_package_digest({"alpha": 1, "beta": {"x": True}}),
+            assignment_package_digest({"beta": {"x": True}, "alpha": 1}),
+        )
+
+    def test_assignment_digest_changes_when_any_package_field_changes(self):
+        changed = dict(self.package, mode="altered_mode")
+        self.assertNotEqual(
+            self.package_digest,
+            assignment_package_digest(changed),
+        )
+
     def test_assignment_digest_rejects_non_string_object_keys(self):
         with self.assertRaises(TypeError):
             assignment_package_digest({"1": "value", 1: "ambiguous"})
