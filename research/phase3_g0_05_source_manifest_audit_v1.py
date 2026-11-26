@@ -565,7 +565,8 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
     failed_rows=[]
     for key, members in grouped.items():
         asset,direction,signal,snapshot=key
-        if len(members)!=2 or {x["definition"] for x in members}!={"BROAD_P40","STRICT_P25"}:
+        definitions={x["definition"] for x in members}
+        if len(members) not in (1,2) or "BROAD_P40" not in definitions or not definitions.issubset({"BROAD_P40","STRICT_P25"}):
             fail(f"Module B physical event cohort collapse mismatch: {key}")
         confirmations={ms(x["first_15m_return_inside_close_ts_ms"],"failure confirmation")
                        for x in members if (x.get("first_15m_return_inside_close_ts_ms") or "").strip()}
@@ -594,7 +595,7 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             status,reason=minute_check(asset,confirmation)
         failed_rows.append({"asset":asset,"source_event_key":f"{asset}|{direction}|{signal}|{snapshot}",
             "source_event_row_ids":";".join(sorted(x["event_id"] for x in members)),
-            "historical_cohort_memberships":"BROAD_P40;STRICT_P25","direction":direction,
+            "historical_cohort_memberships":";".join(sorted({x["definition"] for x in members})),"direction":direction,
             "family":"FAILED_BREAKOUT_REVERSAL","signal_time_ms":signal,
             "confirmation_ts_ms":confirmation or "","first_eligible_1m_open_ts_ms":confirmation or "",
             "causal_source_cohort":source_cohort,"disposition":status,"reason_code":reason})
