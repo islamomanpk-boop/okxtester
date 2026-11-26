@@ -86,5 +86,27 @@ class TaskRunnerTests(unittest.TestCase):
         self.assertEqual(result["mode"], "preflight_only")
 
 
+    def test_queue_load_failure_returns_stable_preflight_envelope(self):
+        with patch.object(task_runner, "load_queue", side_effect=ValueError("bad queue")):
+            result = task_runner.preflight_task("P3-RO-001")
+        self.assertEqual(
+            set(result),
+            {"task_id", "queue_status", "decision", "authorized", "reason",
+             "execution_performed", "mode"},
+        )
+        self.assertEqual(result["decision"], "DENY")
+        self.assertFalse(result["authorized"])
+        self.assertFalse(result["execution_performed"])
+        self.assertEqual(result["mode"], "preflight_only")
+
+    def test_authorizer_exception_returns_stable_denial(self):
+        queue = {"tasks": [{"task_id": "P3-RO-001", "status": "queued"}]}
+        with patch.object(task_runner, "authorize_task", side_effect=RuntimeError("boom")):
+            result = task_runner._preflight_task_with_queue("P3-RO-001", queue)
+        self.assertEqual(result["decision"], "DENY")
+        self.assertFalse(result["authorized"])
+        self.assertFalse(result["execution_performed"])
+        self.assertIn("failed unexpectedly", result["reason"])
+
 if __name__ == "__main__":
     unittest.main()
