@@ -2,14 +2,14 @@
 
 **Date:** 2026-11-26  
 **Branch:** price-action-v1  
-**Status:** CANONICAL EXECUTION PASSED; FORMAL ACCEPTANCE PENDING INDEPENDENT REVIEW
+**Status:** CORRECTED CANONICAL EXECUTION AND RAW-INPUT RECOMPUTATION PASSED; FORMAL G0-04 ACCEPTANCE PENDING REVIEW DISPOSITION
 
 ## Files added
 
 - research/phase3_g0_04_causal_breakout_reconstruction_v1.py
 - .github/workflows/phase3-g0-04-causal-breakout-reconstruction.yml
 
-The workflow is manual-dispatch only, checks out price-action-v1, grants contents: read, runs Python 3.11 with pinned NumPy/Pandas, compiles the script, runs synthetic tests, then attempts the full descriptive reconstruction. It uploads artifacts for 14 days. It does not commit generated reports or write to source data.
+The workflow supports manual dispatch and push triggers on `price-action-v1` for the G0-04 source/workflow paths, checks out the triggering branch revision, grants contents: read, runs Python 3.11 with pinned NumPy/Pandas, compiles the script, runs synthetic tests, then attempts the full descriptive reconstruction. It uploads artifacts for 14 days. It does not commit generated reports or write to source data.
 
 ## Frozen controls implemented
 
@@ -141,3 +141,57 @@ The independent AI review left a question about whether historical P25/P40 quant
 - Conclusion: the historical baseline's joined-15-minute population is consistent with the original study method; this reviewer question is closed.
 
 The actual historical classification ledger was also independently fetched and checked at repository branch `price-action-v1`: 4,776 rows, 932 distinct signal identities, definitions exactly STRICT_P25/BROAD_P40, zone levels exactly 5/10/15, zero null/invalid zone values, and zero duplicate full classification rows. This confirms the zone-null concern is a validator robustness issue only; the actual ledger contains no null zone values.
+
+
+## Corrected validator run and independent raw-input recomputation — 2026-11-26
+
+The defensive zone-level validation repair completed successfully.
+
+- Source commit: `86b49598d676b6ab00649bf31d4490ffbb1e608f`
+- Workflow run: [45756061179](https://github.com/islamomanpk-boop/okxtester/actions/runs/45756061179)
+- Job: `139694830125`, conclusion SUCCESS; all workflow steps passed.
+- Artifact: [phase3-g0-04-causal-reconstruction-45756061179](https://github.com/islamomanpk-boop/okxtester/actions/runs/45756061179/artifacts/15087542445), artifact ID `15087542445`.
+- Artifact ZIP SHA-256: `ef6204b546b49880675514ff76b4f6cb86e2821ba2b0d1d5412549927388f0a1`.
+- Metadata records exact code revision `86b49598d676b6ab00649bf31d4490ffbb1e608f`, common index 569,125 and descriptive-only scope.
+- All seven output-file SHA-256 values were independently recomputed and match the artifact manifest.
+- Compared with the prior corrected artifact from run 45752717022, all seven output files are byte-identical and all five input manifest hashes are unchanged. The zone-null validator repair therefore changed validation only, not research outputs.
+
+### Direct raw-input integrity and baseline recomputation
+
+The five raw 1-minute CSV blobs were retrieved directly from the repository at the same branch data revision and independently checked, rather than relying only on the artifact's recorded manifest:
+
+| Asset | Source rows | SHA-256 matches metadata | Duplicate / out-of-order timestamps | Non-1m steps | Invalid OHLCV |
+|---|---:|---|---:|---:|---:|
+| BTC | 569,125 | Yes | 0 | 0 | 0 |
+| ETH | 569,125 | Yes | 0 | 0 | 0 |
+| SOL | 569,126 | Yes | 0 | 0 | 0 |
+| DOGE | 569,126 | Yes | 0 | 0 | 0 |
+| AVAX | 569,127 | Yes | 0 | 0 | 0 |
+
+The first 569,125 timestamps are identical across all five assets, producing the exact 569,125-row common index. SOL and DOGE each have one additional trailing minute; AVAX has two. All five source hashes exactly match `run_metadata.json`.
+
+A separate implementation of the original breakout-study equations was run directly against these raw market rows. It independently rebuilt completed 15-minute and 4-hour bars, historical one-completed-4H-candle-lagged contexts, joined 15-minute observations, P25/P40 quantiles and breakout crossing counts. It did not use the G0-04 output baseline CSV or the source's hard-coded expected-count dictionary as its calculation input.
+
+| Asset | P25 | P40 | Strict lower / upper | Broad lower / upper |
+|---|---:|---:|---:|---:|
+| BTC | 3.2422032509 | 3.9486301407 | 62 / 81 | 91 / 115 |
+| ETH | 4.2423264197 | 5.4818862309 | 51 / 51 | 87 / 77 |
+| SOL | 5.0670430487 | 6.1145417121 | 77 / 71 | 117 / 96 |
+| DOGE | 5.1657244208 | 6.2640575798 | 55 / 65 | 81 / 75 |
+| AVAX | 5.7036247335 | 6.9162158210 | 64 / 83 | 84 / 109 |
+
+All 20 historical counts independently reproduce the frozen baseline, and all 10 quantiles reproduce the original study values within its stated tolerance. This closes the raw-input and independent-baseline evidence gap identified in the Kimi report, subject to review of this audit record and its method.
+
+### Direct detector-ledger cross-check
+
+The five original detector feature ledgers were independently compared against detector contexts rebuilt from the raw 1-minute files. Each asset matched all 2,358 detector-ledger rows on timestamp, upper, lower, channel width, directional efficiency and mean overlap. No timestamp or value mismatch was found. Maximum absolute numerical difference was (3.33\times10^{-16}), below the (10^{-9}) tolerance. Each asset produced 2,370 complete 4-hour bars.
+
+The historical classification ledger was also directly checked: 4,776 rows; 932 distinct signal identities; exact definitions STRICT_P25/BROAD_P40; exact zone levels 5/10/15; zero null/invalid zone values; zero duplicate full-grain rows at identity + definition + zone level.
+
+### Interpretation and remaining governance
+
+The separate AI reviewer Kimi's own report remains labelled INCONCLUSIVE because Kimi did not personally access the raw CSVs. The additional direct checks above were performed separately and close the evidence gap within this project-side audit; they do not retroactively change Kimi's disposition or constitute a human sign-off.
+
+The four descriptive observations from Kimi remain documented: 262 raw events in warm-up are ineligible under all variants; two SOL events with undefined efficiency/overlap are ineligible; 12 legacy ratio-based efficiency values exceed 1 and must not be confused with detector efficiency; and the actual classification ledger contains no null zone values despite the validator gap that has now been fixed.
+
+**Current disposition:** technical reconstruction, corrected validation, artifact integrity, raw input hashes, common-index integrity, baseline counts/quantiles, and detector-ledger cross-checks have now passed. Formal G0-04 acceptance still requires the project owner to decide whether the independent AI review plus this separately documented assistant-side raw-data recomputation satisfies the project's review standard, and to record that disposition. G0-05 implementation/candidate generation remains blocked; Gate 0 remains CONDITIONAL HOLD. No execution simulation, strategy backtesting, or PnL work is authorized.
