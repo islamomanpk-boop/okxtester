@@ -42,6 +42,18 @@ def policy_fixture(task, *, phase_order=None, phase_rules=None, lock=False):
     for index, phase_name in enumerate(phase_order, start=1):
         if phase_name in phase_rules:
             phase_rules[phase_name].setdefault("priority", index)
+    if "phase3_sideways_range" in phase_rules:
+        phase3 = phase_rules["phase3_sideways_range"]
+        phase3.setdefault("task_scope", "follow_current_handoff_and_gate_status")
+        phase3.setdefault("g0_05", {
+            "status": "read_only_reconciliation_only",
+            "scripts_tests_workflows": "prohibited",
+            "data_or_code_changes": "prohibited",
+            "candidate_generation": "prohibited",
+            "backtesting_and_pnl": "prohibited",
+            "gate_closure": "prohibited",
+            "lock_reason": "Current G0-05 handoff prohibits execution.",
+        })
     queued_task = dict(task)
     queued_task.setdefault("title", "Read-only policy fixture task")
     queued_task.setdefault("scope", ["Inspect existing repository evidence only"])
