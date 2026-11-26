@@ -72,8 +72,13 @@ class IntegratedReviewPipelineTests(unittest.TestCase):
         self.assertEqual(result["review_disposition"], "return_for_revision")
 
     def test_manifest_commit_mismatch_fails_closed(self):
-        with self.assertRaises(ValueError):
-            self.run_review(manifest={"commit_sha": "2" * 40, "files": {self.path: self.digest}})
+        result = self.run_review(
+            manifest={"commit_sha": "2" * 40, "files": {self.path: self.digest}}
+        )
+        self.assertEqual(result["review_disposition"], "return_for_revision")
+        self.assertFalse(result["evidence_integrity_passed"])
+        self.assertIn("verification_error", result["evidence_verification"])
+        self.assertFalse(result["task_completion_approved"])
 
     def test_structural_safety_failure_skips_evidence_verification(self):
         bad = dict(self.submission, gate_closure_claimed=True)
