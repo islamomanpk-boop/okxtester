@@ -10,6 +10,7 @@ from research_agent.engine.report_builder import task_definition_digest
 from research_agent.engine.safety_controller import (
     _authorize_task_with_policy,
     _unique_json_object,
+    _strict_json_loads,
     _canonical_hash,
     authorize_task,
 )
@@ -270,6 +271,14 @@ class SafetyControllerTests(unittest.TestCase):
         with self.assertRaisesRegex(Exception, "Duplicate JSON object key"):
             json.loads('{"execution":{"enabled":false,"enabled":true}}',
                        object_pairs_hook=_unique_json_object)
+
+    def test_strict_json_loader_rejects_duplicate_keys(self):
+        with self.assertRaisesRegex(Exception, "Duplicate JSON object key"):
+            _strict_json_loads('{"execution":{"enabled":false,"enabled":true}}')
+
+    def test_strict_json_loader_rejects_nonstandard_numeric_constants(self):
+        with self.assertRaisesRegex(Exception, "Non-standard JSON numeric constant"):
+            _strict_json_loads('{"execution":{"enabled":NaN}}')
 
     def test_denies_malformed_unrelated_queue_entry(self):
         task = {
