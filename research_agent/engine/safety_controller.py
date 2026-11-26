@@ -45,10 +45,23 @@ class PermissionConfigError(Exception):
     """Raised when trusted permission configuration is missing or malformed."""
 
 
+def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    """Build a JSON object while rejecting duplicate keys instead of silently overwriting."""
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise PermissionConfigError(f"Duplicate JSON object key: {key}")
+        result[key] = value
+    return result
+
+
 def _load_json(path: Path) -> dict[str, Any]:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+        value = json.loads(
+            path.read_text(encoding="utf-8"),
+            object_pairs_hook=_unique_json_object,
+        )
+    except (OSError, json.JSONDecodeError, PermissionConfigError) as exc:
         raise PermissionConfigError(f"Cannot load configuration: {path.name}") from exc
     if not isinstance(value, dict):
         raise PermissionConfigError(f"Configuration must be a JSON object: {path.name}")
