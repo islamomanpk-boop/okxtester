@@ -100,3 +100,8 @@ No code or artifact defect was identified in this second-pass scope. This check 
 - Artifact metadata reports `DESCRIPTIVE_RECONSTRUCTION_COMPLETE_BASELINE_20_OF_20`, code revision `8326c1e...`, and exact common 1-minute index 569,125.
 - Independent artifact inspection confirmed all 20/20 historical baseline counts; 65,310 threshold rows; 2,861 raw crossing events; 120 reconciliation dimensions; zero raw-source mismatches; and all seven output SHA-256 hashes match the manifest. Five-asset detector checks each matched 2,358 contexts; historical lag checks each matched 2,357 contexts, with the documented two boundary rows and final partial 15-minute context exception.
 - Scope remains descriptive only. This run does not authorize candidate generation, execution simulation, strategy backtesting or PnL. The previous assistant-side review is not an independent reviewer sign-off. G0-04 formal acceptance remains pending; G0-05 implementation remains blocked; Gate 0 remains CONDITIONAL HOLD.
+
+
+## Independent reviewer packet prepared — 2026-11-26
+
+A bounded review packet is now available at [2026-11-26_g0_04_independent_review_packet_v1.md](2026-11-26_g0_04_independent_review_packet_v1.md). It freezes the corrected source commit, workflow/job, artifact ID and ZIP hash, and supplies a reviewer checklist plus explicit ACCEPT / REJECT / INCONCLUSIVE disposition template. This is preparation only; no reviewer identity or sign-off has been fabricated. G0-04 remains technically passed but formally pending an actual independent reviewer disposition. G0-05 implementation remains blocked; Gate 0 remains CONDITIONAL HOLD.
