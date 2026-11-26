@@ -476,6 +476,78 @@ def validate_module_b_horizons(events: list[dict[str, str]],
     }
 
 
+def assign_interval_graph_clusters(events: list[dict], *, asset_field: str,
+                                  event_id_field: str, start_field: str,
+                                  observed_bars_field: str, cluster_prefix: str) -> tuple[dict, dict]:
+    """Assign deterministic per-asset clusters for overlapping half-open observed windows."""
+    by_asset = {}
+    seen_ids = set()
+    for event in events:
+        event_id = str(event.get(event_id_field, "")).strip()
+        asset = str(event.get(asset_field, "")).strip()
+        if not event_id or event_id in seen_ids or not asset:
+            raise ValueError("cluster input has blank or duplicate event identity/asset")
+        seen_ids.add(event_id)
+        start = int(event[start_field])
+        observed = int(event[observed_bars_field])
+        if observed <= 0:
+            raise ValueError(f"{event_id}: overlap window must contain at least one observed bar")
+        by_asset.setdefault(asset, []).append((start, event_id, observed))
+
+    mapping = {}
+    largest = 0
+    size_distribution = Counter()
+    by_asset_counts = {}
+    for asset in sorted(by_asset):
+        ordered = sorted(by_asset[asset], key=lambda item: (item[0], item[1]))
+        cluster_number = 0
+        active = []
+        cluster_start = None
+        cluster_end = None
+
+        def finalize():
+            nonlocal largest
+            if not active:
+                return
+            size = len(active)
+            largest = max(largest, size)
+            size_distribution[size] += 1
+            cluster_id = f"{asset}|{cluster_prefix}|{cluster_number:04d}"
+            for event_start, event_id, observed in active:
+                mapping[event_id] = {
+                    "overlap_cluster_id": cluster_id,
+                    "overlap_cluster_size": size,
+                    "overlap_cluster_start_ts_ms": cluster_start,
+                    "overlap_cluster_end_exclusive_ts_ms": cluster_end,
+                }
+
+        for start, event_id, observed in ordered:
+            end = start + observed * 60000
+            if active and start >= cluster_end:
+                finalize()
+                active = []
+                cluster_start = None
+                cluster_end = None
+            if not active:
+                cluster_number += 1
+                cluster_start = start
+                cluster_end = end
+            else:
+                cluster_end = max(cluster_end, end)
+            active.append((start, event_id, observed))
+        finalize()
+        by_asset_counts[asset] = cluster_number
+
+    if len(mapping) != len(events):
+        raise ValueError("overlap clustering did not assign every event exactly once")
+    return mapping, {
+        "total": sum(by_asset_counts.values()),
+        "by_asset": by_asset_counts,
+        "largest_cluster_size": largest,
+        "size_distribution": {str(k): size_distribution[k] for k in sorted(size_distribution)},
+    }
+
+
 def historical_membership_label(was_historical_selected: str, definitions: set[str]) -> str:
     """Reconcile the raw G0-04 selected flag to Module B's row-level cohort labels."""
     flag = (was_historical_selected or "").strip().lower()
