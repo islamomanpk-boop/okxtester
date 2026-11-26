@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 REPORT_SCHEMA_VERSION = 1
+REPORT_AGENT_NAME = "okx-research-agent"
 ALLOWED_REPORT_STATUSES = {"preflight_only", "blocked", "skipped", "not_run"}
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -164,6 +165,8 @@ def validate_report(report: dict[str, Any]) -> None:
                   "branch", "commit_sha", "task_definition_sha256", "run_id", "timestamp_utc"):
         if not isinstance(report[field], str) or not report[field].strip():
             raise ValueError(f"Report field {field!r} must be a non-empty string.")
+    if report["agent_name"] != REPORT_AGENT_NAME:
+        raise ValueError("Report agent_name does not match the fixed agent identity.")
     if report["status"] not in ALLOWED_REPORT_STATUSES:
         raise ValueError(
             "Report status must be one of the explicitly supported non-completion states."
