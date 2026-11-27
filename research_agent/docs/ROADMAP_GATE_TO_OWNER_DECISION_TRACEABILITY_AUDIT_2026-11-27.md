@@ -24,7 +24,7 @@ The roadmap numbering is internally consistent: Gate 0 through Gate 12 is 13 gat
 | Gate 7 — Authenticated return and evidence custody | OD-08, OD-06 | Return custody depends on retention/privacy rules, assignment-isolated worker/output handling, complete source-tree identity, and target-platform path-collision rejection before evidence materialization. |
 | Gate 8 — Independent review and human disposition | OD-09, OD-14 | Reviewer conflicts, exact reviewed-byte binding, task acceptance and phase-gate authority require separate roles and independent assurance. |
 | Gate 9 — Artifact, monitoring and incident integration | OD-10, OD-12 | Workflow provenance and incident controls depend on trusted build/runtime provenance and independent operations ownership. |
-| Gate 10 — Backup, recovery and continuity | OD-05, OD-10, OD-14 | Restore/witness integrity, independent recovery roles and externally evidenced drills require registry/witness decisions and independent review. |
+| Gate 10 — Backup, recovery and continuity | OD-05, OD-08, OD-10, OD-14 | Restore/witness integrity, retention/deletion/legal-hold and key-destruction reconciliation across replicas/backups, independent recovery roles and externally evidenced drills require registry/witness and evidence-retention decisions plus independent review. |
 | Gate 11 — Workflow activation and manual preflight | OD-11, OD-03, OD-12 | Activation topology, effective permissions, identity separation and immutable workflow/build provenance must be approved before a report-only run. |
 | Gate 12 — Bounded pilot, then unattended automation | OD-13, OD-10, OD-14 | Pilot and unattended triggers require approved budgets, on-call coverage, kill controls and independent assurance; unattended scheduling is a separate authorization. |
 
@@ -32,7 +32,7 @@ The roadmap numbering is internally consistent: Gate 0 through Gate 12 is 13 gat
 
 1. **Gate 0 is not bypassed by Gate 1 decisions.** Architecture decisions may be documented in parallel, but they do not authorize G0-05 validation or Phase 3 execution.
 2. **Owner decisions are not binary checkboxes.** Each requires a named accountable owner, evidence, explicit decision, revision and any required independent approval. A recommendation in the register is not a selected provider or policy.
-3. **Some decisions are prerequisites to multiple gates.** OD-03/04 underpin both registry and dispatch; OD-05 underpins both registry and recovery; OD-08 spans data grants and return custody; OD-10 spans monitoring and recovery; OD-14 spans assurance and pilot exit.
+3. **Some decisions are prerequisites to multiple gates.** OD-03/04 underpin both registry and dispatch; OD-05 underpins both registry and recovery; OD-08 spans data grants, return custody, and retention-aware backup/restore; OD-10 spans monitoring and recovery; OD-14 spans assurance and pilot exit.
 4. **Gate exit evidence remains independent.** A decision record alone cannot prove transaction atomicity, provider delivery, sandbox isolation, complete evidence custody, restore correctness, or a safe pilot.
 5. **No status promotion by documentation.** NOT RUN, UNKNOWN and BLOCKED remain non-PASS. Static traceability does not mean a gate has passed.
 
