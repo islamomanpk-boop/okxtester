@@ -69,7 +69,7 @@ The registry interface named a read port `lookup_delivery(source_namespace, deli
 
 - Repository: `islamomanpk-boop/okxtester`.
 - Compared refs: `price-action-v1...agent/okx-research-agent-v1`.
-- Compare result: 489 commits ahead, 0 behind; 66 changed files, all under `research_agent/`.
+- Historical compare recorded when this audit was first written: 489 commits ahead, 0 behind; 66 changed files, all under `research_agent/`. This is a dated snapshot, not the current branch state; obtain a fresh compare before relying on counts.
 - Agent-specific workflow: none installed or active.
 - Agent workflow runs: none reported in the latest inspected state.
 - Runtime validation: not performed; the authored regression suite remains unexecuted.
