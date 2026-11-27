@@ -69,7 +69,7 @@ Exit: independent verification of a synthetic build/release record and negative 
 
 **Goal:** Protect source research evidence and define exactly what a task may inspect.
 
-Required: data classification; task-bound exact-object grants; immutable source snapshots; read-only enforcement; complete object manifests; provenance and schema/version semantics; privacy minimization; secret scanning; retention/deletion and legal-hold rules; assignment isolation; output quarantine; prompt/data-injection handling.
+Required: data classification; task-bound exact-object grants; immutable source snapshots; read-only enforcement; complete object manifests; provenance and schema/version semantics; preservation of Git tree path/mode identity; target-filesystem case-fold and Unicode-normalization collision rejection; privacy minimization; secret scanning; retention/deletion and legal-hold rules; assignment isolation; output quarantine; prompt/data-injection handling.
 
 Exit: synthetic access-control and evidence-integrity proof demonstrates no write, traversal, cross-assignment read, unapproved export, secret exposure, or untrusted-output promotion.
 
@@ -101,7 +101,7 @@ Exit: negative synthetic isolation and resource-exhaustion tests pass independen
 
 **Goal:** Accept only authentic, task-bound, replay-safe worker returns.
 
-Required: authenticate exact raw bytes; durable receiver receipt and raw digest before parse/ack; strict decoding/schema; receiver identity and assignment revision binding; duplicate/conflict/late-return rules; independently derived complete source manifest; immutable evidence objects; trusted retrieval and hash verification.
+Required: authenticate exact raw bytes; durable receiver receipt and raw digest before parse/ack; strict decoding/schema; receiver identity and assignment revision binding; duplicate/conflict/late-return rules; independently derived complete source manifest with exact Git-tree identity and target-platform collision checks; immutable evidence objects; trusted retrieval and hash verification.
 
 Exit: synthetic tests prove tamper, replay, wrong-task, stale-revision, missing-object, manifest omission, late-return and crash recovery are rejected or quarantined.
 
