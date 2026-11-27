@@ -40,7 +40,7 @@ Mutable lifecycle fields must be updated only through the state-transition trans
 
 ### Approval record
 
-The approval is a separate immutable record, not a boolean input on the assignment. It must bind the authenticated human actor, approval timestamp, expiry/revocation state, repository, branch, workflow path and SHA, task ID and task digest, phase, operation class, handoff revision/digest, input commit, assignment scope/prohibitions, and the exact assignment/package digest when approval is package-specific.
+The approval is a separate immutable record, not a boolean input on the assignment. It must bind the authenticated human actor, approval timestamp and immutable expiry, repository, branch, workflow path and SHA, task ID and task digest, phase, operation class, handoff revision/digest, input commit, assignment scope/prohibitions, and the exact assignment/package digest when approval is package-specific.
 
 Approval must be single-use for the exact operation it authorizes. A readiness-report approval cannot authorize worker delivery. Any change to task digest, package digest, workflow SHA, branch, handoff revision, scope, operation, or input commit invalidates the approval and requires a new authenticated decision. Revocation must be checked immediately before dispatch, not only when the approval is created.
 
@@ -123,7 +123,7 @@ The assignment registry and event ledger must share one atomic transaction bound
 ## Revision, cancellation, expiry, and recovery
 
 - A revision is a new assignment record linked to its predecessor, with a new package digest and fresh approval. The prior revision remains immutable and auditable.
-- Cancellation/revocation is an authenticated event and state transition. It prevents future dispatch or acceptance but cannot erase an already-issued delivery or return record.
+- Assignment cancellation, approval revocation, credential/session revocation, and provider-side cancellation are distinct authenticated operations and records. Assignment cancellation blocks future assignment attempts; approval revocation blocks future use of that approval; credential revocation disables an identity through the security plane; provider-side cancellation requires a separate provider operation and receipt. None erases an already committed dispatch attempt or return record.
 - Expiry is evaluated using trusted service time at the operation boundary. Expired approvals cannot be revived by replaying an earlier workflow input.
 - If dispatch is uncertain, reconcile provider state and registry receipts using the original delivery identity. Do not automatically retry.
 - If a worker returns after cancellation or expiry, preserve the raw return, mark it as late/revoked for review, and do not treat it as a valid completion.
