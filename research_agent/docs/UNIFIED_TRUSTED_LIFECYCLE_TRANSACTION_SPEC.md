@@ -142,6 +142,31 @@ Approval issuance facts are immutable. The approval record contains the authenti
 - If issuance, revocation, consumption, nonce-index, event-chain, or checkpoint history is missing or unverifiable after restore, approval status is UNKNOWN and the operation is denied. An approval row alone never proves active status.
 
 
+## 6.2 Orthogonal lifecycle dimensions and recovery projection
+
+The authoritative lifecycle is not one flat status enum. The registry preserves and derives separate, linked dimensions:
+
+1. immutable assignment lineage and revision;
+2. approval issuance, consumption, revocation, and trusted-time expiry;
+3. each dispatch attempt and its authenticated provider observations;
+4. assignment/attempt cancellation as a separate monotonic fact;
+5. raw return receipts and receiver-derived eligibility;
+6. immutable supervisor review records;
+7. authenticated human task disposition; and
+8. separate human phase-gate disposition.
+
+A command validates the relevant dimension and all cross-dimension invariants. For example, a return may be durably received but ineligible because it is late, malformed, or not bound to a confirmed attempt; a cancelled assignment may still have an unresolved committed dispatch attempt; and a `needs_revision` disposition does not create a new assignment revision. Do not collapse these cases into a single `cancelled`, `returned`, or `completed` status.
+
+The existing `engine/recovery_policy.py` is only an advisory projection over delivery state, review state, and human disposition. It omits cancellation, approval lifecycle, multiple attempts, return eligibility, assignment revisions, and phase-gate state. It cannot authorize or determine full lifecycle recovery. A future trusted adapter must load a consistent registry snapshot, verify the event chain/checkpoint and authenticated sources, validate the relevant approval and policy at the operation boundary, and apply the exact transition transaction. The helper's output is never a durable state transition or sole authoritative status.
+
+Required transition invariants:
+- cancellation before dispatch-start commit denies the attempt; cancellation after commit preserves and reconciles that exact attempt while blocking future attempts;
+- later authenticated provider evidence resolves the same attempt and never creates a replacement attempt;
+- late, malformed, duplicate-conflicting, or unbound raw returns are preserved but cannot enter normal review/completion;
+- exact duplicate receipt/review/disposition replay returns the original receipt; changed facts conflict;
+- revision requests require a separately prepared immutable revision and fresh applicable approval;
+- human task disposition and phase-gate disposition remain independent.
+
 ## 7. Return, review, and human authority rules
 
 The receiver stores raw return bytes before parsing and computes the digest itself. Worker-supplied IDs, hashes, timestamps, task claims, and package claims are comparisons only.
