@@ -343,3 +343,7 @@ All 15 module-level test files are authored but NOT RUN. Under the current G0-05
 ## 22. Runtime policy and queue authorization boundary
 
 See [Runtime policy, queue and authorization-boundary static audit](RUNTIME_POLICY_QUEUE_AND_AUTHORIZATION_BOUNDARY_AUDIT_2026-11-27.md). Current config remains deny-only at multiple independent layers: execution disabled, scheduling disabled, queue execution disabled, Phase 3 override deny, G0-05 global lock true, empty task allowlist, and later phases blocked. The runtime controller reloads fixed policy files and checks exact task equality and hash approval, but local policy files do not authenticate their own publisher or checkout. No preflight or test was executed. Do not change these deny settings or add allowlist entries while G0-05 remains controlling.
+
+## 23. Owner decisions and external blockers
+
+The [owner decision register](OWNER_DECISION_REGISTER_AND_PREIMPLEMENTATION_BLOCKERS_2026-11-27.md) consolidates 14 owner/security/operations decisions required before dependent implementation or activation. The register is planning only; recommendations are not selected decisions. G0-05 remains the immediate hard stop. No provider, identity system, hosting region, backend, witness, worker runtime, retention policy, cost ceiling, or activation topology has been selected or authorized.
