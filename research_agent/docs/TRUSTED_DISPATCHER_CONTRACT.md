@@ -138,3 +138,12 @@ Human dispositions are limited to explicit, authenticated values such as accepte
 9. Keep scheduled/event-driven operation disabled until manual operation is demonstrated and separately approved.
 
 No backend, delivery provider, secret, workflow, schedule, or permission change is selected by this design. The current implementation remains non-operational and no task is authorized for dispatch.
+
+
+## Provider callback receiver boundary
+
+Provider callbacks are untrusted evidence until the receiver verifies the exact raw signed bytes and binds the event to one committed dispatch attempt. The receiver must retain raw bytes, signature metadata, receiver digest/length, key-version provenance, provider event identity, and immutable facts digest before returning a successful transport acknowledgment. A 2xx response means durable receipt for processing only; it does not mean status application.
+
+Callback identity is separate from provider delivery identity, dispatch-command identity, and witness identity. Exact replay of the same provider event identity and facts returns the original receipt; changed facts under the same identity are quarantined as a security conflict. Arrival order is not provider event order. Use provider-monotonic sequence/version/cursor where documented, preserve stale observations without regressing projection, reconcile gaps through authenticated history, and never apply last-write-wins to terminal states. Unknown, ambiguous, cross-account, or mismatched attempt/key/request-digest callbacks cannot mutate assignments. Late callbacks after cancellation, revocation, expiry, or terminal disposition remain preserved and explicitly ineligible unless separately reconciled under human authority.
+
+Raw receipt persistence and processing-outbox creation must be atomic and precede successful acknowledgment. Verified observation, idempotency index, permitted projection, event/checkpoint, and witness outbox must commit atomically; external witness acknowledgment remains separate and protected writes stay frozen while pending. See [Provider callback ingestion, replay, and ordering audit](PROVIDER_CALLBACK_INGESTION_AND_ORDERING_AUDIT_2026-11-27.md). No callback receiver is implemented or enabled.
