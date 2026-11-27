@@ -117,6 +117,7 @@ A queue allowlist hash, task preflight, planner output, assignment package, or p
 | Revoke approval | Authenticated revocation authority; exact approval ID | Revocation record + `approval_revoked` event + checkpoint | Approval unusable for future protected operations |
 | Start dispatch | Exact revision; valid delivery approval; fresh policy/handoff check; unused delivery identity | Dispatch intent/attempt + `dispatch_started` event + idempotency index + state version + checkpoint | `dispatch_started` |
 | Record uncertain delivery | Authenticated timeout/lost-response observation | Delivery state + `delivery_pending_or_unknown` event + state version + checkpoint | `delivery_pending_or_unknown` |
+| Record provider observation | Authenticated response/callback/query bound to attempt, provider scope/key, and exact request digest | Immutable raw observation + observation idempotency index + derived delivery projection + event + versions + checkpoint + witness outbox | Provider observation durably recorded; delivery state derived from verified observations |
 | Confirm delivery | Authenticated provider receipt bound to attempt and package digest | Receipt + `delivery_confirmed` event + state version + checkpoint | `delivery_confirmed` |
 | Cancel assignment | Authenticated cancellation authority; current assignment and dispatch-attempt state | Cancellation record + `assignment_cancelled` event + state version + checkpoint | Prevents future dispatch attempts; an already committed dispatch intent remains in-flight/pending and must be reconciled |
 | Receive return | Authenticated receiver; known confirmed delivery; exact assignment binding | Raw payload bytes/ref + receiver digest + return ID + `worker_submission_received` event + checkpoint | `submission_received` |
@@ -222,7 +223,14 @@ The atomic transaction must include raw-receipt metadata, immutable return ID, i
 
 | Failure point | Required outcome |
 |---|---|
-| Before transaction commit | No partial authoritative writes; retry same idempotency identity |
+| Before dispatch-start transaction begins | No provider side effect is permitted; revalidate current policy/approval before retrying the same command identity |
+| Dispatch-start transaction commit outcome unknown | Query registry by exact triggering idempotency identity; return original receipt if committed; never infer rollback from lost response |
+| Dispatch-start commits, process crashes before provider call/response | Attempt is durable but provider outcome is unknown; query original provider key/scope and submit only the exact retained envelope under the proven same-key retention contract; otherwise remain UNKNOWN |
+| Provider accepts request, process crashes before receipt/observation commit | Recover authenticated status by original provider key/job ID; if not queryable, remain UNKNOWN and provider is not qualified for unattended delivery |
+| Provider response observed, observation transaction outcome unknown | Resolve exact provider-observation idempotency identity and facts digest before retry; do not append a second observation event |
+| Observation transaction commits, client response lost | Exact replay returns original observation receipt; no second provider call or event |
+| Registry commits observation/outbox, witness acknowledgment lost | Freeze protected writes; replay exact witness tuple/idempotency identity and record its authenticated receipt before resuming |
+| Witness acknowledgment commits, dispatcher response lost | Exact command replay returns original committed receipt; no duplicate delivery or event |
 | Commit succeeds, response lost | Exact retry returns original receipt |
 | Concurrent duplicate delivery | Unique constraint selects one winner; loser re-reads and compares complete facts |
 | Stale global checkpoint or assignment version | Reject new transition without mutation |
@@ -231,6 +239,10 @@ The atomic transaction must include raw-receipt metadata, immutable return ID, i
 | Registry/event/checkpoint mismatch | Stop all writes; preserve evidence; human investigation |
 | Backup restore behind protected checkpoint | Reject service startup/operations until independently reconciled |
 | Approval expires/revokes or cancellation races with dispatch | If revocation/cancellation commits before `dispatch_started`, deny provider call; if `dispatch_started` commits first, preserve the attempt and reconcile/call only with its original idempotency key; never rewrite history |
+
+### 9.1 Provider dispatch restart protocol
+
+A durable dispatch_started record proves only that an authorized attempt was recorded. It does not prove that request bytes were sent or that the provider accepted them. After any restart, every nonterminal attempt is reconciled by its original provider key and complete provider scope. Provider acceptance followed by a crash before receipt persistence must be reconstructed from authenticated provider query/history; if the provider cannot supply that evidence, keep the attempt UNKNOWN and do not enable unattended dispatch. Provider command, delivery, observation, and external-witness idempotency identities are separate. Exact replay returns the original receipt; conflicting facts are rejected. A provider observation and its raw evidence, idempotency index, derived state, event, versions, checkpoint, and witness outbox commit atomically. A lost response after commit is resolved by observation identity, not by issuing another provider call. The full crash-point matrix and synthetic test oracles are in [Provider dispatch crash-recovery audit](PROVIDER_DISPATCH_CRASH_RECOVERY_AUDIT_2026-11-27.md).
 
 A database backup is not itself a trust root. The protected checkpoint must be retained independently enough to detect rollback of a self-consistent but stale database snapshot.
 
