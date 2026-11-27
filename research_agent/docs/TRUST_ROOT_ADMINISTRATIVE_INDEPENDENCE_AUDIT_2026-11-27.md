@@ -189,3 +189,10 @@ The focused protocol in `EMERGENCY_SUSPENSION_BREAK_GLASS_AND_RESUME_PROTOCOL_20
 - Resume requires independent multi-party authorization bound to the exact reconciled checkpoint and recovery-report digest. Dispatch remains a separate operation requiring fresh approval.
 
 These are normative design controls only. Actual principal separation, effective permissions, MFA recovery paths, external audit retention, and provider capabilities remain UNKNOWN until provisioned and independently evidenced. No account, permission, credential, or infrastructure was changed.
+
+
+## Addendum — emergency hold and independent resume quorum
+
+The emergency hold is now explicitly a separate deny-only security-plane control. It may disable credentials/sessions/keys through the identity/security plane during a registry freeze, but it cannot write registry history or bypass the witness. Affected approvals remain unusable/UNKNOWN until required append-only approval revocation/invalidation events are committed and externally witnessed after reconciliation.
+
+The resume quorum is no longer defined only as “two people”: two distinct human approvers must have independently administered credential and recovery paths, and neither may be the freeze requester, break-glass activator, recovery operator, witness administrator/verifier, independent reviewer, or recovery-code deployer. Separate accounts under one common takeover-capable identity/root administrator do not qualify. Effective permissions and this independence remain UNKNOWN until deployed evidence and negative tests exist.
