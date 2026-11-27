@@ -47,7 +47,7 @@ Current state: NOT OPERATIONAL. No unattended worker is running. No production b
 
 Required evidence: current authoritative handoff; an independent review report that follows the handoff's requested evidence format, or a documented status explaining why the review is unavailable (the latter is a blocker record, not a substitute for review findings); reconciled source/canonical mapping findings; explicit treatment of the conditional CENSORED plus non-null confirmation timestamp edge case; any required real-row validation only if a future handoff explicitly authorizes it; separate owner/reviewer disposition. An owner disposition cannot convert missing evidence into a resolved finding or waive the handoff's requirements.
 
-Exit: controlling handoff explicitly permits the next exact scope and the relevant human gate is recorded. Until then, no scripts, tests, workflows, code/data changes, candidate generation, backtests, or G0-05 closure.
+Additional policy prerequisite before any future Phase 3 authorization: independently close HBP-01 and HBP-02 from `HANDOFF_BINDING_AND_PHASE_POLICY_ENFORCEMENT_AUDIT_2026-11-27.md`. The active handoff ID must be mandatory and match an independently configured current value for every handoff-governed task; missing, stale, changed, or ambiguous IDs deny. The task's declared scope must be intersected with the authoritative handoff scope, with the effective scope being no broader than either. These are future hardening requirements, not permission to edit the controller or validate it now.\n\nExit: controlling handoff explicitly permits the next exact scope, the handoff-binding/scope enforcement prerequisites are independently reviewed, and the relevant human gate is recorded. Until then, no scripts, tests, workflows, code/data changes, candidate generation, backtests, or G0-05 closure.
 
 ### Gate 1 — Owner decisions and trust topology
 
@@ -85,7 +85,7 @@ Exit: independent synthetic proof of concurrent commits, replay, conflicts, revo
 
 **Goal:** Permit only exact, current, approved operations and make delivery uncertainty safe.
 
-Required: operation-bound human approval; fresh authorization at dispatch linearization point; exact task/handoff/phase/package/revision binding; narrow dispatcher identity; provider-qualified idempotency scope/retention/query guarantees; durable attempt before call; authenticated provider receipts; cancellation/revocation race handling; no blind retries.
+Required: operation-bound human approval; fresh authorization at dispatch linearization point; exact task/handoff/phase/package/revision binding; mandatory exact active handoff ID from an independent policy source; effective task scope constrained to the intersection of task, phase, and authoritative handoff scope; narrow dispatcher identity; provider-qualified idempotency scope/retention/query guarantees; durable attempt before call; authenticated provider receipts; cancellation/revocation race handling; no blind retries.
 
 Exit: synthetic provider simulator proves one logical delivery under duplicates and preserves UNKNOWN when acceptance/receipt is uncertain.
 
