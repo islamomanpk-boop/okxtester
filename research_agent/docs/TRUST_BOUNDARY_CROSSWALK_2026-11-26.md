@@ -322,3 +322,7 @@ The [runtime policy and authorization audit](RUNTIME_POLICY_QUEUE_AND_AUTHORIZAT
 ## 45. Owner decision register and pre-implementation blockers
 
 The [owner decision register](OWNER_DECISION_REGISTER_AND_PREIMPLEMENTATION_BLOCKERS_2026-11-27.md) consolidates 14 decisions covering research authority/G0-05 exit, hosting and residency, independent identity, policy/approval governance, registry/witness, worker isolation, provider delivery, evidence retention, human review, monitoring/emergency response, GitHub activation topology, supply-chain provenance, cost limits, and independent assurance. It distinguishes established constraints from unresolved vendor/owner choices. It grants no authority and records no owner decisions.
+
+## 46. Roadmap gate-to-owner-decision traceability
+
+The [traceability audit](ROADMAP_GATE_TO_OWNER_DECISION_TRACEABILITY_AUDIT_2026-11-27.md) maps OD-01..OD-14 to Gate 0..Gate 12, confirms the 13-gate numbering, identifies decisions that span multiple gates, and records current Gate 0 blockage. GitHub issue #3 remains open with only the instruction comment, no assignee and no independent findings. This is not a Copilot review result or gate approval.
