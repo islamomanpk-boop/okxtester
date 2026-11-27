@@ -283,3 +283,10 @@ Current status:
 - No agent workflow, schedule, dispatch, or unattended worker is active.
 - No tests, scripts, or workflows were run for this specification.
 - No research branch, default branch, research data, secrets, permissions, VPS, or runner configuration was changed.
+
+
+## Emergency suspension and resume authority
+
+Emergency suspension is a deny-only control. A designated authenticated incident reporter may trigger a freeze without waiting for dual approval; it cannot approve work, mutate historical records, bypass witness reconciliation, or resume service. Break-glass activation for privileged recovery requires two distinct authenticated principals, a short-lived incident-bound scope, independent notification, and external append-only audit.
+
+Recovery execution, witness verification, independent review, and resume authorization are separate roles. The recovery operator cannot verify and approve their own restore. High-impact resume requires independent multi-party authorization bound to the exact registry identity, reconciled checkpoint digest/epoch/sequence, recovery-report digest, service scope, and expiry. Dispatch remains separately gated by fresh operation-bound approval. If identity independence, approval history, audit integrity, or checkpoint lineage is UNKNOWN, remain suspended for the affected capability. Break-glass cannot issue/renew approvals, alter policy or witness history, suppress audit, close a phase gate, or bypass the controlling handoff.
