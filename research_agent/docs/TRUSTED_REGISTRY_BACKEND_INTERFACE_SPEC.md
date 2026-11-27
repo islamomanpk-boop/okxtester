@@ -126,6 +126,14 @@ Authenticate return source and bind it to exact assignment revision, package dig
 
 Evidence byte integrity is not source truth or research correctness. Structural eligibility is not task completion. Human task disposition is not phase-gate closure. Gate decisions require separate authority and evidence and remain unavailable while the handoff prohibits them.
 
+### Return receipt command semantics
+
+`receive_worker_return` must receive authenticated transport context plus the exact raw byte stream, not a worker-supplied parsed object as the authoritative receipt. The adapter enforces a byte-size bound, stores bytes immutably, computes the receiver digest, and atomically commits return ID, authenticated return-delivery idempotency record, receipt event, assignment binding/eligibility, and checkpoint before parsing. Parsing is strict and occurs only from retained bytes; malformed raw bytes remain auditable and cannot enter review.
+
+Enforce unique `(return_source_namespace, return_delivery_id)`. The immutable facts digest covers dispatch attempt, assignment/revision, expected package digest, authenticated source, raw digest/length, and meaning-bearing transport metadata. Exact replay returns the original receipt; changed replay is quarantined and rejected without altering the original. A distinct delivery ID with identical bytes is linked by payload digest as duplicate content and is not automatically eligible for a second review.
+
+The command must resolve the provider delivery to a committed dispatch attempt and load the exact protected package. It records a receiver-derived eligibility classification from trusted state/time. Review identity is idempotently bound to return ID, raw digest, assignment revision, reviewer identity, and policy version. Human disposition is independently authenticated and bound to one exact review digest. Receipt, review, task disposition, and phase-gate disposition remain separate records and authorities.
+
 ## 9. Error taxonomy
 
 | Error | Required behavior |
