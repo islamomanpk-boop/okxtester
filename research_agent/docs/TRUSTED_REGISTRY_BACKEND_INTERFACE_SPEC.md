@@ -86,6 +86,16 @@ No partial commit may be represented as success. Every transition checks and adv
 
 External delivery occurs outside the database transaction. The registry first records a dispatch attempt; until authenticated provider evidence is committed, state remains pending/uncertain.
 
+### Internal transaction versus external witness
+
+The backend transaction atomically commits registry records, lifecycle event, idempotency indexes, materialized state, global/assignment versions, internal head checkpoint, and a durable outbox item for the independent checkpoint witness. This database commit is the registry transition's linearization point. Do not claim the external witness participates in the database ACID transaction unless the selected platform proves that exact cross-system guarantee.
+
+A separate witness publisher advances the external monotonic checkpoint and obtains an authenticated receipt. The registry records the receipt/acknowledged version in a subsequent transaction. Until acknowledgment of the exact committed head, protected writes are frozen in witness-pending/degraded mode; read-only reconciliation is permitted. Restart must reconcile all pending outbox items before protected operations resume. Lost responses use the same checkpoint identity. An outbox row is not a witness receipt.
+
+The witness rejects rollback, forks, wrong registry/epoch, non-monotonic sequence, broken predecessor, and same-sequence conflicting digest; exact replay returns the original receipt. Database commit receipt and witness receipt remain distinct.
+
+Global checkpoint advancement and per-assignment state-version comparison/update must be serialized together in the database transaction. On serialization failure, deadlock, or uniqueness conflict, abort all writes, reload a consistent snapshot, resolve exact replay first, and revalidate current approval, policy, assignment state, and transition. Never retry a partial insert or reuse stale preconditions.
+
 ## 5. Idempotency and replay
 
 Use two linked identity levels: `(source_namespace, delivery_id)` is the unique authenticated provider-delivery identity; `(source_namespace, delivery_id, event_role)` is the unique lifecycle-event idempotency identity when one delivery emits multiple legitimate events. Event role is a closed schema-defined value. Source namespace must be authenticated. Normalize complete semantic facts, then look up the event-level idempotency tuple **before** rejecting a stale checkpoint:
