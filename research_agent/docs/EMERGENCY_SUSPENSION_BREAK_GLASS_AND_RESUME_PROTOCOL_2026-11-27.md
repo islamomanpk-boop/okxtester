@@ -8,9 +8,9 @@ No tests, scripts, workflows, provider calls, or VPS operations were performed. 
 
 ## 1. Core rule: emergency suspension is easy; privileged resumption is hard
 
-Any authenticated designated incident reporter may request an immediate deny-only suspension. Suspension may stop dispatch, approval consumption, assignment transitions, return acceptance, human disposition writes, and protected registry writes. It must not create approval, accept work, alter history, bypass the witness, or resume service.
+Any authenticated designated incident reporter may invoke an immediate deny-only suspension through an independent security-plane hold. The hold directly blocks affected protected operations, including dispatch, approval consumption, assignment transitions, eligible return acceptance, human disposition writes, and protected registry writes. It does not mutate registry history, create approval, accept work, bypass the witness, or resume service. If the hold service or its integrity cannot be verified, affected capabilities fail closed.
 
-A suspension request is not proof of compromise and need not wait for a second approver before taking the system offline. The system should fail closed on a credible emergency signal. False-positive suspension is an availability incident; failing to suspend during compromise is an authority-integrity incident.
+The authenticated freeze trigger takes effect without a second approver; it is not merely a ticket awaiting action. The freeze record is monotonic, incident-bound, and independently audited. A false-positive suspension is an availability incident; failing to suspend during compromise is an authority-integrity incident.
 
 Resumption is a separate operation. No person who requested suspension, invoked break-glass, executed restore, administered the witness, or deployed the recovery code may unilaterally authorize resume.
 
@@ -49,7 +49,10 @@ If the identity provider, MFA recovery, root account, or signing key may be comp
 ## 4. Approval and revocation under incident conditions
 
 - Existing approvals remain immutable historical facts. Emergency suspension does not rewrite them as revoked; it makes protected operations unavailable while incident status is unresolved.
-- A designated security authority may revoke a specific approval or credential through the normal authenticated append-only path. Revocation is monotonic and does not cancel an already committed provider attempt.
+- A security custodian may immediately revoke/disable compromised credentials, sessions, or keys through the independent identity/security plane. This does not rewrite approval history.
+- While the registry is frozen or witness-pending, do not append an approval-revocation event or bypass the protected-write freeze. The external incident hold makes affected approvals unusable; where compromise scope is uncertain, their status is UNKNOWN and denied.
+- After registry chain and witness reconciliation, append the exact approval revocation/invalidation as an immutable registry event, obtain the corresponding witness receipt, and verify the resulting checkpoint before releasing the hold. If this cannot be completed, remain frozen.
+- Approval revocation is monotonic and does not cancel an already committed provider attempt.
 - A new or renewed approval must never be issued by break-glass. It requires the ordinary independent human approval channel, current policy/handoff checks, a fresh ID and nonce, exact operation/scope, and trusted expiry.
 - If the approval channel or issuer is compromised or uncertain, approvals from the affected interval are UNKNOWN and cannot authorize operations.
 - Provider-side cancellation is a separate provider operation with its own identity, approval requirements, and authenticated receipt. A local freeze is not proof that provider execution stopped.
@@ -64,7 +67,9 @@ If the identity provider, MFA recovery, root account, or signing key may be comp
 6. **Restore in isolation:** apply the restore/witness outbox reconciliation protocol. No protected writes or dispatch while witness-pending, divergent, or unverifiable.
 7. **Reconcile lifecycle:** verify approval issuance/revocation/consumption/nonces, assignment revisions, all dispatch attempts and provider receipts, cancellations, raw return bytes/digests/bindings, reviews, human dispositions, and phase-gate state. Unknown or missing authoritative history blocks the affected operation.
 8. **Review evidence:** independent reviewer verifies exact checkpoint, witness receipt, restore report, credential containment, administrative dependency graph, audit completeness, unresolved deliveries, and residual risk.
-9. **Authorize narrow resume:** two distinct authorized principals approve the exact registry ID, checkpoint digest/epoch/sequence, restore report digest, service scope, and expiry. This restores only the explicitly named service capability; dispatch remains separately gated by fresh operation-bound approval.
+9. **Record incident revocations:** after protected writes are permitted by successful witness reconciliation, append all required approval revocation/invalidation events, publish and verify their exact witness checkpoint, and retain the external hold until this completes.
+10. **Review and authorize narrow resume:** an independent reviewer records a separate evidence-based recommendation. Two distinct human resume approvers then approve the exact registry ID, checkpoint digest/epoch/sequence, recovery-report digest, service scope, and expiry. Neither may be the freeze requester, break-glass activator, recovery operator, witness administrator/verifier, independent reviewer, or recovery-code deployer. They must have independently controlled credentials and recovery paths, not merely separate accounts under one administrator. If this cannot be proven, remain suspended.
+11. **Monitor and close:** retain elevated monitoring, verify revocation propagation and audit export, record post-incident review, expire break-glass grants, and rotate emergency credentials.
 10. **Monitor and close:** retain elevated monitoring, verify revocation propagation and audit export, record post-incident review, expire break-glass grants, and rotate emergency credentials.
 
 Any UNKNOWN critical identity, checkpoint, approval, delivery, or audit fact means no resume for the affected capability. A human risk acceptance cannot manufacture missing cryptographic history or override the active research handoff.
@@ -72,10 +77,12 @@ Any UNKNOWN critical identity, checkpoint, approval, delivery, or audit fact mea
 ## 6. Dual-control and anti-self-approval invariants
 
 - No single principal or common credential root may request privileged break-glass access, execute recovery, verify the witness, and authorize resume.
+- Resume quorum means two distinct human subject identities with independently controlled credentials, MFA recovery, and administrative recovery paths; two aliases or accounts under one takeover-capable root do not count.
+- Both resume approvers are distinct from the freeze requester, break-glass activator, recovery operator, witness administrator/verifier, independent reviewer, and recovery-code deployer.
 - The recovery operator cannot approve their own restore report.
 - The witness verifier must obtain evidence directly from the witness trust domain, not solely from the restored registry.
 - The resume authorization must be signed/recorded outside the compromised registry and bound to exact recovery evidence.
-- Emergency freeze is deny-only and may be triggered without dual approval; emergency unfreeze/resume always requires independent multi-party authorization.
+- Emergency freeze is deny-only and takes effect immediately through the independent security plane without dual approval; emergency unfreeze/resume requires the independent two-human quorum and separate reviewer recommendation.
 - Break-glass never grants task completion, phase-gate closure, strategy selection, research execution, or permission to bypass G0-05.
 
 ## 7. Required synthetic validation before deployment
