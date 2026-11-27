@@ -176,3 +176,16 @@ No provider or architecture topology is selected by this audit.
 - The active Phase 3 G0-05 handoff remains authoritative.
 
 This is a targeted documentation audit, not an exhaustive cloud-configuration review, penetration test, security certification, or authorization to activate the agent.
+
+
+## Addendum — emergency suspension and break-glass authority
+
+The focused protocol in `EMERGENCY_SUSPENSION_BREAK_GLASS_AND_RESUME_PROTOCOL_2026-11-27.md` resolves the documented role ambiguity at the design level:
+
+- Any designated authenticated incident reporter may trigger a deny-only freeze immediately; no single person can unfreeze or resume.
+- Break-glass activation requires two distinct principals, is incident-bound and short-lived, and cannot create approvals, alter policy/history/witness, suppress audit, or authorize dispatch.
+- Recovery operator, witness verifier, independent reviewer, and resume authority are separated for high-impact recovery. The operator cannot self-certify or authorize resume.
+- An independent append-only audit destination records emergency use; a recovery administrator cannot administer the only audit sink.
+- Resume requires independent multi-party authorization bound to the exact reconciled checkpoint and recovery-report digest. Dispatch remains a separate operation requiring fresh approval.
+
+These are normative design controls only. Actual principal separation, effective permissions, MFA recovery paths, external audit retention, and provider capabilities remain UNKNOWN until provisioned and independently evidenced. No account, permission, credential, or infrastructure was changed.
