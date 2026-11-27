@@ -26,6 +26,9 @@ Before any future dispatch-capable operation, the approval record should bind:
 
 The approval must be retained independently of the task, workflow inputs, worker package, and worker return. A task allowlist hash alone is not approval to run a workflow or deliver work. Approval for one operation class must not be widened into another. Any change to the task digest, handoff revision, workflow SHA, branch, operation, or scope invalidates the approval and requires a new decision.
 
+Approval issuance is immutable: never extend expiry, clear revocation, reset consumption, or renew in place. Any renewal requires a fresh authenticated human decision with a new approval ID and nonce, bound to the complete current scope. The approval issuer must enforce unique IDs/nonces and exact-replay-versus-conflicting-replay semantics. Revocation is monotonic; it blocks future use but does not recall a dispatch attempt whose `dispatch_started` transaction already committed. Such an attempt is reconciled using its original provider key. If stopping provider-side work is required, use a separate authenticated cancellation operation and receipt.
+
+
 For the current stage, the only conceivable first run is a non-executing, preflight/readiness report after the controlling handoff permits it. No worker delivery should be enabled as part of that first check.
 
 ## Dispatch transaction — future only
