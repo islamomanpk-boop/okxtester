@@ -29,7 +29,7 @@ Requirements:
 
 ### Option B — minimal dispatcher on `main`
 
-Add a narrowly scoped manual-only dispatcher workflow to `main`, which calls a reviewed reusable workflow pinned to the isolated agent branch.
+Add a narrowly scoped manual-only dispatcher workflow to `main`, which calls a reviewed reusable workflow stored on the isolated agent branch. The caller's `uses:` reference must pin the reusable workflow to an immutable full commit SHA.
 
 Advantages:
 - Reuses the existing repository and its artifact storage.
@@ -38,7 +38,7 @@ Advantages:
 Risks and requirements:
 - This is a deliberate exception to the current no-change-to-`main` boundary and requires explicit owner approval.
 - The dispatcher must have minimal explicit permissions and no broad write token.
-- The reusable workflow ref must be immutable or otherwise tightly controlled.
+- The caller on `main` must declare `workflow_dispatch` only; the reusable callee must declare `workflow_call` only. The callee must not expose direct manual, push, pull-request, schedule, or other event triggers.\n- The caller's reusable-workflow reference must use an immutable full commit SHA; a branch name or mutable tag is insufficient.
 - The workflow must not call inherited research workflows or execute research scripts.
 - It must start as manual preflight/report-only; no scheduling, event triggers, queue execution, or research writes.
 
