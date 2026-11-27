@@ -174,3 +174,8 @@ Documentation completeness is not implementation readiness. A gate may move to P
 ## Current project status
 
 Roadmap committed as planning documentation only. No provider, backend, account, region, credentials, workflow, runner, sandbox, monitoring, backup, or integration was selected or configured. No tests, scripts, workflows, research data, provider calls, VPS actions, deployments, or phase/gate changes were performed. The agent remains non-operational, no unattended work is running, and Phase 3 G0-05 remains controlling.
+
+
+## Owner-decision dependency gate
+
+Before starting operational implementation, use the [owner decision register](OWNER_DECISION_REGISTER_AND_PREIMPLEMENTATION_BLOCKERS_2026-11-27.md) to record accountable owners, evidence, decisions and approval revisions for the 14 unresolved areas. Its order is subordinate to the active G0-05 handoff: no workflow/test/script execution or Phase 3 research changes are permitted by this planning document.
