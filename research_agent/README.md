@@ -111,3 +111,5 @@ See [VALIDATION_AND_ACTIVATION.md](VALIDATION_AND_ACTIVATION.md) for completed s
 See [ACTIVATION_DECISION.md](ACTIVATION_DECISION.md) for the default-branch dispatch constraint and the reviewed activation options. The preferred isolation path is a separate agent repository; no repository creation or `main`-branch change is authorized by that recommendation.
 
 Creating this scaffold does not authorize running it. Do not add or enable any agent workflow until the safety controller, task allowlist, and independent validation are complete and the applicable research handoffs permit execution. The G0-05 handoff remains authoritative even if a future agent configuration is changed.
+
+- [Consolidated implementation roadmap and dependency gates](docs/CONSOLIDATED_IMPLEMENTATION_ROADMAP_AND_DEPENDENCY_GATES_2026-11-27.md) — consolidates implemented primitives, design-only contracts, missing operational adapters, 13 ordered exit gates, cross-gate blockers and current G0-05 restrictions; planning only, not activation authority.
