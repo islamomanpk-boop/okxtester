@@ -140,3 +140,12 @@ This is a documentation-level consistency correction only. No event schema, hash
 `docs/TRUSTED_BACKEND_SELECTION_FRAMEWORK.md` translates the registry contract and threat model into mandatory qualification gates, architecture-class comparisons, trust-domain topology, a weighted scorecard, unresolved owner decisions and a staged proof-of-capability process. It identifies managed relational transaction stores as the first class worth evaluating, not as a selected provider; every candidate must prove atomic dual-version updates, replay behavior, identity separation and independent anti-rollback.
 
 No provider was researched/selected, no account or resource created, no credential provisioned, and no tests or workflows run. This remains a design artifact; G0-05 is still controlling.
+
+
+## 15. Consolidated implementation readiness and exit criteria
+
+`docs/IMPLEMENTATION_READINESS_AND_EXIT_CRITERIA.md` consolidates the research-authority boundary, owner decisions, independent trust-root requirements, registry transaction semantics, assignment/dispatch/return integrity, workflow and runner security, authorized validation, operational readiness, evidence-register fields, ordered exit criteria, and non-negotiable stop conditions.
+
+The checklist distinguishes PASS, FAIL, UNKNOWN, and BLOCKED; missing or caller-supplied evidence cannot count as PASS. It records the present system as a documented, non-operational foundation: no backend or trust roots selected, no trusted package-digest custody or authenticated dispatcher, no active agent workflow, and no authorized runtime validation. The repository default-branch activation constraint is retained as a blocker rather than worked around.
+
+This is a documentation-only readiness control. It does not approve implementation, backend selection, repository creation, a `main` change, workflow activation, credential/resource provisioning, tests, scripts, dispatch, scheduling, or research execution. The active G0-05 handoff remains authoritative.
