@@ -41,7 +41,7 @@ Risks and requirements:
 - The caller on `main` must declare `workflow_dispatch` only; the reusable callee must declare `workflow_call` only. The callee must not expose direct manual, push, pull-request, schedule, or other event triggers.
 - The caller's job permissions must be explicit and minimal; the called workflow cannot elevate `GITHUB_TOKEN` permissions beyond those granted by the caller. No secrets are passed or inherited.
 - Because the called workflow's `github` context is associated with the caller, the callee must explicitly check out the agent repository/ref at the exact same immutable commit SHA used in the caller's `jobs.<job_id>.uses` reference before importing or executing agent code. Never rely on the default checkout/ref to select the agent branch.
-- The caller and callee must be reviewed together as one security boundary, including the exact callee SHA, checkout SHA, workflow inputs, token permissions, and artifact provenance.\n- The caller's reusable-workflow reference must use an immutable full commit SHA; a branch name or mutable tag is insufficient.
+- The caller and callee must be reviewed together as one security boundary, including the exact callee SHA, checkout SHA, workflow inputs, token permissions, and artifact provenance.
 - The workflow must not call inherited research workflows or execute research scripts.
 - It must start as manual preflight/report-only; no scheduling, event triggers, queue execution, or research writes.
 
