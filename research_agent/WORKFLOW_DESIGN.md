@@ -64,10 +64,13 @@ No workflow has been added, no branch policy has been changed, and no run has be
 
 ## First-workflow design (future, subject to authorization)
 
-### Trigger and scope
+### Trigger and scope — topology-specific
 
-- Use `workflow_dispatch` only.
-- Do not add `push`, `pull_request`, `pull_request_target`, `workflow_run`, `schedule`, or `workflow_call` triggers.
+The trigger rules depend on the activation option selected in `ACTIVATION_DECISION.md`; do not combine the two topologies:
+
+- **Option A (separate agent repository):** the single first workflow is a direct `workflow_dispatch` workflow on that repository's default branch. Do not add `push`, `pull_request`, `pull_request_target`, `workflow_run`, `schedule`, or `workflow_call` triggers.
+- **Option B (same-repository bridge):** the small caller on `main` uses `workflow_dispatch` only. Its sole callee is a reviewed reusable workflow on the agent branch, which necessarily declares `workflow_call` only. The callee must not declare `push`, `pull_request`, `pull_request_target`, `workflow_run`, `schedule`, or `workflow_dispatch`. Pin the caller's `uses:` reference to an immutable full commit SHA, not a moving branch or tag. This is a narrowly scoped exception to the direct-workflow trigger rule, not permission to add general workflow-call entry points.
+- Option B still requires explicit owner approval for the `main` change and a separate workflow security review. Neither option is authorized or installable under the current G0-05 handoff.
 - Require an explicit input selecting one fixed, pre-reviewed operation; reject unknown values.
 - Pin the workflow to the agent branch and explicitly check out `agent/okx-research-agent-v1`.
 - Do not check out or execute code from `price-action-v1` while the G0-05 handoff prohibits execution.
@@ -112,7 +115,7 @@ No workflow has been added, no branch policy has been changed, and no run has be
 - [ ] Current handoff explicitly permits the exact proposed validation and execution scope.
 - [ ] Complete static audit of inherited workflow triggers and checkout refs is finished.
 - [ ] Workflow YAML is reviewed independently before installation.
-- [ ] Workflow has only manual dispatch and fixed allowlisted inputs.
+- [ ] Selected topology matches `ACTIVATION_DECISION.md`: Option A is one direct manual-dispatch workflow; Option B is a manual-only `main` caller plus a `workflow_call`-only reusable callee pinned by immutable SHA.\n- [ ] Every externally invocable entry point is limited to its topology-specific trigger and fixed allowlisted inputs.
 - [ ] Branch and checkout refs are explicit and agent-only.
 - [ ] Permissions are least-privilege and no secrets are available.
 - [ ] Actions are pinned to full commit SHAs or avoided.
@@ -154,7 +157,7 @@ A second read-only pass fetched the full text of all 39 workflow files in batche
 
 ### Agent boundary decision
 
-The agent must run only on a fresh GitHub-hosted runner, with an explicit agent-branch checkout, no inherited workflow invocation, no self-hosted labels, no repository secrets, no write token, and no dynamic action or shell selection. The first future workflow remains manual-dispatch and report-only, and cannot be installed or run until the G0-05 handoff permits the exact validation scope and a human authorizes it.
+The agent must run only on a fresh GitHub-hosted runner, with an explicit agent-branch checkout, no inherited research-workflow invocation, no self-hosted labels, no repository secrets, no write token, and no dynamic action or shell selection. Under Option A the direct workflow is manual-dispatch and report-only. Under Option B only the caller is manual-dispatch; the pinned reusable callee is `workflow_call`-only and report-only. Neither topology can be installed or run until the G0-05 handoff permits the exact validation scope and a human authorizes it.
 
 
 ## Full-project operation after Phase 3
