@@ -93,3 +93,17 @@ For every transition, validate global checkpoint and assignment state version, r
 This was a targeted static consistency review, not an exhaustive formal verification or runtime state-machine test. The recovery helper remains useful as a small conservative advisory classifier, but its output is not a durable state transition, full lifecycle state, authorization decision, or proof that inputs are authentic.
 
 No code or tests were changed or executed. The agent remains non-operational; no backend, receiver, registry, dispatcher, or workflow is active. G0-05 remains authoritative.
+
+
+## Follow-up — registry/recovery/legacy-ledger boundary reconciliation
+
+A further static cross-check of `engine/recovery_policy.py`, `engine/event_ledger.py`, `docs/TRUSTED_ASSIGNMENT_REGISTRY_DESIGN.md`, `docs/TRUSTED_DISPATCHER_CONTRACT.md`, and `docs/UNIFIED_TRUSTED_LIFECYCLE_TRANSACTION_SPEC.md` found the following boundary is consistent in the current proposals:
+
+- The v1 event ledger is explicitly a legacy, non-authoritative hash-chain primitive. Its five event types and three source categories do not model the complete lifecycle and do not authenticate sources.
+- The v2 registry proposal is the sole future authoritative lifecycle service. It introduces immutable assignment revisions, approval issuance/consumption/revocation, per-attempt provider observations, raw return receipts/eligibility, reviews, human dispositions, global sequence and assignment state versions.
+- The recovery classifier remains an advisory projection over delivery, review and human-disposition observations. It must not be promoted to a persisted authoritative state or used to authorize an operation.
+- Cancellation remains orthogonal to delivery; approval expiry/revocation/consumption remains independently checked at every protected operation; late or ineligible returns remain preserved but excluded from normal completion.
+
+No contradictory instruction was identified in these reviewed documents. This is a targeted consistency result, not proof that a future registry implementation satisfies the contracts. A future migration must not import v1 hash-chain validity as proof of v2 event authenticity, sequence, state-transition legality, or approval status. Existing v1 records remain unchanged and must not be silently promoted or re-hashed.
+
+No source code or tests were changed or executed. The active G0-05 handoff remains controlling.
