@@ -149,3 +149,10 @@ No provider was researched/selected, no account or resource created, no credenti
 The checklist distinguishes PASS, FAIL, UNKNOWN, and BLOCKED; missing or caller-supplied evidence cannot count as PASS. It records the present system as a documented, non-operational foundation: no backend or trust roots selected, no trusted package-digest custody or authenticated dispatcher, no active agent workflow, and no authorized runtime validation. The repository default-branch activation constraint is retained as a blocker rather than worked around.
 
 This is a documentation-only readiness control. It does not approve implementation, backend selection, repository creation, a `main` change, workflow activation, credential/resource provisioning, tests, scripts, dispatch, scheduling, or research execution. The active G0-05 handoff remains authoritative.
+
+
+## 16. Synthetic backend proof-of-capability plan
+
+`docs/SYNTHETIC_BACKEND_PROOF_OF_CAPABILITY_PLAN.md` defines a vendor-neutral future evaluation protocol using synthetic identities and records only. It specifies entry conditions, twelve test families covering atomic transactions, dual concurrency, replay/idempotency, identity levels, approval/revocation, package digest custody, delivery uncertainty, authenticated returns, workflow provenance, canonicalization, checkpoint rollback/restore, and least privilege; it also defines evidence retention, global acceptance rules, stop conditions, and cleanup.
+
+The plan is not a test report and does not select or qualify any provider. No candidate was evaluated, no account/resource/credential was created, and no tests or workflows were run. Execution remains blocked pending owner decisions, isolated environment approval, independent review, and explicit authorization consistent with the active G0-05 handoff.
