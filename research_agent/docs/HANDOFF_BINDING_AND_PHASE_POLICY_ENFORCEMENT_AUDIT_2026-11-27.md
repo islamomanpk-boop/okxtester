@@ -57,3 +57,15 @@ Before any future Phase 3 authorization is considered, an independently reviewed
 This is a static design/code-contract finding, not evidence of a current bypass or execution. Current configuration remains deny-only. The recommendations are future hardening requirements; no code change is made under the active G0-05 handoff.
 
 No tests, scripts, workflows, task execution, dispatch, provider calls, research-data operations, or infrastructure changes were performed. No agent workflow is active and no unattended worker is running.
+
+
+## Source-location precision follow-up
+
+The source-level boundary is more specific than the approximate references above:
+
+- In `research_agent/engine/safety_controller.py`, lines 246–258 require the Phase 3 rule to contain a `task_scope` key, but do not validate its value or type.
+- Lines 264–268 validate only `priority`, `status`, and `execution_override` in the phase-rule loop. No `task_scope` check occurs there.
+- Lines 463–486 retrieve the selected phase rule and enforce active-phase status plus `execution_override`; they do not read `phase_rule["task_scope"]` or intersect it with `queued_task["scope"]`.
+- Lines 506–530 enforce the independent global G0-05 lock and conditional G0-05 restriction values. The current checked-in `agent_config.json` keeps `current_g0_05_execution_lock=true`, while `phase_permissions.json` keeps Phase 3 `execution_override="deny"`; the queue also has execution disabled and the allowlist is empty.
+
+Accordingly, `task_scope="follow_current_handoff_and_gate_status"` is not merely missing an intersection operation: it is not validated as a meaningful policy value by the controller at all. This remains a latent future authorization-contract gap, not a current execution path. The hard lock must not be weakened to test it.
