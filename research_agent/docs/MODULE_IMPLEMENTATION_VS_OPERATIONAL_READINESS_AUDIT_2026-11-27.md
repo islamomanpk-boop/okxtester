@@ -98,3 +98,10 @@ No sequence above is currently authorized by this audit.
 ## Current status and non-claims
 
 This audit was performed by static source inspection only. No modules or tests were executed. No scripts, workflows, provider calls, research-data access, VPS actions, deployments, permission changes, credentials, services, or infrastructure were performed or changed. No operational readiness or test pass is claimed. The agent remains non-operational; no unattended work is running; Phase 3 G0-05 remains controlling.
+
+
+## Follow-up — cross-platform path identity is not yet enforced
+
+Static review of `report_builder.build_input_manifest()` and `evidence_verifier._safe_path()` confirms that both reject traversal and exact duplicate evidence paths, but neither enforces a portable collision policy for case-fold-equivalent names or Unicode-normalization-equivalent names. The evidence verifier's dictionary keys and duplicate tracking are exact-string based. A manifest containing distinct paths such as `Data.csv` and `data.csv` can therefore pass these local path checks even though a case-insensitive checkout or extraction target may not represent both objects distinctly. Unicode normalization differences can create a similar portability ambiguity.
+
+This does not establish that the current repository contains such colliding paths, nor that a current checkout was corrupted. It is a helper-boundary limitation. A future trusted Git-tree manifest builder must preserve raw tree path identity and mode semantics, declare the target filesystem/platform policy, detect case-fold and Unicode-normalization collisions before materialization, and fail closed rather than silently renaming, overwriting, or merging objects. Tests for this behavior remain authored/future work and must not be run under the active G0-05 handoff.
