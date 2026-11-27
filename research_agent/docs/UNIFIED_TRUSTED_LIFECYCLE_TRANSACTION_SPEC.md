@@ -106,7 +106,7 @@ A queue allowlist hash, task preflight, planner output, assignment package, or p
 | Start dispatch | Exact revision; valid delivery approval; fresh policy/handoff check; unused delivery identity | Dispatch intent/attempt + `dispatch_started` event + idempotency index + state version + checkpoint | `dispatch_started` |
 | Record uncertain delivery | Authenticated timeout/lost-response observation | Delivery state + `delivery_pending_or_unknown` event + state version + checkpoint | `delivery_pending_or_unknown` |
 | Confirm delivery | Authenticated provider receipt bound to attempt and package digest | Receipt + `delivery_confirmed` event + state version + checkpoint | `delivery_confirmed` |
-| Cancel assignment | Authenticated cancellation authority | Cancellation record + `assignment_cancelled` event + state version + checkpoint | Cancelled where no irreversible delivery already occurred |
+| Cancel assignment | Authenticated cancellation authority; current assignment and dispatch-attempt state | Cancellation record + `assignment_cancelled` event + state version + checkpoint | Prevents future dispatch attempts; an already committed dispatch intent remains in-flight/pending and must be reconciled |
 | Receive return | Authenticated receiver; known confirmed delivery; exact assignment binding | Raw payload bytes/ref + receiver digest + return ID + `worker_submission_received` event + checkpoint | `submission_received` |
 | Complete review | Exact immutable return; trusted checkout/manifest context; review pipeline completed | Review record + `review_completed` event + checkpoint | `review_completed` |
 | Record human disposition | Authenticated human decision tied to exact review and assignment revision | Immutable disposition + `human_disposition_recorded` event + state version + checkpoint | Task disposition recorded |
@@ -114,15 +114,19 @@ A queue allowlist hash, task preflight, planner output, assignment package, or p
 
 The current G0-05 restriction blocks the protected operations above wherever they conflict with the controlling handoff. This matrix describes future semantics, not current permission.
 
-## 6. Delivery and cancellation race rules
+## 6. Delivery, revocation, and cancellation race rules
 
-- Persist a durable dispatch intent and stable idempotency identity before making the external delivery call.
-- A request being constructed or sent is not proof of provider acceptance or worker receipt.
-- If the external call times out, record pending/unknown if authenticated facts permit; otherwise leave commit outcome unknown and reconcile using the same identity.
-- Never automatically issue a second delivery for pending/unknown state.
-- Approval revocation and cancellation are serialized against dispatch authorization. If dispatch has already crossed the durable dispatch-start boundary, later cancellation cannot erase the attempt or assert non-delivery.
-- Provider confirmation must be authenticated and bound to the exact attempt, assignment revision, and package digest.
-- If the provider lacks idempotent delivery or queryable receipts, the risk must be explicitly accepted by a human before any future dispatch design can proceed. Default decision: do not dispatch.
+The registry transaction that commits `dispatch_started` is the authorization/attempt linearization point. The external provider call is necessarily outside that transaction; therefore database state and provider acceptance cannot be made one atomic action.
+
+- Before the `dispatch_started` transaction commits, cancellation or approval revocation that commits first wins: the dispatcher must deny and must not call the provider.
+- The `dispatch_started` transaction must atomically revalidate the exact approval, expiry, revocation state, handoff/policy, assignment state, and idempotency identity; consume a single-use approval; and persist the immutable dispatch attempt and stable provider idempotency key.
+- Once that transaction commits, the authorized attempt is irrevocably recorded. A later cancellation or approval revocation prevents any new attempt/revision under that authority but cannot retroactively withdraw, erase, or declare the committed attempt unsent.
+- If cancellation commits after `dispatch_started` but before the provider call, the dispatcher must still resolve the already-committed attempt using its original provider idempotency key. It must not silently drop the call and later classify the attempt as not dispatched. If the provider offers a documented cancellation API, it may be invoked only as a separate authenticated operation with its own approval and receipt; it does not rewrite the original attempt.
+- If the provider call may have started, or its outcome is unknown, retain `delivery_pending_or_unknown` and reconcile the same provider identity. Never create a fresh identity or automatically retry.
+- A provider receipt, including an accepted or rejected response, must be authenticated and bound to the exact attempt, assignment revision, and package digest. A transport-level success alone is insufficient unless provider semantics prove acceptance.
+- If the provider lacks durable idempotency and queryable outcome/reconciliation, the design remains blocked. Default decision: do not dispatch.
+
+Cancellation is therefore a durable stop for future work, not a claim that an already-authorized in-flight attempt was recalled. The registry must expose cancellation and dispatch state separately; it must never collapse them into one ambiguous `cancelled` state.
 
 ## 7. Return, review, and human authority rules
 
@@ -155,7 +159,7 @@ Human task disposition must be authenticated and bound to the exact review diges
 | External delivery outcome unknown | Reconcile same provider identity; no automatic retry |
 | Registry/event/checkpoint mismatch | Stop all writes; preserve evidence; human investigation |
 | Backup restore behind protected checkpoint | Reject service startup/operations until independently reconciled |
-| Approval expires/revokes during dispatch race | Transaction ordering determines whether dispatch crossed the authorized boundary; preserve both facts, never rewrite history |
+| Approval expires/revokes or cancellation races with dispatch | If revocation/cancellation commits before `dispatch_started`, deny provider call; if `dispatch_started` commits first, preserve the attempt and reconcile/call only with its original idempotency key; never rewrite history |
 
 A database backup is not itself a trust root. The protected checkpoint must be retained independently enough to detect rollback of a self-consistent but stale database snapshot.
 
