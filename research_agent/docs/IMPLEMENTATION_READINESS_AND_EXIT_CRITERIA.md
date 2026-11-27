@@ -355,3 +355,7 @@ The [traceability audit](ROADMAP_GATE_TO_OWNER_DECISION_TRACEABILITY_AUDIT_2026-
 ## 25. Engine side-effect and execution boundary
 
 The [engine side-effect audit](ENGINE_SIDE_EFFECT_AND_EXECUTION_BOUNDARY_AUDIT_2026-11-27.md) records that inspected modules provide read-only local inputs and in-memory preflight/planning/review primitives; no worker dispatcher, task executor, provider call, persistence, scheduler, or artifact uploader is implemented in the inspected engine. `ALLOW_READ_ONLY` is a preflight result only. This static result is not runtime validation or a substitute for independent G0-05 review.
+
+## 26. Handoff binding and phase-scope hardening
+
+The [handoff binding audit](HANDOFF_BINDING_AND_PHASE_POLICY_ENFORCEMENT_AUDIT_2026-11-27.md) records future requirements to bind every handoff-governed task to an independently configured exact handoff ID and enforce the effective task scope against authoritative handoff scope. These are static design/code-contract findings, not evidence of a current bypass. Existing G0-05 and global deny controls remain in force; no code change or validation run was authorized.
