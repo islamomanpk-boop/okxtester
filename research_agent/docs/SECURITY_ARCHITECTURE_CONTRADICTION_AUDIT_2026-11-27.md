@@ -27,8 +27,8 @@ A reader could infer that emergency approval revocation must either violate the 
 - Emergency freeze is an independent, deny-only security-plane hold. It blocks affected protected operations without changing registry history or creating a positive authorization.
 - Credential/session/key containment is performed through the independent identity/security control plane and recorded in its independently retained incident audit.
 - While the hold is active, approvals in the affected trust domain/incident scope are unusable; if compromise scope is uncertain, affected approval status is UNKNOWN and denied.
-- No approval-revocation event is appended to a frozen or witness-pending registry.
-- After the registry chain and witness are reconciled, but before any affected capability resumes, the trusted registry appends the exact approval revocation/invalidation facts, commits the matching outbox, obtains the external witness receipt, and verifies the resulting checkpoint. If this cannot be completed, the affected capability stays frozen.
+- No approval-revocation event is appended while the registry is witness-pending.
+- After the current registry head and witness are reconciled, a narrowly scoped deny-only security-revocation lane may append exact approval revocation/invalidation facts for existing approval IDs/digests. It cannot grant authority, clear the hold, or write unrelated lifecycle events. The event, idempotency index, checkpoint, and outbox use the normal atomic transaction; the exact witness receipt is required before hold release. If this restricted lane cannot be enforced, the affected capability stays frozen.
 - The security-plane hold remains active until the required registry events and independent resume authorization are verified. The hold cannot itself authorize an operation or replace the registry event.
 
 ### CA-02 — “Two people” did not define an independent resume quorum (P0)
@@ -68,7 +68,7 @@ These are separate facts and operations:
 ## Cross-document invariants after correction
 
 1. A freeze is deny-only, monotonic for its incident scope, and independent of registry mutation.
-2. Emergency credential containment may proceed out of band; authoritative approval revocation remains an append-only registry fact.
+2. Emergency credential containment may proceed out of band; authoritative approval revocation remains an append-only registry fact. After witness reconciliation, only a restricted deny-only security-revocation lane may append it; no general protected writes resume until its checkpoint is witnessed.
 3. The registry cannot accept protected writes while witness-pending. The witness publisher may reconcile only the exact pending checkpoint; it cannot process unrelated revocation events or authorize service resume.
 4. Affected approvals remain unusable under the external hold/UNKNOWN rule until revocation history is durably appended and witnessed.
 5. Assignment cancellation, approval revocation, credential revocation, and provider cancellation are never conflated.
