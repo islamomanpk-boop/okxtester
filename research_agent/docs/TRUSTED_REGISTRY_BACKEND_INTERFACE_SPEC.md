@@ -103,6 +103,17 @@ Immediately before the protected operation, re-read approval, revocation, handof
 
 Revocation races are serialized: if revocation commits first, deny; if the operation commits first, record the exact approval state/sequence used. Revocation never erases historical facts.
 
+Approval lifecycle invariants:
+- Approval issuance facts are immutable; revocation and consumption are separate append-only records/events. Current status is derived from verified history and trusted service time, never from a mutable approval-status field alone.
+- Enforce unique approval IDs and issuer-scoped nonces. A nonce is bound to one immutable approval digest; reuse with another approval or delivery identity is rejected.
+- Exact issuance or revocation replay returns the original receipt; changed facts under the same idempotency identity are rejected. A second conflicting revocation cannot rewrite the first.
+- Revocation is monotonic. No un-revoke, reactivation, expiry extension, or in-place renewal is permitted.
+- Renewal requires a new approval ID and nonce, fresh authenticated human decision, current policy/handoff check, and complete new scope binding. The prior approval remains terminal in history.
+- Expiry is checked using trusted transaction/service time inside the same serialized operation transaction. A client timestamp or request-arrival time cannot preserve an approval past expiry.
+- If consumption/dispatch-start commits first, later revocation blocks future use but does not erase or recall that attempt. Provider-side cancellation is a distinct authenticated command with its own idempotency and receipt.
+- Missing or unverifiable issuance, revocation, consumption, nonce-index, or checkpoint history makes approval status UNKNOWN and denies protected operations.
+
+
 ## 7. Dispatch and provider requirements
 
 Dispatch remains disabled unless the provider supports durable idempotency plus queryable outcome, or a documented query/reconciliation protocol that prevents duplicate work. Otherwise unattended delivery is prohibited.
