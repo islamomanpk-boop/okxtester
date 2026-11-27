@@ -55,6 +55,18 @@ The trusted receiver must authenticate the return transport and bind it to the r
 
 A passing structural/evidence review means only that the submission is eligible for human review. It does not prove the worker's narrative is true, that the research interpretation is correct, or that the task is accepted.
 
+### Return receiver protocol and duplicate handling
+
+The trusted receiver must authenticate transport and derive the return source namespace, provider return-delivery ID, dispatch-attempt ID, assignment revision, and receipt time from authenticated platform/provider metadata. It enforces a raw-byte size limit, stores the exact bytes immutably, computes the raw SHA-256 itself, and atomically commits a receiver-generated return ID, receipt, idempotency index, event, and checkpoint before parsing. It parses only the retained bytes using strict UTF-8 and strict JSON/schema rules; malformed payload bytes remain preserved with a bounded parse-error classification and are not review-eligible. Hashing a reserialized parsed dictionary is not a substitute for hashing the raw bytes.
+
+The receiver resolves the authenticated delivery identity to a committed attempt and protected assignment/package record. It retrieves and verifies retained canonical package bytes/digest; worker-supplied IDs, hashes, timestamps, task/package claims, and status remain untrusted comparisons. Unknown or mismatched delivery/package binding fails closed.
+
+Return transport identity is unique on `(return_source_namespace, return_delivery_id)`. Exact replay with identical complete facts returns the original receipt/return ID without a second receive event or review. Same identity with changed facts is quarantined as a security conflict and cannot overwrite the original. Different delivery IDs carrying identical bytes are distinct observed arrivals linked by raw digest; do not silently collapse them or create another review automatically.
+
+The receiver derives and stores eligibility from trusted registry state and service time: eligible, late-after-cancel, after-expiry, after-revocation, unknown delivery binding, assignment/package mismatch, or malformed. Preserve all raw arrivals, but late/ineligible returns cannot enter the normal task-completion path. Any explicitly authorized forensic inspection remains separate and cannot itself create task acceptance.
+
+Reviews are immutable and idempotently bound to return ID, raw digest, assignment revision, trusted checkout/manifest context, reviewer identity, and policy version. Exact replay returns the original review; a changed/corrected review is a new linked record. Human disposition is a separate authenticated record bound to one exact review digest and assignment revision. Explicitly define whether a later human decision supersedes an earlier one; no worker, receiver, or automated reviewer may infer or create that decision. Phase-gate closure remains separate.
+
 ## State machine and replay rules
 
 The minimum durable assignment lifecycle states are:
