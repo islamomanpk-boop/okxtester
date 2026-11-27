@@ -115,7 +115,7 @@ The assignment registry and event ledger must share one atomic transaction bound
 - If dispatch is uncertain, reconcile provider state and registry receipts using the original delivery identity. Do not automatically retry.
 - If a worker returns after cancellation or expiry, preserve the raw return, mark it as late/revoked for review, and do not treat it as a valid completion.
 - If registry, event chain, or checkpoint integrity fails, stop all transitions and require human investigation. Never reset or reconstruct the trust root from worker artifacts.
-- Backup/restore must preserve assignment immutability, unique delivery identities, state versions, event order, and protected checkpoint lineage. A restored backup must be verified before any operation resumes.
+- Backup/restore must preserve assignment immutability, unique delivery identities, state versions, event order, and protected checkpoint lineage. A restored backup must be verified before any operation resumes. Restore acceptance must compare the exact registry/epoch/sequence/head-digest tuple to an independently authenticated witness, reject both stale and divergent snapshots, reconcile outstanding provider attempts by their original identities, and require independent human resume authorization. Missing revocation/consumption history must never be interpreted as an active approval.
 
 ## Access control, retention, and audit
 
