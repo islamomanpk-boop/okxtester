@@ -170,3 +170,13 @@ This is a vendor-neutral proposal only. It does not select or provision identiti
 `docs/AGENT_DOCUMENTATION_CONSISTENCY_AUDIT_2026-11-27.md` records a targeted cross-document review of branch/workflow status, phase authority, package-digest custody, event identity and canonicalization, authored-versus-executed test reporting, and the separation of human task disposition from phase-gate closure. It found and corrected one stale “13 agent files” description in the workflow design; the current compare snapshot reports 66 changed files, all under `research_agent/`.
 
 The review found the other examined authority and activation boundaries consistent, while retaining the existing implementation blockers. This is not an exhaustive source audit or security certification. No tests, scripts, workflows, dispatch, scheduling, or research operations were run, and the active G0-05 handoff remains controlling.
+
+
+## 19. Lifecycle lookup contract clarification
+
+The documentation consistency audit identified an API naming ambiguity between provider-delivery lookup and event-role replay lookup. The registry interface and store-adapter design now define two distinct read ports:
+
+- `lookup_provider_delivery(source_namespace, delivery_id)` returns the complete authenticated provider-delivery aggregate and its linked event-role receipts.
+- `lookup_event_receipt(source_namespace, delivery_id, event_role)` returns the receipt for one closed-schema event-level idempotency tuple.
+
+This preserves the distinction between the provider-delivery identity pair and event-level idempotency triple. The unified transaction protocol continues to resolve exact event-role replay before stale-checkpoint rejection. Documentation only; no backend or adapter is implemented.
