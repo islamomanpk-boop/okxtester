@@ -132,3 +132,16 @@ Pass criteria: no untrusted caller can forge provenance or replace raw evidence;
 - No retention, data residency, encryption/key custody, or evidence access policy has been selected.
 - No tests, scripts, workflows, provider calls, artifact uploads, reviewer actions, or research operations were run.
 - The agent remains non-operational. Phase 3 G0-05 remains controlling; this audit grants no dispatch, execution, task acceptance, gate closure, or phase advancement authority.
+
+
+## Follow-up — evidence-object retention and deletion consistency
+
+Cross-checking the evidence pipeline against the trusted store adapter, unified lifecycle transaction specification, backup/restore protocol, and research-data access audit confirms that the design separates three concerns which must remain separate in implementation:
+
+1. **Integrity custody:** raw return bytes and original evidence are retained as immutable, digest-addressed objects; a receipt is not valid if its referenced bytes cannot be retrieved and re-hashed.
+2. **Lifecycle/audit history:** object receipt, digest, lineage, review and disposition references remain append-only. Retention expiry or an approved deletion must not silently rewrite or remove the historical event chain.
+3. **Retention/privacy disposition:** immutability is not unlimited retention. Owner/legal-approved schedules must separately define retention, legal holds, backup expiry, access, deletion exceptions, tombstone/redaction metadata, and any key-destruction process. Deleting a primary object while recoverable replicas/backups remain is not complete deletion.
+
+No direct contradiction was found: the current documents consistently leave retention periods, region, encryption/key custody, and deletion authority unselected pending owner/legal review. The operationally important unresolved design detail is how an approved deletion or key-destruction event affects later evidence-verification status and restore eligibility. A future policy must specify that outcome explicitly (for example, retained digest/receipt with object state marked lawfully unavailable, rather than reporting the bytes as still verifiable). Legal hold and unresolved incident evidence must block deletion; restore must not resurrect expired/deleted objects as silently accessible copies.
+
+This is a specification gap, not a current data-loss or privacy incident. No objects, backups, logs, or live datasets were accessed or changed. No code or tests were changed or executed; the G0-05 handoff remains controlling.
