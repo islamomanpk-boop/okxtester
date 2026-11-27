@@ -61,6 +61,14 @@ Each received return gets a receiver-generated immutable `return_id`, authentica
 
 Each review record binds the exact assignment revision, exact raw-return digest, expected repository/branch/commit, evidence-manifest digest, verifier/reviewer version, outcome, and limitations. A review is superseded only by a new linked review record; never rewrite the historical result.
 
+### Return receipt and replay invariants
+
+For every return, persist the exact raw byte sequence (or immutable content-addressed object), receiver-computed SHA-256, byte length, receiver-generated `return_id`, authenticated return source namespace/delivery ID, dispatch-attempt ID, assignment ID/revision, expected package digest, and trusted receipt time. The raw object and its authoritative receipt/idempotency/event/checkpoint records must be committed atomically or through a separately proven atomic inbox protocol. Enforce a byte-size limit before parsing; parse only after durable receipt using strict UTF-8 and strict JSON/schema rules. Preserve malformed raw bytes with a bounded parse-error classification. A normalized representation is separate and bound to raw digest and parser/schema version.
+
+Enforce unique return transport identity `(return_source_namespace, return_delivery_id)`. The replay facts digest covers the authenticated source, attempt, assignment/revision, expected package digest, raw byte digest/length, and all meaning-bearing receipt metadata. Exact replay returns the original receipt and `return_id`; changed facts under the same identity are a security conflict and cannot replace the original. A different delivery identity with identical raw bytes is a separate arrival linked to the same payload digest; it must be marked duplicate-content and must not automatically create a second review path.
+
+The receiver derives eligibility from registry state and trusted service time: eligible, late-after-cancel, after-expiry, after-revocation, unknown delivery binding, assignment/package mismatch, or malformed. Ineligible returns are preserved but cannot enter the normal completion path. Review records are immutable and idempotently bound to return ID, raw digest, assignment revision, reviewer identity and policy version. Re-review creates a linked new record; it never overwrites history. Human disposition binds to one exact review digest and assignment revision, with explicit authenticated supersession semantics. Neither duplicate receipt nor review can create a second task acceptance or phase-gate decision.
+
 ## State model and transition rules
 
 Minimum assignment lifecycle:
