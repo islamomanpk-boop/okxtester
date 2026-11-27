@@ -57,6 +57,14 @@ The reviewed lifecycle, registry, dispatcher, threat, and readiness documents co
 
 **Disposition:** No authority boundary changed.
 
+### C-07 — provider-delivery lookup and event-receipt lookup were conflated
+
+**Severity:** Moderate; future backend-interface ambiguity.
+
+The registry interface named a read port `lookup_delivery(source_namespace, delivery_id, event_role)`, which returns an event-role receipt. The store-adapter design used the same `lookup_delivery(source_namespace, delivery_id)` name for the complete provider-delivery aggregate. The underlying identity model was correct—delivery pair versus event-role triple—but the interface names and signatures did not express the distinction consistently.
+
+**Disposition:** Corrected both specifications. The provider-level read is now `lookup_provider_delivery(source_namespace, delivery_id)` and returns the complete aggregate with linked per-role receipts. The event-level read is `lookup_event_receipt(source_namespace, delivery_id, event_role)` and resolves one closed-schema event-role idempotency record. The unified transaction protocol continues to perform replay using the event-level tuple. No implementation or backend was created.
+
 ## Current verified snapshot
 
 - Repository: `islamomanpk-boop/okxtester`.
