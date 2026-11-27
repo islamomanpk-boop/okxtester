@@ -35,11 +35,11 @@ A future dispatcher must follow this order and fail closed on any missing or amb
 1. Authenticate the triggering human/platform event. Derive actor, repository, workflow identity, run ID, run attempt, ref, and event identity from trusted platform context, never from dispatch inputs or report content.
 2. Resolve the exact task from the trusted queue at a pinned commit. Reject unknown, duplicate, non-queued, malformed, or phase-ineligible tasks.
 3. Independently load and verify the current task hash, task allowlist, phase permission, global execution switches, branch policy, current handoff, predecessor-gate state, and all applicable prohibitions. Revalidate immediately before the protected operation, not only when planning.
-4. Verify the exact approval envelope for this run, task, operation, workflow SHA, handoff revision, and input commit. Reject expired, revoked, mismatched, or replayed approvals.
+4. Verify the exact approval envelope for this run, task, operation, workflow SHA, handoff revision, and input commit. Reject expired, revoked, mismatched, or replayed approvals. Revalidate expiry/revocation atomically again in the `start_dispatch` transaction; consume a single-use approval in that same transaction.
 5. Produce the canonical assignment package from the trusted task and exact preflight/planner result. Do not accept worker-supplied scope, instructions, allowed actions, schema, or handoff metadata.
 6. Calculate the package digest using the declared versioned canonicalization contract. Persist the complete package (or immutable package reference), digest, task digest, workflow/run identity, approval identity, and expected delivery identity to a protected registry before attempting delivery. The worker must not be able to alter this registry.
 7. Use an authenticated delivery channel and a stable upstream delivery ID. The delivery request must be idempotent. Never interpret “request sent” as proof of delivery or receipt.
-8. Record dispatch-started and delivery-confirmed as separate events only when the corresponding authenticated facts exist. A timeout or lost response is delivery_pending_or_unknown, not permission to send a second package.
+8. Atomically commit `dispatch_started`, consuming the single-use approval and recording the stable provider idempotency key before the external call. This commit is the authorization/attempt linearization point. Then invoke the provider with that exact key. Record provider acceptance/rejection only from authenticated provider evidence; a timeout/lost response remains pending/unknown, not permission for a second delivery.
 9. On ambiguous delivery, reconcile against the authenticated delivery receipt/registry before retrying. Never auto-retry an uncertain delivery. A duplicate request must resolve to the original delivery identity and package digest.
 10. Persist the event, delivery index, and protected checkpoint atomically using the trusted-store contract. If persistence outcome is uncertain, reconcile by delivery ID before any further action.
 11. Return a receipt that identifies the task digest, package digest, workflow/run, delivery identity, and committed event/checkpoint. The receipt proves only the recorded delivery state, not worker execution or task completion.
@@ -54,7 +54,7 @@ A passing structural/evidence review means only that the submission is eligible 
 
 ## State machine and replay rules
 
-The minimum durable assignment states are:
+The minimum durable assignment lifecycle states are:
 - prepared_not_dispatched
 - dispatch_started
 - delivery_pending_or_unknown
@@ -62,6 +62,8 @@ The minimum durable assignment states are:
 - submission_received
 - review_completed
 - human_disposition_recorded
+
+Cancellation is a separate durable assignment flag/event, not a replacement for dispatch/delivery state. An assignment may be marked cancellation-requested/cancelled for future work while an earlier dispatch attempt remains `dispatch_started` or `delivery_pending_or_unknown`; the registry must retain both facts. A cancellation after `dispatch_started` cannot be represented as proof that the provider call did not occur.
 
 Each transition requires an authenticated event and a valid prior state. Impossible transitions fail closed. Duplicate delivery events with identical authenticated facts are idempotent; the same delivery identity with changed package/task facts is rejected. A repeated worker return must resolve to the original receipt and must not create a second task completion. A revision request creates a new revision identity linked to the original assignment; it must not overwrite the original package or review record.
 
@@ -85,7 +87,9 @@ Human dispositions are limited to explicit, authenticated values such as accepte
 | Approval missing, stale, revoked, or mismatched | Deny before package delivery |
 | Handoff or phase state cannot be verified | Deny; require human investigation |
 | Package digest cannot be stored before delivery | Do not dispatch |
-| Delivery response times out | Mark pending/unknown; reconcile, do not retry automatically |
+| Delivery response times out | Keep the same attempt pending/unknown; reconcile with the same provider key, never retry with a new identity |
+| Cancellation/revocation commits before `dispatch_started` | Deny the dispatch transaction; do not call provider |
+| Cancellation/revocation commits after `dispatch_started` | Preserve the attempt; resolve it with the original provider key; cancellation blocks future attempts but does not assert non-delivery |
 | Delivery identity replay with identical facts | Return original receipt; no duplicate delivery |
 | Delivery identity replay with changed facts | Reject and preserve original record |
 | Store/checkpoint integrity fails | Stop; preserve evidence; no reset/rebuild |
