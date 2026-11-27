@@ -127,7 +127,7 @@ Exit: synthetic artifact round-trip, monitoring outage, compromised identity, an
 
 **Goal:** Prove that failure and restore do not lose evidence, roll back authority, or duplicate external work.
 
-Required: component RTO/RPO; common-mode failure map; encrypted/immutable backups; consistent checkpoint across registry, event, witness, approvals, attempts, receipts, returns and evidence; isolated no-egress restore; key/policy revalidation; provider attempt reconciliation; independent recovery review; measured drills.
+Required: component RTO/RPO; common-mode failure map; encrypted/immutable backups; consistent checkpoint across registry, event, witness, approvals, attempts, receipts, returns and evidence; isolated no-egress restore; key/policy revalidation; provider attempt reconciliation; independent recovery review; measured drills; and retention/deletion-state reconciliation across primary objects, replicas and backups. Restore must preserve legal holds, approved deletion/tombstones, object identity and lineage, and key-destruction status; it must not resurrect expired/deleted content as accessible evidence or label lawfully unavailable bytes as currently verifiable. Retained receipt/digest metadata must distinguish integrity history from present object availability.
 
 Exit: synthetic restore/failover evidence meets approved objectives and preserves all invariants. Recovery yields read-only mode; dispatch requires separate authorization.
 
