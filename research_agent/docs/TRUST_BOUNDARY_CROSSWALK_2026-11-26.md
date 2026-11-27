@@ -163,3 +163,10 @@ The plan is not a test report and does not select or qualify any provider. No ca
 `docs/TRUST_ROOT_SEPARATION_AND_IDENTITY_ARCHITECTURE.md` defines logical trust domains and operation-level identity responsibilities for human authority, policy, dispatcher, registry, workflow platform, worker/provider, evidence store/verifier, independent reviewer, and checkpoint witness. It specifies prohibited cross-domain capabilities, an operation-to-identity matrix, twelve independence tests, credential lifecycle requirements, repository/default-branch implications, and evidence required for an independent security review.
 
 This is a vendor-neutral proposal only. It does not select or provision identities, credentials, keys, services, repositories, or workflows. Effective permissions and trust-root independence remain UNKNOWN until independently demonstrated. No tests, scripts, workflows, or research operations were run. The agent remains non-operational and G0-05 remains controlling.
+
+
+## 18. Agent documentation consistency audit
+
+`docs/AGENT_DOCUMENTATION_CONSISTENCY_AUDIT_2026-11-27.md` records a targeted cross-document review of branch/workflow status, phase authority, package-digest custody, event identity and canonicalization, authored-versus-executed test reporting, and the separation of human task disposition from phase-gate closure. It found and corrected one stale “13 agent files” description in the workflow design; the current compare snapshot reports 66 changed files, all under `research_agent/`.
+
+The review found the other examined authority and activation boundaries consistent, while retaining the existing implementation blockers. This is not an exhaustive source audit or security certification. No tests, scripts, workflows, dispatch, scheduling, or research operations were run, and the active G0-05 handoff remains controlling.
