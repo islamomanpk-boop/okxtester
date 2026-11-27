@@ -189,3 +189,10 @@ This preserves the distinction between the provider-delivery identity pair and e
 The unified lifecycle and dispatcher contracts now define that commit as the authorization/attempt linearization point: revocation/cancellation committed first denies dispatch; after the commit, the attempt remains recorded and must be resolved with the same provider idempotency key. Cancellation blocks future attempts but cannot claim non-delivery or erase an in-flight attempt. Single-use approval consumption and final revocation/expiry validation occur atomically with dispatch-start. Cancellation is stored separately from delivery state. Unknown outcomes remain pending/uncertain and are never automatically retried.
 
 The pure recovery classifier remains non-authorizing and does not model cancellation; a future trusted adapter must combine cancellation status with dispatch-attempt state and authenticated provider evidence. No implementation or runtime validation was performed. G0-05 remains controlling.
+
+
+## 21. Backup restore and anti-rollback recovery protocol
+
+`docs/BACKUP_RESTORE_AND_ANTI_ROLLBACK_AUDIT_2026-11-27.md` records a targeted review of restore acceptance semantics. It identified that the contracts required an independent checkpoint but lacked one consolidated protocol for stale, ahead, forked, or schema-incompatible snapshots and for reconciling approvals and in-flight provider attempts. The unified lifecycle, store adapter, and registry designs now require a frozen restore, exact independent witness comparison, authenticated recovery of missing history only, provider reconciliation by original delivery identity, explicit treatment of missing revocations/consumption as blockers, a signed restore report, and independent human resume authorization.
+
+Documentation only. No backend, witness, backup, or restore mechanism exists; no recovery drill or runtime test was run. G0-05 remains controlling.
