@@ -168,3 +168,15 @@ The worker must not be able to alter the manifest or use it as a bearer token ou
 ## Current status and non-claims
 
 This is a targeted architecture and source-contract audit, not a live data inventory, privacy assessment, access-control test, database inspection, or integrity scan. No protected research dataset or VPS data was accessed. No data was copied, modified, deleted, classified, or exported. No privacy/legal determination, storage provider, region, retention schedule, access broker, or evidence store was selected. No code, tests, scripts, workflows, permissions, credentials, or integrations were changed or run. The agent remains non-operational, no unattended work is running, and Phase 3 G0-05 remains controlling.
+
+
+## Follow-up — source-to-derived lineage and manifest scope
+
+Static comparison of `engine/report_builder.py`, `engine/evidence_verifier.py`, the evidence-pipeline audit, and DATA-03/DATA-06 confirms an important distinction for future evidence promotion:
+
+- `build_input_manifest(paths)` hashes only the explicit caller-supplied repository-relative path list. It does not independently enumerate or prove completeness of a Git tree, submodules, LFS objects, generated/untracked files, or a database snapshot.
+- `verify_worker_evidence(...)` verifies each declared evidence path against the supplied path/hash manifest and supplied bytes. It does not prove that the manifest is a complete commit inventory, nor does it require every supplied file-map entry to be referenced by worker evidence.
+- Therefore, a successful evidence result means only that the selected evidence paths match the supplied manifest/bytes. It must not be promoted as complete source-tree verification, full task-input lineage, or proof that no relevant input was omitted.
+- Future trusted intake must label manifests explicitly as either a scoped evidence allowlist or a complete source inventory, version the format, derive it independently from the authenticated commit/tree or immutable snapshot, and bind every derived output to exact parent object IDs/digests and transformation/runtime/configuration digests. Unreferenced file-map entries must be rejected or explicitly classified as ignored, never implicitly treated as verified evidence.
+
+This is consistent with existing EP-02/EP-03 and DATA-03/DATA-06 findings; it sharpens the acceptance semantics rather than identifying a new code defect. No data, code, tests, or manifests were changed or executed. G0-05 remains controlling.
