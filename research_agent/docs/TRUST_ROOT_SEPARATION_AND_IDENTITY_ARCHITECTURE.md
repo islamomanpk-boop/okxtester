@@ -226,3 +226,10 @@ This document makes the trust-root and identity requirements explicit but does n
 The agent remains non-operational. No tests, scripts, workflows, or research operations were executed. No protected research branch, default branch, secrets, permissions, VPS, or self-hosted runner were changed.
 
 The active Phase 3 G0-05 handoff remains authoritative. No implementation or validation may proceed where it conflicts with that handoff.
+
+
+## Emergency security-plane hold and resume quorum
+
+The emergency hold is a separate deny-only trust domain. It can immediately block protected operations and disable compromised credentials/sessions/keys through independently administered identity/security controls. It cannot create approvals, mutate registry history, close gates, or authorize work. While the registry is frozen or witness-pending, approval-revocation events are not appended; affected approvals are unusable/UNKNOWN under the external hold. Once the registry is writable after exact witness reconciliation, required revocation/invalidation events must be appended and witnessed before the hold is released.
+
+High-impact resume requires two distinct human approvers with independently administered credentials and recovery paths. Neither may be the freeze requester, break-glass activator, recovery operator, witness administrator/verifier, independent reviewer, or recovery-code deployer. A common identity-tenant/root administrator capable of taking over both accounts defeats independence; if no independent recovery domains can be evidenced, remain suspended. The independent reviewer records a separate recommendation, and both approvers bind authorization to the exact checkpoint and recovery-report digest, service scope, and expiry.
