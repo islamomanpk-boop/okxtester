@@ -180,3 +180,12 @@ The documentation consistency audit identified an API naming ambiguity between p
 - `lookup_event_receipt(source_namespace, delivery_id, event_role)` returns the receipt for one closed-schema event-level idempotency tuple.
 
 This preserves the distinction between the provider-delivery identity pair and event-level idempotency triple. The unified transaction protocol continues to resolve exact event-role replay before stale-checkpoint rejection. Documentation only; no backend or adapter is implemented.
+
+
+## 20. Dispatch cancellation and approval-revocation race clarification
+
+`docs/DISPATCH_CANCELLATION_AND_REVOCATION_RACE_AUDIT_2026-11-27.md` records a targeted static comparison of the recovery policy and trusted lifecycle/dispatcher/registry/store contracts. It identified an ambiguity when cancellation arrives after the durable `dispatch_started` commit but before the external provider call.
+
+The unified lifecycle and dispatcher contracts now define that commit as the authorization/attempt linearization point: revocation/cancellation committed first denies dispatch; after the commit, the attempt remains recorded and must be resolved with the same provider idempotency key. Cancellation blocks future attempts but cannot claim non-delivery or erase an in-flight attempt. Single-use approval consumption and final revocation/expiry validation occur atomically with dispatch-start. Cancellation is stored separately from delivery state. Unknown outcomes remain pending/uncertain and are never automatically retried.
+
+The pure recovery classifier remains non-authorizing and does not model cancellation; a future trusted adapter must combine cancellation status with dispatch-attempt state and authenticated provider evidence. No implementation or runtime validation was performed. G0-05 remains controlling.
