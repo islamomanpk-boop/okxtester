@@ -67,6 +67,8 @@ These are decisions for the project owner; a technical recommendation is not a s
 - [ ] B10. Trusted workflow identity: repository, workflow path, immutable workflow revision, run identity, actor identity, and checkout commit derivation.
 - [ ] B11. Canonicalization contract for future v2 events, including explicit version and cross-language test vectors. Existing v1 event hashes and semantics remain immutable.
 - [ ] B12. Operational owner and independent reviewer for every readiness gate.
+- [ ] B13. Independent deny-only emergency hold, credential-containment path, and external incident audit destination.
+- [ ] B14. Two-human resume quorum with distinct subject identities and independently administered credential/recovery paths; neither approver may hold a conflicting incident/recovery/reviewer/witness/deployment role.
 
 **Current result: UNKNOWN / BLOCKED.** No provider, region, account, database, credential, approval service, checkpoint witness, or repository topology has been selected or provisioned.
 
@@ -84,6 +86,8 @@ Required evidence: dated owner decision record, options considered, rejected alt
 - [ ] C8. Reviewer identity and human disposition are authenticated and auditable.
 - [ ] C9. Trust-root administrators, credentials, and recovery procedures are documented with separation of duties.
 - [ ] C10. Revocation and credential-compromise procedures are tested before operational use.
+- [ ] C11. Emergency credential containment remains possible during registry freeze without mutating frozen registry history; affected approvals remain denied/UNKNOWN until append-only revocation events are witnessed.
+- [ ] C12. Resume quorum is tested against common identity-provider/root recovery compromise and role-conflict/self-approval.
 
 Required evidence: identity architecture, trust-boundary diagram, role/permission matrix, provider documentation, authentication configuration, negative authorization tests, and independent security review.
 
@@ -178,7 +182,8 @@ These items apply only after the earlier gates pass and an explicitly approved l
 - [ ] H1. Named operational owner and on-call/escalation path.
 - [ ] H2. Monitoring for queue age, workflow failures, registry conflicts, delivery uncertainty, artifact verification failures, and budget consumption.
 - [ ] H3. Alerts for unauthorized access, stale/revoked approvals, checkpoint mismatch, event-chain break, and unexpected phase/task activity.
-- [ ] H4. Documented incident response, credential revocation, worker suspension, and safe shutdown.
+- [ ] H4. Documented incident response, independent emergency hold, credential revocation, worker suspension, and safe shutdown.
+- [ ] H13. Emergency freeze, out-of-band credential containment, delayed registry revocation, independent resume quorum, and audit export have passed approved synthetic incident exercises.
 - [ ] H5. Tested backup/restore and disaster recovery with approved RPO/RTO.
 - [ ] H6. Bounded retention, deletion, and access-review policy.
 - [ ] H7. Rate, concurrency, runtime, retry, and cost ceilings enforced in trusted policy.
