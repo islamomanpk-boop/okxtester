@@ -179,6 +179,12 @@ Before activation, define:
 - separation between production, test, and synthetic proof-of-capability credentials;
 - secret redaction, audit logging, and access review;
 - break-glass process with dual control, narrow scope, expiry, and post-incident review.
+- emergency freeze is deny-only and may be triggered by one authenticated designated reporter; it cannot resume service or authorize protected writes;
+- break-glass activation requires two distinct authenticated principals, short-lived incident-bound scope, independent notification, and an external append-only audit record;
+- recovery operator, witness verifier, independent reviewer, and resume authority are separate principals for high-impact recovery; no self-approval;
+- break-glass cannot issue/renew approvals, rewrite event history or witness state, change policy, suppress audit, or authorize dispatch;
+- resume requires independent multi-party authorization bound to the exact reconciled checkpoint and signed recovery-report digest; dispatch remains separately gated.
+
 
 Never put credentials in task definitions, artifacts, worker prompts, repository files, logs, or generated reports. A secret available to untrusted worker-controlled code is considered exposed to that code.
 
