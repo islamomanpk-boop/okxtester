@@ -147,3 +147,5 @@ Creating this scaffold does not authorize running it. Do not add or enable any a
 - [Inherited breakout, completion, archive-policy and Phase 1 workflow audit](docs/INHERITED_BREAKOUT_COMPLETION_ARCHIVE_AND_PHASE1_WORKFLOW_AUDIT_2026-11-27.md) — static review of five-field retest archive limitation, Phase 3 closeout validator scope, and the Phase 1 preflight sequencing hazard.
 
 - [Inherited V10.1–V10.11 and manual rejection workflow audit](docs/INHERITED_V10_1_TO_V10_11_AND_MANUAL_REJECTION_WORKFLOW_AUDIT_2026-11-27.md) — records the push-triggered, contents-write matched-control diagnostic/archive chain and distinguishes it from the manual read-only rejection study/test workflows; static review only, no workflow or test executed.
+
+- [Inherited matched-cohort V7–V9 and V10 downstream dependency audit](docs/INHERITED_MATCHED_COHORT_V7_V9_AND_V10_DOWNSTREAM_DEPENDENCY_AUDIT_2026-11-27.md) — records the push-triggered write-capable V7–V9 audits, V10.7–V10.11 archive dependencies, and the difference between file-existence checks and trusted evidence provenance; static review only.
