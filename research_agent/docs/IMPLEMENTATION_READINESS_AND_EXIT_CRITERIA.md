@@ -351,3 +351,7 @@ The [owner decision register](OWNER_DECISION_REGISTER_AND_PREIMPLEMENTATION_BLOC
 ## 24. Roadmap gate-to-owner-decision traceability
 
 The [traceability audit](ROADMAP_GATE_TO_OWNER_DECISION_TRACEABILITY_AUDIT_2026-11-27.md) maps all 14 owner decisions to Gate 0 through Gate 12 and confirms the 13-gate numbering. Multiple owner decisions span several gates. Gate 0 remains BLOCKED by the active G0-05 handoff and outstanding independent review/disposition; issue #3 is open with no assignee or review findings. No gate status is promoted by this static audit.
+
+## 25. Engine side-effect and execution boundary
+
+The [engine side-effect audit](ENGINE_SIDE_EFFECT_AND_EXECUTION_BOUNDARY_AUDIT_2026-11-27.md) records that inspected modules provide read-only local inputs and in-memory preflight/planning/review primitives; no worker dispatcher, task executor, provider call, persistence, scheduler, or artifact uploader is implemented in the inspected engine. `ALLOW_READ_ONLY` is a preflight result only. This static result is not runtime validation or a substitute for independent G0-05 review.
