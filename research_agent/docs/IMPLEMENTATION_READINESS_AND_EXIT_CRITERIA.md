@@ -327,3 +327,9 @@ Before any end-to-end pilot, reconcile [Architecture dependency and integration-
 A chain of pure functions, an in-memory coordinator snapshot, caller-supplied manifests, worker claims, or authored tests is not an integrated trusted lifecycle. Each adapter must be independently authenticated, transactionally bound, fail-closed, and validated with synthetic evidence after the active handoff explicitly permits the exact scope. Unknown or caller-controlled trust inputs remain UNKNOWN/BLOCKED.
 
 **Current result: BLOCKED.** No trusted end-to-end adapter chain exists; no integration test was executed; no provider, registry, receiver, sandbox, monitoring, backup or activation service is configured. The agent remains non-operational and Phase 3 G0-05 remains controlling.
+
+## 20. Consolidated implementation roadmap — controlling sequence
+
+Use [Consolidated implementation roadmap and dependency gates](CONSOLIDATED_IMPLEMENTATION_ROADMAP_AND_DEPENDENCY_GATES_2026-11-27.md) as the ordered planning index, subordinate to the current handoff and owner authority. It defines 13 gates from G0-05 authority and owner decisions through supply chain, data/evidence, trusted registry, dispatcher, sandbox, return receiver, review, monitoring, recovery, workflow activation, supervised pilot and separately approved unattended automation.
+
+A gate is PASS only with exact independently verified acceptance evidence. Documentation, authored tests, static review, in-memory composition, a successful service health check, or a worker claim cannot substitute for operational proof. Current status remains NOT OPERATIONAL; G0-05 blocks prohibited validation and execution. No implementation, workflow activation, data access, dispatch, deployment, or phase advancement is authorized by the roadmap.
