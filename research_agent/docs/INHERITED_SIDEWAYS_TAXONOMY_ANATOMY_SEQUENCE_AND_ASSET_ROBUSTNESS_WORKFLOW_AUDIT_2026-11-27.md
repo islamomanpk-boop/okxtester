@@ -75,3 +75,14 @@ The active Phase 3 G0-05 handoff remains controlling. This review is static only
 This is a static review of the four listed workflow YAML files. It does not audit the implementation of referenced research modules/tests, actual artifact contents, prior workflow run logs, effective GitHub permissions, action internals, runner images, package integrity, or data correctness. The YAML declares intended behavior, not proof that a workflow ran or passed.
 
 No workflows, scripts, tests, package installations, research calculations, source-data reads, artifact downloads, reports, protected files, permissions, secrets, VPS/self-hosted runners, or research-branch state were touched. G0-05 remains open. No candidate generation, backtesting, PnL analysis, strategy selection, gate closure, phase advancement, or agent activation was authorized.
+
+
+## 7. Taxonomy module source-level verification follow-up
+
+A follow-up static inspection of the referenced taxonomy module and its test file resolves the earlier uncertainty about the workflow step labelled “Verify frozen 15-minute source hashes”. The module defines an expected SHA-256 for each of BTC, ETH, SOL, DOGE and AVAX. Its load_15m function hashes the supplied CSV and rejects a mismatch when verify_hashes is true. The run function defaults verify_hashes to true, and the CLI passes the inverse of the --skip-source-hash-check flag. The workflow invokes the normal CLI and does not pass that bypass flag. Therefore, the module does perform the advertised five-asset 15-minute hash check even though the YAML step itself does not show the comparison.
+
+The exact integrity scope is narrower than a digest of the raw one-minute inputs. The workflow checks the one-minute files for non-empty content, exact header, timestamp uniqueness/order and continuous 60,000 ms cadence, reconstructs complete 15-minute buckets, and the module verifies the resulting 15-minute CSV digest plus its schema, OHLCV validity, alignment, expected row count and continuous cadence. This verifies the frozen aggregate representation; it does not cryptographically bind every raw one-minute record or establish full raw-source provenance.
+
+The inspected taxonomy test file has one source-hash test that checks the SOL expected-hash constant against a literal. It does not call the hash-reading function, exercise a mismatch, or assert the other four manifest entries. This is a test-coverage gap, not evidence that the workflow's runtime hash check is disabled. No tests were executed.
+
+This follow-up was static source inspection only. No script, test, workflow, package installation, dataset, artifact, or research calculation was run or accessed. The G0-05 no-execution restriction remains in force.
