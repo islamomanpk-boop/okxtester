@@ -165,6 +165,8 @@ Errors must not leak secrets or protected data.
 
 ## 10. Backup and anti-rollback
 
+Restore must reconcile the internal database head and durable witness outbox against the external witness before classifying an ahead snapshot as a fork. A head exactly one sequence ahead is witness-pending only if one durable outbox item exactly extends the witness tuple (registry, epoch, sequence, head digest, predecessor); replay that same tuple and record the authenticated witness receipt without creating a new event. At most one unacknowledged checkpoint is allowed because protected writes freeze while pending. If the witness is ahead, recover exact missing history from an independently authenticated append-only source. Any larger unexplained lead, missing/mismatched outbox, broken predecessor, same-sequence fork, or identity/schema mismatch fails closed. Resume requires full provider-attempt, approval/revocation/consumption, assignment, and raw-return reconciliation plus separate human authorization bound to the exact recovered checkpoint.
+
 Backups contain a consistent snapshot of events, immutable records, idempotency indexes, materialized state and checkpoint metadata. Restore into isolation; verify schema versions, full event chain, package/return digests, idempotency uniqueness and materialized state by replay; compare checkpoint against an independently held monotonic/signed witness; reconcile provider deliveries; require explicit human authorization before reconnecting dispatch.
 
 An internally valid hash chain cannot detect restoration of an older internally consistent chain. Anti-rollback therefore requires an independent monotonic or externally witnessed checkpoint. Define encryption, access, retention and separately approved restore exercises.
