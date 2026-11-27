@@ -156,3 +156,10 @@ This is a documentation-only readiness control. It does not approve implementati
 `docs/SYNTHETIC_BACKEND_PROOF_OF_CAPABILITY_PLAN.md` defines a vendor-neutral future evaluation protocol using synthetic identities and records only. It specifies entry conditions, twelve test families covering atomic transactions, dual concurrency, replay/idempotency, identity levels, approval/revocation, package digest custody, delivery uncertainty, authenticated returns, workflow provenance, canonicalization, checkpoint rollback/restore, and least privilege; it also defines evidence retention, global acceptance rules, stop conditions, and cleanup.
 
 The plan is not a test report and does not select or qualify any provider. No candidate was evaluated, no account/resource/credential was created, and no tests or workflows were run. Execution remains blocked pending owner decisions, isolated environment approval, independent review, and explicit authorization consistent with the active G0-05 handoff.
+
+
+## 17. Trust-root separation and identity architecture
+
+`docs/TRUST_ROOT_SEPARATION_AND_IDENTITY_ARCHITECTURE.md` defines logical trust domains and operation-level identity responsibilities for human authority, policy, dispatcher, registry, workflow platform, worker/provider, evidence store/verifier, independent reviewer, and checkpoint witness. It specifies prohibited cross-domain capabilities, an operation-to-identity matrix, twelve independence tests, credential lifecycle requirements, repository/default-branch implications, and evidence required for an independent security review.
+
+This is a vendor-neutral proposal only. It does not select or provision identities, credentials, keys, services, repositories, or workflows. Effective permissions and trust-root independence remain UNKNOWN until independently demonstrated. No tests, scripts, workflows, or research operations were run. The agent remains non-operational and G0-05 remains controlling.
