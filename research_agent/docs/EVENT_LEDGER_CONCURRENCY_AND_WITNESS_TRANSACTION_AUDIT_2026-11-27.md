@@ -73,3 +73,17 @@ The trusted-store adapter, unified lifecycle specification, and backend interfac
 ## Stop conditions and current status
 
 No backend, witness service, registry, adapter, database, or credentials are selected or active. No code or tests were changed or executed. No workflow, dispatch, schedule, VPS, research branch, or protected data was touched. The agent remains non-operational; G0-05 remains authoritative.
+
+
+## Follow-up static finding — hash-chain validity is not lifecycle-semantic validity
+
+The current `engine/event_ledger.py` validator checks each event's closed field set, supported event/source labels, strict JSON-compatible payload shape, canonical UTC timestamp syntax, unique event IDs, previous-event hash linkage, and recomputed event digest. It does not enforce cross-event lifecycle semantics. In particular:
+
+- It does not require `occurred_at_utc` values to be nondecreasing along ledger order. The hash chain proves sequence integrity as serialized, not chronological ordering of event occurrence claims.
+- It does not require all events for one `task_id` to carry the same `task_definition_sha256`, nor does it model an explicit assignment-revision identity that would distinguish legitimate revisions from accidental digest changes.
+- It does not enforce event-type transition rules, source/event-type compatibility, or event-specific payload schemas. The payload is only required to be a strict JSON object.
+- It does not derive or validate a materialized assignment lifecycle projection. The separate recovery classifier is advisory and has a deliberately smaller state model.
+
+These are not hash-chain failures and do not invalidate the ledger's stated role as an append-only integrity primitive. They do mean that `validate_event_ledger(...).valid == True` must not be interpreted as proof that the event history is chronologically or semantically valid. A future trusted lifecycle validator should validate authenticated source receipts, explicit assignment/revision identity, event-type-specific payload schemas, allowed state transitions, monotonic registry sequence, and the relevant time-order semantics against one consistent registry snapshot. Where out-of-order provider observations are legitimate, preserve provider occurrence time separately from trusted receipt/registry sequence rather than imposing a simplistic timestamp sort.
+
+This is a static source observation; no malformed ledger was constructed or test executed. No code was changed. The pure ledger remains non-authorizing and has no persistence or source authentication.
