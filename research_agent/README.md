@@ -130,3 +130,6 @@ Creating this scaffold does not authorize running it. Do not add or enable any a
 
 
 - [Inherited Phase 3 workflow side-effect and automation audit](docs/INHERITED_PHASE3_WORKFLOW_SIDE_EFFECT_AND_AUTOMATION_AUDIT_2026-11-27.md) — extends the trigger audit with sampled high-impact workflows that run historical research/tests, upload artifacts, and in some cases write/push reports or candidate-proxy snapshots to `price-action-v1`; documentation-only, no workflow executed or modified.
+
+
+- [Inherited workflow fleet risk and cross-phase trigger audit](docs/INHERITED_WORKFLOW_FLEET_RISK_AND_CROSS_PHASE_TRIGGER_AUDIT_2026-11-27.md) — consolidates the sampled write-capable Phase 3 matching-workflow family, the Phase 1 source-preflight write path, G0-05 execution hazards, and future agent-isolation requirements; documentation-only, no workflow or research path changed.
