@@ -75,6 +75,7 @@ A GitHub artifact alone is not an adequate mutable ledger or protected checkpoin
 - Crash after atomic commit but before response: retry resolves to the already-committed event and returns its receipt.
 - Stale checkpoint: reload, verify, and reconcile; never silently rebase a human disposition or worker submission.
 - Checkpoint mismatch or invalid chain: fail closed and require human investigation; do not rebuild or reset the trust root automatically.
+- Restore: freeze all privileged transitions; compare registry identity, monotonic epoch, sequence, head digest, schema/canonicalization versions, and chain against the independent witness. Reject stale, ahead, forked, or mismatched snapshots; reconcile every outstanding provider delivery with its original identity; require independent human resume authorization tied to a signed recovery report. Never synthesize missing approval, revocation, dispatch, or disposition history.
 - Duplicate delivery ID with changed facts: reject and preserve the original event.
 - Store unavailable: retain no claimed success; report persistence as unknown only if commit outcome cannot be established, then reconcile by delivery ID before retrying.
 
