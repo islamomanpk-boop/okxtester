@@ -179,3 +179,7 @@ Roadmap committed as planning documentation only. No provider, backend, account,
 ## Owner-decision dependency gate
 
 Before starting operational implementation, use the [owner decision register](OWNER_DECISION_REGISTER_AND_PREIMPLEMENTATION_BLOCKERS_2026-11-27.md) to record accountable owners, evidence, decisions and approval revisions for the 14 unresolved areas. Its order is subordinate to the active G0-05 handoff: no workflow/test/script execution or Phase 3 research changes are permitted by this planning document.
+
+## Gate-to-owner-decision traceability
+
+The [traceability audit](ROADMAP_GATE_TO_OWNER_DECISION_TRACEABILITY_AUDIT_2026-11-27.md) maps OD-01..OD-14 to all 13 roadmap gates (Gate 0..Gate 12). It clarifies cross-gate prerequisites without changing the sequence or exit criteria. Gate 0 remains blocked by the active G0-05 handoff and outstanding independent review/disposition. No owner decision or gate is marked complete by this mapping.
