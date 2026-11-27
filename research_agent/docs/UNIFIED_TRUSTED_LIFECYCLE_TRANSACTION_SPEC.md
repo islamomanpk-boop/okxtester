@@ -152,6 +152,23 @@ A structurally valid submission and verified evidence bytes establish only revie
 
 Human task disposition must be authenticated and bound to the exact review digest and assignment revision. Phase-gate closure is a separate authority and event. A task acceptance must never advance the phase automatically.
 
+### 7.1 Worker-return receipt, replay, and eligibility protocol
+
+The receiver is a separate trusted boundary; the current dictionary-based `assignment_return.py` helper is not this receiver. Before any parser or review code runs, the receiver must:
+
+1. Authenticate the return transport and derive the source namespace, return-delivery ID, dispatch attempt, assignment revision, and receipt time from trusted transport metadata. Worker fields cannot supply these facts.
+2. Enforce a configured maximum raw payload size. Preserve the exact received bytes in immutable storage and compute the receiver-side SHA-256 over those exact bytes. Do not hash a reserialized parsed object and label it the raw digest.
+3. Atomically record the raw receipt, receiver-generated `return_id`, raw digest, byte length, authenticated delivery binding, and idempotency index before parsing. If commit outcome is uncertain, reconcile by the same authenticated return-delivery identity.
+4. Parse only retained bytes using strict UTF-8 and strict JSON/schema validation. Reject duplicate keys, non-finite numbers, unsupported values, and unknown schema versions. Preserve malformed bytes and a bounded parse-error classification; malformed returns are not review-eligible. Any normalized form is stored separately and bound to raw digest plus parser/schema/normalization versions.
+5. Resolve the delivery identity to a committed dispatch attempt and protected assignment revision. Load and verify the exact retained package bytes/digest from the registry. Worker-claimed task, assignment, package, timestamp, and return IDs are untrusted comparisons only.
+6. Enforce unique return transport identity `(return_source_namespace, return_delivery_id)`. Exact key + identical complete immutable facts returns the original receipt and `return_id`; it creates no second receive event or review path. Same key + changed facts is a changed-replay security conflict: preserve the original, quarantine the conflicting arrival, and do not overwrite or accept it.
+7. A different authenticated delivery key with identical raw bytes is a separately observed arrival linked by payload digest, not automatically an exact replay. Mark duplicate content and apply an explicit registry policy before any additional review. Never deduplicate solely by worker-declared identifiers, timestamps, or digest.
+8. Assign a receiver-derived eligibility classification: `eligible_for_review`, `received_late_after_cancel`, `received_after_expiry`, `received_after_revocation`, `delivery_binding_unknown`, `assignment_or_package_mismatch`, or `malformed_payload`. Eligibility is based on authenticated registry state and trusted service time, never a worker field. Preserve ineligible raw receipts; they cannot enter the normal completion path. Any separately authorized forensic inspection remains non-completion evidence.
+9. Bind each immutable review to `return_id`, raw digest, assignment revision, trusted checkout/manifest context, reviewer identity, and reviewer-policy version. Exact review replay returns the original receipt. A corrected review is a new linked record; it never overwrites history.
+10. Bind every human disposition to one exact review digest and assignment revision, with its own authenticated idempotency identity. Define explicit supersession semantics for any later human decision. Neither receipt nor review may create a disposition. Phase-gate disposition remains separate.
+
+The atomic transaction must include raw-receipt metadata, immutable return ID, idempotency index, lifecycle event, assignment-state update where applicable, and protected checkpoint. A raw object stored without its corresponding authoritative receipt is not accepted as a committed return. A receipt whose raw object cannot be retrieved and re-hashed is an integrity failure.
+
 ## 8. Canonicalization and immutable history
 
 - V1 hashes remain governed by the existing v1 Python serialization contract and are never rewritten.
