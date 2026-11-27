@@ -141,3 +141,5 @@ Creating this scaffold does not authorize running it. Do not add or enable any a
 - [Inherited matched-control and manual study workflow audit](docs/INHERITED_MATCHED_CONTROL_AND_MANUAL_STUDY_WORKFLOW_AUDIT_2026-11-27.md) — records V3–V6 and V10.7 protected-branch archive writers, matched-asset robustness, and manual-only historical/test workflows; static documentation only.
 
 - [Inherited G0-04/G0-05, lifecycle and funding workflow boundary audit](docs/INHERITED_G004_G005_LIFECYCLE_AND_FUNDING_WORKFLOW_BOUNDARY_AUDIT_2026-11-27.md) — static review of evidence-chain workflow dependencies, prohibited execution surfaces, lifecycle archive writers, and funding proxy labeling.
+
+- [Inherited sideways anatomy, follow-through and taxonomy workflow audit](docs/INHERITED_SIDEWAYS_ANATOMY_FOLLOWTHROUGH_AND_TAXONOMY_WORKFLOW_AUDIT_2026-11-27.md) — static review of manual taxonomy reconstruction, workflow-file push triggers, multi-study archive writes, and V10 covariate audit.
