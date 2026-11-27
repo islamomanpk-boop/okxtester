@@ -36,6 +36,10 @@ The roadmap numbering is internally consistent: Gate 0 through Gate 12 is 13 gat
 4. **Gate exit evidence remains independent.** A decision record alone cannot prove transaction atomicity, provider delivery, sandbox isolation, complete evidence custody, restore correctness, or a safe pilot.
 5. **No status promotion by documentation.** NOT RUN, UNKNOWN and BLOCKED remain non-PASS. Static traceability does not mean a gate has passed.
 
+## G0-05 review wording safeguard
+
+The authoritative handoff requires a structured, evidence-backed report and explicitly says runtime-dependent results must be marked not verified rather than executed. A note that independent review is unavailable is useful blocker/status evidence only; it is not a substitute for the requested review findings. Owner/reviewer disposition is a separate decision and cannot turn missing evidence into a resolved finding, waive the handoff, or close G0-05. The consolidated roadmap's Gate 0 wording has been clarified accordingly.
+
 ## Current blocker snapshot
 
 - Gate 0: BLOCKED by the active G0-05 handoff and outstanding independent review/disposition. GitHub issue #3 remains open with one instruction comment and no assignee; no Copilot findings have been posted. This is not an independent review result.
