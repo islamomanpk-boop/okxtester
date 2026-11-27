@@ -14,7 +14,8 @@ A future adapter should expose a deliberately small interface:
 
 - `load_snapshot()`: return the ledger plus an independently protected head checkpoint and checkpoint version.
 - `append_if_current(expected_checkpoint, event)`: atomically verify the stored checkpoint, enforce unique upstream event identity, append the event, and advance the protected checkpoint in one transaction.
-- `lookup_delivery(source_namespace, delivery_id)`: resolve retries against the stable upstream delivery identity.
+- `lookup_provider_delivery(source_namespace, delivery_id)`: resolve the complete authenticated upstream delivery aggregate, including all linked per-role event receipts.
+- `lookup_event_receipt(source_namespace, delivery_id, event_role)`: resolve one event-role receipt for exact event-level replay.
 - `verify_snapshot()`: verify event schemas, hash links, unique IDs, checkpoint-to-head equality, and checkpoint authenticity before any state is used.
 
 These are interface requirements, not implemented functions. No current module should pretend this interface exists.
@@ -27,7 +28,7 @@ The current pure ledger schema has one globally unique `event_id`; it does not h
 - Obtain `delivery_id` from the authenticated upstream delivery mechanism. Never accept a worker-supplied delivery ID or namespace as proof of origin.
 - Treat `(source_namespace, delivery_id)` as the authenticated **provider-delivery identity**, unique in the delivery index. If that delivery creates one lifecycle event, use one fixed event role. If it creates multiple legitimate lifecycle events, identify each with `(source_namespace, delivery_id, event_role)`; the role is a closed, schema-defined value, not caller-arbitrary text.
 - Derive each global `event_id` deterministically from the canonical, unambiguous event-level tuple `(source_namespace, delivery_id, event_role)`. Do not use naive delimiter concatenation, which can be ambiguous.
-- Enforce uniqueness for the provider-delivery pair, the event-level tuple, and each derived `event_id`. Keep the provider-delivery row linked to its per-role event receipts so `lookup_delivery(source_namespace, delivery_id)` resolves the complete delivery aggregate without trusting worker data.
+- Enforce uniqueness for the provider-delivery pair, the event-level tuple, and each derived `event_id`. Keep the provider-delivery row linked to its per-role event receipts so `lookup_provider_delivery(source_namespace, delivery_id)` resolves the complete delivery aggregate without trusting worker data; `lookup_event_receipt(source_namespace, delivery_id, event_role)` resolves one event-level idempotency record.
 - Keep `source` as the ledger's allowlisted category. Populate `source_ref` with a stable, non-secret reference to the authenticated source event/resource; do not overload it as the delivery ID unless its semantics are explicitly fixed.
 - For a retry, reproduce the same event facts, including the same canonical `occurred_at_utc`. Prefer an authenticated upstream occurrence timestamp. If the source has none, the adapter must durably retain the first accepted timestamp alongside the delivery identity and reuse it; generating a fresh processing timestamp on every retry would make an otherwise identical delivery appear to have changed facts.
 - If one authenticated delivery legitimately produces multiple ledger events, derive a distinct deterministic event identity for each event role using an additional fixed role discriminator, and document that mapping. Never reuse one delivery identity for different event facts.
