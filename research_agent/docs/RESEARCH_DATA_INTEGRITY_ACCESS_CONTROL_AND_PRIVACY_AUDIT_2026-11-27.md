@@ -180,3 +180,10 @@ Static comparison of `engine/report_builder.py`, `engine/evidence_verifier.py`, 
 - Future trusted intake must label manifests explicitly as either a scoped evidence allowlist or a complete source inventory, version the format, derive it independently from the authenticated commit/tree or immutable snapshot, and bind every derived output to exact parent object IDs/digests and transformation/runtime/configuration digests. Unreferenced file-map entries must be rejected or explicitly classified as ignored, never implicitly treated as verified evidence.
 
 This is consistent with existing EP-02/EP-03 and DATA-03/DATA-06 findings; it sharpens the acceptance semantics rather than identifying a new code defect. No data, code, tests, or manifests were changed or executed. G0-05 remains controlling.
+
+
+## Follow-up — portable path identity and collision handling
+
+The current local manifest/evidence helpers perform exact-string duplicate checks and traversal rejection, but do not establish that distinct Git paths remain distinct on every supported checkout, archive, or restore filesystem. Case-fold-equivalent names (for example, `Data.csv` and `data.csv`) and Unicode-normalization-equivalent names can collide on some platforms. A trusted manifest must preserve the original Git tree path bytes/identity and file modes, declare its materialization target, detect target-specific collisions before writing or verifying objects, and reject ambiguous materialization. It must never silently rename a path or treat a collision as two independently verified files.
+
+This is a portability and future manifest-boundary requirement, not evidence of an existing colliding repository path or current data corruption. No repository-wide filename scan or data access was performed; no tests were run.
