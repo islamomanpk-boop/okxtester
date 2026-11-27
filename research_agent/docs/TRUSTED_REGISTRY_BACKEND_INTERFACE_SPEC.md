@@ -33,8 +33,8 @@ Every record has a schema version, stable ID, canonical representation and creat
 | Assignment revision | assignment/revision IDs, parent revision, exact package bytes and digest |
 | Approval | approval ID, assignment revision/package digest, task digest, exact operation, repo/ref, workflow identity/revision, input commit, handoff/policy revision, scope, approver, issue/expiry, nonce/consumption policy |
 | Revocation | revocation ID, approval ID, revoker identity, effective sequence/time, reason |
-| Dispatch attempt | attempt ID, assignment revision/package digest, approval ID, authenticated workflow run/attempt, provider idempotency key |
-| Provider receipt | provider namespace, delivery ID, attempt ID, authenticated receipt bytes/digest, status, observed time |
+| Dispatch attempt | attempt ID, assignment revision/package digest, approval ID, authenticated workflow run/attempt, provider qualification version, provider namespace/account/endpoint/region scope, exact idempotency key, immutable request-envelope bytes/ref and digest, key-retention deadline/guarantee evidence |
+| Provider receipt/observation | provider namespace/account/endpoint scope, provider delivery/job/event IDs, attempt ID, idempotency key, request-envelope digest, authenticated raw receipt/callback bytes/digest, signature or authenticated transport provenance and key version, provider status/version, provider timestamp, receiver observation time |
 | Worker return | return ID, assignment/revision/package digest, authenticated delivery identity, raw immutable payload bytes/digest |
 | Review | review ID, return ID/payload digest, reviewer, review-policy version, structural and evidence results, review digest |
 | Human disposition | disposition ID, assignment revision, review digest, human identity, accepted/rejected/needs-revision, reason/time |
@@ -126,9 +126,9 @@ Approval lifecycle invariants:
 
 ## 7. Dispatch and provider requirements
 
-Dispatch remains disabled unless the provider supports durable idempotency plus queryable outcome, or a documented query/reconciliation protocol that prevents duplicate work. Otherwise unattended delivery is prohibited.
+Dispatch remains disabled unless provider qualification proves durable idempotency with documented scope, retention, exact replay/body-mismatch behavior, and authenticated query/reconciliation semantics. The key scope must include the provider namespace and every provider-defined account/tenant, endpoint/operation, and region dimension. The exact request envelope and digest must be retained and bound to the key and attempt. The maximum reconciliation horizon must be shorter than the documented retention window with a safety margin. If retention may have expired, query only and never resubmit, even with the same key. Otherwise unattended delivery is prohibited.
 
-Sequence: load exact stored package; authenticate dispatcher; revalidate handoff/policy/approval; atomically record dispatch start and unique provider key; invoke provider; commit authenticated receipt or explicit uncertain outcome. Timeouts, missing artifacts and worker silence do not prove non-delivery. Never automatically retry an uncertain attempt. Cancellation and provider acceptance races must be serialized; cancellation cannot erase an accepted receipt.
+Before the dispatch-start commit, the dispatcher may authenticate/configure the provider and prepare the exact request envelope, but may not send request bytes or trigger any provider side effect. The atomic dispatch-start transaction revalidates handoff/policy/approval/hold/state and stores attempt ID, provider qualification version, key and full scope, request digest/reference, and approval consumption. Only after commit may the exact envelope be submitted. Timeouts, missing artifacts, and worker silence do not prove non-delivery. Re-submit only the exact same envelope/key within a proven deduplication window; otherwise query/escalate and preserve UNKNOWN. Provider receipts/callbacks must be authenticated, bound to attempt/key/scope/request digest, replay-protected, and processed monotonically. Cancellation and provider acceptance races must be serialized; cancellation cannot erase an accepted receipt.
 
 ## 8. Return, review and human authority
 
