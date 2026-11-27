@@ -54,6 +54,20 @@ Before a non-Python writer or verifier is introduced, the integration must eithe
 9. Append the event, record its delivery-index entry, and advance the protected checkpoint atomically. A split write is not acceptable unless a separately specified recovery protocol can prove which side committed.
 10. Return a receipt containing the committed event digest and checkpoint version. The receipt is evidence of storage only, not task completion or gate approval.
 
+## External checkpoint witness: commit and acknowledgment protocol
+
+The database transaction and the independently administered witness are two different trust domains. Unless a selected backend proves a genuine cross-system atomic transaction, do not describe the database and external witness as advancing atomically.
+
+The registry transaction must atomically commit the immutable event, materialized state, delivery/event idempotency indexes, internal registry-head checkpoint/version, and a durable witness-outbox record containing the exact checkpoint tuple and predecessor. This database commit is the lifecycle transition's linearization point.
+
+A separate publisher submits the outbox checkpoint to the external witness. The witness must enforce registry identity, monotonic epoch and sequence, predecessor/head continuity, exact replay, and conflicting-replay rejection. It returns an authenticated witness receipt. The registry then records that receipt and advances its locally acknowledged-witness version in a separate transaction.
+
+Until the exact committed head is acknowledged by the witness, the registry is in witness-pending/degraded mode. It may perform read-only inspection and reconcile the same outbox identity, but it must not accept another protected lifecycle write, consume approval, dispatch, receive an eligible return, record human disposition, or resume after restore. A failed witness publish or lost response is reconciled using the same checkpoint identity; never create another lifecycle event or sequence.
+
+On restart, the service verifies the database chain/internal head, then reconciles every unacknowledged outbox row against the witness before enabling protected writes. Witness unavailable, behind, ahead, wrong registry/epoch, or divergent digest means fail closed. An outbox row proves only that publication is pending, not that the witness accepted it. Database commit receipt and witness receipt are distinct evidence.
+
+Concurrency requirements apply inside the database transaction: the global-head compare/advance and target assignment-state-version compare/update must be serialized in the same transaction. Sequence allocation must derive from the locked/compared current head. On serialization failure, deadlock, or unique-key race, abort the entire transaction, reload a consistent snapshot, resolve exact replay first, and revalidate all policy, approval, assignment, and transition preconditions. Never retry only a final insert or reuse stale observations.
+
 ## Backend selection criteria
 
 Do not choose a backend until the operational environment and trust boundary are approved. Evaluate candidates against:
