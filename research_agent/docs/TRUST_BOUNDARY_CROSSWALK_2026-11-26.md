@@ -326,3 +326,7 @@ The [owner decision register](OWNER_DECISION_REGISTER_AND_PREIMPLEMENTATION_BLOC
 ## 46. Roadmap gate-to-owner-decision traceability
 
 The [traceability audit](ROADMAP_GATE_TO_OWNER_DECISION_TRACEABILITY_AUDIT_2026-11-27.md) maps OD-01..OD-14 to Gate 0..Gate 12, confirms the 13-gate numbering, identifies decisions that span multiple gates, and records current Gate 0 blockage. GitHub issue #3 remains open with only the instruction comment, no assignee and no independent findings. This is not a Copilot review result or gate approval.
+
+## 47. Engine side-effect and execution boundary
+
+The [engine side-effect audit](ENGINE_SIDE_EFFECT_AND_EXECUTION_BOUNDARY_AUDIT_2026-11-27.md) inspects the current engine modules for filesystem writes, subprocess/network/provider calls, dispatch, scheduling and execution. It distinguishes read-only queue/policy/evidence-file access from in-memory preflight, planning, packaging and review. `ALLOW_READ_ONLY` is preflight-only, not worker execution authority. This is bounded static inspection, not a runtime sandbox or repository-wide guarantee.
