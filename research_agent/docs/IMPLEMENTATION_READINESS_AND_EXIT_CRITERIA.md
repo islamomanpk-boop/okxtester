@@ -69,6 +69,7 @@ These are decisions for the project owner; a technical recommendation is not a s
 - [ ] B12. Operational owner and independent reviewer for every readiness gate.
 - [ ] B13. Independent deny-only emergency hold, credential-containment path, and external incident audit destination.
 - [ ] B14. Two-human resume quorum with distinct subject identities and independently administered credential/recovery paths; neither approver may hold a conflicting incident/recovery/reviewer/witness/deployment role.
+- [ ] B15. Restricted deny-only approval-revocation lane is separately authorized, atomic, witnessed, and incapable of granting authority or clearing the emergency hold.
 
 **Current result: UNKNOWN / BLOCKED.** No provider, region, account, database, credential, approval service, checkpoint witness, or repository topology has been selected or provisioned.
 
@@ -88,6 +89,7 @@ Required evidence: dated owner decision record, options considered, rejected alt
 - [ ] C10. Revocation and credential-compromise procedures are tested before operational use.
 - [ ] C11. Emergency credential containment remains possible during registry freeze without mutating frozen registry history; affected approvals remain denied/UNKNOWN until append-only revocation events are witnessed.
 - [ ] C12. Resume quorum is tested against common identity-provider/root recovery compromise and role-conflict/self-approval.
+- [ ] C13. The emergency revocation lane accepts only exact existing approval revocations/invalidation and cannot perform any positive authorization or unrelated lifecycle transition.
 
 Required evidence: identity architecture, trust-boundary diagram, role/permission matrix, provider documentation, authentication configuration, negative authorization tests, and independent security review.
 
