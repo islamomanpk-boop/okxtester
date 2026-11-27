@@ -235,6 +235,14 @@ A database backup is not itself a trust root. The protected checkpoint must be r
 
 A restore is a security-sensitive state transition, not routine database startup. The service must remain in a non-dispatching, read-only recovery mode until all checks below pass.
 
+Before classifying a restored database head as stale, ahead, or forked, reconcile it against the external witness using the durable witness outbox. The database transaction is the lifecycle linearization point; witness acknowledgment follows separately. Protected writes remain frozen throughout this protocol.
+
+- If the database head exactly equals the witness tuple, verify the complete tuple and proceed.
+- If the database head is exactly one successor and contains one durable outbox item whose registry ID, epoch, sequence, head digest, and predecessor exactly extend the witness tuple, classify it as witness-pending. Publish/replay that exact checkpoint with the same witness idempotency identity, obtain the authenticated receipt, and record acknowledgment. Do not create a new lifecycle event or sequence.
+- Permit at most one unacknowledged witness checkpoint at a time; protected writes are frozen while it is pending.
+- If the witness is ahead of the restored database, recover missing committed history only from an independently authenticated append-only source proving exact sequence and digests.
+- A database more than one sequence ahead, a missing/mismatched outbox, broken predecessor, same-sequence divergent digest, wrong registry/epoch, or incompatible schema/canonicalization is unexplained and fails closed. A pending flag, local timestamp, or backup metadata is not proof.
+
 1. Freeze dispatch, approval consumption/revocation processing, assignment transitions, return acceptance, and human disposition writes. Preserve the failed instance and backup as immutable incident evidence.
 2. Authenticate the restore operator and restore source. Load the independent checkpoint witness through a separately controlled identity and verify its signature/authenticity, registry identity, monotonic epoch, global sequence, head digest, schema/canonicalization versions, and witness freshness.
 3. Verify the restored database's registry identity, epoch, global sequence/head digest, complete event chain, assignment state versions, immutable package/return/review digests, unique indexes, and transaction consistency.
