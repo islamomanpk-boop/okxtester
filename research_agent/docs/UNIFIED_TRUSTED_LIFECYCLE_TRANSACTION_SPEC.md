@@ -163,6 +163,22 @@ Human task disposition must be authenticated and bound to the exact review diges
 
 A database backup is not itself a trust root. The protected checkpoint must be retained independently enough to detect rollback of a self-consistent but stale database snapshot.
 
+### Restore acceptance protocol
+
+A restore is a security-sensitive state transition, not routine database startup. The service must remain in a non-dispatching, read-only recovery mode until all checks below pass.
+
+1. Freeze dispatch, approval consumption/revocation processing, assignment transitions, return acceptance, and human disposition writes. Preserve the failed instance and backup as immutable incident evidence.
+2. Authenticate the restore operator and restore source. Load the independent checkpoint witness through a separately controlled identity and verify its signature/authenticity, registry identity, monotonic epoch, global sequence, head digest, schema/canonicalization versions, and witness freshness.
+3. Verify the restored database's registry identity, epoch, global sequence/head digest, complete event chain, assignment state versions, immutable package/return/review digests, unique indexes, and transaction consistency.
+4. Require an exact match between restored state and the independently witnessed checkpoint tuple. A lower sequence/epoch is stale; a higher sequence, different digest at the same sequence, wrong registry identity, or incompatible schema/version is a fork or integrity conflict. Every mismatch fails closed. Never choose whichever copy is newer based only on its local timestamp.
+5. If the backup is behind, restore missing committed history only from an independently authenticated append-only recovery source that proves the exact missing sequence and event digests. Do not reconstruct missing approvals, revocations, dispatch attempts, receipts, returns, or dispositions from workflow inputs, worker artifacts, logs without authenticated provenance, or operator recollection. If complete authoritative history cannot be recovered, keep the registry inactive and require a documented human incident decision; do not silently create a new genesis.
+6. Reconcile every nonterminal dispatch against the authenticated provider using its original delivery identity/idempotency key. Resolve committed-but-unacknowledged attempts, pending/unknown deliveries, provider acceptance/rejection, and any provider-side cancellation receipt. No new delivery identity or retry is permitted while any prior outcome is unresolved.
+7. Confirm that approvals/revocations, expiry, cancellation flags, consumed single-use approvals, and assignment revisions are at least as current as the witness-protected head. An approval absent from the restored snapshot must never be presumed active; a revocation or consumption event missing from restored state blocks the affected operation.
+8. Verify backup integrity, package/return object availability, access-control separation, and independent witness reachability. Record a signed restore report containing backup ID, registry ID, pre/post epoch and sequence, checkpoint digest, recovered ranges, unresolved provider deliveries, reviewer identities, and explicit resume decision.
+9. Require independent human review and a separate resume authorization bound to the exact restored checkpoint and recovery report. Only then may the registry return to service; scheduling/dispatch remain separately gated.
+
+A restore that cannot prove exact checkpoint lineage is not accepted. A clean database integrity check alone is insufficient.
+
 ## 10. Minimum backend acceptance criteria
 
 A candidate backend is unsuitable unless it provides or can rigorously compose:
