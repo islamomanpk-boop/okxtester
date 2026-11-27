@@ -38,3 +38,7 @@ human review. It cannot override the active Phase 3 G0-05 handoff.
 Under the current G0-05 lock, the runtime snapshot is expected to stop at
 Phase 3, contain no planned assignments, and package queued Phase 3 tasks as
 blocked. It must not skip ahead to Phase 1.
+
+## Snapshot completeness limitation
+
+The coordinator packages selected tasks and denied tasks returned by the planner. If the planner has more eligible tasks than the batch cap, eligible overflow tasks are not represented in the package list. The plan's stop reason notes the cap, but does not identify the omitted task IDs. Treat such a snapshot as a bounded partial batch, not a complete inventory of all eligible tasks. See [the static audit](docs/ORCHESTRATION_BATCH_CAP_VISIBILITY_AUDIT_2026-11-27.md).
