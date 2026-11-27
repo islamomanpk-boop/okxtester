@@ -157,3 +157,5 @@ Creating this scaffold does not authorize running it. Do not add or enable any a
 - [Inherited sideways taxonomy, anatomy, sequence, and asset-robustness workflow audit](docs/INHERITED_SIDEWAYS_TAXONOMY_ANATOMY_SEQUENCE_AND_ASSET_ROBUSTNESS_WORKFLOW_AUDIT_2026-11-27.md) — records historical-study execution, archive writers, file-only source guards, cross-study artifact lineage limits, and workflow self-trigger boundaries; static review only.
 
 - [Master inherited workflow inventory and execution-risk map](docs/MASTER_INHERITED_WORKFLOW_INVENTORY_AND_EXECUTION_RISK_MAP_2026-11-27.md) — consolidates all 39 inherited workflow files, trigger/permission observations, cross-cutting risks, and agent activation boundaries.
+
+- [Orchestration batch-cap visibility audit](docs/ORCHESTRATION_BATCH_CAP_VISIBILITY_AUDIT_2026-11-27.md) — records that preflight-approved tasks beyond the batch limit are not individually enumerated in the plan/coordinator snapshot, plus the safe reporting correction; static review only, no tests or task execution.
