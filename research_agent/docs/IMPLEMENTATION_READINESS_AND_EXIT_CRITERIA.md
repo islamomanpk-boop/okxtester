@@ -61,7 +61,7 @@ These are decisions for the project owner; a technical recommendation is not a s
 - [ ] B4. Approval channel: independent of worker-controlled queue fields, workflow inputs, and worker returns.
 - [ ] B5. Data residency, privacy, retention, and permitted evidence content.
 - [ ] B6. Budget and cost ceilings for storage, compute, workflow minutes, provider calls, logs, and backups.
-- [ ] B7. Worker provider and delivery contract: stable idempotency keys, authenticated receipts, and queryable delivery state.
+- [ ] B7. Worker provider and delivery contract: documented idempotency-key scope, retention window, exact replay/body-mismatch semantics, authenticated receipts/callbacks, authoritative query/absence semantics, status consistency, and cancellation behavior.
 - [ ] B8. Independent checkpoint/anti-rollback witness and administrative separation.
 - [ ] B9. Recovery objectives: approved RPO/RTO, backup frequency, restore test cadence, and incident owner.
 - [ ] B10. Trusted workflow identity: repository, workflow path, immutable workflow revision, run identity, actor identity, and checkout commit derivation.
@@ -120,9 +120,12 @@ Required evidence: selected backend's documented transaction guarantees, schema 
 - [ ] E1. Assignment package is rebuilt from the trusted task and current preflight result.
 - [ ] E2. Exact package bytes and digest are retained by the trusted registry before delivery.
 - [ ] E3. Dispatch requires a distinct, authenticated, operation-bound approval.
-- [ ] E4. Dispatch attempt has a stable idempotency key and durable provider-delivery record.
-- [ ] E5. Delivery confirmation is backed by an authenticated provider receipt or authenticated query result.
+- [ ] E4. Dispatch attempt retains the exact provider key, full provider-defined key scope, provider qualification version, immutable request-envelope digest/reference, and durable provider-delivery record.
+- [ ] E5. Delivery confirmation is backed by authenticated provider receipt/query evidence bound to attempt, key scope, and exact request digest, with signature/transport provenance and monotonic status handling.
 - [ ] E6. Timeout, missing response, missing artifact, or worker silence is classified as pending/uncertain—not proof of non-delivery.
+- [ ] E17. Provider idempotency retention exceeds the bounded reconciliation horizon with a safety margin; after possible expiry the system queries only and never resubmits.
+- [ ] E18. Provider lookup documents visibility delay and authoritative absence semantics; transient not-found cannot be treated as non-delivery.
+- [ ] E19. No provider request bytes leave the dispatcher before the atomic dispatch_started commit; post-commit submission uses the exact retained request envelope.
 - [ ] E7. A return is bound to the exact assignment revision and independently retained package digest.
 - [ ] E8. Worker-submitted evidence references are checked against independently derived checkout commit and file manifest.
 - [ ] E9. Downloaded artifact identity, provider run identity, expected run/attempt, file set, and hashes are verified.
@@ -166,6 +169,7 @@ Validation may begin only when the active handoff explicitly permits the exact t
 - [ ] G4. Concurrent update tests prove global and per-assignment compare-and-swap behavior.
 - [ ] G5. Duplicate delivery/replay tests prove exactly-once logical effects under repeated requests.
 - [ ] G6. Lost response and uncertain commit tests prove no unsafe retry.
+- [ ] G11. Provider key scope/retention, same-key changed-body behavior, expired-key handling, stale/not-found queries, authenticated webhook replay, and out-of-order status observations pass synthetic tests.
 - [ ] G7. Cancellation/revocation races prove no operation proceeds after authorization is invalidated.
 - [ ] G8. Tampered package, evidence, manifest, artifact, workflow identity, and checkpoint tests fail closed.
 - [ ] G9. Backup rollback and restore tests prove anti-rollback and consistency.
