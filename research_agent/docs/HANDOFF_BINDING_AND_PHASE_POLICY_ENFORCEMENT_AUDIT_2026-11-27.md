@@ -69,3 +69,8 @@ The source-level boundary is more specific than the approximate references above
 - Lines 506–530 enforce the independent global G0-05 lock and conditional G0-05 restriction values. The current checked-in `agent_config.json` keeps `current_g0_05_execution_lock=true`, while `phase_permissions.json` keeps Phase 3 `execution_override="deny"`; the queue also has execution disabled and the allowlist is empty.
 
 Accordingly, `task_scope="follow_current_handoff_and_gate_status"` is not merely missing an intersection operation: it is not validated as a meaningful policy value by the controller at all. This remains a latent future authorization-contract gap, not a current execution path. The hard lock must not be weakened to test it.
+
+
+## Static test-coverage observation
+
+A read-only inspection of `research_agent/tests/test_safety_controller.py` found that `task_scope` is supplied as a fixture default (lines 28–50), but no test in that file directly mutates it to an unknown, malformed, or out-of-scope value and asserts denial. The Phase 3 lock tests at lines 253–265 and 453–467 verify denial while the global lock is active; they do not establish future scope-intersection behavior when the lock is lifted. This is a source-level coverage observation only. No test was run, and no claim is made about tests outside this file.
