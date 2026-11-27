@@ -56,6 +56,18 @@ A successful transition must satisfy both:
 
 Both are checked and advanced in the same transaction. The global sequence is allocated transactionally. No client chooses a sequence, event hash, or checkpoint.
 
+### 3.1 Internal commit and external witness acknowledgment
+
+The internal registry transaction and an independently administered checkpoint witness are distinct trust-domain operations. Unless a backend proves a genuine cross-system atomic commit, the specification does not claim that both advance atomically.
+
+The database transaction atomically commits the immutable event, materialized state, idempotency indexes, global and assignment versions, internal head checkpoint, and a durable witness-outbox record containing the exact checkpoint tuple and predecessor. This database commit is the lifecycle transition's linearization point.
+
+A separate publisher advances the external witness monotonically and obtains an authenticated witness receipt. The registry records that receipt and the acknowledged witness version in a subsequent transaction. The witness must reject rollback, forks, wrong registry/epoch, same-sequence conflicting digest, and broken predecessor; exact replay returns the original witness receipt.
+
+Between database commit and witness acknowledgment, the registry is durably witness-pending/degraded. It may inspect state and reconcile the exact outbox item, but no further protected lifecycle transition may commit: no approval consumption, dispatch, eligible return acceptance, review completion, human disposition, or restore resume. A lost publish/acknowledgment response is reconciled using the same checkpoint identity, never by creating another event or sequence. On restart, all pending outbox items must be reconciled before protected writes resume. An outbox row is not proof of witness acceptance; database and witness receipts are separate evidence.
+
+Within the database transaction, serialize global-head compare/advance and assignment-state-version compare/update together. Allocate sequence from the locked/compared current head. On serialization failure, deadlock, or unique-key race, abort the whole transaction, reload one consistent snapshot, resolve exact replay before stale-version rejection, and revalidate all current policy, approval, assignment, and transition preconditions. Never retry only the final insert using stale observations.
+
 ## 4. Authoritative transaction protocol
 
 Every state-changing command follows this protocol. Read-only queries do not append events.
