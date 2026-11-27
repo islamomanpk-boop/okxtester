@@ -30,20 +30,19 @@ These include historical research execution, test execution, artifact download/c
 
 The funding-engine workflow compiles and runs broad funding/execution/portfolio/mark-price test suites. The funding coverage workflow runs tests. The full mark-price audit creates and pushes a candidate-proxy snapshot. The Phase 1 preflight runs tests and a five-asset input audit, then permanently archives/pushes reports. Phase 1 remains blocked by the agreed sequence until Phase 3 is complete and authorized.
 
-### C. Sideways historical research and taxonomy (8)
+### C. Sideways historical research and taxonomy (7)
 
 13. `sideways-boundary-interaction-taxonomy-v1.yml`
 14. `sideways-rejection-episode-retest-anatomy-v1.yml`
 15. `sideways-rejection-early-path-sequence-followthrough-v1.yml`
-16. `sideways-matched-asset-robustness-v1.yml`
-17. `sideways-rejection-v1-full-study.yml`
-18. `sideways-rejection-v1-tests.yml`
-19. `sideways-pre-event-matched-controls-v3.yml`
-20. `sideways-pre-event-matched-controls-v4.yml`
+16. `sideways-rejection-v1-full-study.yml`
+17. `sideways-rejection-v1-tests.yml`
+18. `sideways-pre-event-matched-controls-v3.yml`
+19. `sideways-pre-event-matched-controls-v4.yml`
 
 These run taxonomy, five-asset anatomy/follow-through, bootstrap, matched-control and robustness research, or their tests. Several write generated results permanently to `price-action-v1`; others upload short-retention artifacts. File-existence checks are not provenance or integrity checks.
 
-### D. Matched cohort and V10 sensitivity pipeline (18)
+### D. Matched cohort and V10 sensitivity pipeline (18; includes matched-asset robustness)
 
 21. `sideways-matched-cohort-audit-v7.yml`
 22. `sideways-matched-cohort-audit-v8.yml`
@@ -78,7 +77,7 @@ Manual-only self-hosted Linux x64 workflow. It collects host/kernel/resource inf
 
 Shell-level presence and keyword checks. It is not a provenance, schema, cryptographic-integrity, source-correctness, or gate-authorization verifier.
 
-**Count correction:** the categories above total 40 because `sideways-matched-asset-robustness-v1.yml` appears in both the historical-research group and the matched-pipeline group. It is one file and is counted once in the directory total. The unique inventory is 39.
+**Unique total:** 8 + 4 + 7 + 18 + 1 + 1 = 39 workflow files. The matched-asset robustness workflow is grouped only in section D.
 
 ## 2. Directory-level trigger and permission observations
 
