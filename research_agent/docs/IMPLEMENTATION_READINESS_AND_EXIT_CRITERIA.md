@@ -126,6 +126,9 @@ Required evidence: selected backend's documented transaction guarantees, schema 
 - [ ] E17. Provider idempotency retention exceeds the bounded reconciliation horizon with a safety margin; after possible expiry the system queries only and never resubmits.
 - [ ] E18. Provider lookup documents visibility delay and authoritative absence semantics; transient not-found cannot be treated as non-delivery.
 - [ ] E19. No provider request bytes leave the dispatcher before the atomic dispatch_started commit; post-commit submission uses the exact retained request envelope.
+- [ ] E20. Provider acceptance followed by dispatcher crash before receipt persistence is recoverable through authenticated query/history by the original provider key/job ID; callback-only providers without a durable inbox are rejected.
+- [ ] E21. Provider observation identity is distinct from delivery/command/witness identities; raw observation, immutable facts digest, observation index, state projection, event, checkpoint, and witness outbox commit atomically.
+- [ ] E22. Crash injection proves safe recovery at every boundary: dispatch commit, request transmission, provider acceptance, response receipt, observation commit, external witness publish/ack, and client response; exact retries never create duplicate jobs/events.
 - [ ] E7. A return is bound to the exact assignment revision and independently retained package digest.
 - [ ] E8. Worker-submitted evidence references are checked against independently derived checkout commit and file manifest.
 - [ ] E9. Downloaded artifact identity, provider run identity, expected run/attempt, file set, and hashes are verified.
@@ -170,6 +173,7 @@ Validation may begin only when the active handoff explicitly permits the exact t
 - [ ] G5. Duplicate delivery/replay tests prove exactly-once logical effects under repeated requests.
 - [ ] G6. Lost response and uncertain commit tests prove no unsafe retry.
 - [ ] G11. Provider key scope/retention, same-key changed-body behavior, expired-key handling, stale/not-found queries, authenticated webhook replay, and out-of-order status observations pass synthetic tests.
+- [ ] G12. Provider-acceptance/lost-receipt and every dispatcher/registry/witness crash point pass synthetic restart and idempotent-replay tests.
 - [ ] G7. Cancellation/revocation races prove no operation proceeds after authorization is invalidated.
 - [ ] G8. Tampered package, evidence, manifest, artifact, workflow identity, and checkpoint tests fail closed.
 - [ ] G9. Backup rollback and restore tests prove anti-rollback and consistency.
