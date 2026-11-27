@@ -56,7 +56,8 @@ A backend may expose methods, RPCs or commands, but must implement equivalent se
 - `load_assignment(assignment_id)`: consistent current revision, state and state version.
 - `load_assignment_package(assignment_id, revision)`: exact stored bytes and digest.
 - `load_approval(approval_id)`: approval and revocation state from trusted authority.
-- `lookup_delivery(source_namespace, delivery_id, event_role)`: original receipt or absence.
+- `lookup_provider_delivery(source_namespace, delivery_id)`: the complete authenticated provider-delivery aggregate, including all linked per-role event receipts and the original delivery/dispatch receipt.
+- `lookup_event_receipt(source_namespace, delivery_id, event_role)`: the original receipt for one closed-schema lifecycle-event role, or absence. This is the event-level idempotency lookup used by the transaction replay protocol.
 - `load_events(after_sequence, limit)`: bounded ordered range with verifiable chain context.
 - `load_checkpoint()`: protected checkpoint plus external integrity proof.
 - `reconcile_assignment(assignment_id)`: consistent view of attempts, receipts, returns, reviews and dispositions.
