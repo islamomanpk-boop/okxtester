@@ -36,3 +36,7 @@ task authorization immediately before any future permitted operation.
 Under the current G0-05 lock, Phase 3 tasks are expected to be denied, so the
 planner should return an empty batch and stop at Phase 3. This is intentional:
 it protects the phase sequence instead of using Phase 1 work as a shortcut.
+
+## Batch-cap visibility limitation
+
+When more tasks pass preflight in the earliest queued phase than fit within `max_tasks`, the current implementation selects the first `max_tasks` entries and reports that the batch was capped. It does not enumerate the remaining eligible task IDs in `planned_tasks` or `deferred_tasks`, and it does not return an overflow count or continuation cursor. The current queue does not establish that this limit is reached, but future larger queues need an explicit overflow representation before relying on the plan as a complete inventory. See [the static audit](docs/ORCHESTRATION_BATCH_CAP_VISIBILITY_AUDIT_2026-11-27.md).
