@@ -137,3 +137,5 @@ Creating this scaffold does not authorize running it. Do not add or enable any a
 - [Inherited Phase 3 workflow execution and output details](docs/INHERITED_PHASE3_WORKFLOW_EXECUTION_AND_OUTPUT_DETAILS_2026-11-27.md) — records static details of lifecycle workflows, the multi-study archive workflow, funding/mark-price candidate-proxy writes, and read-only-permission workflows that still execute scripts/tests; documentation-only, no workflows executed.
 
 - [Inherited breakout and V10 workflow contract audit](docs/INHERITED_BREAKOUT_AND_V10_WORKFLOW_CONTRACT_AUDIT_2026-11-27.md) — records the breakout V1.1 five-field archive-unavailability assertion, V7–V10.11 write-capable workflow family, and archive-policy check execution boundary; static documentation only.
+
+- [Inherited matched-control and manual study workflow audit](docs/INHERITED_MATCHED_CONTROL_AND_MANUAL_STUDY_WORKFLOW_AUDIT_2026-11-27.md) — records V3–V6 and V10.7 protected-branch archive writers, matched-asset robustness, and manual-only historical/test workflows; static documentation only.
