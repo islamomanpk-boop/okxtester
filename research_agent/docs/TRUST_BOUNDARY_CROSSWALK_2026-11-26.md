@@ -318,3 +318,7 @@ The [module implementation versus operational readiness audit](MODULE_IMPLEMENTA
 ## 44. Runtime policy, queue and authorization-boundary audit
 
 The [runtime policy and authorization audit](RUNTIME_POLICY_QUEUE_AND_AUTHORIZATION_BOUNDARY_AUDIT_2026-11-27.md) confirms the checked-in configuration remains non-authorizing: agent execution disabled, scheduling disabled, queue execution disabled, Phase 3 override `deny`, global G0-05 lock true, empty task allowlist, and later phases blocked/deny. Runtime preflight delegates to a controller that independently loads fixed policy/queue files, checks exact queue task equality and exact task hash approval, and fails closed on malformed results. This confirms local deny posture only; Git policy authenticity, external identity, effective workflow permissions, and transaction-bound live revalidation remain unproven. No preflight or code was executed.
+
+## 45. Owner decision register and pre-implementation blockers
+
+The [owner decision register](OWNER_DECISION_REGISTER_AND_PREIMPLEMENTATION_BLOCKERS_2026-11-27.md) consolidates 14 decisions covering research authority/G0-05 exit, hosting and residency, independent identity, policy/approval governance, registry/witness, worker isolation, provider delivery, evidence retention, human review, monitoring/emergency response, GitHub activation topology, supply-chain provenance, cost limits, and independent assurance. It distinguishes established constraints from unresolved vendor/owner choices. It grants no authority and records no owner decisions.
