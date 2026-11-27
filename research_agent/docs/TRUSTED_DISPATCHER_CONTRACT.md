@@ -103,6 +103,11 @@ Human dispositions are limited to explicit, authenticated values such as accepte
 | Approval missing, stale, revoked, or mismatched | Deny before package delivery |
 | Handoff or phase state cannot be verified | Deny; require human investigation |
 | Package digest cannot be stored before delivery | Do not dispatch |
+| Dispatcher crashes after dispatch_started but before/while sending | Treat provider outcome as unknown; query original key/scope; only submit exact retained envelope under proven same-key retention semantics; otherwise remain UNKNOWN |
+| Provider accepts, then dispatcher crashes before receipt persistence | Recover authenticated status by original provider key/job ID; if not queryable, remain UNKNOWN and provider is not qualified for unattended dispatch |
+| Provider response/observation commit outcome is uncertain | Resolve exact provider-observation idempotency identity and facts digest before retry; never append a duplicate observation |
+| Observation commits but external witness acknowledgment is pending | Freeze protected writes; reconcile exact witness outbox tuple before resuming |
+| Dispatcher API response is lost after durable commit | Exact command replay returns original receipt; do not call provider again |
 | Delivery response times out | Keep the same attempt pending/unknown; query the original provider identity; re-submit only within a proven key-retention window with the exact same request envelope; otherwise query/escalate, never mint a new identity |
 | Provider idempotency retention expires or is unknown | Query only; never resubmit, even with the same key; remain UNKNOWN until independently resolved |
 | Provider receipt/callback is unauthenticated, stale, or mismatched | Preserve raw evidence, reject as authoritative state, and keep delivery unresolved |
@@ -111,6 +116,8 @@ Human dispositions are limited to explicit, authenticated values such as accepte
 | Cancellation/revocation commits after `dispatch_started` | Preserve the attempt; resolve it with the original provider key; cancellation blocks future attempts but does not assert non-delivery |
 | Delivery identity replay with identical facts | Return original receipt; no duplicate delivery |
 | Delivery identity replay with changed facts | Reject and preserve original record |
+| Provider observation identity replay with changed facts | Quarantine as a security conflict; preserve original raw observation and receipt |
+| Provider lacks authenticated query/history after lost response | Keep UNKNOWN; provider is not qualified for unattended dispatch |
 | Store/checkpoint integrity fails | Stop; preserve evidence; no reset/rebuild |
 | Worker return lacks matching protected package | Reject return |
 | Evidence bytes or commit provenance mismatch | Return for revision; no acceptance |
