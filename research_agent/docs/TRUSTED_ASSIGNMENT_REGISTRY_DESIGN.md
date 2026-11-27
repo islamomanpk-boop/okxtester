@@ -44,6 +44,11 @@ The approval is a separate immutable record, not a boolean input on the assignme
 
 Approval must be single-use for the exact operation it authorizes. A readiness-report approval cannot authorize worker delivery. Any change to task digest, package digest, workflow SHA, branch, handoff revision, scope, operation, or input commit invalidates the approval and requires a new authenticated decision. Revocation must be checked immediately before dispatch, not only when the approval is created.
 
+The approval's issuance facts (including issue/expiry timestamps, approver, nonce, and scope) are immutable. Do not store revocation or consumption as mutable fields on that record: append separate authenticated revocation and consumption events/records, then derive current status from the verified event history and trusted service time. Approval IDs and issuer-scoped nonces must be unique. Exact replay is idempotent; changed facts or nonce reuse are rejected.
+
+Revocation is irreversible. Expiry cannot be extended in place, and a revoked, expired, consumed, or scope-invalidated approval cannot be reactivated. Renewal requires a fresh human decision, a new approval ID and nonce, and a complete current scope binding. A revocation after dispatch-start blocks future use but does not erase or recall the committed attempt; provider cancellation is a separate authenticated operation. If any approval, revocation, consumption, nonce, or checkpoint history is missing or unverifiable, treat status as UNKNOWN and deny.
+
+
 ### Delivery record
 
 Keep delivery identity separate from assignment identity. Required fields include the authenticated provider/channel namespace, stable upstream delivery ID, assignment ID/revision, expected package digest, dispatch-attempt identity, trusted request timestamp, delivery state, and authenticated provider receipt/reference when one exists.
