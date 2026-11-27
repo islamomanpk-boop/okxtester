@@ -262,3 +262,10 @@ The project has a substantial documented safety and review foundation, but it is
 The immediate safe work is limited to documentation reconciliation and static planning on `agent/okx-research-agent-v1`. Do not create a repository, change `main`, alter the protected research branch, enable workflows, provision credentials/resources, use the VPS/self-hosted runner, or run tests/scripts/workflows under the current restrictions.
 
 No backend is selected. No operational workflow is active. No worker is dispatched. No research task is executed. The G0-05 handoff remains authoritative.
+
+
+## 12. Worker execution isolation and resource limits — mandatory pre-dispatch gate
+
+The worker runtime is a separate high-risk trust boundary. Identity separation and a container label are not proof of sandbox isolation. Before any worker dispatch, the selected runtime must independently demonstrate the controls in [Worker execution isolation and resource-limits audit](WORKER_EXECUTION_ISOLATION_AND_RESOURCE_LIMITS_AUDIT_2026-11-27.md): disposable per-assignment strong isolation; non-root/no capabilities/no host mounts or sockets; exact read-only input allowlist; no ambient or long-lived secrets; deny-all network with approved proxy-only exceptions; fixed immutable runtime/dependency provenance; hard externally enforced CPU/memory/PID/disk/time/network/output/concurrency/cost limits; separate artifact inspection; trusted telemetry, kill/fence, host quarantine, and verified cleanup.
+
+Required evidence includes effective runtime configuration, negative tests for host/credential/metadata/internal-network access, filesystem escape and privilege escalation, cross-assignment contamination, egress bypass, resource exhaustion, kill-switch races, artifact attacks, and cleanup. Tests must use synthetic fixtures and disposable infrastructure, and require separate authorization after the active research handoff permits the exact validation. Until independently reviewed evidence exists, worker isolation and resource limits are UNKNOWN/BLOCKED and dispatch is prohibited.
