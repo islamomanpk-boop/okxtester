@@ -347,3 +347,7 @@ See [Runtime policy, queue and authorization-boundary static audit](RUNTIME_POLI
 ## 23. Owner decisions and external blockers
 
 The [owner decision register](OWNER_DECISION_REGISTER_AND_PREIMPLEMENTATION_BLOCKERS_2026-11-27.md) consolidates 14 owner/security/operations decisions required before dependent implementation or activation. The register is planning only; recommendations are not selected decisions. G0-05 remains the immediate hard stop. No provider, identity system, hosting region, backend, witness, worker runtime, retention policy, cost ceiling, or activation topology has been selected or authorized.
+
+## 24. Roadmap gate-to-owner-decision traceability
+
+The [traceability audit](ROADMAP_GATE_TO_OWNER_DECISION_TRACEABILITY_AUDIT_2026-11-27.md) maps all 14 owner decisions to Gate 0 through Gate 12 and confirms the 13-gate numbering. Multiple owner decisions span several gates. Gate 0 remains BLOCKED by the active G0-05 handoff and outstanding independent review/disposition; issue #3 is open with no assignee or review findings. No gate status is promoted by this static audit.
