@@ -69,7 +69,7 @@ No workflow has been added, no branch policy has been changed, and no run has be
 The trigger rules depend on the activation option selected in `ACTIVATION_DECISION.md`; do not combine the two topologies:
 
 - **Option A (separate agent repository):** the single first workflow is a direct `workflow_dispatch` workflow on that repository's default branch. Do not add `push`, `pull_request`, `pull_request_target`, `workflow_run`, `schedule`, or `workflow_call` triggers.
-- **Option B (same-repository bridge):** the small caller on `main` uses `workflow_dispatch` only. Its sole callee is a reviewed reusable workflow on the agent branch, which necessarily declares `workflow_call` only. The callee must not declare `push`, `pull_request`, `pull_request_target`, `workflow_run`, `schedule`, or `workflow_dispatch`. Pin the caller's `uses:` reference to an immutable full commit SHA, not a moving branch or tag. This is a narrowly scoped exception to the direct-workflow trigger rule, not permission to add general workflow-call entry points.
+- **Option B (same-repository bridge):** the small caller on `main` uses `workflow_dispatch` only. Its sole callee is a reviewed reusable workflow YAML file directly under `.github/workflows/` on the agent branch; GitHub does not support subdirectories for reusable workflow files. The callee necessarily declares `workflow_call` only and must not declare `push`, `pull_request`, `pull_request_target`, `workflow_run`, `schedule`, or `workflow_dispatch`. Pin the caller's `uses:` reference to an immutable full commit SHA, not a moving branch or tag. This is a narrowly scoped exception to the direct-workflow trigger rule, not permission to add general workflow-call entry points.
 - Option B still requires explicit owner approval for the `main` change and a separate workflow security review. Neither option is authorized or installable under the current G0-05 handoff.
 - Require an explicit input selecting one fixed, pre-reviewed operation; reject unknown values.
 - Pin the workflow to the agent branch and explicitly check out `agent/okx-research-agent-v1`.
@@ -78,7 +78,8 @@ The trigger rules depend on the activation option selected in `ACTIVATION_DECISI
 
 ### Permissions and credentials
 
-- Set workflow-level `permissions: contents: read`; set job-level permissions explicitly and no broader than required.
+- Set workflow-level `permissions: contents: read`; set job-level permissions explicitly and no broader than required. For Option B, the caller must grant only the minimum required permissions; the called workflow cannot elevate `GITHUB_TOKEN` permissions above the caller's grant. Do not pass or inherit secrets.
+- For Option B, remember the called workflow's `github` context is associated with the caller. Explicitly check out the agent branch at the exact immutable SHA pinned by the caller's reusable-workflow reference before importing or running agent code; do not rely on the default checkout/ref.
 - Do not grant `contents: write`, `actions: write`, `pull-requests: write`, `issues: write`, or deployment permissions.
 - Do not create, expose, or pass repository secrets to the job.
 - Disable persisted checkout credentials (`persist-credentials: false`).
@@ -115,7 +116,8 @@ The trigger rules depend on the activation option selected in `ACTIVATION_DECISI
 - [ ] Current handoff explicitly permits the exact proposed validation and execution scope.
 - [ ] Complete static audit of inherited workflow triggers and checkout refs is finished.
 - [ ] Workflow YAML is reviewed independently before installation.
-- [ ] Selected topology matches `ACTIVATION_DECISION.md`: Option A is one direct manual-dispatch workflow; Option B is a manual-only `main` caller plus a `workflow_call`-only reusable callee pinned by immutable SHA.\n- [ ] Every externally invocable entry point is limited to its topology-specific trigger and fixed allowlisted inputs.
+- [ ] Selected topology matches `ACTIVATION_DECISION.md`: Option A is one direct manual-dispatch workflow; Option B is a manual-only `main` caller plus a `workflow_call`-only reusable callee directly under `.github/workflows/`, pinned by immutable SHA.
+- [ ] For Option B, caller and callee are reviewed together; caller token permissions are explicit/minimal, no secrets are passed/inherited, and the callee explicitly checks out the exact pinned agent SHA rather than relying on caller context defaults.\n- [ ] Every externally invocable entry point is limited to its topology-specific trigger and fixed allowlisted inputs.
 - [ ] Branch and checkout refs are explicit and agent-only.
 - [ ] Permissions are least-privilege and no secrets are available.
 - [ ] Actions are pinned to full commit SHAs or avoided.
