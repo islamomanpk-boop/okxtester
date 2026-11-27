@@ -29,7 +29,7 @@ Requirements:
 
 ### Option B — minimal dispatcher on `main`
 
-Add a narrowly scoped manual-only dispatcher workflow to `main`, which calls a reviewed reusable workflow stored on the isolated agent branch. The caller's `uses:` reference must pin the reusable workflow to an immutable full commit SHA.
+Add a narrowly scoped manual-only dispatcher workflow to `main`, which calls a reviewed reusable workflow stored on the isolated agent branch. The reusable workflow must be a YAML file directly under `.github/workflows/` (GitHub does not support subdirectories there). The caller's `uses:` reference must pin the reusable workflow to an immutable full commit SHA.
 
 Advantages:
 - Reuses the existing repository and its artifact storage.
@@ -38,7 +38,10 @@ Advantages:
 Risks and requirements:
 - This is a deliberate exception to the current no-change-to-`main` boundary and requires explicit owner approval.
 - The dispatcher must have minimal explicit permissions and no broad write token.
-- The caller on `main` must declare `workflow_dispatch` only; the reusable callee must declare `workflow_call` only. The callee must not expose direct manual, push, pull-request, schedule, or other event triggers.\n- The caller's reusable-workflow reference must use an immutable full commit SHA; a branch name or mutable tag is insufficient.
+- The caller on `main` must declare `workflow_dispatch` only; the reusable callee must declare `workflow_call` only. The callee must not expose direct manual, push, pull-request, schedule, or other event triggers.
+- The caller's job permissions must be explicit and minimal; the called workflow cannot elevate `GITHUB_TOKEN` permissions beyond those granted by the caller. No secrets are passed or inherited.
+- Because the called workflow's `github` context is associated with the caller, the callee must explicitly check out the agent repository/ref at the exact same immutable commit SHA used in the caller's `jobs.<job_id>.uses` reference before importing or executing agent code. Never rely on the default checkout/ref to select the agent branch.
+- The caller and callee must be reviewed together as one security boundary, including the exact callee SHA, checkout SHA, workflow inputs, token permissions, and artifact provenance.\n- The caller's reusable-workflow reference must use an immutable full commit SHA; a branch name or mutable tag is insufficient.
 - The workflow must not call inherited research workflows or execute research scripts.
 - It must start as manual preflight/report-only; no scheduling, event triggers, queue execution, or research writes.
 
@@ -68,3 +71,7 @@ Before any future first run, the workflow must independently:
 7. Preserve human-only task acceptance and phase-gate closure.
 
 The current implementation contains pure decision and verification components for several of these steps, but no trusted dispatcher, authenticated delivery channel, atomic persistent event store, or workflow integration exists yet. Those are not to be inferred from the presence of the corresponding pure modules.
+
+### Option B implementation-location constraint
+
+The reusable callee cannot be stored at `research_agent/workflows/...` or another subdirectory. GitHub requires reusable workflow YAML files to be directly under `.github/workflows/`, with `on: workflow_call`. Consequently, Option B eventually requires a narrowly scoped workflow-file addition on the agent branch outside `research_agent/`, in addition to the separately approved caller addition on `main`. Neither file is created or authorized by this decision record.
