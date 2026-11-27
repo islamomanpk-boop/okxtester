@@ -45,7 +45,10 @@ All items must PASS before any research-facing operation is considered.
 - [ ] A4. Confirm predecessor gates are human-authorized closed before any later phase is eligible.
 - [ ] A5. Confirm task scope and prohibitions are exact, bounded, and hashed; no task can self-grant authority.
 - [ ] A6. Confirm no prohibited research execution is hidden in helper scripts, tests, workflow steps, dependencies, or subprocesses.
-- [ ] A7. Confirm task acceptance, research-gate closure, and phase advancement are separate human decisions.\n- [ ] A8. For every handoff-governed task, require an exact active handoff ID sourced independently from task metadata; missing, stale, changed, or ambiguous IDs must deny.\n- [ ] A9. Enforce the effective task scope as the intersection of the task's declared scope, phase policy, and authoritative handoff scope; descriptive `task_scope` metadata alone is not authorization.\n- [ ] A10. Independently review HBP-01/HBP-02 closure evidence before any future Phase 3 authorization change; this checklist does not authorize the code change or its validation.
+- [ ] A7. Confirm task acceptance, research-gate closure, and phase advancement are separate human decisions.
+- [ ] A8. For every handoff-governed task, require an exact active handoff ID sourced independently from task metadata; missing, stale, changed, or ambiguous IDs must deny.
+- [ ] A9. Enforce the effective task scope as the intersection of the task's declared scope, phase policy, and authoritative handoff scope; descriptive `task_scope` metadata alone is not authorization.
+- [ ] A10. Independently review HBP-01/HBP-02 closure evidence before any future Phase 3 authorization change; this checklist does not authorize the code change or its validation.
 
 **Current result: BLOCKED.** The active G0-05 handoff prohibits the relevant scripts, tests, and workflows and does not authorize candidate generation, backtesting, PnL conclusions, strategy selection, gate closure, or phase advancement. No agent path may bypass it.
 
