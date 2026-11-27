@@ -128,6 +128,20 @@ The registry transaction that commits `dispatch_started` is the authorization/at
 
 Cancellation is therefore a durable stop for future work, not a claim that an already-authorized in-flight attempt was recalled. The registry must expose cancellation and dispatch state separately; it must never collapse them into one ambiguous `cancelled` state.
 
+### 6.1 Approval issuance, revocation, consumption, and renewal
+
+Approval issuance facts are immutable. The approval record contains the authenticated issuer/approver, unique approval ID and nonce, exact operation/scope binding, trusted issue time, expiry, and schema version. Revocation and consumption are separate append-only lifecycle facts; implementations must not mutate an approval row to extend expiry, clear revocation, or reset consumption. Current status is a derived view over the immutable approval and verified ordered lifecycle events.
+
+- Enforce uniqueness of approval ID and issuer-scoped nonce. A nonce is bound to the exact approval facts and cannot be reused under another approval ID or delivery identity.
+- Exact issuance/revocation replay returns the original receipt without new state changes. Reuse of an identity with changed facts is an integrity conflict.
+- Revocation is monotonic. It cannot be undone; an expired, revoked, consumed, or scope-invalidated approval cannot be reactivated.
+- Renewal always creates a new approval ID and nonce after a fresh authenticated human decision and full current-scope revalidation. Never extend expiry in place or reuse an old approval ID.
+- The protected transaction evaluates expiry using trusted service time and atomically revalidates revocation and unused status while committing the operation and single-use consumption. Client timestamps do not determine validity.
+- If revocation commits first, deny the protected operation. If consumption/dispatch-start commits first, preserve that immutable attempt and approval-state receipt; later revocation blocks future use but does not recall or rewrite the attempt.
+- A committed dispatch attempt that needs to be stopped requires a separate authenticated provider-cancellation operation and receipt. Approval revocation is not provider cancellation.
+- If issuance, revocation, consumption, nonce-index, event-chain, or checkpoint history is missing or unverifiable after restore, approval status is UNKNOWN and the operation is denied. An approval row alone never proves active status.
+
+
 ## 7. Return, review, and human authority rules
 
 The receiver stores raw return bytes before parsing and computes the digest itself. Worker-supplied IDs, hashes, timestamps, task claims, and package claims are comparisons only.
