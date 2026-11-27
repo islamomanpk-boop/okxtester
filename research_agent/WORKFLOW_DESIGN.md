@@ -50,7 +50,7 @@ The 26 write-permission findings are a static regex census of explicit permissio
 
 ## Newly identified activation constraint — repository default branch
 
-The repository metadata currently identifies `main` as the default branch. The agent implementation and all 13 agent files are isolated on `agent/okx-research-agent-v1`; that branch is not the default branch.
+The repository metadata currently identifies `main` as the default branch. The agent implementation is isolated under `research_agent/` on `agent/okx-research-agent-v1`; that branch is not the default branch. The current branch comparison shows the agent changes confined to that directory.
 
 GitHub's current documentation states that a `workflow_dispatch` event is only received when the workflow file exists on the repository's default branch. Selecting a non-default branch as the run ref does not remove this requirement. Therefore, a manual-only workflow file committed solely to the agent branch will not be manually dispatchable in this repository until a workflow file also exists on `main`. See GitHub's [workflow_dispatch trigger documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows) and [manual workflow guide](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow).
 
