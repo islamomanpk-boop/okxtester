@@ -44,3 +44,8 @@ The current `recovery_policy.py` classifies uncertain delivery conservatively an
 ## Disposition
 
 Documentation-level restore protocol clarified. No implementation, backend selection, operational authorization, dispatch authorization, or research handoff change.
+
+
+## Addendum — external witness outbox reconciliation
+
+Following the separate database-commit/external-witness protocol, restore must not classify every database head ahead of the witness as a fork. A head exactly one sequence ahead is witness-pending only if one durable outbox item exactly extends the authenticated witness tuple; replay that exact checkpoint identity and record the authenticated witness receipt without creating another event. At most one unacknowledged checkpoint is permitted while protected writes are frozen. If the witness is ahead, recover exact missing history from an independently authenticated append-only source. Any unexplained lead, missing/mismatched outbox, broken predecessor, same-sequence fork, or registry/epoch/schema mismatch remains fail-closed. See `RESTORE_AND_WITNESS_RECONCILIATION_AUDIT_2026-11-27.md` for the focused review.
