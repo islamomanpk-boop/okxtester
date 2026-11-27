@@ -334,3 +334,12 @@ The [engine side-effect audit](ENGINE_SIDE_EFFECT_AND_EXECUTION_BOUNDARY_AUDIT_2
 ## 48. Handoff identity and scope-policy enforcement
 
 The [handoff binding audit](HANDOFF_BINDING_AND_PHASE_POLICY_ENFORCEMENT_AUDIT_2026-11-27.md) identifies two future code-contract requirements: require an exact active handoff ID for every handoff-governed task, and either enforce phase task_scope against the authoritative handoff scope or clearly mark it descriptive-only. Current execution, scheduling, Phase 3 and allowlist controls remain deny-only; no current bypass or execution was demonstrated.
+
+## 49. Handoff identity and scope are authorization inputs, not descriptive metadata
+
+The static policy review in `HANDOFF_BINDING_AND_PHASE_POLICY_ENFORCEMENT_AUDIT_2026-11-27.md` identified two latent future hardening requirements in the current safety-controller contract:
+
+- **HBP-01 — exact handoff binding:** `workstream` and `handoff_id` are optional in the task contract, and the current G0-05 restriction branch does not require the exact active handoff ID. Current global execution locks still deny execution; this is not evidence of a present bypass. Before any future Phase 3 authorization change, every handoff-governed task must bind to an exact active handoff ID sourced independently of task metadata. Missing, stale, changed, or ambiguous IDs must deny.
+- **HBP-02 — effective scope enforcement:** Phase 3 `task_scope` is structurally present but not semantically intersected with task and authoritative handoff scope. Before future authorization, effective scope must be no broader than the intersection of task-declared scope, phase policy, and authoritative handoff scope. A required metadata field is not itself an authorization check.
+
+The owner decision register (OD-01/OD-04), consolidated roadmap (Gate 0 and Gate 5), and implementation readiness checklist (A8-A10) now carry these prerequisites consistently. They are documentation-level dependencies only. No controller/config/queue code was changed; no tests, scripts, workflows, preflight, dispatch, or research operations were run. The active G0-05 handoff remains controlling and the agent remains non-operational.
