@@ -45,7 +45,7 @@ Current state: NOT OPERATIONAL. No unattended worker is running. No production b
 
 **Goal:** Finish the currently authorized Phase 3 reconciliation without bypassing its restrictions.
 
-Required evidence: current authoritative handoff; completed independent Copilot review or documented disposition; reconciled source/canonical mapping findings; explicit treatment of the conditional CENSORED plus non-null confirmation timestamp edge case; any required real-row validation only if a future handoff explicitly authorizes it; owner/reviewer disposition.
+Required evidence: current authoritative handoff; an independent review report that follows the handoff's requested evidence format, or a documented status explaining why the review is unavailable (the latter is a blocker record, not a substitute for review findings); reconciled source/canonical mapping findings; explicit treatment of the conditional CENSORED plus non-null confirmation timestamp edge case; any required real-row validation only if a future handoff explicitly authorizes it; separate owner/reviewer disposition. An owner disposition cannot convert missing evidence into a resolved finding or waive the handoff's requirements.
 
 Exit: controlling handoff explicitly permits the next exact scope and the relevant human gate is recorded. Until then, no scripts, tests, workflows, code/data changes, candidate generation, backtests, or G0-05 closure.
 
