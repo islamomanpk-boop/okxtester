@@ -153,3 +153,5 @@ Creating this scaffold does not authorize running it. Do not add or enable any a
 - [Inherited Phase 3 lifecycle and G0-04/G0-05 workflow boundary audit](docs/INHERITED_PHASE3_LIFECYCLE_AND_G0_04_G0_05_WORKFLOW_BOUNDARY_AUDIT_2026-11-27.md) — statically records lifecycle archive writers, read-only-permission workflows that still execute scripts/tests, and G0-05 artifact-run dependency limitations; documentation only, no workflow executed.
 
 - [Inherited funding, Phase 1, VPS, and archive workflow boundary audit](docs/INHERITED_FUNDING_PHASE1_VPS_AND_ARCHIVE_WORKFLOW_BOUNDARY_AUDIT_2026-11-27.md) — classifies inherited funding/test/data-writer workflows, the blocked Phase 1 preflight, VPS self-hosted health-report exposure, and archive-policy checks; static documentation only.
+
+- [Inherited sideways taxonomy, anatomy, sequence, and asset-robustness workflow audit](docs/INHERITED_SIDEWAYS_TAXONOMY_ANATOMY_SEQUENCE_AND_ASSET_ROBUSTNESS_WORKFLOW_AUDIT_2026-11-27.md) — records historical-study execution, archive writers, file-only source guards, cross-study artifact lineage limits, and workflow self-trigger boundaries; static review only.
