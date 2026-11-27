@@ -79,3 +79,24 @@ These categories must remain outside any future agent allowlist while the curren
 This is a static review of the listed YAML files, not a complete audit of referenced scripts, dependency supply chain, runner images, effective repository/organization settings, secrets, environments, or action implementations. YAML declarations describe intended workflow behavior; they are not evidence that a workflow ran or that a result passed.
 
 No workflow was executed, dispatched, rerun, cancelled, enabled, or modified. No tests, scripts, packages, research calculations, data downloads, artifact operations, VPS/self-hosted runners, permissions, secrets, protected research files, or `price-action-v1` state were touched. No G0-05 decision, phase status, candidate status, or agent activation state changed.
+
+
+## 6. Follow-up contract detail: V3–V6 input and trigger differences
+
+A second pass over the exact YAML clarifies several distinctions that the group summary above does not capture:
+
+- V3 and V4 push filters watch only their own workflow YAML path. V5 and V6 watch their own workflow YAML plus the corresponding research module and test file. The V3/V4 workflow-file push trigger therefore remains independently capable of starting the job; V5/V6 also react to edits to their code/test paths.
+- V3 and V4 both require the anatomy CSV, sequence CSV, follow-through outcome CSV, five asset feature CSVs, and five 1-minute market CSVs by `test -f`. These checks establish only that each path exists; they do not establish non-empty content, schema validity, expected row counts, hashes, commit provenance, or consistency among inputs.
+- V5 and V6 require anatomy and sequence CSVs plus the five feature files and five 1-minute market files, also using `test -f`. Their shown command lines do not consume the follow-through outcome CSV. This is consistent with their labels as outcome-blind matching/caliper sensitivity procedures, but does not by itself prove the research modules are outcome-blind internally; that would require separate static source tracing.
+- V5 compiles both the V4 and V5 research modules before running V5 tests. V6 compiles V4, V5, and V6 modules before running V6 tests. These are compile/test dependencies, not evidence that the V5/V6 studies use every compiled module as a runtime input.
+- V3 and V4 pass explicit fixed replicate/seed and matching-constraint arguments (10,000 replicates, seed 20261124; V4 additionally passes a 30-day maximum time gap). V5 invokes its caliper grid without explicit replicate/seed arguments in the YAML. V6 installs SciPy in addition to NumPy/pandas and invokes optimal-assignment sensitivity without explicit replicate/seed arguments in the YAML.
+- The matched-asset robustness workflow consumes the V4 matched_pairs_v4.csv and the existing follow-through outcome CSV, but its guards are also `test -f` only. It then performs 10,000-replicate asset/leave-one-asset-out analysis and archives/pushes the generated results.
+
+### Cross-workflow implications
+
+1. V3/V4/V5/V6 and matched-asset robustness each use a distinct concurrency group. Those per-workflow groups do not serialize the whole family or its upstream/downstream producers.
+2. V3–V6 and the robustness workflow all declare `contents: write` and include a Git commit/push path to price-action-v1. They are not safe to treat as read-only agent jobs.
+3. `test -f` is a path-presence guard, not an evidence-integrity or provenance check. A file can exist while being empty, stale, malformed, replaced, or from an unintended commit.
+4. Static YAML inspection confirms intended commands and guards only. It does not establish that any job ran, that inputs passed runtime validation, or that archived outputs are valid.
+
+This follow-up adds detail to the static classification; it does not authorize execution or alter the active G0-05 boundary.
