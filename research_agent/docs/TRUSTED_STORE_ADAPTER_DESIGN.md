@@ -107,3 +107,12 @@ Before implementation, obtain explicit approval for a backend and its identity/a
 - Existing event ledger and optimistic-concurrency modules remain pure and non-persistent.
 - No backend, credentials, protected checkpoint, transaction, or durable store is configured.
 - No task execution, dispatch, scheduling, workflow run, research code/data change, gate closure, or phase advancement is authorized by this proposal.
+
+
+## Provider request envelope and idempotency retention
+
+The trusted store must persist, before any provider call, the immutable dispatch attempt with provider qualification version, provider namespace/account/endpoint/region scope, exact provider idempotency key, exact canonical request-envelope bytes or immutable reference, request-envelope digest, package digest, assignment revision, approval ID, and provider-documented key-retention deadline/evidence.
+
+The dispatcher may prepare/authenticate provider configuration before the dispatch-start transaction, but no request bytes may leave the process before that transaction commits. After commit, it may submit only the exact retained envelope with the exact stored key. Any change to endpoint, account scope, semantic headers, operation, API version, or body is a different request and cannot be sent under the existing attempt/key.
+
+Provider qualification must prove exact key scope, retention, replay semantics, changed-body behavior, authenticated query and absence semantics, receipt/callback authentication, status consistency, and cancellation semantics. Re-submit the same request/key only within the proven deduplication window and only when provider semantics guarantee one logical job. If the retention window may have expired, query only; never resubmit, even with the same key. If outcome remains unresolved, retain UNKNOWN and escalate. Provider receipts are immutable observations, bound to attempt/key/scope/request digest and authenticated raw evidence; status projections must not overwrite or discard out-of-order observations.
