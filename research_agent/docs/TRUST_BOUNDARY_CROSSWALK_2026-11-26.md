@@ -196,3 +196,10 @@ The pure recovery classifier remains non-authorizing and does not model cancella
 `docs/BACKUP_RESTORE_AND_ANTI_ROLLBACK_AUDIT_2026-11-27.md` records a targeted review of restore acceptance semantics. It identified that the contracts required an independent checkpoint but lacked one consolidated protocol for stale, ahead, forked, or schema-incompatible snapshots and for reconciling approvals and in-flight provider attempts. The unified lifecycle, store adapter, and registry designs now require a frozen restore, exact independent witness comparison, authenticated recovery of missing history only, provider reconciliation by original delivery identity, explicit treatment of missing revocations/consumption as blockers, a signed restore report, and independent human resume authorization.
 
 Documentation only. No backend, witness, backup, or restore mechanism exists; no recovery drill or runtime test was run. G0-05 remains controlling.
+
+
+## 22. Trust-root administrative independence audit
+
+`docs/TRUST_ROOT_ADMINISTRATIVE_INDEPENDENCE_AUDIT_2026-11-27.md` records a targeted review of whether the proposed approval channel, registry administrator, checkpoint witness, workflow/deployment authority, and recovery roles are independent across actual administrative accounts and transitive control paths. The logical trust-domain model is consistent, and the backend framework already warns that services sharing one administrator credential are not independent. However, no administrative dependency graph, effective permission exports, identity-provider/root recovery inventory, witness retention administration proof, break-glass separation evidence, or independent audit/billing dependency analysis exists yet.
+
+The audit therefore rates administrative independence UNKNOWN / BLOCKED—not failed, and not demonstrated. It adds a concrete evidence matrix and ten future correlated-compromise scenarios. No provider, account, credential, key, service, or topology was selected or provisioned; no tests, scripts, workflows, dispatch, scheduling, or research operations were run. The agent remains non-operational and G0-05 remains controlling.
