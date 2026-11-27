@@ -151,3 +151,5 @@ Creating this scaffold does not authorize running it. Do not add or enable any a
 - [Inherited matched-cohort V7–V9 and V10 downstream dependency audit](docs/INHERITED_MATCHED_COHORT_V7_V9_AND_V10_DOWNSTREAM_DEPENDENCY_AUDIT_2026-11-27.md) — records the push-triggered write-capable V7–V9 audits, V10.7–V10.11 archive dependencies, and the difference between file-existence checks and trusted evidence provenance; static review only.
 
 - [Inherited Phase 3 lifecycle and G0-04/G0-05 workflow boundary audit](docs/INHERITED_PHASE3_LIFECYCLE_AND_G0_04_G0_05_WORKFLOW_BOUNDARY_AUDIT_2026-11-27.md) — statically records lifecycle archive writers, read-only-permission workflows that still execute scripts/tests, and G0-05 artifact-run dependency limitations; documentation only, no workflow executed.
+
+- [Inherited funding, Phase 1, VPS, and archive workflow boundary audit](docs/INHERITED_FUNDING_PHASE1_VPS_AND_ARCHIVE_WORKFLOW_BOUNDARY_AUDIT_2026-11-27.md) — classifies inherited funding/test/data-writer workflows, the blocked Phase 1 preflight, VPS self-hosted health-report exposure, and archive-policy checks; static documentation only.
