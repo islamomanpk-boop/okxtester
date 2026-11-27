@@ -189,3 +189,12 @@ These are requirements only. No test code, tests, failure injections or implemen
 - G0-05 remains authoritative and blocks prohibited Phase 3 execution and gate actions.
 
 Before implementation, the project owner must explicitly select repository topology, backend/hosting, independent identity and approval roots, canonicalization version, checkpoint witness, retention/backup policy and provider capability. Any implementation must be separately authorized against the then-current handoff.
+
+
+## Independent emergency-hold enforcement
+
+Every protected command must be denied when an applicable emergency hold is active or its status, authenticity, freshness, scope, or monotonic epoch cannot be verified. The hold is deny-only and is not an approval source.
+
+The selected implementation must prove a race-safe operation boundary: protected commits after the hold's effective linearization point are rejected, while an operation already committed before that point remains an immutable attempt to reconcile. A stale cached “no hold” result is insufficient. The design must bind each protected transaction to a fresh authenticated hold epoch/fencing value and prove that hold activation invalidates or fences later commits. If the chosen security plane cannot provide this guarantee, disable the dispatcher/registry ingress through an independently controlled credential or gateway kill switch and keep the affected capability offline until in-flight operations are reconciled. Do not claim an instantaneous freeze without a demonstrated linearization and revocation-latency bound.
+
+During registry freeze or witness-pending state, the security plane may disable credentials/sessions/keys and maintain the external incident hold, but may not write registry approval-revocation events. After exact witness reconciliation, append and witness the required approval revocations/invalidation before releasing the hold. The external hold and registry approval history are separate facts and audit sources.
