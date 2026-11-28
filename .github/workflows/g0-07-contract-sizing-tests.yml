@@ -1,0 +1,31 @@
+name: G0-07 OKX Contract Sizing and Rounding Tests
+on:
+  push:
+    branches: [price-action-v1]
+    paths:
+      - src/okx_contract_sizing.py
+      - src/test_okx_contract_sizing.py
+      - .github/workflows/g0-07-contract-sizing-tests.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: g0-07-contract-sizing-tests
+  cancel-in-progress: false
+jobs:
+  contract-sizing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out exact commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile contract sizing code and tests
+        run: python -m py_compile src/okx_contract_sizing.py src/test_okx_contract_sizing.py
+      - name: Run contract sizing unit tests
+        run: python -m unittest discover -s src -p 'test_okx_contract_sizing.py' -v
