@@ -22,9 +22,10 @@ EXPECTED_ROWS = {
     "breakout_source_dispositions.csv": 2861,
     "failed_breakout_source_dispositions.csv": 932,
 }
+EXPECTED_REJECTION_DISPOSITIONS = {
+    "ELIGIBLE_FOR_FURTHER_VALIDATION": 1083, "REJECTED": 31, "EXPIRED": 40, "CENSORED": 0
+}
 EXPECTED_DISPOSITIONS = {
-    "SUPPORT_REJECTION": {"ELIGIBLE_FOR_FURTHER_VALIDATION": 0, "REJECTED": 0, "EXPIRED": 0, "CENSORED": 0},
-    "RESISTANCE_REJECTION": {"ELIGIBLE_FOR_FURTHER_VALIDATION": 0, "REJECTED": 0, "EXPIRED": 0, "CENSORED": 0},
     "BREAKOUT_CONTINUATION": {
         "ELIGIBLE_FOR_FURTHER_VALIDATION": 1038, "REJECTED": 1823, "EXPIRED": 0, "CENSORED": 0
     },
@@ -136,6 +137,13 @@ def main() -> None:
         source_family_counts[family] += 1
         source_dispositions[family][status] += 1
 
+    rejection_aggregate = Counter()
+    for family in ("SUPPORT_REJECTION", "RESISTANCE_REJECTION"):
+        rejection_aggregate.update(source_dispositions[family])
+    rejection_actual = {status: rejection_aggregate.get(status, 0)
+                        for status in ("ELIGIBLE_FOR_FURTHER_VALIDATION", "REJECTED", "EXPIRED", "CENSORED")}
+    if rejection_actual != EXPECTED_REJECTION_DISPOSITIONS:
+        stop(f"rejection source disposition counts mismatch: {rejection_actual} != {EXPECTED_REJECTION_DISPOSITIONS}")
     for family, expected in EXPECTED_DISPOSITIONS.items():
         actual = {status: source_dispositions[family].get(status, 0)
                   for status in ("ELIGIBLE_FOR_FURTHER_VALIDATION", "REJECTED", "EXPIRED", "CENSORED")}
