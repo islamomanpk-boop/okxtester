@@ -38,5 +38,17 @@ class StopGapRiskAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"Stop distances"):
             analyze_bars([bar(60000,100,100.2,99.8,100),bar(120000,100,100.2,99.8,100)],[0,100])
 
+    def test_open_jump_distribution_includes_adverse_direction_and_max(self):
+        result = analyze_bars([
+            bar(60000, 100, 100.2, 99.8, 100),
+            bar(120000, 99.8, 100, 99.7, 99.9),
+            bar(180000, 100.1, 100.2, 100, 100.15),
+        ], [0.2])
+        jumps = result["open_jump_distributions_bps"]
+        self.assertAlmostEqual(jumps["absolute_open_jump"]["max"], 20.0)
+        self.assertAlmostEqual(jumps["long_adverse_open_jump"]["max"], 20.0)
+        self.assertAlmostEqual(jumps["short_adverse_open_jump"]["max"], 10.0)
+        self.assertEqual(result["first_utc"], "1970-01-01T00:01:00+00:00")
+
 if __name__ == "__main__":
     unittest.main()

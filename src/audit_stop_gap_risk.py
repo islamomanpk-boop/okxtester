@@ -1,9 +1,11 @@
 """Historical 1m open-through-stop gap-risk audit; no trade simulation or PnL."""
 import argparse, csv, hashlib, json, math
+from datetime import datetime, timezone
 from pathlib import Path
 
 DEFAULT_SYMBOLS = ("BTC", "ETH", "SOL", "DOGE", "AVAX")
-DEFAULT_STOP_DISTANCES_PCT = (0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 5.0)
+DEFAULT_STOP_DISTANCES_PCT = (0.05, 0.1, 0.15, 0.2, 0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 5.0)
+SYNTHETIC_GAP_BEYOND_STOP_PCT = (0.05, 0.1, 0.25, 0.5, 1.0, 2.0)
 INTERVAL_MS = 60_000
 PERCENTILES = (50, 90, 95, 99)
 
@@ -39,6 +41,9 @@ def analyze_bars(rows, stop_distances):
     eligible = skipped = row_count = 0
     first_ts = last_ts = None
     previous = None
+    open_jump_abs_bps = []
+    long_adverse_open_jump_bps = []
+    short_adverse_open_jump_bps = []
     for row in rows:
         row_count += 1
         try:
@@ -61,6 +66,10 @@ def analyze_bars(rows, stop_distances):
             if delta == INTERVAL_MS:
                 eligible += 1
                 reference, next_open = previous["close"], prices["open"]
+                signed_jump_bps = (next_open / reference - 1.0) * 10_000.0
+                open_jump_abs_bps.append(abs(signed_jump_bps))
+                long_adverse_open_jump_bps.append(max(0.0, -signed_jump_bps))
+                short_adverse_open_jump_bps.append(max(0.0, signed_jump_bps))
                 for distance_pct in distances:
                     distance = distance_pct / 100.0
                     long_stop = reference * (1.0 - distance)
@@ -80,6 +89,14 @@ def analyze_bars(rows, stop_distances):
         previous = {"ts": ts, "close": prices["close"]}
         last_ts = ts
     if row_count < 2: raise ValueError("At least two candles are required")
+    jump_distributions = {}
+    for name, values in (
+        ("absolute_open_jump", open_jump_abs_bps),
+        ("long_adverse_open_jump", long_adverse_open_jump_bps),
+        ("short_adverse_open_jump", short_adverse_open_jump_bps),
+    ):
+        jump_distributions[name] = {f"p{p}": _percentile(values, p) for p in PERCENTILES}
+        jump_distributions[name]["max"] = max(values) if values else None
     results = []
     for distance_pct in distances:
         for side in ("LONG", "SHORT"):
@@ -93,6 +110,9 @@ def analyze_bars(rows, stop_distances):
             results.append(summary)
     return {
         "row_count": row_count, "first_timestamp_ms": first_ts, "last_timestamp_ms": last_ts,
+        "first_utc": datetime.fromtimestamp(first_ts / 1000.0, timezone.utc).isoformat(),
+        "last_utc": datetime.fromtimestamp(last_ts / 1000.0, timezone.utc).isoformat(),
+        "open_jump_distributions_bps": jump_distributions,
         "eligible_minute_transitions": eligible,
         "skipped_nonconsecutive_transitions": skipped, "scenarios": results,
     }
@@ -141,10 +161,21 @@ def main(argv=None):
             "No contract multiplier, lot/tick rounding, or account fee-tier assumptions",
         ],
         "stop_distances_pct": list(distances), "percentiles": list(PERCENTILES), "assets": assets,
+        "synthetic_stress_scenarios": [
+            {
+                "stop_distance_pct": distance,
+                "gap_beyond_stop_pct_of_reference_entry": gap,
+                "price_loss_multiple": (distance + gap) / distance,
+                "synthetic_only": True,
+            }
+            for distance in distances for gap in SYNTHETIC_GAP_BEYOND_STOP_PCT
+        ],
         "interpretation": {
             "gap_loss_multiple": "Adverse prior-close-to-next-open price move divided by the hypothetical stop distance; values are at least 1 for counted events.",
             "stop_overshoot_bps": "Distance from the stop level to the next open, in basis points of the stop level.",
             "gap_rate_pct": "Counted open-through-stop transitions divided by contiguous one-minute transitions.",
+            "open_jump_distributions_bps": "Absolute and direction-specific adverse next-open movement relative to the previous close across every contiguous transition, including zero values for the non-adverse direction.",
+            "synthetic_stress_scenarios": "Hypothetical extra gap beyond the stop, expressed as a percentage of reference entry; price loss multiple equals (stop distance + extra gap) / stop distance and excludes fees, slippage, and market impact.",
             "limitations": "This is a candle-open gap proxy, not a guaranteed fill-price distribution. It excludes intraminute execution slippage and order-book impact. Stop distances are sensitivity scenarios, not strategy parameters.",
         },
     }
@@ -153,7 +184,10 @@ def main(argv=None):
     print("G0-07 HISTORICAL STOP-GAP AUDIT")
     print(f"Assets: {len(assets)}")
     for asset in assets:
-        print(f"{asset['symbol']}: rows={asset['row_count']:,}, eligible={asset['eligible_minute_transitions']:,}, nonconsecutive_skipped={asset['skipped_nonconsecutive_transitions']:,}, sha256={asset['source_sha256']}")
+        jumps = asset["open_jump_distributions_bps"]
+        print(f"{asset['symbol']}: rows={asset['row_count']:,}, eligible={asset['eligible_minute_transitions']:,}, nonconsecutive_skipped={asset['skipped_nonconsecutive_transitions']:,}, period={asset['first_utc']}..{asset['last_utc']}, sha256={asset['source_sha256']}")
+        print(f"  open-jump abs bps: p50={jumps['absolute_open_jump']['p50']:.4f}, p99={jumps['absolute_open_jump']['p99']:.4f}, max={jumps['absolute_open_jump']['max']:.4f}")
+        print(f"  adverse max bps: long={jumps['long_adverse_open_jump']['max']:.4f}, short={jumps['short_adverse_open_jump']['max']:.4f}")
         for item in asset["scenarios"]:
             p95 = item["gap_loss_multiple"]["p95"]
             print(f"  {item['side']:5s} stop={item['stop_distance_pct']:g}% gaps={item['gap_events']:,} rate={item['gap_rate_pct'] if item['gap_rate_pct'] is not None else 'n/a'} p95_gap_loss={'n/a' if p95 is None else f'{p95:.4f}R'}")

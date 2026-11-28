@@ -74,6 +74,13 @@ jobs:
           python src/audit_stop_gap_risk.py \
             --data-dir data/market_1m \
             --output reports/g0_07_stop_gap_risk_audit_v1.json
+      - name: Upload historical stop-gap audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: g0-07-stop-gap-risk-audit-v1
+          path: reports/g0_07_stop_gap_risk_audit_v1.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Run full-window mark-price audit helper tests
         run: python -m unittest discover -s src -p 'test_phase3_funding_mark_price_full_coverage_v1.py' -v
       - name: Run funding coverage contract tests
