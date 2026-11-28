@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+from bisect import bisect_left
 import json
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -132,15 +133,41 @@ def verify_breakout_identity(root: Path, artifact: Path, rows: list[dict[str, st
     if len(expected) != EXPECTED["breakout"] or set(expected) != set(observed):
         stop(f"breakout exact reconciliation failed source={len(expected)} output={len(observed)}")
 
+    # Load only timestamps, not full OHLC dictionaries, and independently
+    # reconstruct each source event's observed 1m horizon.
+    minute_stamps = {}
+    for asset in ASSETS:
+        path = root / "data/market_1m" / f"{asset}_USDT_USDT_1m.csv"
+        if not path.is_file():
+            stop(f"missing raw 1m source: {path}")
+        stamps = []
+        with path.open("r", encoding="utf-8-sig", newline="") as handle:
+            reader = csv.DictReader(handle)
+            for row in reader:
+                stamps.append(int(row["ts"]))
+        if any(b <= a for a, b in zip(stamps, stamps[1:])):
+            stop(f"{asset} raw 1m timestamps are not strictly increasing")
+        minute_stamps[asset] = stamps
+
     # Independently reconstruct connected components of overlapping, half-open
-    # 12-hour observation intervals; no production clustering helper is used.
+    # observed 1m intervals; no production clustering helper is used.
     grouped: dict[str, list[tuple[int, int, str]]] = defaultdict(list)
     for key, source in expected.items():
         asset = source["asset"]
         start = integer(source, "signal_time_ms", "G0-04 raw")
-        observed_bars = observed_by_key.get(key, 720)
+        stamps = minute_stamps[asset]
+        index = bisect_left(stamps, start)
+        if index >= len(stamps) or stamps[index] != start:
+            stop(f"raw 1m source lacks exact event-start minute: {key}")
+        observed_bars = 0
+        for stamp in stamps[index:index + 720]:
+            if stamp != start + observed_bars * MINUTE_MS:
+                break
+            observed_bars += 1
         if not 0 < observed_bars <= 720:
             stop(f"invalid observed 12-hour window: {key}")
+        if key in observed_by_key and observed_by_key[key] != observed_bars:
+            stop(f"independent observed window differs from Module B: {key}")
         grouped[asset].append((start, start + observed_bars * MINUTE_MS, key))
     cluster_by_key = {}
     summary = Counter()
@@ -208,6 +235,7 @@ def verify_failed_breakouts(root: Path, rows: list[dict[str, str]], breakout_row
     if set(grouped) != set(observed):
         stop(f"failed-breakout exact source reconciliation failed source={len(grouped)} output={len(observed)}")
 
+    endpoint_exclusions = 0
     for key, members in grouped.items():
         row = observed[key]
         definitions = {member["definition"] for member in members}
@@ -233,9 +261,15 @@ def verify_failed_breakouts(root: Path, rows: list[dict[str, str]], breakout_row
         }
         if len(raw_confirmations) > 1:
             stop(f"cohort rows disagree on return-inside time: {key}")
-        confirmation = next(iter(raw_confirmations)) if raw_confirmations else None
-        if confirmation is not None and not signal < confirmation < expiry:
-            stop(f"confirmation is not strictly inside half-open 12h horizon: {key}")
+        raw_confirmation = next(iter(raw_confirmations)) if raw_confirmations else None
+        if raw_confirmation is not None and not signal < raw_confirmation <= expiry:
+            stop(f"observed return-inside time is outside the 12h lifecycle: {key}")
+        confirmation = raw_confirmation
+        if confirmation == expiry:
+            # The event was observed, but the exact right endpoint is excluded
+            # from canonical confirmation by the half-open lifecycle rule.
+            endpoint_exclusions += 1
+            confirmation = None
         complete_values = {member.get("complete_12h", "").lower() == "true" for member in members}
         if len(complete_values) != 1:
             stop(f"cohort rows disagree on 12h completion: {key}")
@@ -272,9 +306,12 @@ def verify_failed_breakouts(root: Path, rows: list[dict[str, str]], breakout_row
             stop(f"censored failed-breakout reason mismatch: {key}")
         if disposition == "ELIGIBLE_FOR_FURTHER_VALIDATION" and reason != "NONE":
             stop(f"eligible failed-breakout has non-NONE reason: {key}")
+    if endpoint_exclusions != 1:
+        stop(f"expected one exact-12h endpoint exclusion, observed {endpoint_exclusions}")
     return {"physical_source_events": len(grouped), "source_cohort_rows": len(source),
             "exact_source_identity_and_linkage": True,
-            "half_open_12h_lifecycle_checks": len(grouped)}
+            "half_open_12h_lifecycle_checks": len(grouped),
+            "exact_12h_endpoint_observations_excluded": endpoint_exclusions}
 
 
 def _iso_ms(value: str) -> int:
