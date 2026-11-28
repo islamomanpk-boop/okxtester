@@ -4,7 +4,7 @@
 **Project:** OKX Multi-Regime Price Action V1  
 **Canonical repository:** `islamomanpk-boop/okxtester`  
 **Canonical working branch:** `price-action-v1`  
-**Last control review:** 2026-11-25
+**Last control review:** 2026-11-28
 
 This document is the project-level navigation and control record. It does not replace detailed research protocols, phase roadmaps, source data, reports, or engineering specifications. Those remain in their specialist locations and must be linked here when discovered or created.
 
