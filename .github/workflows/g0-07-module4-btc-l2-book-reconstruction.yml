@@ -1,0 +1,40 @@
+name: G0-07 Module-4 BTC L2 Book Reconstruction
+on:
+  push:
+    branches: [price-action-v1]
+    paths:
+      - src/reconstruct_okx_module4_historical_l2_book.py
+      - src/test_reconstruct_okx_module4_historical_l2_book.py
+      - .github/workflows/g0-07-module4-btc-l2-book-reconstruction.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: g0-07-module4-btc-l2-book-reconstruction
+  cancel-in-progress: true
+jobs:
+  reconstruct:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out exact commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile reconstruction and tests
+        run: python -m py_compile src/reconstruct_okx_module4_historical_l2_book.py src/test_reconstruct_okx_module4_historical_l2_book.py
+      - name: Run focused unit tests
+        run: python -m unittest discover -s src -p 'test_reconstruct_okx_module4_historical_l2_book.py' -v
+      - name: Reconstruct full BTC module-4 archive in memory
+        run: python src/reconstruct_okx_module4_historical_l2_book.py
+      - name: Upload compact reconstruction report
+        uses: actions/upload-artifact@v4
+        with:
+          name: g0-07-module4-btc-l2-book-reconstruction-v1
+          path: reports/g0_07_module4_btc_l2_book_reconstruction_v1.json
+          if-no-files-found: error
+          retention-days: 30
