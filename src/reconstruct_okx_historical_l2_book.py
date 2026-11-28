@@ -111,8 +111,8 @@ def reconstruct_jsonl_member(handle, expected_inst_id):
     last_ts = None
     duplicate_timestamps = 0
     non_monotonic_timestamps = 0
-    crossed_books = 0
-    empty_books = 0
+    crossed_books_sampled = 0
+    empty_books_sampled = 0
     snapshots = 0
     updates = 0
     max_bid_levels = 0
@@ -121,24 +121,87 @@ def reconstruct_jsonl_member(handle, expected_inst_id):
     first_keys = None
     metric_sample_rows = 0
     last_metric_row = 0
-    crossed_books_sampled = 0
-    empty_books_sampled = 0
+    rows = 0
 
     def capture_metrics(row_number):
         nonlocal metric_sample_rows, last_metric_row
         nonlocal crossed_books_sampled, empty_books_sampled
-        record_count = sum(actions.values())
-        if record_count == 1 or record_count % METRIC_SAMPLE_EVERY_RECORDS == 0:
-            capture_metrics(record_count)
+        if not bids or not asks:
+            empty_books_sampled += 1
+            last_metric_row = row_number
+            return
+        best_bid = max(bids)
+        best_ask = min(asks)
+        if best_bid >= best_ask:
+            crossed_books_sampled += 1
+        mid = (best_bid + best_ask) / Decimal("2")
+        spread_bps.append(float((best_ask - best_bid) / mid * Decimal("10000")))
+        top_bids = heapq.nlargest(10, bids)
+        top_asks = heapq.nsmallest(10, asks)
+        bid_top10_contracts.append(float(sum(bids[p][0] for p in top_bids)))
+        ask_top10_contracts.append(float(sum(asks[p][0] for p in top_asks)))
+        metric_sample_rows += 1
+        last_metric_row = row_number
 
-    record_count = sum(actions.values())
-    if record_count != last_metric_row:
-        capture_metrics(record_count)
+    for raw_line in handle:
+        if not raw_line.strip():
+            continue
+        try:
+            row = json.loads(raw_line.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError("Archive member contains malformed JSON") from exc
+        if not isinstance(row, dict) or row.get("instId") != expected_inst_id:
+            raise ValueError("Archive record instrument ID mismatch")
+        action = row.get("action")
+        if action not in ("snapshot", "update"):
+            raise ValueError("Archive action must be snapshot or update")
+        try:
+            ts = int(row["ts"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError("Archive timestamp is missing or invalid") from exc
+        if first_ts is None:
+            first_ts = ts
+            first_keys = sorted(row.keys())
+        if previous_ts is not None:
+            delta = ts - previous_ts
+            timestamp_deltas[str(delta)] += 1
+            duplicate_timestamps += int(delta == 0)
+            non_monotonic_timestamps += int(delta < 0)
+        previous_ts = ts
+        last_ts = ts
+        if "seqId" in row or "prevSeqId" in row:
+            seqid_fields_seen += 1
 
+        if action == "snapshot":
+            bids = _levels_to_map(row.get("bids"), "bids")
+            asks = _levels_to_map(row.get("asks"), "asks")
+            snapshots += 1
+            if previous_snapshot_ts is not None:
+                snapshot_intervals[str(ts - previous_snapshot_ts)] += 1
+            previous_snapshot_ts = ts
+        else:
+            if snapshots == 0:
+                raise ValueError("Incremental update arrived before first snapshot")
+            _apply_changes(bids, row.get("bids"), "bids")
+            _apply_changes(asks, row.get("asks"), "asks")
+            _trim_depth(bids, "bids")
+            _trim_depth(asks, "asks")
+            updates += 1
+
+        actions[action] += 1
+        rows += 1
+        max_bid_levels = max(max_bid_levels, len(bids))
+        max_ask_levels = max(max_ask_levels, len(asks))
+        if rows == 1 or rows % METRIC_SAMPLE_EVERY_RECORDS == 0:
+            capture_metrics(rows)
+
+    if rows != last_metric_row:
+        capture_metrics(rows)
     if snapshots == 0 or not actions:
         raise ValueError("Archive contains no usable snapshot/update records")
+
     return {
-        "record_count": sum(actions.values()),
+        "record_count": rows,
         "action_counts": dict(actions),
         "snapshot_intervals_ms": dict(snapshot_intervals),
         "timestamp_delta_counts_ms": dict(sorted(timestamp_deltas.items(), key=lambda x: int(x[0]))),
@@ -166,7 +229,6 @@ def reconstruct_jsonl_member(handle, expected_inst_id):
             "zero quantity removes the level; retain best 5000 levels per side"
         ),
     }
-
 
 def fetch_archive_url():
     stamp = str(int(datetime.strptime(SAMPLE_DAY, "%Y-%m-%d")
