@@ -516,3 +516,14 @@ Canonical file hashes:
 Detailed checkpoint: `docs/research_checkpoints/2026-11-28_g0_05_independent_source_verification_closeout_v1.md`; dedicated build checkpoint: `docs/research_checkpoints/2026-11-28_g0_05_canonical_candidate_ledger_build_v1.md`.
 
 **Technical disposition:** G0-04 is ACCEPTED. G0-05 implementation, real canonical generation, full validation and independent post-build review are technically complete and READY FOR FORMAL CLOSEOUT. The project owner authorized generation; formal G0-05 acceptance has not yet been recorded and should not be inferred. Gate 0 remains CONDITIONAL HOLD due to independent funding/settlement-mark, fee/instrument, sizing/rounding/gap-risk and execution-engine acceptance blockers. No execution simulation, orders, fills, PnL, Gate 2+ or live trading was performed or authorized.
+
+
+### 12.31 G0-05 technical acceptance — 2026-11-28
+
+G0-05 is now **ACCEPTED — TECHNICAL CLOSEOUT COMPLETE** under `docs/research_checkpoints/2026-11-28_g0_05_acceptance_decision_v1.md`. The disposition is an assistant technical acceptance based on the owner's explicit canonical-build authorization and complete source, real-row and independent post-build evidence; it is not a human reviewer sign-off.
+
+Accepted scope: frozen source provenance and causal dispositions; three-family source-to-canonical reconciliation; 4,947 real records with exactly 60 required fields; deterministic IDs and uniqueness; full canonical row/ledger validation; 932/932 failed-breakout source links and inheritance; independent post-build review of JSONL/CSV equivalence, output hashes, source-manifest identity, exact-once reconciliation and dispositions.
+
+Final evidence remains workflow [46150045661](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150045661), artifact ID `15265023491`, ZIP SHA-256 `0b9464cbeda0a513cea915aae78a1c43aab2b5563448a0e19b247c02b4081935`.
+
+**Gate 0 remains CONDITIONAL HOLD — not passed.** G0-03 real-input funding/settlement-mark acceptance, G0-07 standalone sizing/rounding/gap risk, G0-08 fee/instrument assumptions and G0-09 exact settlement-mark/execution-engine readiness remain separate blockers. Gate 2+, strategy PnL backtests, orders, fills, execution simulation and live trading remain unauthorized.
