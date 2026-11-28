@@ -207,6 +207,16 @@ def main(argv=None):
     report = {
         "audit_id": "G0-07_STOP_GAP_RISK_HISTORICAL_1M_V1",
         "status": "HISTORICAL_OPEN_THROUGH_STOP_AUDIT_COMPLETE",
+        "source_provenance_review": {
+            "status": "UNVERIFIED_PRELIMINARY_ONLY",
+            "dataset_introduction_commit": "966a23843d8bad6bc79e3ea48c56edcace9e3a5d",
+            "exact_adjacent_open_match_pct_range": [
+                min(asset["identical_adjacent_open_pct"] for asset in assets),
+                max(asset["identical_adjacent_open_pct"] for asset in assets),
+            ],
+            "note": "The repository commit that introduced the five CSVs added only those data files; no upstream provider manifest or 1m acquisition/normalization procedure was documented in the reviewed repository paths. The high exact-open-match rate is a source-continuity warning, not proof of synthetic data.",
+            "required_before_acceptance": "Verify the original OHLCV provider/export, candle boundary convention, and any forward-fill or stitching transformations.",
+        },
         "method": "Stop-gap scenarios compare each positive-volume candle open with the close of the previous positive-volume candle. Zero-volume rows are treated as no-trade intervals; nonconsecutive timestamp breaks reset the active comparison. Adjacent one-minute opening-jump diagnostics are also reported separately.",
         "scope": [
             "Historical OHLC open-through-stop frequency and severity using positive-volume candles only",
