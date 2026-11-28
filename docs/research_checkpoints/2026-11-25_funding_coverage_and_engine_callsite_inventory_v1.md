@@ -87,3 +87,17 @@ Section 2 is the **pre-migration snapshot** supplied by the user's grep output. 
 The dedicated workflow compiles the engines, loader, cost-sensitivity runner, batch runner, and focused test files. Exact-commit workflow run: https://github.com/islamomanpk-boop/okxtester/actions/runs/45545754508 — **PASS, 75 tests**.
 
 This migration checklist is based on the captured grep inventory plus the focused workflow. A fresh repository-wide text-match audit should still be run before any future public API change. The local CSVs are not in GitHub, so CI's synthetic loader tests do not replace verification against the user's actual local source files.
+
+
+## 6. G0-03 funding contract integration extension — 2026-11-28
+
+The funding and execution CI suite now includes a dedicated standalone/portfolio funding arithmetic parity test and a read-only real-input integration harness.
+
+- New `src/test_funding_engine_parity.py` verifies both engines produce identical funding cashflows under exact and explicit candle-close-proxy modes, including the entry-exclusive/exit-inclusive settlement boundary.
+- New `src/audit_funding_contract_integration.py` loads the actual five local funding CSVs through the production `load_funding_contract` and `validate_funding_contract` path, checks the committed manifest hashes and exact schedule, and reconciles common timestamps. It does not simulate trades or calculate PnL.
+- New `src/test_funding_contract_integration.py` provides synthetic five-asset integration fixtures and fail-closed mismatch tests.
+- CI [46150715018](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150715018) — SUCCESS; **90/90 tests passed**.
+
+**Remaining real-input step:** the new integration harness must be run in the user's Termux environment because the actual funding CSVs remain local and are not committed. Command and expected report are documented in `docs/research_checkpoints/2026-11-28_g0_03_funding_contract_integration_v1.md`.
+
+**G0-03 remains PARTIALLY CLOSED / ACCEPTANCE OPEN** until that local integration report is reconciled and the funding mark-price policy is accepted. The current loader explicitly uses `candle_close_proxy`; exact settlement mark fidelity remains a separate unresolved Gate 0 requirement. No strategy PnL or real-input trade simulation was performed.
