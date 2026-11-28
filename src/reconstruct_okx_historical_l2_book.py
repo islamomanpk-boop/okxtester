@@ -110,6 +110,8 @@ def reconstruct_jsonl_member(handle, expected_inst_id):
     max_ask_levels = 0
     seqid_fields_seen = 0
     first_keys = None
+    snapshot_bid_level_counts = []
+    snapshot_ask_level_counts = []
     metric_sample_rows = 0
     last_metric_row = 0
     rows = 0
@@ -167,6 +169,8 @@ def reconstruct_jsonl_member(handle, expected_inst_id):
             bids = _levels_to_map(row.get("bids"), "bids")
             asks = _levels_to_map(row.get("asks"), "asks")
             snapshots += 1
+            snapshot_bid_level_counts.append(len(bids))
+            snapshot_ask_level_counts.append(len(asks))
             if previous_snapshot_ts is not None:
                 snapshot_intervals[str(ts - previous_snapshot_ts)] += 1
             previous_snapshot_ts = ts
@@ -193,6 +197,10 @@ def reconstruct_jsonl_member(handle, expected_inst_id):
         "record_count": rows,
         "action_counts": dict(actions),
         "snapshot_intervals_ms": dict(snapshot_intervals),
+        "snapshot_bid_level_count_min": min(snapshot_bid_level_counts),
+        "snapshot_bid_level_count_max": max(snapshot_bid_level_counts),
+        "snapshot_ask_level_count_min": min(snapshot_ask_level_counts),
+        "snapshot_ask_level_count_max": max(snapshot_ask_level_counts),
         "timestamp_delta_counts_ms": dict(sorted(timestamp_deltas.items(), key=lambda x: int(x[0]))),
         "timestamp_delta_exactly_1000ms_count": timestamp_deltas.get("1000", 0),
         "timestamp_delta_non_1000ms_count": sum(v for k, v in timestamp_deltas.items() if k != "1000"),
@@ -315,7 +323,8 @@ def main(argv=None):
         ],
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+    args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    json.loads(args.output.read_text(encoding="utf-8"))
     print("G0-07 HISTORICAL L2 BOOK RECONSTRUCTION")
     print(f"Date: {SAMPLE_DAY}; assets reconstructed: {len(results)}")
     print("Archive retained: no")
