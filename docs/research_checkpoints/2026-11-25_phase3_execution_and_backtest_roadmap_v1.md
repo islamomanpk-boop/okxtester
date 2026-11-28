@@ -209,3 +209,28 @@ The corrected read-only VPS inventory workflow [45647247070](https://github.com/
 - Module B breakout/failure lifecycle: ACCEPTED under `reports/phase3_breakout_lifecycle_v1_1/PHASE3_BREAKOUT_LIFECYCLE_CLOSEOUT_V1_1.md`. Same-revision deterministic output is confirmed by workflows 45644799449 and 45645349572; all 23 synthetic tests passed in both. Five outside-retest fields remain explicitly descriptive-only because they are absent from the frozen forward archive.
 
 Gate 1 completion does not bypass Gate 0. Gate 2 execution-resolution comparison remains closed until Gate 0 is formally passed. Gates 3–7 remain closed/not authorized in order. Phase 1 remains paused; no strategy PnL backtest or live-trading conclusion is authorized.
+
+
+## Superseding Gate 0 status snapshot — 2026-11-28
+
+This dated snapshot supersedes the earlier G0-04/G0-05 OPEN wording above. The eight-gate order and all unrelated blockers remain unchanged.
+
+### G0-04 — ACCEPTED
+
+G0-04 causal breakout reconstruction and past-only threshold comparison were formally accepted in `docs/research_checkpoints/2026-11-26_g0_04_acceptance_decision_v1.md`. Its frozen artifact remains pinned and is reverified by the G0-05 canonical build workflow.
+
+### G0-05 — TECHNICALLY COMPLETE; READY FOR FORMAL CLOSEOUT
+
+The owner-authorized canonical build and independent post-build review passed in workflow [46150045661](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150045661). The final artifact ID is `15265023491`; artifact ZIP SHA-256 is `0b9464cbeda0a513cea915aae78a1c43aab2b5563448a0e19b247c02b4081935`. The canonical ledger contains 4,947 real records, exactly 60 fields each, with deterministic IDs, exact source reconciliation, full row/ledger validation and all 932 failed-breakout source links independently checked. The post-build reviewer confirmed source-manifest/hash integrity and JSONL/CSV equivalence. Full evidence is in `docs/research_checkpoints/2026-11-28_g0_05_independent_source_verification_closeout_v1.md`.
+
+The technical G0-05 deliverable is complete. Keep the formal gate state at READY FOR FORMAL CLOSEOUT until a separate acceptance disposition is recorded; do not infer acceptance from workflow success alone.
+
+### Gate 0 — CONDITIONAL HOLD; not passed
+
+Even with G0-04 accepted and G0-05 technically complete, Gate 0 remains conditional hold because the following independent acceptance requirements remain open:
+- G0-03: reproducible real-input funding integration and exact settlement-mark policy acceptance.
+- G0-07: standalone sizing, exchange contract/lot/tick rounding and gap-through-stop risk.
+- G0-08: verified historical fee and instrument assumptions.
+- G0-09: exact settlement-mark fidelity and remaining execution-engine readiness.
+
+No Gate 2 execution-resolution comparison, Phase 3 strategy PnL backtest, strategy selection or live-trading conclusion is authorized. Preserve the agreed phase sequence and do not skip the remaining Gate 0 requirements.
