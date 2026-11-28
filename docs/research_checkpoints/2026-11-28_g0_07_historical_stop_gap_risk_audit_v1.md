@@ -82,3 +82,19 @@ More than half of every asset's consecutive candle opens exactly equal the prece
 ## Safety boundary
 
 This audit performed no strategy signal selection, trade simulation, strategy PnL calculation, execution-resolution comparison, orders, fills, or live trading. No Gate 2+ work is authorized by this checkpoint.
+
+
+## Follow-up source verification — 2026-11-28
+
+The later public-API sample verification supersedes the earlier source-warning disposition as follows: 35/35 sampled OHLC candles across BTC, ETH, SOL, DOGE and AVAX matched OKX V5 history-candles exactly, and 35/35 CSV volume values matched OKX volCcy (base-currency volume). The exact-open/previous-close pattern is therefore consistent with the sampled native OKX candles; it is not evidence by itself of synthetic stitching.
+
+The CSV volume unit is base currency, not contract count. It matched OKX contract vol only for SOL and AVAX in these samples; it did not match contract vol for BTC, ETH or DOGE. Do not use the CSV vol column as exchange contract quantity or for contract-lot rounding.
+
+- Source verification status: `OKX_SAMPLE_OHLC_AND_BASE_VOLUME_MATCH_NOT_FULL_PROVENANCE`.
+- Successful workflow: [46157813117](https://github.com/islamomanpk-boop/okxtester/actions/runs/46157813117).
+- Source sample artifact ID: `15267999478`.
+- Combined artifact ZIP SHA-256: `9deaae351954f7046c42e4a189cef8a7f61b68bbfb09371aaa18f3cee14ea76d`.
+- Gap report JSON SHA-256: `5262b452e72c9cd1765c9b8576a5fcfaa11bb22b8d81058f46e7d75e0252800c`.
+- Source verification JSON SHA-256: `346b81ad2beb3f82848ff47b1516be9d382b2f8dc12613c3e0108cbafc7de4e8`.
+
+This improves source confidence but does not certify every row or document the original full-file export pipeline. G0-07 remains OPEN for actual stop-order execution risk assumptions and exchange-specific sizing/rounding work after G0-08 metadata verification.

@@ -382,3 +382,12 @@ The five-asset one-minute OHLCV audit completed successfully in workflow [461573
 Evidence artifact ID `15268555549`; detailed checkpoint: `docs/research_checkpoints/2026-11-28_g0_07_historical_stop_gap_risk_audit_v1.md`.
 
 **G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD.** G0-08 contract metadata is still required for lot/tick/minimum-quantity rounding. No strategy PnL, execution simulation, orders, fills, Gate 2+ or live trading is authorized.
+
+
+### G0-07 source sample verification — 2026-11-28
+
+The public OKX V5 sample check passed: 35/35 sampled OHLC rows and 35/35 CSV volume values matched OKX base-currency volume (volCcy). The CSV vol column is base-currency volume, not contract count; do not use it as exchange contract quantity. Exact adjacent open/previous-close matches are consistent with the sampled OKX candles, although the check does not certify every row or the full acquisition pipeline.
+
+Workflow [46157813117](https://github.com/islamomanpk-boop/okxtester/actions/runs/46157813117), artifact ID `15267999478`. See `docs/research_checkpoints/2026-11-28_g0_07_okx_source_sample_verification_v1.md`.
+
+**G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD.** Real stop-order liquidity, trigger reference, latency, slippage/market impact and contract rounding remain unresolved. G0-08 instrument metadata is still required before rounding work. No strategy PnL, execution simulation, orders, fills, Gate 2+ or live trading is authorized.

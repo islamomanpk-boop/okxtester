@@ -36,3 +36,15 @@ This is evidence input only. G0-07 remains OPEN until the results and upstream O
 ## Additional source-continuity diagnostic
 
 The audit also reports the percentage of adjacent minute opens that exactly equal the preceding candle close, both across all bars and across positive-volume bars. A high exact-match rate is not proof of synthetic data, but it is a reason to verify the OHLCV provider and any candle stitching/forward-fill process before treating small measured opening gaps as representative of executable market gaps.
+
+
+## OKX source sample follow-up — 2026-11-28
+
+A separate read-only sample verifier compared 7 deterministic samples per asset (exact-open transitions, changed-open transitions, and the largest adjacent opening jump) against the public OKX V5 history-candles endpoint.
+
+- 35/35 sampled OHLC candles matched exactly.
+- 35/35 CSV volume values matched OKX volCcy (base-currency volume).
+- CSV volume matched OKX vol (contract count) for SOL and AVAX, whose contract/base units coincide in these samples; it did not match contract volume for BTC, ETH or DOGE.
+- No API errors occurred.
+
+Therefore the CSV vol field should be treated as base-currency volume, not contract count. OKX documents derivative vol in contracts and volCcy in base currency. This is sample-level source evidence, not a full-file certification; the original acquisition/normalization manifest is still absent.

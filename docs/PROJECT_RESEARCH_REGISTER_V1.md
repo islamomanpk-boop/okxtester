@@ -575,3 +575,14 @@ The audit analyzed 2,844,994 positive-volume candle-to-candle transitions over 2
 Artifact ID `15268555549`; ZIP SHA-256 `e9b622a3b4d7aafdc5edb8aa8fc059640e86a778dc2f68b60293db602f2e8dbf`; JSON report SHA-256 `5262b452e72c9cd1765c9b8576a5fcfaa11bb22b8d81058f46e7d75e0252800c`. Full method, per-file hashes, counts and limitations are in `docs/research_checkpoints/2026-11-28_g0_07_historical_stop_gap_risk_audit_v1.md`.
 
 **G0-07 remains OPEN.** Remaining work includes source-provenance verification, real stop-order liquidity/slippage/trigger limitations, and exchange contract rounding after G0-08 metadata is verified. The audit does not establish a maximum-loss guarantee. Gate 0 remains CONDITIONAL HOLD. No strategy PnL, execution simulation, orders, fills, Gate 2+ or live trading was performed or authorized.
+
+
+### 12.36 G0-07 OKX public OHLCV source sample verification — 2026-11-28
+
+Added a read-only public-API source sample verifier. Seven samples per asset (35 total) were compared with OKX V5 history-candles: **35/35 OHLC matches and 35/35 CSV volume matches to OKX volCcy (base-currency volume)**. No API errors occurred. CSV volume matched OKX contract volume only for SOL and AVAX in the sample; it did not match contract volume for BTC, ETH or DOGE. The CSV vol field must therefore be treated as base-currency volume, not contract count, for the verified samples.
+
+The 53.86%–58.47% exact adjacent open/previous-close match rates are consistent with sampled OKX candles and are not, by themselves, evidence of synthetic stitching. The sample check strongly supports OKX as the source but is not full-file certification; the original acquisition/normalization manifest remains undocumented.
+
+Successful workflow [46157813117](https://github.com/islamomanpk-boop/okxtester/actions/runs/46157813117); artifact ID `15267999478`; combined ZIP SHA-256 `9deaae351954f7046c42e4a189cef8a7f61b68bbfb09371aaa18f3cee14ea76d`; source verification JSON SHA-256 `346b81ad2beb3f82848ff47b1516be9d382b2f8dc12613c3e0108cbafc7de4e8`. Full evidence is in `docs/research_checkpoints/2026-11-28_g0_07_okx_source_sample_verification_v1.md`.
+
+**G0-07 remains OPEN** pending actual stop-order execution risk assumptions and exchange-specific sizing/rounding work after G0-08 metadata verification. Gate 0 remains CONDITIONAL HOLD; no strategy PnL, execution simulation, orders, fills, Gate 2+ or live trading is authorized.
