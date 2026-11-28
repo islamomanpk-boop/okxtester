@@ -22,7 +22,7 @@ from urllib.request import Request, urlopen
 BASE_URL = "https://www.okx.com"
 API_PATH = "/api/v5/public/market-data-history"
 SAMPLE_DAY = "2025-11-01"
-SAMPLE_FAMILY = "BTC-USDT"
+SAMPLE_FAMILIES = ("BTC-USDT", "ETH-USDT", "SOL-USDT", "DOGE-USDT", "AVAX-USDT")
 SAMPLE_MODULE = "5"
 DEPTH_LIMIT = 5000
 METRIC_SAMPLE_EVERY_RECORDS = 60
@@ -73,15 +73,6 @@ def _apply_changes(book_side, levels, side):
         else:
             book_side[price] = (size, count)
 
-
-def _trim_depth(book_side, side):
-    if len(book_side) <= DEPTH_LIMIT:
-        return
-    keep = set(heapq.nlargest(DEPTH_LIMIT, book_side) if side == "bids"
-               else heapq.nsmallest(DEPTH_LIMIT, book_side))
-    for price in list(book_side):
-        if price not in keep:
-            del book_side[price]
 
 
 def _percentiles(values):
@@ -216,25 +207,25 @@ def reconstruct_jsonl_member(handle, expected_inst_id):
         "empty_book_observations_sampled": empty_books_sampled,
         "metric_sample_interval_records": METRIC_SAMPLE_EVERY_RECORDS,
         "metric_sample_count": metric_sample_rows,
-        "max_bid_levels_after_depth_trim": max_bid_levels,
-        "max_ask_levels_after_depth_trim": max_ask_levels,
+        "max_bid_levels_observed": max_bid_levels,
+        "max_ask_levels_observed": max_ask_levels,
         "spread_bps": _percentiles(spread_bps),
         "top10_bid_depth_contracts": _percentiles(bid_top10_contracts),
         "top10_ask_depth_contracts": _percentiles(ask_top10_contracts),
         "depth_unit": "contracts (linear SWAP order-book size)",
         "reconstruction_policy": (
             "snapshot replaces both sides; updates replace a price level; "
-            "zero quantity removes the level; periodic snapshots reset both sides; no additional depth truncation is applied"
+            "zero quantity removes the level; periodic snapshots reset both sides; observed map size is not artificially truncated"
         ),
     }
 
-def fetch_archive_url():
+def fetch_archive_url(family):
     stamp = str(int(datetime.strptime(SAMPLE_DAY, "%Y-%m-%d")
                    .replace(tzinfo=timezone.utc).timestamp() * 1000))
     params = {
         "module": SAMPLE_MODULE,
         "instType": "SWAP",
-        "instFamilyList": SAMPLE_FAMILY,
+        "instFamilyList": family,
         "dateAggrType": "daily",
         "begin": stamp,
         "end": stamp,
@@ -247,7 +238,7 @@ def fetch_archive_url():
         raise ValueError("OKX historical-data API returned a nonzero code")
     for block in payload.get("data", []):
         for detail in block.get("details", []):
-            if detail.get("instFamily") != SAMPLE_FAMILY:
+            if detail.get("instFamily") != family:
                 continue
             for item in detail.get("groupDetails", []):
                 if SAMPLE_DAY in item.get("filename", "") and item.get("url", "").startswith("https://"):
@@ -255,7 +246,7 @@ def fetch_archive_url():
     raise ValueError("Expected BTC 5000-level archive is not available")
 
 
-def inspect_download(url, metadata):
+def inspect_download(url, metadata, expected_inst_id):
     digest = hashlib.sha256()
     downloaded_size = 0
     with tempfile.NamedTemporaryFile(prefix="okx_l2_book_", suffix=".tar.gz") as tmp:
@@ -277,7 +268,7 @@ def inspect_download(url, metadata):
             handle = archive.extractfile(member)
             if handle is None:
                 raise ValueError("Unable to read archive member")
-            stats = reconstruct_jsonl_member(handle, "BTC-USDT-SWAP")
+            stats = reconstruct_jsonl_member(handle, expected_inst_id)
     return {
         "filename": metadata["filename"],
         "advertised_size_mb": metadata.get("sizeMB"),
@@ -294,31 +285,39 @@ def main(argv=None):
     parser.add_argument("--output", type=Path,
                         default=Path("reports/g0_07_historical_l2_book_reconstruction_v1.json"))
     args = parser.parse_args(argv)
-    url, metadata = fetch_archive_url()
-    result = inspect_download(url, metadata)
+
+    results = []
+    for family in SAMPLE_FAMILIES:
+        url, metadata = fetch_archive_url(family)
+        result = inspect_download(url, metadata, family + "-SWAP")
+        results.append({"inst_family": family, **result})
+        print(
+            f"{family}: spread_bps={json.dumps(result['spread_bps'], sort_keys=True)} "
+            f"top10_bid_contracts_p50={result['top10_bid_depth_contracts']['p50']} "
+            f"top10_ask_contracts_p50={result['top10_ask_depth_contracts']['p50']} "
+            f"crossed_sampled={result['crossed_book_observations_sampled']}"
+        )
+
     report = {
         "audit_id": "G0-07_OKX_HISTORICAL_L2_BOOK_RECONSTRUCTION_V1",
         "captured_at_utc": datetime.now(timezone.utc).isoformat(),
-        "instrument_family": SAMPLE_FAMILY,
         "date_utc": SAMPLE_DAY,
         "module": SAMPLE_MODULE,
-        "downloaded_archive_retained": False,
-        "result": result,
+        "module_description": "5000-level orderbook",
+        "instrument_families": list(SAMPLE_FAMILIES),
+        "downloaded_archives_retained": False,
+        "results": results,
         "limitations": [
-            "One BTC instrument/day sample only; not all-asset or full-period validation.",
-            "Historical archive has no seqId/prevSeqId fields; timestamp ordering cannot prove lossless update continuity.",
+            "One date across five instrument families only; not full-period validation.",
+            "Historical archives have no seqId/prevSeqId fields; timestamp ordering cannot prove lossless update continuity.",
             "Visible depth does not prove queue position, hidden liquidity, latency, market impact or guaranteed fills.",
             "Top-10 depth is reported in contracts, not USDT notional; historical effective contract-value metadata is not established.",
         ],
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
     print("G0-07 HISTORICAL L2 BOOK RECONSTRUCTION")
-    print(f"Records: {result['record_count']}; snapshots={result['action_counts'].get('snapshot', 0)}; updates={result['action_counts'].get('update', 0)}")
-    print(f"Crossed-book observations (sampled): {result['crossed_book_observations_sampled']}")
-    print(f"Spread bps min/p50/p95/max: {json.dumps(result['spread_bps'], sort_keys=True)}")
-    print(f"Top-10 bid depth contracts p50/p95: {result['top10_bid_depth_contracts']['p50']}/{result['top10_bid_depth_contracts']['p95']}")
-    print(f"Top-10 ask depth contracts p50/p95: {result['top10_ask_depth_contracts']['p50']}/{result['top10_ask_depth_contracts']['p95']}")
+    print(f"Date: {SAMPLE_DAY}; assets reconstructed: {len(results)}")
     print("Archive retained: no")
     print(f"Report: {args.output}")
 

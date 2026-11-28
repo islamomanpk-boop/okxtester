@@ -15,7 +15,7 @@ concurrency:
 jobs:
   reconstruct:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Check out exact commit
         uses: actions/checkout@v4
@@ -29,7 +29,7 @@ jobs:
         run: python -m py_compile src/reconstruct_okx_historical_l2_book.py src/test_reconstruct_okx_historical_l2_book.py
       - name: Run reconstruction unit tests
         run: python -m unittest discover -s src -p 'test_reconstruct_okx_historical_l2_book.py' -v
-      - name: Reconstruct one BTC L2 day in memory
+      - name: Reconstruct five asset L2 archives in memory
         run: python src/reconstruct_okx_historical_l2_book.py
       - name: Upload compact book statistics
         uses: actions/upload-artifact@v4

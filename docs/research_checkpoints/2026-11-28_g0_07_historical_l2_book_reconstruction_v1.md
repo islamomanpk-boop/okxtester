@@ -25,3 +25,22 @@ The archive does not expose `seqId` or `prevSeqId`; therefore, the reconstructio
 - Report: `reports/g0_07_historical_l2_book_reconstruction_v1.json` (CI artifact only).
 
 This is one instrument/day and is not a fill simulator. No account credentials, order placement, or strategy PnL are involved. G0-07 remains OPEN pending the observed reconstruction result, cross-asset/date validation, event alignment, and explicit execution-cost limitations.
+
+
+## Single-day BTC reconstruction results and cross-asset extension — 2026-11-28
+
+The BTC 2025-11-01 reconstruction workflow completed SUCCESS:
+- 86,400 records; 96 snapshots and 86,304 updates.
+- Snapshot intervals were overwhelmingly 900,000 ms (15 minutes), with small millisecond variation.
+- No duplicate or backwards timestamps.
+- 86,351/86,399 adjacent intervals were exactly 1,000 ms; 48 intervals differed.
+- No sequence identifiers were present.
+- At 10-record metric sampling (about 10 seconds): 8,641 metric points, zero crossed-book observations and zero empty-book observations.
+- Spread basis points: min 0.00905074, median 0.00908663, p95 0.00912432, max 0.23629382.
+- Top-10 depth in contracts: bid median 452.10 / p95 1,547.03; ask median 483.43 / p95 1,671.72.
+- A second run at 60-record (about one-minute) sampling gave median spread 0.00908654 and p95 0.00912471, with zero crossed-book observations. Top-10 depth medians were 434.44 bid contracts and 466.44 ask contracts.
+- Both runs downloaded and deleted the same 82,822,265-byte archive (SHA-256 `940c807fec7e39cf10fba718afe36ac2fb2ecfeb887e1645d4b7c07c6cf4e102`). Reports are CI artifacts 15272944656 and 15273664101.
+
+The spread statistics are stable between 10-second and one-minute metric sampling for this one day. The top-10 depth medians vary modestly with sampling interval, as expected for a time-varying book. These are observed visible-book statistics, not fills or calibrated slippage assumptions.
+
+The next workflow extends the same snapshot/update reconstruction to all five project instruments on 2025-11-01. It downloads each archive sequentially in GitHub Actions, reconstructs in memory, and deletes each temporary archive. It does not store raw order-book archives in GitHub or on the VPS.
