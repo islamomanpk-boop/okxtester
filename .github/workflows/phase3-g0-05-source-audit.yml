@@ -28,14 +28,52 @@ jobs:
           ref: price-action-v1
           persist-credentials: false
 
-      - name: Download frozen G0-04 artifact
+      - name: Download and verify frozen G0-04 artifact
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh run download 45756061179 \
-            --repo "${{ github.repository }}" \
-            --name phase3-g0-04-causal-reconstruction-45756061179 \
-            --dir g004_artifact
+          set -euo pipefail
+
+          artifact_id=15087542445
+          source_run_id=45756061179
+          artifact_name="phase3-g0-04-causal-reconstruction-45756061179"
+
+          # Confirm the exact pinned artifact still exists, has the expected name,
+          # and has not expired before downloading it.
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${source_run_id}/artifacts?per_page=100" \
+            --jq "[.artifacts[] | select(.id == ${artifact_id} and .name == \"${artifact_name}\" and .expired == false)] | length == 1" \
+            | grep -qx true
+
+          # Read the expected digest from the audited source file so the workflow
+          # cannot silently drift from the provenance pin.
+          expected_sha256="$(python - <<'PY'
+          import ast
+          from pathlib import Path
+
+          tree = ast.parse(Path("research/phase3_g0_05_source_manifest_audit_v1.py").read_text())
+          for node in tree.body:
+              if isinstance(node, ast.Assign) and any(
+                  isinstance(target, ast.Name) and target.id == "G004_ZIP_SHA256"
+                  for target in node.targets
+              ):
+                  print(ast.literal_eval(node.value))
+                  break
+          else:
+              raise SystemExit("G004_ZIP_SHA256 is not defined as a literal")
+          PY
+          )"
+          [[ "$expected_sha256" =~ ^[0-9a-f]{64}$ ]]
+
+          curl --fail --location --retry 3 \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" \
+            --output g004_artifact.zip
+
+          printf '%s  %s\\n' "$expected_sha256" "g004_artifact.zip" | sha256sum --check -
+          mkdir -p g004_artifact
+          unzip -q g004_artifact.zip -d g004_artifact
+          rm g004_artifact.zip
 
       - name: Compile source audit
         run: python -m py_compile research/phase3_g0_05_source_manifest_audit_v1.py
