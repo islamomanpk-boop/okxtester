@@ -285,3 +285,19 @@ The independent verifier consumed the latest source-audit artifact from run `458
 - Result: `INDEPENDENT_EXACT_MINUTE_MEMBERSHIP_PASS`; 2,857/2,857 eligible timestamps present; 2,090 non-eligible rows blank; all five raw 1m files re-hashed and minute grids validated.
 
 This confirms that importing/reporting the full 60-field validator did not change source dispositions or eligible-minute membership.
+
+
+## 24. Superseding real canonical build disposition — 2026-11-28
+
+The earlier status statements in this document that no real candidate rows had been generated are historical and are superseded. The project owner explicitly authorized the build. Workflow [46150045661](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150045661) successfully generated and validated the real canonical ledger and passed a separate independent post-build review.
+
+- 4,947 real canonical records; exactly 60 fields each.
+- Family totals: 558 support rejection, 596 resistance rejection, 2,861 breakout continuation, 932 failed-breakout reversal.
+- Aggregate dispositions: 2,856 eligible, 1,884 rejected, 207 expired, 0 censored.
+- 932/932 failed-breakout source candidate links and inherited fields passed.
+- Candidate IDs were independently recomputed; source identities reconciled exactly once.
+- JSONL/CSV exports were semantically equivalent; file hashes and complete source-manifest ID were independently reverified.
+
+Final artifact ID `15265023491`, ZIP SHA-256 `0b9464cbeda0a513cea915aae78a1c43aab2b5563448a0e19b247c02b4081935`. Full record: `docs/research_checkpoints/2026-11-28_g0_05_independent_source_verification_closeout_v1.md`.
+
+The frozen field values and identity semantics in this document remain controlling. **G0-05 technical implementation/build/validation is complete and READY FOR FORMAL CLOSEOUT; formal gate acceptance is a separate disposition.** This does not authorize orders, fills, execution simulation, PnL, strategy selection, Gate 2+ or live trading. Gate 0 remains CONDITIONAL HOLD due to separate blockers.
