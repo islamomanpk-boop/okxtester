@@ -41,7 +41,7 @@ class StopGapRiskAuditTests(unittest.TestCase):
     def test_open_jump_distribution_includes_adverse_direction_and_max(self):
         result = analyze_bars([
             bar(60000, 100, 100.2, 99.8, 100),
-            bar(120000, 99.8, 100, 99.7, 99.9),
+            bar(120000, 99.8, 100, 99.7, 100.0),
             bar(180000, 100.1, 100.2, 100, 100.15),
         ], [0.2])
         jumps = result["open_jump_distributions_bps"]
