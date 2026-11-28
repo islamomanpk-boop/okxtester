@@ -495,6 +495,85 @@ class G005ContractTests(unittest.TestCase):
             record[field] = None
         validate_canonical_candidate_record(record)
 
+    def test_canonical_record_rejects_strict_label_above_p25_width(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["channel_width_pct"] = 9.6
+        with self.assertRaisesRegex(ValueError, "STRICT_P25 label conflicts"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_strict_label_over_efficiency_limit(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["efficiency_value"] = 0.31
+        with self.assertRaisesRegex(ValueError, "STRICT_P25 label conflicts"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_strict_label_below_overlap_minimum(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["overlap_value"] = 0.69
+        with self.assertRaisesRegex(ValueError, "STRICT_P25 label conflicts"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_broad_only_above_p40_width(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["causal_cohort_label"] = "BROAD_ONLY"
+        record["threshold_percentile"] = 40
+        record["channel_width_pct"] = 9.6
+        with self.assertRaisesRegex(ValueError, "BROAD_ONLY label conflicts"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_broad_only_failed_efficiency(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["causal_cohort_label"] = "BROAD_ONLY"
+        record["threshold_percentile"] = 40
+        record["efficiency_value"] = 0.31
+        with self.assertRaisesRegex(ValueError, "BROAD_ONLY label conflicts"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_broad_only_failed_overlap(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["causal_cohort_label"] = "BROAD_ONLY"
+        record["threshold_percentile"] = 40
+        record["overlap_value"] = 0.69
+        with self.assertRaisesRegex(ValueError, "BROAD_ONLY label conflicts"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_not_eligible_when_all_broad_conditions_pass(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["causal_cohort_label"] = "NOT_ELIGIBLE"
+        record["threshold_percentile"] = 40
+        with self.assertRaisesRegex(ValueError, "NOT_ELIGIBLE label has no failing"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_accepts_not_eligible_with_broad_feature_failure(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["causal_cohort_label"] = "NOT_ELIGIBLE"
+        record["threshold_percentile"] = 40
+        record["efficiency_value"] = 0.31
+        validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_evaluated_label_with_missing_features(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["efficiency_value"] = None
+        with self.assertRaisesRegex(ValueError, "requires efficiency and overlap"):
+            validate_canonical_candidate_record(record)
+
+    def test_regime_eligible_candidate_can_be_rejected_for_separate_source_issue(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["candidate_status"] = "REJECTED"
+        record["exclusion_reason"] = "SOURCE_HASH_MISMATCH"
+        record["first_eligible_execution_bar_open_ts_ms"] = None
+        validate_canonical_candidate_record(record)
+
     def test_canonical_record_rejects_missing_required_lineage(self):
         record = self._canonical_candidate_fixture(
             "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
