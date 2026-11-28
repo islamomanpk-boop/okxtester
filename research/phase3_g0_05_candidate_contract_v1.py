@@ -420,10 +420,17 @@ def validate_canonical_candidate_record(row: dict) -> None:
         if row["signal_candle_close_ts_ms"] is not None or row["signal_available_at_ts_ms"] is not None:
             raise ValueError("unconfirmed failed-breakout row must omit all signal candle timestamps")
     else:
+        if row["signal_candle_close_ts_ms"] is None or row["signal_available_at_ts_ms"] is None:
+            raise ValueError("completed signal candle requires close and availability timestamps")
         if row["signal_candle_close_ts_ms"] - row["signal_candle_open_ts_ms"] != FIFTEEN_MIN_MS:
             raise ValueError("signal candle must be exactly 15 minutes")
+        if (row["signal_candle_open_ts_ms"] % FIFTEEN_MIN_MS != 0
+                or row["signal_candle_close_ts_ms"] % FIFTEEN_MIN_MS != 0):
+            raise ValueError("completed 15m candle timestamps must be quarter-hour aligned")
         if row["signal_available_at_ts_ms"] != row["signal_candle_close_ts_ms"]:
             raise ValueError("signal availability must equal completed 15m close")
+        if row["event_observed_at_ts_ms"] != row["signal_available_at_ts_ms"]:
+            raise ValueError("confirmed event observation must equal completed signal availability")
     ambiguity_flags = row["ambiguity_flags"]
     if not isinstance(ambiguity_flags, list):
         raise ValueError("ambiguity_flags must be a list")
@@ -455,6 +462,11 @@ def validate_canonical_candidate_record(row: dict) -> None:
         if (reason != "NONE" or type(row["first_eligible_execution_bar_open_ts_ms"]) is not int
                 or row["first_eligible_execution_bar_open_ts_ms"] != row["signal_available_at_ts_ms"]):
             raise ValueError("eligible candidate requires NONE reason and exact first eligible minute")
+        if (family != "FAILED_BREAKOUT_REVERSAL"
+                and not snapshot_is_valid(
+                    row["snapshot_available_at_ts_ms"], row["snapshot_valid_until_ts_ms"],
+                    row["signal_available_at_ts_ms"])):
+            raise ValueError("eligible rejection/breakout signal must fall inside snapshot validity")
     else:
         if row["first_eligible_execution_bar_open_ts_ms"] is not None:
             raise ValueError("non-eligible candidate must not expose a first eligible minute")
