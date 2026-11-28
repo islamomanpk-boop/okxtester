@@ -228,8 +228,8 @@ def failed_breakout_confirmation(direction: str, close: float, boundary: float,
         raise ValueError("direction must be UPPER or LOWER")
     if confirmation_ms <= signal_ms:
         raise ValueError("failure confirmation must follow source breakout availability")
-    if confirmation_ms > signal_ms + FAILURE_HORIZON_MS:
-        raise ValueError("failed-breakout confirmation is outside the 12-hour observation horizon")
+    if confirmation_ms >= signal_ms + FAILURE_HORIZON_MS:
+        raise ValueError("failed-breakout confirmation is outside the half-open 12-hour observation horizon")
     returned_inside = close <= boundary if direction == "UPPER" else close >= boundary
     if not returned_inside:
         raise ValueError("completed 15-minute close has not returned inside the original range")
@@ -727,6 +727,6 @@ def failed_breakout_horizon_disposition(signal_ms: int, confirmation_ms: int | N
                 else "CENSORED_SOURCE_END_BEFORE_RESOLUTION")
     if confirmation_ms <= signal_ms:
         raise ValueError("failure confirmation must follow source breakout")
-    if confirmation_ms > signal_ms + FAILURE_HORIZON_MS:
-        raise ValueError("failure confirmation is outside the 12-hour horizon")
+    if confirmation_ms >= signal_ms + FAILURE_HORIZON_MS:
+        raise ValueError("failure confirmation is outside the half-open 12-hour horizon")
     return "CONFIRMED_WITHIN_12H"
