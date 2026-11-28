@@ -13,7 +13,8 @@ EXPECTED = {
     "DOGE": ("eabf087b1a782d316fa1560b10fc4ee7adfc0adb426ef3d1158dc18c248c40f4", 569126),
     "AVAX": ("44ac7db951247a374aecba845336517b82b2655489920d62ec70f9b02fccdfd5", 569127),
 }
-EXPECTED_FAMILY = {"rejection": 1083, "breakout": 1038, "failed_breakout": 736}
+# One historical failed-breakout observation occurs exactly at +12h and is excluded canonically.
+EXPECTED_FAMILY = {"rejection": 1083, "breakout": 1038, "failed_breakout": 735}
 
 def require(ok, message):
     if not ok:
@@ -110,10 +111,10 @@ def main():
         "raw_1m_inputs": raw_audit,
         "disposition_ledgers": result,
         "eligible_rows_checked": sum(v["eligible"] for v in result.values()),
-        "eligible_rows_expected": 2857,
+        "eligible_rows_expected": 2856,
         "scope": "raw timestamp membership and eligible-field semantics only; not G0-05 gate approval",
     }
-    require(report["eligible_rows_checked"] == 2857, "aggregate eligible row count mismatch")
+    require(report["eligible_rows_checked"] == 2856, "aggregate eligible row count mismatch")
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(report, sort_keys=True))
