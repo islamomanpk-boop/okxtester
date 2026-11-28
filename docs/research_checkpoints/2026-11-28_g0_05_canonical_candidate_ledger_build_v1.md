@@ -77,3 +77,21 @@ This closes the specific previously missing real-row generation/validation step.
 No orders, fills, execution simulations, PnL, strategy comparisons, strategy selection or live trading were run or authorized. Gate 2 and later remain closed. Phase 3 strategy PnL backtesting is not authorized.
 
 **Next safe action:** inspect the canonical evidence artifact and conduct a read-only post-build reconciliation/review against the accepted G0-05 field mapping, source manifest and family counts. Only after that review should the G0-05 gate status be formally updated. Gate 0 blockers remain separate.
+
+
+## 6. Superseding final artifact and independent post-build review — 2026-11-28
+
+The final authoritative run is [46150045661](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150045661), SUCCESS on workflow commit `19a6325780693696890f9f3493a713702e8a8f7f`. It includes the independent post-build review and supersedes the build-only artifact recorded in Section 1.
+
+- Final artifact ID: `15265023491`.
+- Final artifact ZIP SHA-256: `0b9464cbeda0a513cea915aae78a1c43aab2b5563448a0e19b247c02b4081935`.
+- Final artifact size: 2,588,629 bytes.
+- Final canonical JSONL SHA-256: `387d376bc269587de6fb48686641cd27e885a2d3bd6c6a8ae96a9a9dd61333d8`.
+- Final canonical CSV SHA-256: `325c714e5923612a711d18a855d1540e1f59b27d26d65636ebabd7578c81bb43`.
+- Source manifest ID: `8458ca73f07db7d3ff4517123dd0d6b33acb39e99174ecd39056b585a9988c82`.
+
+The separate standard-library reviewer returned `G0_05_POST_BUILD_EVIDENCE_REVIEW_PASS`. It independently verified the exact 60-field schema, 4,947 row count, deterministic candidate IDs, family/source uniqueness, JSONL/CSV equivalence, canonical output hashes, source manifest identity, exact-once source-to-canonical reconciliation, all 932 failed-breakout links and inherited source fields, and aggregate dispositions.
+
+The canonical ledger content and counts are unchanged across the repeated deterministic builds; the exact output bytes/hashes differ because each run's complete source manifest records that run's own GitHub commit/run provenance. Use only the final artifact and hashes above for current downstream references.
+
+**Disposition:** real canonical generation, full validation and independent post-build review are complete. G0-05 is READY FOR FORMAL CLOSEOUT; formal gate acceptance remains a separate decision. Gate 0 remains CONDITIONAL HOLD due to its separate funding/settlement, fee/instrument, sizing/rounding/gap-risk and execution-engine blockers.
