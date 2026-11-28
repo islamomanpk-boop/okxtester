@@ -1,0 +1,40 @@
+name: G0-07 Historical L2 Orderbook Availability Probe
+on:
+  push:
+    branches: [price-action-v1]
+    paths:
+      - src/probe_okx_historical_orderbook_availability.py
+      - src/test_probe_okx_historical_orderbook_availability.py
+      - .github/workflows/g0-07-historical-orderbook-availability.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: g0-07-historical-orderbook-availability
+  cancel-in-progress: false
+jobs:
+  availability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out exact commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile probe and tests
+        run: python -m py_compile src/probe_okx_historical_orderbook_availability.py src/test_probe_okx_historical_orderbook_availability.py
+      - name: Run parser unit tests
+        run: python -m unittest discover -s src -p 'test_probe_okx_historical_orderbook_availability.py' -v
+      - name: Query public OKX archive availability
+        run: python src/probe_okx_historical_orderbook_availability.py
+      - name: Upload availability manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: g0-07-historical-orderbook-availability-v1
+          path: reports/g0_07_historical_orderbook_availability_v1.json
+          if-no-files-found: error
+          retention-days: 30
