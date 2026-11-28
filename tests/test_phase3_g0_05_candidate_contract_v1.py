@@ -296,6 +296,19 @@ class G005ContractTests(unittest.TestCase):
         record["candidate_id"] = candidate_id(source_event_id, family, rule_version)
         return record
 
+    def _canonical_linked_candidate_pair(self):
+        breakout_identity = "BTC|UPPER|1761287400000|1761278400000"
+        breakout = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", breakout_identity, 1761287400000, "UPPER", "LONG")
+        confirmation = 1761291000000
+        failed_identity = (
+            f"{breakout["candidate_id"]}|{confirmation}|G0_05_CANDIDATE_RULE_V1")
+        failed = self._canonical_candidate_fixture(
+            "FAILED_BREAKOUT_REVERSAL", failed_identity, confirmation, "UPPER", "SHORT",
+            source_breakout_candidate_id=breakout["candidate_id"],
+            source_breakout_signal_available=breakout["signal_available_at_ts_ms"])
+        return breakout, failed, confirmation
+
     def test_full_canonical_candidate_ledger_accepts_exact_breakout_link(self):
         breakout_identity = "BTC|UPPER|1761287400000|1761278400000"
         breakout = self._canonical_candidate_fixture(
@@ -629,6 +642,81 @@ class G005ContractTests(unittest.TestCase):
         self.assertEqual(result["candidate_rows"], 2)
         self.assertEqual(result["failed_breakout_source_links_validated"], 1)
         self.assertTrue(result["candidate_ids_unique"])
+
+    def test_failed_breakout_inherits_snapshot_and_boundary_provenance(self):
+        breakout, failed, _ = self._canonical_linked_candidate_pair()
+        failed["snapshot_id"] = "BTC|different"
+        with self.assertRaisesRegex(ValueError, "does not inherit source breakout snapshot_id"):
+            validate_candidate_identity_links([breakout, failed])
+
+    def test_failed_breakout_inherits_snapshot_availability_and_validity(self):
+        breakout, failed, _ = self._canonical_linked_candidate_pair()
+        failed["snapshot_valid_until_ts_ms"] += 1
+        with self.assertRaisesRegex(ValueError, "does not inherit source breakout snapshot_valid_until"):
+            validate_candidate_identity_links([breakout, failed])
+
+    def test_failed_breakout_inherits_asset_and_instrument(self):
+        breakout, failed, _ = self._canonical_linked_candidate_pair()
+        failed["instrument_id"] = "ETH-USDT-SWAP"
+        with self.assertRaisesRegex(ValueError, "does not inherit source breakout instrument_id"):
+            validate_candidate_identity_links([breakout, failed])
+
+    def test_failed_breakout_preserves_original_breakout_direction(self):
+        breakout, failed, _ = self._canonical_linked_candidate_pair()
+        failed["boundary_side"] = "LOWER"
+        with self.assertRaisesRegex(ValueError, "does not inherit source breakout boundary_side"):
+            validate_candidate_identity_links([breakout, failed])
+
+    def test_failed_breakout_inherits_historical_memberships(self):
+        breakout, failed, _ = self._canonical_linked_candidate_pair()
+        failed["historical_cohort_memberships"] = ["BROAD_P40", "STRICT_P25"]
+        with self.assertRaisesRegex(ValueError, "does not inherit source breakout historical_cohort_memberships"):
+            validate_candidate_identity_links([breakout, failed])
+
+    def test_failed_breakout_inherits_threshold_and_detector_provenance(self):
+        breakout, failed, _ = self._canonical_linked_candidate_pair()
+        failed["threshold_value"] = 9.6
+        with self.assertRaisesRegex(ValueError, "does not inherit source breakout threshold_value"):
+            validate_candidate_identity_links([breakout, failed])
+
+    def test_failed_breakout_inherits_repeated_signal_and_overlap_metadata(self):
+        breakout, failed, _ = self._canonical_linked_candidate_pair()
+        failed["overlap_cluster_size"] += 1
+        with self.assertRaisesRegex(ValueError, "does not inherit source breakout overlap_cluster_size"):
+            validate_candidate_identity_links([breakout, failed])
+
+    def test_failed_breakout_side_must_reverse_source_breakout(self):
+        breakout, failed, _ = self._canonical_linked_candidate_pair()
+        failed["side"] = "LONG"
+        with self.assertRaisesRegex(ValueError, "must reverse the linked breakout side"):
+            validate_candidate_identity_links([breakout, failed])
+
+    def test_failed_breakout_cannot_be_eligible_if_source_breakout_is_rejected(self):
+        breakout, failed, _ = self._canonical_linked_candidate_pair()
+        breakout["candidate_status"] = "REJECTED"
+        breakout["exclusion_reason"] = "SOURCE_HASH_MISMATCH"
+        breakout["first_eligible_execution_bar_open_ts_ms"] = None
+        with self.assertRaisesRegex(ValueError, "cannot be eligible when its source breakout is not eligible"):
+            validate_canonical_candidate_ledger([breakout, failed])
+
+    def test_incomplete_failed_confirmation_identity_retains_observed_timestamp(self):
+        breakout, failed, confirmation = self._canonical_linked_candidate_pair()
+        failed["signal_candle_open_ts_ms"] = None
+        failed["signal_candle_close_ts_ms"] = None
+        failed["signal_available_at_ts_ms"] = None
+        failed["first_eligible_execution_bar_open_ts_ms"] = None
+        failed["confirmation_status"] = "CENSORED"
+        failed["candidate_status"] = "CENSORED"
+        failed["exclusion_reason"] = "INCOMPLETE_15M_CONFIRMATION"
+        failed["censoring_reason"] = "INCOMPLETE_15M_CONFIRMATION"
+        failed["event_observed_at_ts_ms"] = confirmation
+        linked = failed["source_breakout_candidate_id"]
+        failed["source_event_id"] = (
+            f"{linked}|{confirmation}|{failed["candidate_rule_version"]}")
+        failed["candidate_id"] = candidate_id(
+            failed["source_event_id"], failed["family"], failed["candidate_rule_version"])
+        result = validate_canonical_candidate_ledger([breakout, failed])
+        self.assertEqual(result["failed_breakout_source_links_validated"], 1)
 
     def test_candidate_identity_validator_rejects_wrong_candidate_hash(self):
         rows = self._synthetic_candidate_identity_rows()
