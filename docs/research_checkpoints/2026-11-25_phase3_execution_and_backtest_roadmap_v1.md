@@ -243,3 +243,12 @@ The prior READY FOR FORMAL CLOSEOUT status in the 2026-11-28 snapshot is superse
 **G0-05: ACCEPTED — TECHNICAL CLOSEOUT COMPLETE.** The owner-authorized real canonical build and independent post-build evidence review passed in workflow [46150045661](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150045661), artifact ID `15265023491`. All 4,947 canonical records, exact 60-field schema, deterministic identities, full ledger validation, exact source reconciliation and 932 failed-breakout links/inheritance passed.
 
 **Gate 0 remains CONDITIONAL HOLD — not passed.** G0-03, G0-07, G0-08 and G0-09 retain their separate acceptance requirements. Gate 2–7 sequencing remains unchanged; no Gate 2 execution comparison or Phase 3 strategy PnL backtest is authorized.
+
+
+## G0-03 funding integration progress — 2026-11-28
+
+The funding/execution CI suite now includes standalone/portfolio funding arithmetic parity under both exact and explicitly labelled candle-close-proxy modes, including the entry-exclusive/exit-inclusive settlement boundary. A read-only local real-input integration harness has also been added; it uses the production loader and contract validator against the user's actual five funding CSVs without simulating trades or calculating PnL.
+
+Workflow [46150715018](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150715018) passed **90/90 tests**. The actual local CSV integration harness has not yet been run because the CSVs remain in the user's Termux environment and are not committed. Run it using the command in `docs/research_checkpoints/2026-11-28_g0_03_funding_contract_integration_v1.md`.
+
+**G0-03 remains PARTIALLY CLOSED / ACCEPTANCE OPEN** pending reconciliation of that real-input report and the applicable funding mark-price policy. Current loader mode is explicitly `candle_close_proxy`; the 4H mark-price snapshot remains a candidate proxy, not exact settlement mark proof. Gate 0 remains CONDITIONAL HOLD; no Gate 2+ or strategy PnL backtest is authorized.
