@@ -114,3 +114,24 @@ Implementation and synthetic evidence:
 **Canonical candidate build: HOLD — not authorized.** This review did not generate real candidate IDs, `source_breakout_candidate_id` values or canonical candidate rows. The independent source verifier has the explicit scope limitations in Section 4; in particular, it does not independently rebuild Module A's 24-hour cluster graph or independently repeat the full 15-component OHLC aggregation. Those remain covered by the primary source audit and its existing checks, not by the new independent verifier.
 
 **G0-05 remains OPEN; Gate 0 remains CONDITIONAL HOLD.** The next action requiring owner authorization is a separately scoped real canonical candidate/disposition build, followed by a real-row validator run and artifact review. This must not be interpreted as authorization for execution simulation, strategy PnL backtesting, Gate 2+, or live trading.
+
+
+## 8. Owner-authorized real canonical candidate ledger build — 2026-11-28
+
+The project owner explicitly authorized the real G0-05 canonical candidate/disposition build. The normal push-triggered workflow [46149804561](https://github.com/islamomanpk-boop/okxtester/actions/runs/46149804561) completed successfully on commit `26ac706767d3f9b490cfa2b8250c13417f46b356`.
+
+- Artifact: `phase3-g0-05-canonical-candidate-ledger-46149804561`, ID `15265550848`, ZIP SHA-256 `e66ea4b16811d158a9b86dfb90113be13cc5fccfc89f1c42b5330fba294456da`, 2,587,810 bytes.
+- Generated and validated 4,947 real canonical records with exactly 60 required fields each.
+- Family counts: support rejection 558; resistance rejection 596; breakout continuation 2,861; failed-breakout reversal 932.
+- Dispositions: rejection 1,083 eligible / 31 rejected / 40 expired; breakout 1,038 eligible / 1,823 rejected; failed breakout 735 eligible / 30 rejected / 167 expired; aggregate 2,856 eligible / 1,884 rejected / 207 expired / 0 censored.
+- Deterministic candidate IDs and family/source identity uniqueness passed.
+- Full canonical record and ledger validation passed.
+- All 932 failed-breakout source-candidate links resolved and inherited source metadata passed.
+- Canonical JSONL SHA-256: `202c44f456af021b9ec8cc642e82c349f4858baadb04bcdb2342973cb752db14`.
+- Canonical CSV SHA-256: `eca9f326bc44a74ba9631bc6b5d4a6c7b5691fea6b59c7031976f7fd7f5ff1a5`.
+
+The first real-data attempt correctly stopped because the source mapper used the sentinel `NONE` for an absent historical cohort membership, while the canonical contract expects an empty list. The mapper was corrected to emit an empty membership list, and the full corrected workflow reran the frozen source audit, independent source verification and canonical build before passing. The failed attempt did not produce a canonical ledger.
+
+Detailed build evidence is in `docs/research_checkpoints/2026-11-28_g0_05_canonical_candidate_ledger_build_v1.md`.
+
+**Status update:** the previously missing real canonical candidate/disposition generation and real-row validation step is now complete. The evidence artifact still requires read-only post-build review before formally closing G0-05. This result does not pass Gate 0: funding/settlement-mark acceptance, fee/instrument assumptions, sizing, contract rounding, stop-gap risk and execution-engine readiness remain separate blockers. No orders, fills, execution simulation, PnL, strategy comparison or live trading was performed or authorized.
