@@ -279,16 +279,21 @@ def verify_breakout_identity(root: Path, artifact: Path, rows: list[dict[str, st
         source = expected[key]
         asset = source["asset"]
         snapshot = integer(source, "context_snapshot_ms", "G0-04 raw")
-        label = causal_label(asset, snapshot, float(source["channel_width_pct"]),
-                             float(source["efficiency"]), float(source["overlap"]), thresholds)
         tag = "EXPANDING_PRIOR__UNIQUE_4H_FEATURE_ROWS"
         threshold = thresholds.get((asset, snapshot))
-        strict_expected = False if threshold is None else (
-            float(source["channel_width_pct"]) <= float(threshold["p25"])
-            and float(source["efficiency"]) <= 0.30 and float(source["overlap"]) >= 0.70)
-        broad_expected = False if threshold is None else (
-            float(source["channel_width_pct"]) <= float(threshold["p40"])
-            and float(source["efficiency"]) <= 0.30 and float(source["overlap"]) >= 0.70)
+        if threshold is None:
+            label = "CAUSAL_THRESHOLD_WARMUP"
+            strict_expected = False
+            broad_expected = False
+        else:
+            width = float(source["channel_width_pct"])
+            efficiency = float(source["efficiency"])
+            overlap = float(source["overlap"])
+            label = causal_label(asset, snapshot, width, efficiency, overlap, thresholds)
+            strict_expected = (width <= float(threshold["p25"])
+                               and efficiency <= 0.30 and overlap >= 0.70)
+            broad_expected = (width <= float(threshold["p40"])
+                              and efficiency <= 0.30 and overlap >= 0.70)
         if (source[tag + "__strict"].lower() == "true") != strict_expected:
             stop(f"independent P25 eligibility recomputation mismatch: {key}")
         if (source[tag + "__broad"].lower() == "true") != broad_expected:
