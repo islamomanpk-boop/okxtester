@@ -31,3 +31,8 @@ A separate synthetic table adds hypothetical gaps beyond the stop (default: 0.05
 ## Acceptance status
 
 This is evidence input only. G0-07 remains OPEN until the results and upstream OHLCV provenance are reviewed, stress assumptions are documented, and exchange contract rounding requirements are resolved after G0-08 metadata is verified. The output is not a maximum-loss guarantee.
+
+
+## Additional source-continuity diagnostic
+
+The audit also reports the percentage of adjacent minute opens that exactly equal the preceding candle close, both across all bars and across positive-volume bars. A high exact-match rate is not proof of synthetic data, but it is a reason to verify the OHLCV provider and any candle stitching/forward-fill process before treating small measured opening gaps as representative of executable market gaps.
