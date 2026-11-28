@@ -356,3 +356,10 @@ The accepted scope includes 4,947 real canonical records with exactly 60 fields 
 Funding/execution CI [46150715018](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150715018) passed **90/90 tests**, including new standalone/portfolio funding arithmetic parity tests and read-only real-input contract integration harness tests. The new harness exercises the production loader/validator against the actual five local funding CSVs, checking hashes, schedules, common timestamps and settlement boundary rules without simulating trades or calculating PnL.
 
 **G0-03 remains PARTIALLY CLOSED / ACCEPTANCE OPEN** until the harness is run in the user's Termux environment against the local CSVs and its JSON report is reconciled. The local files are not committed. Run instructions: `docs/research_checkpoints/2026-11-28_g0_03_funding_contract_integration_v1.md`. Current funding loader mode remains explicitly `candle_close_proxy`; exact settlement mark-price fidelity and other Gate 0 blockers remain open.
+
+
+### G0-07 sizing alignment update — 2026-11-28
+
+The standalone engine's risk sizing was aligned with the portfolio allocator. Both now use the same per-unit planned stop-risk formula, including adverse entry/stop-exit slippage and taker fees on both legs. The shared helper is `calculate_cost_adjusted_risk_per_unit` in `src/execution_engine.py`; the portfolio calls it directly. New long/short tests and an end-to-end quantity-parity test passed in workflow [46154849952](https://github.com/islamomanpk-boop/okxtester/actions/runs/46154849952), commit `8bcc79ab32cb24b6647330baf429f97325768b1f`.
+
+**G0-07 remains OPEN:** stop-gap loss quantification and verified exchange lot/tick/minimum-quantity rounding remain outstanding. G0-08 instrument metadata is a prerequisite for contract rounding. Gate 0 remains CONDITIONAL HOLD; no strategy PnL, execution simulation, orders, fills or live trading are authorized.

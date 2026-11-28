@@ -536,3 +536,21 @@ Added standalone/portfolio funding arithmetic parity tests and a read-only local
 Funding/execution workflow [46150715018](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150715018) passed **90/90 tests**. New files: `src/test_funding_engine_parity.py`, `src/audit_funding_contract_integration.py`, `src/test_funding_contract_integration.py`. The local integration command and output contract are in `docs/research_checkpoints/2026-11-28_g0_03_funding_contract_integration_v1.md`.
 
 **G0-03 remains PARTIALLY CLOSED / ACCEPTANCE OPEN** until the new harness is run against the user's local Termux CSVs and the resulting JSON is reconciled. The actual files are not in GitHub; synthetic CI does not replace that run. The current production loader uses the explicitly labelled `candle_close_proxy`; exact settlement mark-price fidelity remains a separate blocker. No strategy PnL or real-input trade simulation was performed.
+
+
+### 12.33 G0-07 standalone cost-aware sizing alignment — 2026-11-28
+
+A focused engineering correction aligns standalone single-trade sizing with the existing portfolio allocator's planned stop-risk cost model.
+
+Changes on commit `8bcc79ab32cb24b6647330baf429f97325768b1f`:
+- Added a shared `calculate_cost_adjusted_risk_per_unit` helper in `src/execution_engine.py`.
+- Standalone sizing now reserves for adverse entry/stop-exit slippage and taker fees on both legs before deriving risk-based quantity.
+- The portfolio backtester now calls the same helper rather than maintaining a duplicate formula.
+- Added long/short cost-model tests and an integration test asserting identical standalone/portfolio quantities for the same entry, stop, fee and slippage assumptions.
+- Updated `docs/execution_engine_v1.md` to describe the cost-adjusted model and its limits.
+
+Funding/execution workflow [46154849952](https://github.com/islamomanpk-boop/okxtester/actions/runs/46154849952) completed SUCCESS on the same commit. Compilation and every workflow test step passed, including standalone execution-engine and portfolio backtester tests.
+
+**G0-07 remains OPEN.** This closes only the standalone-versus-portfolio planned-cost sizing mismatch. It does not quantify empirical or stress-scenario stop-gap loss, apply exchange lot/tick/minimum-quantity rounding, or establish a maximum-loss guarantee. Contract rounding depends on verified G0-08 instrument metadata. The current sizing model remains a planned-stop estimate; gap-through-stop losses can exceed the nominal risk budget.
+
+No strategy execution simulation, orders, fills, PnL backtest, or phase transition was performed.
