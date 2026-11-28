@@ -11,7 +11,7 @@ Official reference: https://www.okx.com/docs-v5/en/#order-book-trading-ws-order-
 This workflow reconstructs one BTC-USDT-SWAP module-5 archive for 2025-11-01 in memory:
 - A `snapshot` replaces both book sides.
 - An `update` replaces or inserts a price level; zero size removes the level.
-- The book is trimmed to the best 5,000 price levels per side after updates.
+- Snapshot records supply up to 5,000 levels per side; incremental updates are applied by price without artificially truncating the reconstructed maps.
 - It records crossed-book observations, spread basis points and top-10 visible depth in contracts.
 - The compressed archive is deleted after processing; only a compact statistics JSON report is retained.
 
@@ -60,3 +60,24 @@ Workflow [46171636969](https://github.com/islamomanpk-boop/okxtester/actions/run
 A second successful run [46171705890](https://github.com/islamomanpk-boop/okxtester/actions/runs/46171705890) used one-minute metric sampling and did not artificially truncate depth maps. Its spread p50/p95 were 0.00908654/0.00912471 bps; top-10 depth p50 was 434.44 bid contracts and 466.44 ask contracts. Both runs reported zero crossed-book observations at sampled points. This is a useful sampling-policy robustness check for one BTC day, not a validation of all dates/assets.
 
 The five-asset extension for 2025-11-01 is running separately. No raw archive is committed or retained on the VPS. G0-07 remains OPEN pending cross-asset/date checks, event alignment and conservative execution-cost modelling.
+
+
+## Five-asset same-day reconstruction result — 2026-11-28
+
+Workflow [46172153289](https://github.com/islamomanpk-boop/okxtester/actions/runs/46172153289) completed SUCCESS on commit `f55b18bba393d8ba0de06da15886140b3f61d0ed`. Compilation and all three reconstruction unit tests passed. The corrected compact JSON report was parsed back successfully by the workflow before upload; artifact ID `15274400627` (ZIP SHA-256 `67beabeee39f8e37b5ba4b23e4c8c886e9b33e3f801686fc516dd58168d5d1f0`). Raw archives were processed in memory on the GitHub-hosted runner and not retained.
+
+All five assets had 96 snapshots. BTC, ETH, SOL and DOGE each had 86,400 records (96 snapshots and 86,304 updates), with every snapshot containing exactly 5,000 bid and 5,000 ask levels. AVAX had 86,397 records (96 snapshots and 86,301 updates); its snapshot bid levels ranged from 2,155 to 2,558 and ask levels from 4,391 to 4,722. The AVAX archive contained three 2,000 ms adjacent timestamp intervals. There were no duplicate or backwards timestamps for any asset. Because no seqId/prevSeqId fields were present, the three longer AVAX intervals cannot be classified conclusively as missing updates versus source cadence irregularity.
+
+One-minute metric sampling produced these spread summaries (bps):
+
+| Asset | p50 | p95 |
+|---|---:|---:|
+| BTC | 0.00908654 | 0.00912471 |
+| ETH | 0.02583682 | 0.02602327 |
+| SOL | 0.53753326 | 0.54049672 |
+| DOGE | 0.53526027 | 0.53843048 |
+| AVAX | 0.53860448 | 0.54985841 |
+
+No crossed or empty books were observed at sampled metric points. Top-10 depth is reported in contracts and is not directly comparable across assets without historical effective contract-value metadata. The AVAX archive itself provides materially fewer bid levels than the other four assets; this is an archive-depth limitation, not evidence of a reconstruction defect.
+
+**Limits and disposition:** one date (2025-11-01) only; no sequence-ID continuity proof; AVAX has three 2,000 ms timestamp intervals and fewer snapshot levels; sampled visible depth does not establish fills, queue position, hidden liquidity, latency or market impact. These spread summaries are not calibrated slippage assumptions. G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD. No strategy PnL, execution simulation, orders or fills were run.
