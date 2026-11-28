@@ -135,8 +135,14 @@ def analyze_bars(rows, stop_distances):
     for distance_pct in distances:
         for side in ("LONG", "SHORT"):
             summary = _summarize_bucket(buckets[(distance_pct, side)])
+            summary["quantile_sample_note"] = (
+                "Small event sample (<20); quantiles are descriptive only, not stable tail estimates."
+                if summary["gap_events"] < 20 else
+                "At least 20 events; tail quantiles still require sampling uncertainty review."
+            )
             summary.update({
                 "stop_distance_pct": distance_pct, "side": side,
+                "eligible_minute_transitions": eligible,
                 "eligible_active_trade_transitions": active_transitions,
                 "skipped_nonconsecutive_transitions": skipped,
                 "gap_rate_pct": summary["gap_events"] / active_transitions * 100.0 if active_transitions else None,

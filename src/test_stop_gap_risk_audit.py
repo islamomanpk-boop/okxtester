@@ -70,5 +70,10 @@ class StopGapRiskAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "volume"):
             analyze_bars(rows, [1.0])
 
+    def test_small_gap_sample_is_flagged_as_descriptive_only(self):
+        result = analyze_bars([bar(60000, 100, 100.2, 99.8, 100), bar(120000, 98.5, 99, 98, 98.7)], [1.0])
+        item = next(x for x in result["scenarios"] if x["side"] == "LONG")
+        self.assertIn("Small event sample", item["quantile_sample_note"])
+
 if __name__ == "__main__":
     unittest.main()
