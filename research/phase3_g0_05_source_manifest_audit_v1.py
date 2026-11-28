@@ -475,6 +475,7 @@ def validate_module_b_horizons(events: list[dict[str, str]],
         fail(f"Module B horizon event coverage mismatch: missing={missing[:5]}, extra={extra[:5]}")
 
     confirmations = 0
+    endpoint_observations = 0
     for event_id, event in event_by_id.items():
         rows = horizon_by_id[event_id]
         if set(rows) != expected_horizons:
@@ -493,9 +494,12 @@ def validate_module_b_horizons(events: list[dict[str, str]],
         if event_confirmation:
             signal_ms = ms(event["signal_time_ms"], "Module B signal")
             confirmation_ms = ms(event_confirmation, "Module B 12H confirmation")
-            if confirmation_ms <= signal_ms or confirmation_ms >= signal_ms + 43200000:
-                fail(f"Module B event {event_id} confirmation outside half-open 12-hour horizon")
-            confirmations += 1
+            if confirmation_ms <= signal_ms or confirmation_ms > signal_ms + 43200000:
+                fail(f"Module B event {event_id} confirmation outside the 12-hour descriptive horizon")
+            if confirmation_ms == signal_ms + 43200000:
+                endpoint_observations += 1
+            else:
+                confirmations += 1
 
     return {
         "events_reconciled": len(event_by_id),
@@ -503,6 +507,7 @@ def validate_module_b_horizons(events: list[dict[str, str]],
         "horizon_rows_per_event": 4,
         "horizon_types": sorted(expected_horizons),
         "twelve_hour_confirmations": confirmations,
+        "twelve_hour_endpoint_observations_excluded": endpoint_observations,
         "twelve_hour_completion_and_confirmation_match": True,
     }
 
@@ -532,6 +537,21 @@ def aggregate_completed_15m_bar(minute_bars: dict[int, tuple], confirmation_clos
         "close": float(bars[-1][3]),
         "component_minute_count": 15,
     }
+
+
+def canonical_failed_breakout_confirmation(signal_ms: int,
+                                                observed_confirmation_ms: int | None) -> int | None:
+    """Exclude an observation at the exact 12h endpoint from canonical confirmation."""
+    if observed_confirmation_ms is None:
+        return None
+    signal = int(signal_ms)
+    observed = int(observed_confirmation_ms)
+    endpoint = signal + 43200000
+    if observed <= signal:
+        raise ValueError("failure confirmation must follow source breakout")
+    if observed > endpoint:
+        raise ValueError("failure confirmation is outside the 12-hour descriptive horizon")
+    return None if observed == endpoint else observed
 
 
 def failed_breakout_confirmation_timing(signal_ms: int, confirmation_ms: int | None,
@@ -1316,7 +1336,8 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
         snapshot_fields=canonical_snapshot_provenance(
             asset,snapshot,next_snapshot,feature_context,threshold,source_cohort,
             regime_definition_version="HISTORICAL_BREAKOUT_CONTEXT_V1")
-        confirmation=next(iter(confirmations)) if confirmations else None
+        observed_confirmation=next(iter(confirmations)) if confirmations else None
+        confirmation=canonical_failed_breakout_confirmation(signal, observed_confirmation)
         observed_windows={int(x["observed_bars_12h"]) for x in members}
         if len(observed_windows)!=1:
             fail(f"Module B cohort rows disagree on observed 12H bars: {key}")
