@@ -715,3 +715,14 @@ One-minute sampled spread summaries (bps):
 No crossed or empty books were observed at sampled points. Top-10 depth is in contracts and cannot be compared across assets without effective historical contract-value metadata. The lower AVAX level counts are present in its archive snapshots, not introduced by artificial reconstruction truncation.
 
 **Disposition:** this is a one-day cross-asset sample, not full-period validation. The absent sequence IDs, AVAX timestamp irregularities, lower AVAX snapshot depth, lack of historical contract-value metadata, and uncalibrated market impact/latency/queue effects remain material limitations. Spread/depth observations are not executable fills or calibrated slippage assumptions. G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD. No strategy PnL, execution simulation, orders, fills, Gate 2+ or live trading was performed.
+
+
+### 12.44 G0-07 module-4 BTC historical L2 archive stream inspection — 2026-11-28
+
+Workflow [46173396236](https://github.com/islamomanpk-boop/okxtester/actions/runs/46173396236) completed SUCCESS on commit `170ed819b8ddbcf0f1c72b4d7154309323d59116`; four focused unit tests passed. The BTC-USDT-SWAP module-4 archive for 2025-10-20 was streamed on a GitHub-hosted runner. Compact report artifact ID `15274204016`, ZIP SHA-256 `154bcaa0bb2e8e0c604a0a15dd87b7ee835a9ce4ea7406583f9de9370871612d`. Downloaded archive size 491,283,675 bytes; uncompressed JSONL member 3,320,895,476 bytes; archive SHA-256 `8f730ffe83ec71eb819a29881259a36b68c701e4a65b1cc9287e914ca50ee6f6`. Raw archive was not retained.
+
+The full stream contained 6,876,834 records over 86,399.975 seconds: 1,440 snapshots and 6,875,394 updates. Every snapshot had exactly 400 bid and 400 ask levels. No duplicate or backwards timestamps. Timestamp intervals were predominantly 10 ms (5,978,609), 20 ms (511,928), 30 ms (188,716) and 40 ms (88,902); other intervals were also present. No seqId/prevSeqId fields were present.
+
+This validates archive availability, JSONL structure and timestamp ordering for one BTC date only. It does not yet validate evolving-book reconstruction, spread/depth metrics, cross-asset consistency or execution cost. Module-4 cadence and format must be separately reconstructed/tested before combining its evidence with module-5 results.
+
+**Disposition:** G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD. No fills, PnL, execution simulation or live trading.
