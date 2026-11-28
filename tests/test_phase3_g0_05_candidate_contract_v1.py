@@ -419,6 +419,41 @@ class G005ContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "failed-breakout row requires its source 12-hour expiry"):
             validate_canonical_candidate_record(record)
 
+    def test_canonical_record_rejects_expired_status_with_rejected_reason(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["candidate_status"] = "EXPIRED"
+        record["exclusion_reason"] = "SOURCE_HASH_MISMATCH"
+        record["first_eligible_execution_bar_open_ts_ms"] = None
+        with self.assertRaisesRegex(ValueError, "expired row has invalid exclusion"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_rejected_status_with_expired_reason(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["candidate_status"] = "REJECTED"
+        record["exclusion_reason"] = "EXPIRED_NO_RETURN_INSIDE_WITHIN_12H"
+        record["first_eligible_execution_bar_open_ts_ms"] = None
+        with self.assertRaisesRegex(ValueError, "rejected row has invalid exclusion"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_censored_status_with_rejected_reason(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["candidate_status"] = "CENSORED"
+        record["exclusion_reason"] = "SOURCE_HASH_MISMATCH"
+        record["censoring_reason"] = "SOURCE_HASH_MISMATCH"
+        record["first_eligible_execution_bar_open_ts_ms"] = None
+        with self.assertRaisesRegex(ValueError, "censored row requires matching"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_eligible_status_with_censor_reason(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["censoring_reason"] = "MISSING_OR_GAPPED_MINUTES"
+        with self.assertRaisesRegex(ValueError, "eligible rows require"):
+            validate_canonical_candidate_record(record)
+
     def test_canonical_record_rejects_wrong_family_side(self):
         record = self._canonical_candidate_fixture(
             "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
