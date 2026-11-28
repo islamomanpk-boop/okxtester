@@ -5,6 +5,7 @@ from portfolio_backtester import (
     run_portfolio_backtest as _run_portfolio_backtest,
 )
 from performance_metrics import summarize_portfolio_metrics
+from execution_engine import ExecutionConfig, size_position
 
 
 BASE_TS = 1_000_000
@@ -260,6 +261,46 @@ class PortfolioBacktesterTests(unittest.TestCase):
         )
         self.assertGreater(result["trades"][0]["entry_price"], 100)
         self.assertLess(result["trades"][0]["exit_price"], 101)
+
+    def test_standalone_and_portfolio_use_identical_cost_adjusted_quantity(self):
+        bars = {
+            "BTC": make_bars([
+                (100, 100.2, 99.8, 100),
+                (100, 100.5, 99.8, 100.2),
+                (100.2, 100.5, 99.8, 100.1),
+            ])
+        }
+        fee = 0.0005
+        slippage = 2
+        portfolio = run_portfolio_backtest(
+            bars,
+            [candidate(available=BASE_TS + 60_000, stop=99, target_pct=0.50)],
+            {"BTC": []},
+            config(fee=fee, slippage=slippage),
+        )
+        entry_fill = 100 * (1 + slippage / 10_000)
+        standalone = size_position(
+            1000,
+            entry_fill,
+            99,
+            1,
+            ExecutionConfig(
+                risk_fraction=0.005,
+                max_gross_leverage=1.0,
+                taker_fee_rate=fee,
+                slippage_bps=slippage,
+            ),
+        )
+        self.assertEqual(portfolio["trade_count"], 1)
+        self.assertAlmostEqual(
+            portfolio["trades"][0]["quantity"],
+            standalone["quantity"],
+            places=12,
+        )
+        self.assertLessEqual(
+            standalone["planned_cost_adjusted_risk"],
+            standalone["risk_budget"] + 1e-10,
+        )
 
     def test_missing_funding_asset_is_rejected(self):
         bars = {"BTC": make_bars([(100, 100.2, 99.8, 100)] * 2)}

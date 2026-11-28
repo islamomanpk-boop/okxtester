@@ -92,6 +92,47 @@ class ExecutionEngineTests(unittest.TestCase):
         result = size_position(1000, 100, 99, 1, config())
         self.assertAlmostEqual(result["risk_budget"], 5)
         self.assertLessEqual(result["gross_exposure"], 1000.01)
+        self.assertLessEqual(
+            result["planned_cost_adjusted_risk"],
+            result["risk_budget"] + 1e-10,
+        )
+
+    def test_standalone_sizing_reserves_entry_exit_fees_and_slippage(self):
+        no_costs = ExecutionConfig(
+            risk_fraction=0.005,
+            max_gross_leverage=1.0,
+            taker_fee_rate=0.0,
+            slippage_bps=0.0,
+        )
+        with_costs = config()
+        baseline = size_position(1000, 100, 99, 1, no_costs)
+        adjusted = size_position(1000, 100, 99, 1, with_costs)
+        self.assertLess(adjusted["quantity"], baseline["quantity"])
+        expected_stop_fill = 99 * (1 - 2 / 10000)
+        expected_risk_per_unit = (
+            abs(100 - expected_stop_fill)
+            + 0.0005 * (100 + expected_stop_fill)
+        )
+        self.assertAlmostEqual(
+            adjusted["risk_per_unit"], expected_risk_per_unit
+        )
+        self.assertAlmostEqual(
+            adjusted["planned_cost_adjusted_risk"],
+            adjusted["quantity"] * expected_risk_per_unit,
+        )
+
+    def test_cost_adjusted_sizing_supports_short_stop_slippage(self):
+        result = size_position(1000, 100, 101, -1, config())
+        expected_stop_fill = 101 * (1 + 2 / 10000)
+        expected = (
+            abs(100 - expected_stop_fill)
+            + 0.0005 * (100 + expected_stop_fill)
+        )
+        self.assertAlmostEqual(result["risk_per_unit"], expected)
+        self.assertLessEqual(
+            result["planned_cost_adjusted_risk"],
+            result["risk_budget"] + 1e-10,
+        )
 
     def test_long_stop_execution(self):
         bars = [

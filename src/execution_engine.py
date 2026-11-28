@@ -1,6 +1,7 @@
 """Causal one-minute trade execution engine for Price Action V1."""
 
 from dataclasses import dataclass
+import math
 from typing import Optional
 
 from funding_coverage import validate_funding_contract, validate_trade_funding_window
@@ -24,10 +25,40 @@ class ExecutionConfig:
             raise ValueError("A non-negative slippage_bps value is required")
 
 
+def calculate_cost_adjusted_risk_per_unit(
+    entry_price, stop_price, side, taker_fee_rate, slippage_bps
+):
+    """Mirror the portfolio allocator's planned stop-risk cost model."""
+    entry = float(entry_price)
+    stop = float(stop_price)
+    fee_rate = float(taker_fee_rate)
+    slippage = float(slippage_bps) / 10_000.0
+
+    if side not in (-1, 1):
+        raise ValueError("side must be 1 for long or -1 for short")
+    if not all(math.isfinite(v) for v in (entry, stop, fee_rate, slippage)):
+        raise ValueError("Sizing inputs must be finite")
+    if entry <= 0 or stop <= 0 or entry == stop:
+        raise ValueError("Entry and stop prices must be positive and different")
+    if fee_rate < 0 or slippage < 0:
+        raise ValueError("Fee and slippage assumptions cannot be negative")
+    if side == 1 and stop >= entry:
+        raise ValueError("Long stop must be below entry")
+    if side == -1 and stop <= entry:
+        raise ValueError("Short stop must be above entry")
+
+    stop_exit_fill = stop * (1 - side * slippage)
+    if stop_exit_fill <= 0:
+        raise ValueError("Adverse stop-exit fill must be positive")
+    return abs(entry - stop_exit_fill) + fee_rate * (entry + stop_exit_fill)
+
+
 def size_position(equity, entry_price, stop_price, side, config):
-    """Return quantity, risk budget and actual stop risk."""
+    """Return quantity sized for modeled stop loss, fees and slippage."""
     config.validate()
 
+    if not math.isfinite(float(equity)) or not math.isfinite(float(entry_price)):
+        raise ValueError("Equity and entry price must be finite")
     if equity <= 0 or entry_price <= 0:
         raise ValueError("Equity and entry price must be positive")
     if side not in (-1, 1):
@@ -37,13 +68,12 @@ def size_position(equity, entry_price, stop_price, side, config):
     if distance <= 0:
         raise ValueError("Stop price must differ from entry price")
 
-    if side == 1 and stop_price >= entry_price:
-        raise ValueError("Long stop must be below entry")
-    if side == -1 and stop_price <= entry_price:
-        raise ValueError("Short stop must be above entry")
-
+    risk_per_unit = calculate_cost_adjusted_risk_per_unit(
+        entry_price, stop_price, side,
+        config.taker_fee_rate, config.slippage_bps,
+    )
     risk_budget = equity * config.risk_fraction
-    risk_quantity = risk_budget / distance
+    risk_quantity = risk_budget / risk_per_unit
     exposure_quantity = (
         equity * config.max_gross_leverage / entry_price
     )
@@ -53,6 +83,8 @@ def size_position(equity, entry_price, stop_price, side, config):
         "quantity": quantity,
         "risk_budget": risk_budget,
         "planned_stop_risk": quantity * distance,
+        "planned_cost_adjusted_risk": quantity * risk_per_unit,
+        "risk_per_unit": risk_per_unit,
         "gross_exposure": quantity * entry_price,
     }
 

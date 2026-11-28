@@ -55,9 +55,15 @@ simultaneous positions, portfolio-wide capital allocation, or strategy
 signal generation. These will be added and tested in later stages.
 
 
-## Risk-sizing limitation clarification — 2026-11-25
+## Risk-sizing update — 2026-11-28
 
-The standalone `size_position` function sizes from stop distance and gross-exposure cap only. It does not include entry/exit fees or slippage in the initial quantity calculation. This differs from the integrated portfolio backtester, which calculates a cost-adjusted per-unit risk estimate before allocation. Treat this standalone function as a simpler baseline, not cost-adjusted risk sizing.
+Standalone sizing now uses the same planned per-unit stop-risk model as the portfolio allocator:
+- entry price is the adverse-slippage-adjusted fill;
+- stop exit is adjusted for adverse exit slippage;
+- entry and stop-exit taker fees are included in planned per-unit risk;
+- quantity is capped by both the configured risk budget and gross-exposure limit.
+
+The reported `planned_stop_risk` remains the price-distance component. The additional `planned_cost_adjusted_risk` and `risk_per_unit` fields expose the full modeled sizing amount. This is a planned-stop model, not a maximum-loss guarantee: gap-through-stop losses can exceed the budget, and exchange lot/tick/minimum-quantity constraints are not yet applied. Those contract constraints require verified G0-08 instrument metadata before implementation.
 
 ## Funding contract implementation — 2026-11-25
 

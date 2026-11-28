@@ -9,6 +9,7 @@ from trailing_exit import validate_trailing_settings, update_trailing_state
 from exit_experiment_config import resolve_exit_prices
 from compact_bar_series import TimestampBarLookup
 from funding_coverage import validate_funding_contract, validate_trade_funding_window
+from execution_engine import calculate_cost_adjusted_risk_per_unit
 
 
 class PortfolioBacktestConfig:
@@ -516,12 +517,14 @@ def run_portfolio_backtest(
 
                     # Entry slippage is already included in fill_entry.
                     stop_for_sizing = float(allocator_candidate["stop_price"])
-                    stop_exit_fill = stop_for_sizing * (
-                        1 - int(c["side"]) * slippage
-                    )
                     effective_risk_per_unit = (
-                        abs(fill_entry - stop_exit_fill)
-                        + fee_rate * (fill_entry + stop_exit_fill)
+                        calculate_cost_adjusted_risk_per_unit(
+                            fill_entry,
+                            stop_for_sizing,
+                            int(c["side"]),
+                            fee_rate,
+                            config.slippage_bps,
+                        )
                     )
                     allocator_candidate["risk_per_unit"] = (
                         effective_risk_per_unit
