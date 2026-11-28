@@ -470,14 +470,8 @@ def validate_canonical_candidate_record(row: dict) -> None:
     else:
         if row["first_eligible_execution_bar_open_ts_ms"] is not None:
             raise ValueError("non-eligible candidate must not expose a first eligible minute")
-    if status != "ELIGIBLE_FOR_FURTHER_VALIDATION" and (reason == "NONE" or reason not in REJECTED_REASON_CODES | EXPIRED_REASON_CODES | CENSORED_REASON_CODES):
-        raise ValueError("non-eligible candidate requires a controlled exclusion reason")
     censor = row["censoring_reason"]
-    if status == "CENSORED":
-        if censor != reason or censor not in CENSORED_REASON_CODES:
-            raise ValueError("censored candidate requires matching controlled censoring reason")
-    elif censor not in (None, ""):
-        raise ValueError("censoring_reason must be blank unless status is CENSORED")
+    validate_disposition_reason(status, reason, censor or "")
     if row["invalidation_reference_type"] != "NOT_APPLICABLE" or row["invalidation_reference_value"] != "NOT_APPLICABLE" or row["invalidation_reference_ts_ms"] != "NOT_APPLICABLE":
         raise ValueError("G0-05 point events must not invent invalidation references")
     if family == "FAILED_BREAKOUT_REVERSAL":
