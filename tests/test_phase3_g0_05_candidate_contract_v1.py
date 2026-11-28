@@ -759,8 +759,17 @@ class G005SourceAuditTests(unittest.TestCase):
         events, horizons = self.sample_horizons()
         events[0]["first_15m_return_inside_close_ts_ms"] = "43201001"
         horizons[-1]["first_15m_return_inside_close_ts_ms"] = "43201001"
-        with self.assertRaisesRegex(RuntimeError, "outside 12-hour horizon"):
+        with self.assertRaisesRegex(RuntimeError, "half-open 12-hour horizon"):
             validate_module_b_horizons(events, horizons)
+
+    def test_failed_breakout_horizon_disposition_accepts_before_endpoint(self):
+        self.assertEqual(
+            failed_breakout_horizon_disposition(1000, 43200999, True),
+            "CONFIRMED_WITHIN_12H")
+
+    def test_failed_breakout_horizon_disposition_rejects_exact_endpoint(self):
+        with self.assertRaisesRegex(ValueError, "half-open 12-hour"):
+            failed_breakout_horizon_disposition(1000, 43201000, True)
 
     def test_incomplete_failed_breakout_confirmation_keeps_observation_but_no_candle(self):
         timing = failed_breakout_confirmation_timing(
