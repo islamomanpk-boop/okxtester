@@ -92,3 +92,14 @@ The BTC-USDT-SWAP 400-level stream contained 6,876,834 records over 86,399.975 s
 This was a format/stream integrity inspection, not a full evolving-book reconstruction or spread/depth/slippage analysis. The 400-level archive has a materially different cadence and record volume from the module-5 5,000-level daily archive. Before comparing modules, implement and test reconstruction semantics against the module-4 format and establish how snapshots and incremental updates are represented. One BTC date only; no cross-asset/date generalization.
 
 **Disposition:** module-4 availability and stream structure validated for this sample date. Reconstruction, event alignment and execution-cost calibration remain open. G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD.
+
+
+## Module-4 BTC full book reconstruction result — 2025-10-20
+
+Workflow [46173859847](https://github.com/islamomanpk-boop/okxtester/actions/runs/46173859847) completed SUCCESS on commit `0e81fd1bed535af58a2152995774e47ad2f9ff1e`. Compilation and all five focused reconstruction tests passed; the full 400-level BTC module-4 archive was reconstructed in memory and the compact JSON report uploaded as artifact `15274908032` (ZIP SHA-256 `b58a53bccf1611dd10b01f275e50da232e24070446619d0dc9c364ecf10b3b75`). The report was downloaded and parsed successfully. Raw archive was not retained.
+
+The BTC-USDT-SWAP 2025-10-20 archive contained 6,876,834 records over 86,399.975 seconds: 1,440 snapshots and 6,875,394 updates. All snapshots contained exactly 400 bid and 400 ask levels. There were no duplicate or non-monotonic timestamps. The stream had no `seqId`/`prevSeqId` fields. Adjacent timestamp deltas were predominantly 10 ms (5,978,609), 20 ms (511,928), 30 ms (188,716), and 40 ms (88,902). The reconstruction applied snapshot replacement of both sides, price-level replacement/insertion on updates, and zero-size deletion.
+
+Metrics sampled every 10,000 records yielded 689 observations: zero crossed books and zero empty books. Spread (bps): min 0.00895848, p50 0.00902937, p95 0.00926145, max 6.09560315. Top-10 visible depth in contracts: bid p50 538.82 / p95 1,784.45; ask p50 493.27 / p95 1,636.69. The maximum spread is retained as an observed sampled outlier; do not substitute the median/p95 summaries for event-aligned execution-cost estimates.
+
+**Limits and disposition:** one BTC instrument/day only; sampling does not capture every transient state; absent sequence IDs mean timestamp ordering cannot certify lossless update continuity; visible depth does not establish queue position, hidden liquidity, latency, market impact or fills; historical effective contract-value metadata remains unresolved, so contract depth is not normalized into notional. This validates successful reconstruction mechanics for this sample, not full-period or cross-asset market quality. G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD. No strategy PnL, execution simulation, orders or fills were run.
