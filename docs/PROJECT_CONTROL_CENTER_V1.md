@@ -327,3 +327,14 @@ Evidence artifact ID `15265550848`, name `phase3-g0-05-canonical-candidate-ledge
 The initial real-data attempt stopped on the `NONE` historical-membership sentinel; the source mapper was corrected to emit an empty list for no historical memberships. The successful workflow then reran source audit, independent verification and canonical validation. Full checkpoint: `docs/research_checkpoints/2026-11-28_g0_05_canonical_candidate_ledger_build_v1.md`.
 
 **Next:** read-only post-build evidence review before formally closing G0-05. Gate 0 remains CONDITIONAL HOLD with separate funding/settlement-mark, fee/instrument, sizing/rounding/gap-risk and execution-engine blockers. No orders, fills, execution simulation, PnL, strategy selection, Gate 2+ or live trading is authorized.
+
+
+### Final G0-05 evidence status — 2026-11-28
+
+<badge color="success">Canonical build and independent review passed</badge>
+
+Authoritative workflow [46150045661](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150045661) completed successfully. The real G0-05 canonical ledger contains 4,947 records with exactly 60 fields each. All deterministic candidate IDs, unique family/source identities, full contract/ledger validation, 932 failed-breakout links and the separate independent post-build review passed. The reviewer confirmed JSONL/CSV equivalence, output hashes, source-manifest identity and exact-once source reconciliation.
+
+Artifact ID `15265023491`; artifact ZIP SHA-256 `0b9464cbeda0a513cea915aae78a1c43aab2b5563448a0e19b247c02b4081935`. Canonical JSONL SHA-256 `387d376bc269587de6fb48686641cd27e885a2d3bd6c6a8ae96a9a9dd61333d8`; CSV SHA-256 `325c714e5923612a711d18a855d1540e1f59b27d26d65636ebabd7578c81bb43`. Detailed evidence is in research register Section 12.30 and `docs/research_checkpoints/2026-11-28_g0_05_independent_source_verification_closeout_v1.md`.
+
+**Current technical status:** G0-04 ACCEPTED. G0-05 implementation, real candidate generation, full validation and independent post-build review are complete and READY FOR FORMAL CLOSEOUT. Formal G0-05 gate acceptance has not yet been recorded. Gate 0 remains CONDITIONAL HOLD due to separate funding/settlement-mark, fee/instrument, standalone sizing, contract rounding, stop-gap risk and execution-engine blockers. No orders, fills, execution simulation, PnL, strategy comparison, Gate 2+ or live trading was performed or authorized.
