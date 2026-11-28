@@ -497,3 +497,22 @@ The first real-row attempt exposed a real-data mapping issue: absent historical 
 Detailed checkpoint: `docs/research_checkpoints/2026-11-28_g0_05_canonical_candidate_ledger_build_v1.md`.
 
 **Gate status:** the real canonical build and real-row validation step is complete. G0-05 remains pending final read-only post-build evidence review before formal closure. Gate 0 remains CONDITIONAL HOLD; funding/settlement mark, fees/instrument assumptions, standalone sizing, contract rounding, stop-gap risk and execution-engine acceptance remain separate blockers. No execution simulation, orders, fills, PnL, strategy comparison, Gate 2+ or live trading was performed or authorized.
+
+
+### 12.30 Final G0-05 canonical ledger and independent post-build review — 2026-11-28
+
+The authoritative final workflow is [46150045661](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150045661), SUCCESS on commit `19a6325780693696890f9f3493a713702e8a8f7f`. It reran the pinned G0-04 ZIP verification, primary source audit, independent source identity/lifecycle verifier, real canonical build/full validator and a separate independent post-build reviewer.
+
+Artifact: `phase3-g0-05-canonical-candidate-ledger-46150045661`, ID `15265023491`, ZIP SHA-256 `0b9464cbeda0a513cea915aae78a1c43aab2b5563448a0e19b247c02b4081935` (2,588,629 bytes). Complete source manifest ID: `8458ca73f07db7d3ff4517123dd0d6b33acb39e99174ecd39056b585a9988c82`.
+
+Final ledger: 4,947 real records, exactly 60 fields each. Family totals: SUPPORT_REJECTION 558; RESISTANCE_REJECTION 596; BREAKOUT_CONTINUATION 2,861; FAILED_BREAKOUT_REVERSAL 932. Dispositions: 2,856 eligible, 1,884 rejected, 207 expired, 0 censored. All candidate IDs recomputed deterministically; family/source identities unique; full row and ledger validators passed; all 932 failed-breakout links/inherited fields passed.
+
+Independent post-build reviewer status: `G0_05_POST_BUILD_EVIDENCE_REVIEW_PASS`. It independently checked the 60-field shape, JSONL/CSV semantic equivalence, canonical output hashes, source-manifest identity, source-to-canonical exact-once reconciliation, deterministic candidate IDs, disposition totals, and all 932 failed-breakout source links and inherited fields.
+
+Canonical file hashes:
+- JSONL: `387d376bc269587de6fb48686641cd27e885a2d3bd6c6a8ae96a9a9dd61333d8`
+- CSV: `325c714e5923612a711d18a855d1540e1f59b27d26d65636ebabd7578c81bb43`
+
+Detailed checkpoint: `docs/research_checkpoints/2026-11-28_g0_05_independent_source_verification_closeout_v1.md`; dedicated build checkpoint: `docs/research_checkpoints/2026-11-28_g0_05_canonical_candidate_ledger_build_v1.md`.
+
+**Technical disposition:** G0-04 is ACCEPTED. G0-05 implementation, real canonical generation, full validation and independent post-build review are technically complete and READY FOR FORMAL CLOSEOUT. The project owner authorized generation; formal G0-05 acceptance has not yet been recorded and should not be inferred. Gate 0 remains CONDITIONAL HOLD due to independent funding/settlement-mark, fee/instrument, sizing/rounding/gap-risk and execution-engine acceptance blockers. No execution simulation, orders, fills, PnL, Gate 2+ or live trading was performed or authorized.
