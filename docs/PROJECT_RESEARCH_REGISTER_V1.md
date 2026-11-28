@@ -480,3 +480,20 @@ The review identified that the row validator previously accepted any globally al
 Contract commit `e1affcb1ed585546e181fb4ab7332f0c844f4d45`; tests commit `a2479ed6496f7e698c0f43d940573f7f77cc152f`. Push-triggered synthetic workflow [46149074209](https://github.com/islamomanpk-boop/okxtester/actions/runs/46149074209) completed successfully: **193/193 tests passed**.
 
 **Pre-generation contract review: PASS for these static mapping and family-specific validator checks. Canonical build: HOLD — not authorized.** No real candidate IDs or canonical candidate rows have been generated. G0-05 remains OPEN and Gate 0 remains CONDITIONAL HOLD. The next step requiring project-owner authorization is a separately scoped real canonical candidate/disposition build and real-row validation/artifact review; this does not authorize execution simulation, Gate 2+, strategy PnL backtesting or live trading. Full details and independent-verifier limitations are in `docs/research_checkpoints/2026-11-28_g0_05_independent_source_verification_closeout_v1.md`.
+
+
+### 12.29 Owner-authorized real G0-05 canonical candidate ledger — 2026-11-28
+
+The project owner explicitly approved real canonical candidate/disposition generation. Normal push-triggered workflow [46149804561](https://github.com/islamomanpk-boop/okxtester/actions/runs/46149804561) succeeded on commit `26ac706767d3f9b490cfa2b8250c13417f46b356`. Artifact `phase3-g0-05-canonical-candidate-ledger-46149804561`, ID `15265550848`, ZIP SHA-256 `e66ea4b16811d158a9b86dfb90113be13cc5fccfc89f1c42b5330fba294456da` (2,587,810 bytes).
+
+The corrected workflow reverified the frozen G0-04 archive, reran the primary source audit and independent source identity/lifecycle verifier, then generated and validated 4,947 real canonical records with exactly 60 fields each. Family counts: SUPPORT_REJECTION 558; RESISTANCE_REJECTION 596; BREAKOUT_CONTINUATION 2,861; FAILED_BREAKOUT_REVERSAL 932. Aggregate dispositions: 2,856 eligible, 1,884 rejected, 207 expired, 0 censored. Rejection: 1,083/31/40 eligible/rejected/expired; breakout: 1,038/1,823/0; failed breakout: 735/30/167. All deterministic IDs, unique family/source identities, full record/ledger checks and 932/932 failed-breakout source-candidate links passed.
+
+Canonical output hashes:
+- JSONL `202c44f456af021b9ec8cc642e82c349f4858baadb04bcdb2342973cb752db14`
+- CSV `eca9f326bc44a74ba9631bc6b5d4a6c7b5691fea6b59c7031976f7fd7f5ff1a5`
+
+The first real-row attempt exposed a real-data mapping issue: absent historical cohort membership was emitted as the sentinel `NONE`, but the canonical schema expects an empty list. The source mapper was corrected; the successful run reran all upstream checks and the canonical build. No ledger was emitted by the failed attempt.
+
+Detailed checkpoint: `docs/research_checkpoints/2026-11-28_g0_05_canonical_candidate_ledger_build_v1.md`.
+
+**Gate status:** the real canonical build and real-row validation step is complete. G0-05 remains pending final read-only post-build evidence review before formal closure. Gate 0 remains CONDITIONAL HOLD; funding/settlement mark, fees/instrument assumptions, standalone sizing, contract rounding, stop-gap risk and execution-engine acceptance remain separate blockers. No execution simulation, orders, fills, PnL, strategy comparison, Gate 2+ or live trading was performed or authorized.
