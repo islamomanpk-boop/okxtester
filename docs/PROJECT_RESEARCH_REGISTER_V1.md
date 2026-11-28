@@ -466,3 +466,17 @@ Independent results:
 The complete evidence, scope and limitations are recorded in `docs/research_checkpoints/2026-11-28_g0_05_independent_source_verification_closeout_v1.md`.
 
 **Gate boundary:** Step 22 completion does not close G0-05 or Gate 0. The source-only ledgers are not canonical candidate rows; real candidate IDs and failed-breakout source candidate IDs remain unmaterialized. The 60-field contract has synthetic validation only. G0-05 remains OPEN / CRITICAL, Gate 0 remains CONDITIONAL HOLD, and Gate 2+ / strategy PnL backtests remain unauthorized. The next safe task is a read-only pre-generation review reconciling the older field-mapping matrix with the later frozen field-value decisions and confirming family-specific nullability/identity rules before any separately approved canonical build.
+
+
+### 12.28 G0-05 pre-generation contract review and family-specific source semantics — 2026-11-28
+
+The read-only pre-generation review compared `CANONICAL_REQUIRED_FIELDS`, the canonical serializer and the field-mapping matrix. All 60 required fields are present exactly once in the serializer, with no missing or extra keys; the matrix explicitly covers all 60 fields after adding the grouped overlap-window and NOT_APPLICABLE invalidation mappings.
+
+The review identified that the row validator previously accepted any globally allowed source-reconciliation status/cardinality combination for any family. The validator now enforces:
+- Rejection: `EXACT_PHYSICAL_EVENT_COLLAPSE` / `ONE_PHYSICAL_EVENT_TO_ONE_OR_TWO_COHORT_ROWS`, BROAD_P40 membership, one or two source cohort IDs.
+- Breakout: `EXACT_SOURCE_MATCH` / `ONE_RAW_CROSSING_TO_ONE_DISPOSITION`, exactly one raw source row ID.
+- Failed breakout: `EXACT_LINKED_SOURCE_BREAKOUT` / `ONE_FAILED_BREAKOUT_TO_ONE_SOURCE_BREAKOUT`, one or two cohort IDs plus exact source-breakout linkage/inheritance.
+
+Contract commit `e1affcb1ed585546e181fb4ab7332f0c844f4d45`; tests commit `a2479ed6496f7e698c0f43d940573f7f77cc152f`. Push-triggered synthetic workflow [46149074209](https://github.com/islamomanpk-boop/okxtester/actions/runs/46149074209) completed successfully: **193/193 tests passed**.
+
+**Pre-generation contract review: PASS for these static mapping and family-specific validator checks. Canonical build: HOLD — not authorized.** No real candidate IDs or canonical candidate rows have been generated. G0-05 remains OPEN and Gate 0 remains CONDITIONAL HOLD. The next step requiring project-owner authorization is a separately scoped real canonical candidate/disposition build and real-row validation/artifact review; this does not authorize execution simulation, Gate 2+, strategy PnL backtesting or live trading. Full details and independent-verifier limitations are in `docs/research_checkpoints/2026-11-28_g0_05_independent_source_verification_closeout_v1.md`.
