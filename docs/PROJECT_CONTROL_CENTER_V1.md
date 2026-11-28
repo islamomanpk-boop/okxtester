@@ -363,3 +363,11 @@ Funding/execution CI [46150715018](https://github.com/islamomanpk-boop/okxtester
 The standalone engine's risk sizing was aligned with the portfolio allocator. Both now use the same per-unit planned stop-risk formula, including adverse entry/stop-exit slippage and taker fees on both legs. The shared helper is `calculate_cost_adjusted_risk_per_unit` in `src/execution_engine.py`; the portfolio calls it directly. New long/short tests and an end-to-end quantity-parity test passed in workflow [46154849952](https://github.com/islamomanpk-boop/okxtester/actions/runs/46154849952), commit `8bcc79ab32cb24b6647330baf429f97325768b1f`.
 
 **G0-07 remains OPEN:** stop-gap loss quantification and verified exchange lot/tick/minimum-quantity rounding remain outstanding. G0-08 instrument metadata is a prerequisite for contract rounding. Gate 0 remains CONDITIONAL HOLD; no strategy PnL, execution simulation, orders, fills or live trading are authorized.
+
+### G0-03 real Termux funding integration result — 2026-11-28
+
+<badge color="success">Real-input contract integration passed</badge>
+
+The user's local Termux run of `src/audit_funding_contract_integration.py` returned `REAL_FUNDING_INPUT_CONTRACT_INTEGRATION_PASS`: 5,940 real funding rows across BTC, ETH, SOL, DOGE and AVAX; 1,188 common timestamps identical across assets; entry-exclusive/exit-inclusive trade-window boundaries. The saved local JSON report SHA-256 is `557f59fd4c2aa1588ef0716aca4ed3411c6bc1f19b6702a93336a6ace2067e70`. The report and source CSVs remain on the user's device and were not uploaded. Evidence details: `docs/research_checkpoints/2026-11-28_g0_03_real_termux_funding_integration_reconciliation_v1.md`.
+
+**Scope limit:** exact settlement mark price is still unverified (`candle_close_proxy`; `exact_settlement_mark_price_verified=false`). This passes the real-input integration subtask, not all of G0-03 or G0-09. Gate 0 remains CONDITIONAL HOLD; no strategy PnL, trade/execution simulation, orders, fills or live trading are authorized.

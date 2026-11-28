@@ -554,3 +554,11 @@ Funding/execution workflow [46154849952](https://github.com/islamomanpk-boop/okx
 **G0-07 remains OPEN.** This closes only the standalone-versus-portfolio planned-cost sizing mismatch. It does not quantify empirical or stress-scenario stop-gap loss, apply exchange lot/tick/minimum-quantity rounding, or establish a maximum-loss guarantee. Contract rounding depends on verified G0-08 instrument metadata. The current sizing model remains a planned-stop estimate; gap-through-stop losses can exceed the nominal risk budget.
 
 No strategy execution simulation, orders, fills, PnL backtest, or phase transition was performed.
+
+### 12.34 G0-03 real Termux funding integration reconciliation — 2026-11-28
+
+The user ran the read-only real-input integration harness locally in Termux against the actual five funding CSVs and archived manifest. Result: **`REAL_FUNDING_INPUT_CONTRACT_INTEGRATION_PASS`**. The production loader and fail-closed funding contract validated 5,940 rows (1,188 per asset) across AVAX, BTC, DOGE, ETH and SOL; all five assets share the same 1,188 scheduled timestamps; the entry timestamp is excluded and exit timestamp included. The user verified the saved JSON report; SHA-256: `557f59fd4c2aa1588ef0716aca4ed3411c6bc1f19b6702a93336a6ace2067e70`.
+
+This completes the previously pending local real-input harness/reconciliation subtask. It does **not** verify exact OKX settlement mark prices: the report explicitly records `candle_close_proxy`, `exact_mark_price_available=false` and `exact_settlement_mark_price_verified=false`. No strategy PnL or trade simulation was performed; source CSVs and JSON report remain local and were not uploaded. Full scope and reproduction are in `docs/research_checkpoints/2026-11-28_g0_03_real_termux_funding_integration_reconciliation_v1.md`.
+
+**Gate boundary:** G0-03's real-input integration subtask = PASS; overall G0-03 acceptance remains OPEN pending exact settlement-mark/funding-policy resolution and remaining gate-level reconciliation. G0-09 remains OPEN; Gate 0 remains CONDITIONAL HOLD. No Gate 2+, strategy PnL backtest, execution simulation, orders, fills or live trading is authorized.
