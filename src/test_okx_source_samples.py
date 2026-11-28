@@ -21,17 +21,21 @@ class OKXSourceSampleTests(unittest.TestCase):
 
     def test_compare_ohlc_and_volume(self):
         source = row(60000, 100, 101, 99, 100.5, 7)
-        api = ["60000", "100", "101", "99", "100.5", "7", "1", "1", "1"]
+        api = ["60000", "100", "101", "99", "100.5", "50", "7", "70", "1"]
         result = compare_candle(source, api)
         self.assertTrue(result["ohlc_match"])
-        self.assertTrue(result["volume_match"])
+        self.assertFalse(result["volume_fields_match"]["contracts"])
+        self.assertTrue(result["volume_fields_match"]["base_currency"])
+        self.assertFalse(result["volume_fields_match"]["quote_currency"])
 
     def test_compare_reports_volume_separately(self):
         source = row(60000, 100, 101, 99, 100.5, 7)
-        api = ["60000", "100", "101", "99", "100.5", "8", "1", "1", "1"]
+        api = ["60000", "100", "101", "99", "100.5", "8", "7", "9", "1"]
         result = compare_candle(source, api)
         self.assertTrue(result["ohlc_match"])
-        self.assertFalse(result["volume_match"])
+        self.assertFalse(result["volume_fields_match"]["contracts"])
+        self.assertTrue(result["volume_fields_match"]["base_currency"])
+        self.assertFalse(result["volume_fields_match"]["quote_currency"])
 
     def test_missing_timestamp_is_not_a_match(self):
         result = compare_candle(row(60000, 100, 101, 99, 100.5), None)

@@ -113,19 +113,31 @@ def _close(a, b):
 
 def compare_candle(csv_row, api_row):
     if api_row is None:
-        return {"timestamp_found": False, "ohlc_match": False, "volume_match": False}
+        return {
+            "timestamp_found": False,
+            "ohlc_match": False,
+            "volume_fields_match": {"contracts": False, "base_currency": False, "quote_currency": False},
+        }
+    if len(api_row) < 8:
+        raise ValueError("OKX candle response has fewer than 8 fields")
     comparisons = {
         "open": _close(csv_row["open"], api_row[1]),
         "high": _close(csv_row["high"], api_row[2]),
         "low": _close(csv_row["low"], api_row[3]),
         "close": _close(csv_row["close"], api_row[4]),
     }
+    volume_matches = {
+        "contracts": _close(csv_row["vol"], api_row[5]),
+        "base_currency": _close(csv_row["vol"], api_row[6]),
+        "quote_currency": _close(csv_row["vol"], api_row[7]),
+    }
     return {
         "timestamp_found": True,
         "ohlc_match": all(comparisons.values()),
         "ohlc_fields_match": comparisons,
-        "volume_match": _close(csv_row["vol"], api_row[5]),
-        "okx_volume_unit_note": "OKX V5 vol is contracts for derivatives; confirm the CSV uses the same unit.",
+        "volume_fields_match": volume_matches,
+        "volume_unit_matches": [name for name, matched in volume_matches.items() if matched],
+        "okx_volume_unit_note": "OKX V5 vol is contracts for derivatives, volCcy is base-currency volume, and volCcyQuote is quote-currency volume.",
     }
 
 
@@ -168,11 +180,15 @@ def audit_symbol(data_dir, symbol, sample_per_class, delay_seconds):
 
     found = [item for item in checks if item["comparison"]["timestamp_found"]]
     ohlc_matches = sum(item["comparison"]["ohlc_match"] for item in found)
-    volume_matches = sum(item["comparison"]["volume_match"] for item in found)
+    contract_volume_matches = sum(item["comparison"]["volume_fields_match"]["contracts"] for item in found)
+    base_volume_matches = sum(item["comparison"]["volume_fields_match"]["base_currency"] for item in found)
+    quote_volume_matches = sum(item["comparison"]["volume_fields_match"]["quote_currency"] for item in found)
     if errors or len(found) != len(checks):
         status = "API_UNAVAILABLE_OR_INCOMPLETE"
+    elif ohlc_matches == len(checks) and base_volume_matches == len(checks):
+        status = "OKX_SAMPLE_OHLC_AND_BASE_VOLUME_MATCH"
     elif ohlc_matches == len(checks):
-        status = "OKX_SAMPLE_OHLC_MATCH"
+        status = "OKX_SAMPLE_OHLC_MATCH_VOLUME_UNIT_UNRESOLVED"
     else:
         status = "OKX_SAMPLE_OHLC_MISMATCH"
 
@@ -184,7 +200,9 @@ def audit_symbol(data_dir, symbol, sample_per_class, delay_seconds):
         "transition_counts": selection["transition_counts"],
         "sample_count": len(checks),
         "ohlc_matches": ohlc_matches,
-        "volume_matches": volume_matches,
+        "volume_contract_matches": contract_volume_matches,
+        "volume_base_currency_matches": base_volume_matches,
+        "volume_quote_currency_matches": quote_volume_matches,
         "status": status,
         "largest_adjacent_jump_bps": selection["largest_adjacent_jump_bps"],
         "checks": checks,
@@ -210,8 +228,10 @@ def main(argv=None):
     statuses = [asset["status"] for asset in assets]
     if any(status == "API_UNAVAILABLE_OR_INCOMPLETE" for status in statuses):
         overall = "UNVERIFIED_API_UNAVAILABLE_OR_INCOMPLETE"
-    elif all(status == "OKX_SAMPLE_OHLC_MATCH" for status in statuses):
-        overall = "OKX_SAMPLE_OHLC_MATCH_NOT_FULL_PROVENANCE"
+    elif all(status == "OKX_SAMPLE_OHLC_AND_BASE_VOLUME_MATCH" for status in statuses):
+        overall = "OKX_SAMPLE_OHLC_AND_BASE_VOLUME_MATCH_NOT_FULL_PROVENANCE"
+    elif all(status.startswith("OKX_SAMPLE_OHLC") for status in statuses):
+        overall = "OKX_SAMPLE_OHLC_MATCH_VOLUME_UNIT_UNRESOLVED"
     else:
         overall = "OKX_SAMPLE_OHLC_MISMATCH"
 
@@ -223,10 +243,11 @@ def main(argv=None):
         "selection": "Reservoir sample of exact-open-match and changed-open transitions plus the largest adjacent open jump per asset.",
         "assets": assets,
         "interpretation": {
-            "OKX_SAMPLE_OHLC_MATCH_NOT_FULL_PROVENANCE": "All sampled OHLC values match OKX for the candidate instrument IDs. This supports, but does not prove, full-dataset source provenance or the absence of transformations.",
+            "OKX_SAMPLE_OHLC_AND_BASE_VOLUME_MATCH_NOT_FULL_PROVENANCE": "All sampled OHLC values and CSV volume values match OKX OHLC and volCcy (base-currency volume) for the candidate instrument IDs. This strongly supports OKX V5 as the sample source, but does not prove full-dataset provenance or absence of transformations.",
+            "OKX_SAMPLE_OHLC_MATCH_VOLUME_UNIT_UNRESOLVED": "Sampled OHLC values match OKX, but the CSV volume value did not consistently match a documented OKX volume field.",
             "OKX_SAMPLE_OHLC_MISMATCH": "At least one sampled OHLC candle differs from OKX; investigate instrument mapping, timestamp convention, data provider, or transformations.",
             "UNVERIFIED_API_UNAVAILABLE_OR_INCOMPLETE": "The public API did not provide all requested timestamps or a request failed; no source conclusion can be drawn.",
-            "volume": "Volume is compared separately because derivative volume units must be confirmed; OKX documents vol in contracts for derivatives.",
+            "volume": "OKX documents vol in contracts for derivatives, volCcy in base currency, and volCcyQuote in quote currency.",
         },
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -234,7 +255,7 @@ def main(argv=None):
     print("G0-07 OKX SOURCE SAMPLE VERIFICATION")
     print(f"Overall: {overall}")
     for asset in assets:
-        print(f"{asset['symbol']}: {asset['status']}, OHLC matches={asset['ohlc_matches']}/{asset['sample_count']}, volume matches={asset['volume_matches']}/{asset['sample_count']}, API errors={len(asset['errors'])}")
+        print(f"{asset['symbol']}: {asset['status']}, OHLC={asset['ohlc_matches']}/{asset['sample_count']}, vol_contracts={asset['volume_contract_matches']}/{asset['sample_count']}, vol_base={asset['volume_base_currency_matches']}/{asset['sample_count']}, vol_quote={asset['volume_quote_currency_matches']}/{asset['sample_count']}, API errors={len(asset['errors'])}")
     print(f"JSON report: {args.output}")
 
 
