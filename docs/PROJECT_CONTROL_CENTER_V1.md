@@ -371,3 +371,14 @@ The standalone engine's risk sizing was aligned with the portfolio allocator. Bo
 The user's local Termux run of `src/audit_funding_contract_integration.py` returned `REAL_FUNDING_INPUT_CONTRACT_INTEGRATION_PASS`: 5,940 real funding rows across BTC, ETH, SOL, DOGE and AVAX; 1,188 common timestamps identical across assets; entry-exclusive/exit-inclusive trade-window boundaries. The saved local JSON report SHA-256 is `557f59fd4c2aa1588ef0716aca4ed3411c6bc1f19b6702a93336a6ace2067e70`. The report and source CSVs remain on the user's device and were not uploaded. Evidence details: `docs/research_checkpoints/2026-11-28_g0_03_real_termux_funding_integration_reconciliation_v1.md`.
 
 **Scope limit:** exact settlement mark price is still unverified (`candle_close_proxy`; `exact_settlement_mark_price_verified=false`). This passes the real-input integration subtask, not all of G0-03 or G0-09. Gate 0 remains CONDITIONAL HOLD; no strategy PnL, trade/execution simulation, orders, fills or live trading are authorized.
+
+
+### G0-07 historical stop-gap audit — preliminary evidence only — 2026-11-28
+
+The five-asset one-minute OHLCV audit completed successfully in workflow [46157300415](https://github.com/islamomanpk-boop/okxtester/actions/runs/46157300415). It analyzed 2,844,994 active transitions: 48 open-through-stop events at 0.05% hypothetical stop distance, 2 at 0.10%, and none at 0.15% or wider. Largest observed open jump: 13.1281 bps on SOL. The audit also produced separate synthetic extra-gap stress cases and passed 12 focused unit tests. Long and short stop-gap adverse fills passed new standalone and portfolio engine tests.
+
+**Important: preliminary only.** Exact next-open/previous-close matches are 53.86%–58.47% per asset. The repository commit adding the CSVs did not include upstream source/export or 1m normalization provenance. Verify provider, candle boundary and forward-fill/stitching behavior before accepting these observed gap counts. Actual order-book liquidity, stop-trigger reference, latency and stop-market slippage remain unmeasured.
+
+Evidence artifact ID `15268555549`; detailed checkpoint: `docs/research_checkpoints/2026-11-28_g0_07_historical_stop_gap_risk_audit_v1.md`.
+
+**G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD.** G0-08 contract metadata is still required for lot/tick/minimum-quantity rounding. No strategy PnL, execution simulation, orders, fills, Gate 2+ or live trading is authorized.
