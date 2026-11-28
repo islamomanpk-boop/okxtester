@@ -23,6 +23,7 @@ from research.phase3_g0_05_source_manifest_audit_v1 import (
     assign_interval_graph_clusters, observed_window_bars, consistent_physical_cluster,
     make_repeated_signal_group_id, aggregate_completed_15m_bar, file_manifest_entry, git_blob_sha1,
     failed_breakout_confirmation_timing,
+    canonical_failed_breakout_confirmation,
     confirmation_ambiguity_flag, canonical_snapshot_provenance,
     resolve_lagged_feature_reference, canonical_cohort_label,
 )
@@ -748,12 +749,13 @@ class G005SourceAuditTests(unittest.TestCase):
         result = validate_module_b_horizons(events, horizons)
         self.assertEqual(result["twelve_hour_confirmations"], 1)
 
-    def test_module_b_horizons_reject_exact_12h_endpoint(self):
+    def test_module_b_horizons_retain_exact_endpoint_as_descriptive_only(self):
         events, horizons = self.sample_horizons()
         events[0]["first_15m_return_inside_close_ts_ms"] = "43201000"
         horizons[-1]["first_15m_return_inside_close_ts_ms"] = "43201000"
-        with self.assertRaisesRegex(RuntimeError, "half-open 12-hour"):
-            validate_module_b_horizons(events, horizons)
+        result = validate_module_b_horizons(events, horizons)
+        self.assertEqual(result["twelve_hour_confirmations"], 0)
+        self.assertEqual(result["twelve_hour_endpoint_observations_excluded"], 1)
 
     def test_module_b_horizons_reject_confirmation_after_12h(self):
         events, horizons = self.sample_horizons()
@@ -761,6 +763,16 @@ class G005SourceAuditTests(unittest.TestCase):
         horizons[-1]["first_15m_return_inside_close_ts_ms"] = "43201001"
         with self.assertRaisesRegex(RuntimeError, "half-open 12-hour horizon"):
             validate_module_b_horizons(events, horizons)
+
+    def test_canonical_confirmation_excludes_exact_12h_endpoint(self):
+        self.assertIsNone(canonical_failed_breakout_confirmation(1000, 43201000))
+
+    def test_canonical_confirmation_accepts_just_before_12h_endpoint(self):
+        self.assertEqual(canonical_failed_breakout_confirmation(1000, 43200999), 43200999)
+
+    def test_canonical_confirmation_rejects_after_descriptive_horizon(self):
+        with self.assertRaisesRegex(ValueError, "descriptive horizon"):
+            canonical_failed_breakout_confirmation(1000, 43201001)
 
     def test_failed_breakout_horizon_disposition_accepts_before_endpoint(self):
         self.assertEqual(
