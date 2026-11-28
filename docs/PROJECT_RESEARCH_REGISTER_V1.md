@@ -755,3 +755,20 @@ Official sources:
 - 2025-12-23 automatic-adjustment announcement: https://www.okx.com/en-gb/help/okx-to-enable-automatic-adjustment-of-several-trading-parameters
 - 2026-04-24 parameter notification announcement: https://www.okx.com/en-gb/help/okx-launches-parameter-adjustment-notification-page
 - API instrument fields and `upcChg`: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-instruments
+
+
+### 12.47 G0-08 VPS public instrument API snapshot — 2026-11-28
+
+A read-only VPS request successfully queried all five project SWAP instruments using OKX V5 `GET /api/v5/public/instruments`. Both `openapi.okx.com` and `www.okx.com` returned HTTP 200 in the diagnostic test; all five instrument requests returned API code `0`, state `live`, and `upcChg=[]`. Capture time printed by the VPS: 2026-11-28 18:50:46 UTC. No API key or credentials were used.
+
+| Instrument | tickSz | lotSz | minSz | ctVal | ctMult | maxMktSz | maxStopSz | maxTriggerSz |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| BTC-USDT-SWAP | 0.1 | 0.01 | 0.01 | 0.01 BTC | 1 | 35,000 | 35,000 | 100,000,000 |
+| ETH-USDT-SWAP | 0.01 | 0.01 | 0.01 | 0.1 ETH | 1 | 90,000 | 90,000 | 100,000,000 |
+| SOL-USDT-SWAP | 0.01 | 0.01 | 0.01 | 1 SOL | 1 | 39,000 | 39,000 | 100,000,000 |
+| DOGE-USDT-SWAP | 0.00001 | 0.01 | 0.01 | 1,000 DOGE | 1 | 24,000 | 24,000 | 100,000,000 |
+| AVAX-USDT-SWAP | 0.001 | 0.1 | 0.1 | 1 AVAX | 1 | 27,000 | 27,000 | 100,000,000 |
+
+Full checkpoint: `docs/research_checkpoints/2026-11-28_g0_08_public_instrument_api_snapshot_v2.md`.
+
+**Limits/disposition:** this is a current-state snapshot, not a completed-change history. An empty `upcChg` list is not proof of no prior changes. The raw response was not saved as a separate file or hashed. Historical effective-dated metadata remains UNVERIFIED; do not apply current values retroactively. G0-08 remains OPEN, G0-07 contract-rounding integration remains blocked on historical metadata/fee reconciliation, and Gate 0 remains CONDITIONAL HOLD.
