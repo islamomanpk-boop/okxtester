@@ -98,3 +98,20 @@ The CSV volume unit is base currency, not contract count. It matched OKX contrac
 - Source verification JSON SHA-256: `346b81ad2beb3f82848ff47b1516be9d382b2f8dc12613c3e0108cbafc7de4e8`.
 
 This improves source confidence but does not certify every row or document the original full-file export pipeline. G0-07 remains OPEN for actual stop-order execution risk assumptions and exchange-specific sizing/rounding work after G0-08 metadata verification.
+
+
+## Corrected continuity-field semantics and CI rerun — 2026-11-28
+
+The audit originally used field names containing `adjacent_open`, although the calculation compares the next candle's open with the previous candle's close. Commit `1ecf70f0b7771b5906934b00f8373cd8ad12c2ad` renamed the fields and local variables to `exact_close_to_next_open_*` and `exact_active_close_to_next_open_*`, updated the unit test and corrected the methodology/provenance wording. The 53.86%–58.47% values are close-to-next-open continuity rates, not adjacent-open equality rates. The independent 35/35 OKX sample match makes this pattern consistent with sampled native candles; it is not evidence by itself of synthetic stitching.
+
+The corrected workflow [46159298047](https://github.com/islamomanpk-boop/okxtester/actions/runs/46159298047) completed SUCCESS. The audit unit tests, historical audit, public OKX sample comparison, artifact upload, mark-price helper tests, funding tests, standalone execution tests, portfolio tests and safety tests all passed.
+
+- Corrected artifact ID: `15268323536`.
+- ZIP SHA-256: `30b87233aac3c06f52f68407cd698a6fb1e523e41e19311c475d8dc687c15397`.
+- Report status: `UNVERIFIED_FULL_FILE_PROVENANCE`.
+
+Across the tested stop scenarios, the maximum historical gap-loss multiple was 2.6256R on SOL short at a 0.05% hypothetical stop (3 events). DOGE long reached 2.5163R (3 events); AVAX short had the most events (23) and a 1.7050R maximum. These are next-open candle proxies, not executable fills or maximum-loss bounds.
+
+The engine currently checks last-trade OHLC highs/lows and uses a configured fixed slippage assumption; it does not model an explicit OKX trigger reference. OKX supports last/index/mark for derivatives, defaults to last, and describes mark as wick-resistant/recommended for derivatives. Trigger and market-fill prices are distinct; a market order may be submitted after trigger. Current REST order-book snapshots are not historical depth, so they cannot establish historical execution cost. See Section 12.37 of the research register and `docs/research_checkpoints/2026-11-28_g0_07_stop_trigger_reference_review_v1.md`.
+
+G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD.

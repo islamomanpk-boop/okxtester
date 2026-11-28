@@ -48,3 +48,20 @@ A separate read-only sample verifier compared 7 deterministic samples per asset 
 - No API errors occurred.
 
 Therefore the CSV vol field should be treated as base-currency volume, not contract count. OKX documents derivative vol in contracts and volCcy in base currency. This is sample-level source evidence, not a full-file certification; the original acquisition/normalization manifest is still absent.
+
+
+## OKX stop-trigger and execution-model review — 2026-11-28
+
+The current standalone and portfolio engines evaluate stop touches against one-minute OHLC highs/lows and model a gap using the next candle open plus a configured fixed slippage amount. The underlying candles are last-trade OHLC. The engine has no explicit `triggerPxType` configuration, so its present behavior is an implicit last-price candle model, not an OKX stop-order emulator. Taker fee and slippage inputs are required configuration values; neither has a universally calibrated value.
+
+OKX's current algo-order API supports `last`, `index` and `mark` trigger references for derivatives. The documented default is `last`; OKX describes `mark` as wick-resistant and recommended for derivatives. Setting `orderPx=-1` (or `slOrdPx=-1` for stop-loss) submits a market order after trigger. The trigger price is not a guaranteed execution price.
+
+The public order-book REST endpoint is updated approximately every 50 ms and can return up to 400 levels per side, but it provides current snapshots rather than historical order-book depth. It cannot retrospectively establish historical spread, queue position, depth, latency, market impact or actual stop-market slippage.
+
+Official references:
+- https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
+- https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
+
+No trigger-reference policy is selected here. Before changing the engine, decide whether the research model is last-price or mark/index-triggered. A mark/index model requires matching historical trigger-reference candles and a separately tested stop path. If last is retained, document that as a deliberate model scope. Keep configured slippage separate from measured market impact and require evidence-backed stress assumptions.
+
+G0-07 remains OPEN. This review did not run strategy PnL, trade simulation, execution simulation, orders or fills.

@@ -570,7 +570,7 @@ Added a read-only five-asset historical opening-gap audit, a synthetic stress gr
 
 The audit analyzed 2,844,994 positive-volume candle-to-candle transitions over 2025-10-20 through 2026-11-19. At a hypothetical 0.05% stop distance it found 18 long and 30 short open-through-stop events; at 0.10% it found one long and one short event; at 0.15% and wider it found none. The largest observed opening jump was 13.1281 bps on SOL. Synthetic scenarios separately show how extra gap beyond a stop can multiply planned price risk (e.g. a 0.25% stop plus a 0.25% extra gap = 2R, plus a 1% extra gap = 5R).
 
-**Critical limitation:** exact next-open/previous-close matches range from 53.86% to 58.47% per asset (55.90% weighted), despite zero-volume rows being rare. The repository commit introducing the five CSVs, `966a23843d8bad6bc79e3ea48c56edcace9e3a5d`, added only the CSV files; no upstream provider manifest or 1m acquisition/normalization procedure was documented in the reviewed repository paths. This is a source-continuity warning, not proof of synthetic data. The observed gap counts are **PRELIMINARY ONLY** until original OHLCV provider/export, candle boundaries and any forward-fill/stitching transformations are verified.
+**Full-file provenance limitation:** the 53.86%–58.47% statistic measures transitions where the next candle's open exactly equals the previous candle's close; it does not compare adjacent opens. The independent 35/35 OKX V5 sample match confirms that this continuity pattern is consistent with sampled native OKX candles and is not evidence by itself of synthetic stitching. The repository commit introducing the five CSVs, `966a23843d8bad6bc79e3ea48c56edcace9e3a5d`, added only the CSV files; the original full-file acquisition/normalization manifest remains undocumented. The observed gap counts are **PRELIMINARY ONLY** until full-file provenance is documented or independently certified.
 
 Artifact ID `15268555549`; ZIP SHA-256 `e9b622a3b4d7aafdc5edb8aa8fc059640e86a778dc2f68b60293db602f2e8dbf`; JSON report SHA-256 `5262b452e72c9cd1765c9b8576a5fcfaa11bb22b8d81058f46e7d75e0252800c`. Full method, per-file hashes, counts and limitations are in `docs/research_checkpoints/2026-11-28_g0_07_historical_stop_gap_risk_audit_v1.md`.
 
@@ -581,8 +581,29 @@ Artifact ID `15268555549`; ZIP SHA-256 `e9b622a3b4d7aafdc5edb8aa8fc059640e86a778
 
 Added a read-only public-API source sample verifier. Seven samples per asset (35 total) were compared with OKX V5 history-candles: **35/35 OHLC matches and 35/35 CSV volume matches to OKX volCcy (base-currency volume)**. No API errors occurred. CSV volume matched OKX contract volume only for SOL and AVAX in the sample; it did not match contract volume for BTC, ETH or DOGE. The CSV vol field must therefore be treated as base-currency volume, not contract count, for the verified samples.
 
-The 53.86%–58.47% exact adjacent open/previous-close match rates are consistent with sampled OKX candles and are not, by themselves, evidence of synthetic stitching. The sample check strongly supports OKX as the source but is not full-file certification; the original acquisition/normalization manifest remains undocumented.
+The 53.86%–58.47% exact previous-close/next-open continuity rates are consistent with sampled OKX candles and are not, by themselves, evidence of synthetic stitching. This metric does not compare adjacent opens. The sample check strongly supports OKX as the source but is not full-file certification; the original acquisition/normalization manifest remains undocumented.
 
 Successful workflow [46157813117](https://github.com/islamomanpk-boop/okxtester/actions/runs/46157813117); artifact ID `15267999478`; combined ZIP SHA-256 `9deaae351954f7046c42e4a189cef8a7f61b68bbfb09371aaa18f3cee14ea76d`; source verification JSON SHA-256 `346b81ad2beb3f82848ff47b1516be9d382b2f8dc12613c3e0108cbafc7de4e8`. Full evidence is in `docs/research_checkpoints/2026-11-28_g0_07_okx_source_sample_verification_v1.md`.
 
 **G0-07 remains OPEN** pending actual stop-order execution risk assumptions and exchange-specific sizing/rounding work after G0-08 metadata verification. Gate 0 remains CONDITIONAL HOLD; no strategy PnL, execution simulation, orders, fills, Gate 2+ or live trading is authorized.
+
+
+### 12.37 G0-07 stop-trigger reference and execution-model review — 2026-11-28
+
+The stop-gap audit's continuity metric was renamed in commit `1ecf70f0b7771b5906934b00f8373cd8ad12c2ad` to explicitly describe previous-close-to-next-open equality. The corrected report uses `exact_close_to_next_open_*` and `exact_active_close_to_next_open_*`; it no longer labels these values as adjacent opens. The full workflow [46159298047](https://github.com/islamomanpk-boop/okxtester/actions/runs/46159298047) completed SUCCESS, including all stop-gap tests, the five-asset audit, 35-row OKX source comparison and all existing funding/execution/portfolio test suites.
+
+Corrected artifact: `g0-07-stop-gap-and-source-verification-v1`, ID `15268323536`, ZIP SHA-256 `30b87233aac3c06f52f68407cd698a6fb1e523e41e19311c475d8dc687c15397`. Report status remains `UNVERIFIED_FULL_FILE_PROVENANCE`; the 35-row source check is positive sample evidence, not full-file certification.
+
+Historical open-through-stop results remain unchanged: 48 events at the 0.05% hypothetical stop distance (18 long, 30 short), 2 at 0.10% (one each direction), and none at 0.15% or wider. The maximum observed gap-loss multiple across the tested cases was 2.6256R on SOL short at a 0.05% stop (3 events); DOGE long reached 2.5163R (3 events); AVAX short had the highest count at 23 events and a 1.7050R maximum. These are candle-open proxies, not actual exchange stop fills or tail guarantees.
+
+**Execution-model review:** `src/execution_engine.py` and `src/portfolio_backtester.py` currently evaluate stops using one-minute OHLC highs/lows and handle a gap using the next candle open plus a configured fixed slippage assumption. The source candles are last-trade OHLC; no explicit `triggerPxType` policy exists in the engine. This is an implicit last-price candle model, not a verified OKX stop-order emulator. The fee and slippage inputs are required configuration values; no calibrated universal slippage value is established.
+
+OKX's current API documentation exposes `last`, `index` and `mark` trigger references for derivatives; `last` is the default, while the documentation describes mark as the wick-resistant recommended reference for derivatives. A triggered order can submit a market order using `orderPx=-1` (or `slOrdPx=-1` for a stop-loss). Trigger price and eventual fill price are distinct. The public order-book REST endpoint is refreshed about every 50 ms, but it returns a current snapshot, not a historical order-book archive. Therefore spread, historical depth, latency, market impact and actual stop-market slippage remain unmeasured.
+
+Official references:
+- OKX algo/trigger order API: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
+- OKX order-book API: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
+
+**Next safe G0-07 work:** explicitly decide whether the model is intended to represent last-price-triggered stops or mark/index-triggered stops. If mark/index is selected, obtain matching historical trigger-reference candles and validate the stop path against them before changing the engine. If last is retained, document it as a deliberate modeling scope rather than an implicit default. Separately define evidence-backed spread/depth/slippage stress assumptions; do not infer historical fills from current order-book snapshots.
+
+G0-07 remains OPEN pending stop-trigger policy, real execution-cost evidence/stress assumptions, and contract rounding after G0-08 instrument metadata. Gate 0 remains CONDITIONAL HOLD. No strategy PnL, execution simulation, orders, fills, Gate 2+ or live trading was performed or authorized.
