@@ -164,7 +164,7 @@ def verify_rejection_identity(root: Path, artifact: Path, rows: list[dict[str, s
         if status not in (expected_status, "CENSORED" if expected_status == "ELIGIBLE_FOR_FURTHER_VALIDATION" else expected_status):
             stop(f"independently recomputed rejection disposition mismatch: {key}")
         if reason != expected_reason or row.get("causal_cohort") != expected_cohort:
-            stop(f"independently recomputed rejection causal label/reason mismatch: {key}")
+            stop(f"independently recomputed rejection causal mismatch: {key}; expected=({expected_status},{expected_reason},{expected_cohort}); actual=({status},{reason},{row.get('causal_cohort')}); threshold={thresholds.get((asset, snapshot)) is not None}; confirmation={confirmation}; next_snapshot={next_snapshot}")
         if expected_status != "ELIGIBLE_FOR_FURTHER_VALIDATION" and (row.get("first_eligible_1m_open_ts_ms") or "").strip():
             stop(f"non-eligible rejection exposes first eligible minute: {key}")
     return {"physical_events": len(physical), "source_memberships": sum(map(len, physical.values())),
