@@ -83,7 +83,8 @@ jobs:
             research/phase3_g0_05_source_manifest_audit_v1.py \
             research/phase3_g0_05_independent_source_verification_v1.py \
             research/phase3_g0_05_candidate_contract_v1.py \
-            research/phase3_g0_05_canonical_build_v1.py
+            research/phase3_g0_05_canonical_build_v1.py \
+            research/phase3_g0_05_postbuild_review_v1.py
 
       - name: Run primary frozen-source provenance and disposition audit
         run: |
@@ -109,7 +110,7 @@ jobs:
 
       - name: Independently review canonical ledger and source reconciliation
         run: |
-          python research/phase3_g0_05_postbuild_review_v1.py \\
+          python research/phase3_g0_05_postbuild_review_v1.py \
             --evidence-dir g0_05_canonical_build_output
 
       - name: Upload canonical ledger and complete audit evidence
