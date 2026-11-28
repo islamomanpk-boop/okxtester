@@ -832,7 +832,8 @@ def historical_membership_label(was_historical_selected: str, definitions: set[s
         fail("historical strict cohort is not nested within broad")
     if (flag == "true") != bool(definitions):
         fail("G0-04 historical-selected flag disagrees with Module B cohort membership")
-    return ";".join(sorted(definitions)) if definitions else "NONE"
+    # No historical selection is represented by an empty membership list, not a sentinel.
+    return ";".join(sorted(definitions))
 
 
 def grouped_disposition_counts(rows: list[dict[str, str]], fields: tuple[str, ...]) -> list[dict]:
