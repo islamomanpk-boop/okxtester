@@ -6,6 +6,7 @@ No credentials are used and no historical raw data is retained.
 """
 import argparse
 import hashlib
+import heapq
 import json
 import statistics
 import tarfile
@@ -23,6 +24,7 @@ SAMPLE_DAY = "2025-11-01"
 SAMPLE_FAMILY = "BTC-USDT"
 SAMPLE_MODULE = "5"
 DEPTH_LIMIT = 5000
+METRIC_SAMPLE_EVERY_RECORDS = 10
 
 
 def _levels_to_map(levels, side):
@@ -74,9 +76,11 @@ def _apply_changes(book_side, levels, side):
 def _trim_depth(book_side, side):
     if len(book_side) <= DEPTH_LIMIT:
         return
-    ordered = sorted(book_side, reverse=(side == "bids"))
-    for price in ordered[DEPTH_LIMIT:]:
-        del book_side[price]
+    keep = set(heapq.nlargest(DEPTH_LIMIT, book_side) if side == "bids"
+               else heapq.nsmallest(DEPTH_LIMIT, book_side))
+    for price in list(book_side):
+        if price not in keep:
+            del book_side[price]
 
 
 def _percentiles(values):
@@ -114,70 +118,19 @@ def reconstruct_jsonl_member(handle, expected_inst_id):
     max_ask_levels = 0
     seqid_fields_seen = 0
     first_keys = None
+    metric_sample_rows = 0
+    last_metric_row = 0
+    crossed_books_sampled = 0
+    empty_books_sampled = 0
 
-    for raw_line in handle:
-        if not raw_line.strip():
-            continue
-        try:
-            row = json.loads(raw_line.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-            raise ValueError("Archive member contains malformed JSON") from exc
-        if not isinstance(row, dict) or row.get("instId") != expected_inst_id:
-            raise ValueError("Archive record instrument ID mismatch")
-        action = row.get("action")
-        if action not in ("snapshot", "update"):
-            raise ValueError("Archive action must be snapshot or update")
-        try:
-            ts = int(row["ts"])
-        except (KeyError, TypeError, ValueError) as exc:
-            raise ValueError("Archive timestamp is missing or invalid") from exc
-        if first_ts is None:
-            first_ts = ts
-            first_keys = sorted(row.keys())
-        if previous_ts is not None:
-            delta = ts - previous_ts
-            timestamp_deltas[str(delta)] += 1
-            duplicate_timestamps += int(delta == 0)
-            non_monotonic_timestamps += int(delta < 0)
-        previous_ts = ts
-        last_ts = ts
+    def capture_metrics(row_number):
+        nonlocal metric_sample_rows, last_metric_row
+        nonlocal crossed_books_sampled, empty_books_sampled
+        if rows == 1 or rows % METRIC_SAMPLE_EVERY_RECORDS == 0:
+            capture_metrics(rows)
 
-        if "seqId" in row or "prevSeqId" in row:
-            seqid_fields_seen += 1
-
-        if action == "snapshot":
-            bids = _levels_to_map(row.get("bids"), "bids")
-            asks = _levels_to_map(row.get("asks"), "asks")
-            snapshots += 1
-            if previous_snapshot_ts is not None:
-                snapshot_intervals[str(ts - previous_snapshot_ts)] += 1
-            previous_snapshot_ts = ts
-        else:
-            if snapshots == 0:
-                raise ValueError("Incremental update arrived before first snapshot")
-            _apply_changes(bids, row.get("bids"), "bids")
-            _apply_changes(asks, row.get("asks"), "asks")
-            _trim_depth(bids, "bids")
-            _trim_depth(asks, "asks")
-            updates += 1
-
-        actions[action] += 1
-        max_bid_levels = max(max_bid_levels, len(bids))
-        max_ask_levels = max(max_ask_levels, len(asks))
-        if not bids or not asks:
-            empty_books += 1
-            continue
-
-        best_bid = max(bids)
-        best_ask = min(asks)
-        if best_bid >= best_ask:
-            crossed_books += 1
-        mid = (best_bid + best_ask) / Decimal("2")
-        spread_bps.append(float((best_ask - best_bid) / mid * Decimal("10000")))
-        top_bids = sorted(bids, reverse=True)[:10]
-        top_asks = sorted(asks)[:10]
-        bid_top10_contracts.append(float(sum(bids[p][0] for p in top_bids)))
-        ask_top10_contracts.append(float(sum(asks[p][0] for p in top_asks)))
+    if rows != last_metric_row:
+        capture_metrics(rows)
 
     if snapshots == 0 or not actions:
         raise ValueError("Archive contains no usable snapshot/update records")
@@ -195,8 +148,10 @@ def reconstruct_jsonl_member(handle, expected_inst_id):
         "elapsed_seconds": (last_ts - first_ts) / 1000,
         "sequence_fields_seen": seqid_fields_seen,
         "first_record_keys": first_keys,
-        "crossed_book_observations": crossed_books,
-        "empty_book_observations": empty_books,
+        "crossed_book_observations_sampled": crossed_books_sampled,
+        "empty_book_observations_sampled": empty_books_sampled,
+        "metric_sample_interval_records": METRIC_SAMPLE_EVERY_RECORDS,
+        "metric_sample_count": metric_sample_rows,
         "max_bid_levels_after_depth_trim": max_bid_levels,
         "max_ask_levels_after_depth_trim": max_ask_levels,
         "spread_bps": _percentiles(spread_bps),
@@ -297,7 +252,7 @@ def main(argv=None):
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print("G0-07 HISTORICAL L2 BOOK RECONSTRUCTION")
     print(f"Records: {result['record_count']}; snapshots={result['action_counts'].get('snapshot', 0)}; updates={result['action_counts'].get('update', 0)}")
-    print(f"Crossed-book observations: {result['crossed_book_observations']}")
+    print(f"Crossed-book observations (sampled): {result['crossed_book_observations_sampled']}")
     print(f"Spread bps min/p50/p95/max: {json.dumps(result['spread_bps'], sort_keys=True)}")
     print(f"Top-10 bid depth contracts p50/p95: {result['top10_bid_depth_contracts']['p50']}/{result['top10_bid_depth_contracts']['p95']}")
     print(f"Top-10 ask depth contracts p50/p95: {result['top10_ask_depth_contracts']['p50']}/{result['top10_ask_depth_contracts']['p95']}")
