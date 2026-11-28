@@ -164,3 +164,14 @@ This final run reran the frozen G0-04 artifact digest check, primary source audi
 **Technical disposition:** G0-04 remains ACCEPTED. G0-05 implementation, real candidate generation, full validation and independent post-build evidence review are now technically complete and ready for formal G0-05 closeout. The project owner has authorized generation, but a distinct formal gate-acceptance decision has not yet been recorded; until that decision is made, keep G0-05 marked READY FOR FORMAL CLOSEOUT rather than silently changing its gate state.
 
 **Gate 0 remains CONDITIONAL HOLD — not passed.** G0-03 real-input funding integration/exact settlement-mark policy, G0-07 standalone sizing/contract rounding/gap risk, G0-08 fee/instrument assumptions and G0-09 settlement-mark fidelity/execution-engine acceptance remain separate blockers. No orders, fills, execution simulation, PnL, strategy comparison, Gate 2+ or live trading was performed or authorized.
+
+
+## 10. Formal G0-05 technical disposition — 2026-11-28
+
+The evidence in Sections 1–9 has now been reviewed against the frozen G0-05 implementation checklist and the final independent post-build report. The dated decision record `docs/research_checkpoints/2026-11-28_g0_05_acceptance_decision_v1.md` records **G0-05 ACCEPTED — TECHNICAL CLOSEOUT COMPLETE**.
+
+This is an assistant technical disposition based on the project owner's explicit authorization to generate the real canonical ledger and the complete acceptance evidence; it is not represented as a human reviewer sign-off.
+
+G0-05 is closed for source provenance/causal dispositions, three-family canonical serialization, exact 60-field real-row validation, deterministic candidate identities, failed-breakout source linkage/inheritance, and independent post-build evidence review.
+
+**Gate 0 remains CONDITIONAL HOLD — not passed.** G0-03, G0-07, G0-08 and G0-09 remain separate open requirements. Gate 2+, strategy PnL backtests, orders, fills, execution simulation and live trading remain unauthorized. The accepted G0-05 closeout does not change the agreed phase sequence.
