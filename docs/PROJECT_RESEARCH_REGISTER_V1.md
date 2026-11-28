@@ -451,3 +451,18 @@ The 5,940-row event-time 4H mark-price dataset from Section 12.25 has been commi
 - README and manifest are committed alongside the CSV.
 
 The snapshot hash was independently reproduced byte-for-byte by the hosted-runner and VPS-runner audits. The manifest explicitly records `exact_settlement_mark_verified=false`, `funding_proxy_policy_accepted=false`, and `engine_mode_changed=false`. This is an additive candidate research input only; it does not change the current execution engine, close G0-03/G0-09, or authorize PnL backtests.
+
+
+### 12.27 G0-05 independent source identity, causal disposition and lifecycle verification — 2026-11-28
+
+Step 22 is complete. The independent standard-library verifier at `research/phase3_g0_05_independent_source_verification_v1.py` imports neither the canonical candidate contract nor the primary source-audit implementation. Final workflow [46148537294](https://github.com/islamomanpk-boop/okxtester/actions/runs/46148537294) completed successfully on `price-action-v1` commit `8744a1981237f3aabfe73bacf3cc8bdfa5bb295f`. Evidence artifact `15264717673` (`phase3-g0-05-source-audit-46148537294`) has ZIP SHA-256 `865c8a1a5cf0fc2e0ce9a85df14200d64054738c063275f7ce675d471af48974`.
+
+Independent results:
+- Rejection: 1,154 physical identities / 1,992 nested cohort memberships; 1,083 eligible, 31 rejected, 40 expired. The independent check rebuilt source identities, memberships and causal dispositions; accepted Module A cluster IDs remain verified by the primary audit rather than independently re-clustered here.
+- Breakout: all 2,861 raw crossings reconcile exactly once; P25/P40 causal flags and dispositions independently recomputed; 1,037 half-open 12-hour interval clusters rebuilt from raw 1M timestamps (BTC 220, ETH 201, SOL 212, DOGE 193, AVAX 211); 1,038 eligible and 1,823 rejected.
+- Failed breakout: 1,592 Module B cohort rows collapse to 932 physical identities; all 932 source links and causal-source-cohort inheritance reconcile; the strict half-open 12-hour lifecycle is checked. One observed return-inside exactly at +12h is excluded from canonical confirmation. Final dispositions: 735 eligible, 30 rejected, 167 expired.
+- Across the three source-only ledgers: 4,947 rows, 2,856 eligible, 1,884 rejected and 207 expired. These are source disposition rows, not 4,947 independent physical events.
+
+The complete evidence, scope and limitations are recorded in `docs/research_checkpoints/2026-11-28_g0_05_independent_source_verification_closeout_v1.md`.
+
+**Gate boundary:** Step 22 completion does not close G0-05 or Gate 0. The source-only ledgers are not canonical candidate rows; real candidate IDs and failed-breakout source candidate IDs remain unmaterialized. The 60-field contract has synthetic validation only. G0-05 remains OPEN / CRITICAL, Gate 0 remains CONDITIONAL HOLD, and Gate 2+ / strategy PnL backtests remain unauthorized. The next safe task is a read-only pre-generation review reconciling the older field-mapping matrix with the later frozen field-value decisions and confirming family-specific nullability/identity rules before any separately approved canonical build.
