@@ -79,3 +79,12 @@ Before any canonical candidate generator is run, freeze and test:
 7. The complete synthetic edge-case matrix and deterministic rerun requirements.
 
 **Current status:** primary threshold policy/population selected for the G0-05 contract. Candidate generation remains blocked until all remaining family-specific and snapshot decisions are frozen and the complete synthetic contract passes.
+
+
+## 7. Superseding implementation status — 2026-11-28
+
+The threshold policy and calibration population frozen in this decision were applied in the real G0-05 source disposition and canonical candidate build. The owner-authorized workflow [46150045661](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150045661) passed source audit, independent source verification, 4,947-row canonical generation/full validation and independent post-build review.
+
+Primary policy remains `EXPANDING_PRIOR` with `UNIQUE_4H_FEATURE_ROWS` and a minimum of 180 prior completed 4H contexts. The source-only causal disposition counts reconcile to the final canonical ledger. No alternative sensitivity policy was substituted into the primary build.
+
+The previous statements in this decision that canonical generation remained blocked are historical and superseded by the dated owner authorization and final evidence. G0-05 is technically complete and READY FOR FORMAL CLOSEOUT; formal acceptance remains a separate gate disposition. Gate 0 remains CONDITIONAL HOLD, and no execution simulation, strategy PnL backtest or live trading is authorized.
