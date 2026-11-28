@@ -226,3 +226,17 @@ The validator has been tested only with synthetic candidate records; no real can
 
 
 Independent minute verification after schema-validator integration: [45810782593](https://github.com/islamomanpk-boop/okxtester/actions/runs/45810782593) — SUCCESS; artifact ID `15112426887`; ZIP SHA-256 `da386f639b49c4188bf2927f0c9edb8305abed08f542e3ef6cffa988df449d04`; 2,857/2,857 eligible timestamps present.
+
+
+## 17. Superseding clarification — 2026-11-28
+
+This addendum reconciles older open wording in this V1 mapping matrix with the later frozen decisions and current source-only implementation. It does not authorize candidate generation.
+
+1. **Instrument ID:** the earlier “Decision required” note in Section 2 is superseded by `2026-11-26_g0_05_candidate_field_value_decisions_v1.md`. The exact mapping is `{ASSET}-USDT-SWAP` for BTC, ETH, SOL, DOGE and AVAX. The current source-only audit materializes this value; it remains a market instrument mapping, not a claim about acquisition-snapshot provenance.
+2. **Failed-breakout identity:** the Section 2 source-event description is provisional at source-only grain. The final canonical `source_event_id` is composed from the linked source breakout candidate ID, completed return-inside confirmation timestamp (or `NO_CONFIRMATION`), and `G0_05_CANDIDATE_RULE_V1`. The source-only ledger deliberately does not materialize either candidate ID.
+3. **Frozen threshold and timing values:** use the accepted `EXPANDING_PRIOR` / `UNIQUE_4H_FEATURE_ROWS` primary calibration policy, 180-prior-context warm-up, exact snapshot validity semantics, 15-minute family confirmation rules, and half-open 12-hour failed-breakout lifecycle from the later dated decision records. Sensitivity variants remain evidence, not interchangeable primary policies.
+4. **Source-only materialization:** current source-only disposition rows carry instrument/version labels, family-specific snapshot and threshold provenance, signal/confirmation timestamps, disposition/reason, ambiguity and lifecycle fields, deterministic source-event identity, source paths/blob lineage and a complete source-manifest ID. They are not canonical candidate rows.
+5. **Full schema validator:** `research/phase3_g0_05_candidate_contract_v1.py` validates all 60 required canonical fields and full-ledger identity/link/expiry rules. The latest synthetic suite result is 190/190 passed (run 46140552809). This is synthetic-only record validation; no real canonical candidate IDs or candidate rows have been generated.
+6. **Independent source verification:** Step 22 passed in workflow [46148537294](https://github.com/islamomanpk-boop/okxtester/actions/runs/46148537294), commit `8744a1981237f3aabfe73bacf3cc8bdfa5bb295f`. See `docs/research_checkpoints/2026-11-28_g0_05_independent_source_verification_closeout_v1.md` for source identity, causal disposition, cluster, linkage, endpoint and scope results.
+
+**Current authorization boundary:** G0-05 remains OPEN. The 60-field contract and source-only disposition audit are pre-generation evidence only. Do not materialize real candidate IDs, canonical candidate rows, orders, fills or strategy results until the separate read-only pre-generation review is complete and the project owner explicitly authorizes the canonical build. Gate 0 remains CONDITIONAL HOLD.
