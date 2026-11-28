@@ -91,10 +91,10 @@ jobs:
 
       - name: Run independent source identity and lifecycle verification
         run: |
-          python research/phase3_g0_05_independent_source_verification_v1.py \\
-            --repo-root . \\
-            --artifact-dir g004_artifact \\
-            --audit-dir g0_05_source_audit_output \\
+          python research/phase3_g0_05_independent_source_verification_v1.py \
+            --repo-root . \
+            --artifact-dir g004_artifact \
+            --audit-dir g0_05_source_audit_output \
             --output g0_05_source_audit_output/independent_source_verification.json
 
       - name: Upload source audit evidence
