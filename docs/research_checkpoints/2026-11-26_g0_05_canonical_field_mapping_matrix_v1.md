@@ -256,3 +256,16 @@ The static 60-field comparison identified six required fields that were represen
 | `invalidation_reference_ts_ms` | `NOT_APPLICABLE`. | `NOT_APPLICABLE`. | `NOT_APPLICABLE`. |
 
 Overlap-cluster fields are dependence metadata only. They do not suppress, merge or delete candidates. The three invalidation-reference fields remain NOT_APPLICABLE because G0-05 represents point-event availability/disposition, not a stop, order or trade-invalidation lifecycle.
+
+
+## 19. Family-specific source reconciliation semantics — 2026-11-28
+
+The canonical validator now binds reconciliation status and join cardinality to the family, rather than merely checking each value against a global enum:
+
+| Family | `source_reconciliation_status` | `source_join_cardinality` | Source-row constraint |
+|---|---|---|---|
+| SUPPORT_REJECTION / RESISTANCE_REJECTION | `EXACT_PHYSICAL_EVENT_COLLAPSE` | `ONE_PHYSICAL_EVENT_TO_ONE_OR_TWO_COHORT_ROWS` | BROAD_P40 membership required; one or two cohort source IDs |
+| BREAKOUT_CONTINUATION | `EXACT_SOURCE_MATCH` | `ONE_RAW_CROSSING_TO_ONE_DISPOSITION` | Exactly one G0-04 raw crossing source ID |
+| FAILED_BREAKOUT_REVERSAL | `EXACT_LINKED_SOURCE_BREAKOUT` | `ONE_FAILED_BREAKOUT_TO_ONE_SOURCE_BREAKOUT` | One or two Module B cohort source IDs; exact linked breakout candidate identity and inherited provenance |
+
+The canonical row validator and synthetic tests now enforce these family-specific rules. Workflow [46149074209](https://github.com/islamomanpk-boop/okxtester/actions/runs/46149074209) passed **193/193** tests. This is synthetic validation only; no real canonical candidate records have been generated.
