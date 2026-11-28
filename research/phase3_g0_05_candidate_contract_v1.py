@@ -297,15 +297,20 @@ def validate_canonical_candidate_record(row: dict) -> None:
         raise ValueError("source_pipeline_version mismatch")
     if row["causal_cohort_label"] not in COHORT_LABELS:
         raise ValueError("invalid causal_cohort_label")
-    if not isinstance(row["source_event_row_ids"], list) or not row["source_event_row_ids"]:
-        raise ValueError("source_event_row_ids must be a non-empty list")
-    if len(set(row["source_event_row_ids"])) != len(row["source_event_row_ids"]):
+    source_row_ids = row["source_event_row_ids"]
+    if (not isinstance(source_row_ids, list) or not source_row_ids
+            or any(not isinstance(value, str) or not value.strip() for value in source_row_ids)):
+        raise ValueError("source_event_row_ids must be a non-empty list of non-empty strings")
+    if len(set(source_row_ids)) != len(source_row_ids):
         raise ValueError("source_event_row_ids contain duplicates")
-    if not set(row["historical_cohort_memberships"]).issubset({"BROAD_P40", "STRICT_P25"}):
-        raise ValueError("invalid historical_cohort_memberships")
-    if not isinstance(row["historical_cohort_memberships"], list):
+    memberships = row["historical_cohort_memberships"]
+    if not isinstance(memberships, list):
         raise ValueError("historical_cohort_memberships must be a list")
-    if len(set(row["historical_cohort_memberships"])) != len(row["historical_cohort_memberships"]):
+    if any(not isinstance(value, str) or not value.strip() for value in memberships):
+        raise ValueError("historical_cohort_memberships must contain non-empty strings")
+    if not set(memberships).issubset({"BROAD_P40", "STRICT_P25"}):
+        raise ValueError("invalid historical_cohort_memberships")
+    if len(set(memberships)) != len(memberships):
         raise ValueError("historical_cohort_memberships contain duplicates")
     if not isinstance(row["source_event_id"], str) or not row["source_event_id"] or not isinstance(row["candidate_id"], str):
         raise ValueError("candidate/source event identity is blank")
@@ -393,11 +398,18 @@ def validate_canonical_candidate_record(row: dict) -> None:
             raise ValueError("signal candle must be exactly 15 minutes")
         if row["signal_available_at_ts_ms"] != row["signal_candle_close_ts_ms"]:
             raise ValueError("signal availability must equal completed 15m close")
-    if not isinstance(row["ambiguity_flags"], list) or not set(row["ambiguity_flags"]).issubset(AMBIGUITY_FLAGS):
+    ambiguity_flags = row["ambiguity_flags"]
+    if not isinstance(ambiguity_flags, list):
+        raise ValueError("ambiguity_flags must be a list")
+    if any(not isinstance(value, str) or not value.strip() for value in ambiguity_flags):
+        raise ValueError("ambiguity_flags must contain non-empty strings")
+    if not set(ambiguity_flags).issubset(AMBIGUITY_FLAGS):
         raise ValueError("invalid ambiguity_flags")
-    if "NONE" in row["ambiguity_flags"] and len(row["ambiguity_flags"]) != 1:
+    if len(set(ambiguity_flags)) != len(ambiguity_flags):
+        raise ValueError("ambiguity_flags contain duplicates")
+    if "NONE" in ambiguity_flags and len(ambiguity_flags) != 1:
         raise ValueError("NONE cannot be combined with ambiguity flags")
-    if not isinstance(row["overlap_cluster_size"], int) or row["overlap_cluster_size"] < 1:
+    if type(row["overlap_cluster_size"]) is not int or row["overlap_cluster_size"] < 1:
         raise ValueError("overlap_cluster_size must be a positive integer")
     if row["overlap_window_end_ts_ms"] <= row["overlap_window_start_ts_ms"]:
         raise ValueError("overlap cluster window must have positive duration")
@@ -414,7 +426,7 @@ def validate_canonical_candidate_record(row: dict) -> None:
     if status not in DISPOSITION_STATUSES:
         raise ValueError("invalid candidate_status")
     if status == "ELIGIBLE_FOR_FURTHER_VALIDATION":
-        if (reason != "NONE" or not isinstance(row["first_eligible_execution_bar_open_ts_ms"], int)
+        if (reason != "NONE" or type(row["first_eligible_execution_bar_open_ts_ms"]) is not int
                 or row["first_eligible_execution_bar_open_ts_ms"] != row["signal_available_at_ts_ms"]):
             raise ValueError("eligible candidate requires NONE reason and exact first eligible minute")
     else:
@@ -431,7 +443,7 @@ def validate_canonical_candidate_record(row: dict) -> None:
     if row["invalidation_reference_type"] != "NOT_APPLICABLE" or row["invalidation_reference_value"] != "NOT_APPLICABLE" or row["invalidation_reference_ts_ms"] != "NOT_APPLICABLE":
         raise ValueError("G0-05 point events must not invent invalidation references")
     if family == "FAILED_BREAKOUT_REVERSAL":
-        if row["expiry_rule_id"] != "SOURCE_BREAKOUT_12H_RETURN_INSIDE_V1" or not isinstance(row["expiry_ts_ms"], int):
+        if row["expiry_rule_id"] != "SOURCE_BREAKOUT_12H_RETURN_INSIDE_V1" or type(row["expiry_ts_ms"]) is not int:
             raise ValueError("failed-breakout row requires its source 12-hour expiry")
         if not re.fullmatch(r"[0-9a-f]{64}", str(row["source_breakout_candidate_id"])):
             raise ValueError("failed-breakout row requires a SHA-256 source_breakout_candidate_id")
