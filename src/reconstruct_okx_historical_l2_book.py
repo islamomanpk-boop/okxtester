@@ -2,6 +2,7 @@
 
 Downloads only BTC-USDT-SWAP module 5 for 2025-11-01, reconstructs the book
 in memory, writes compact statistics, then deletes the temporary archive.
+Spread/depth metrics are sampled every ten records for efficiency.
 No credentials are used and no historical raw data is retained.
 """
 import argparse
