@@ -169,3 +169,12 @@ Evidence:
 - Failed-breakout: 663 inherited groups / 932 rows.
 
 No grouping changes row counts, source identities or dispositions. The schema gaps now remaining are the rest of the canonical candidate field mapping and materialization, including source lineage, snapshot/threshold/feature fields, signal/confirmation anatomy, lifecycle nullability, and full schema validation.
+
+
+## 23. Final canonical output gap closeout — 2026-11-28
+
+The previously listed canonical output gaps are now technically resolved by the owner-authorized real build and independent post-build review. Authoritative workflow [46150045661](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150045661) passed. The artifact contains 4,947 real canonical rows, exactly 60 fields per row, deterministic IDs, full ledger validation and all 932 failed-breakout candidate links. Independent review separately passed the exact-once source reconciliation, source-manifest/hash checks, CSV/JSONL equivalence, deterministic ID recomputation, and failed-breakout source inheritance.
+
+Final artifact ID `15265023491`, ZIP SHA-256 `0b9464cbeda0a513cea915aae78a1c43aab2b5563448a0e19b247c02b4081935`. JSONL SHA-256 `387d376bc269587de6fb48686641cd27e885a2d3bd6c6a8ae96a9a9dd61333d8`; CSV SHA-256 `325c714e5923612a711d18a855d1540e1f59b27d26d65636ebabd7578c81bb43`.
+
+**Disposition:** the canonical output schema gap is TECHNICALLY CLOSED. G0-05 is READY FOR FORMAL CLOSEOUT; do not infer formal gate acceptance until a distinct acceptance decision is recorded. Gate 0 remains CONDITIONAL HOLD because its separate funding/settlement-mark, fee/instrument, sizing/rounding/gap-risk and execution-engine blockers remain. No execution simulation, PnL, strategy selection, Gate 2+ or live trading was performed or authorized.
