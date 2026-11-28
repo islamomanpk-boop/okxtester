@@ -375,6 +375,23 @@ def validate_canonical_candidate_record(row: dict) -> None:
             raise ValueError("threshold percentile does not match causal cohort label")
     if "STRICT_P25" in memberships and "BROAD_P40" not in memberships:
         raise ValueError("strict historical cohort membership requires broad historical membership")
+    label = row["causal_cohort_label"]
+    if label in {"STRICT_P25", "BROAD_ONLY", "NOT_ELIGIBLE"}:
+        if row["threshold_value"] is None:
+            raise ValueError("evaluated causal cohort label requires threshold provenance")
+        if row["efficiency_value"] is None or row["overlap_value"] is None:
+            raise ValueError("evaluated causal cohort label requires efficiency and overlap measurements")
+        width_passes = row["channel_width_pct"] <= row["threshold_value"]
+        efficiency_passes = row["efficiency_value"] <= row["efficiency_limit"]
+        overlap_passes = row["overlap_value"] >= row["overlap_minimum"]
+        if label == "STRICT_P25" and not (width_passes and efficiency_passes and overlap_passes):
+            raise ValueError("STRICT_P25 label conflicts with canonical regime feature thresholds")
+        if label == "BROAD_ONLY" and not (width_passes and efficiency_passes and overlap_passes):
+            raise ValueError("BROAD_ONLY label conflicts with canonical broad regime thresholds")
+        if label == "NOT_ELIGIBLE" and (width_passes and efficiency_passes and overlap_passes):
+            raise ValueError("NOT_ELIGIBLE label has no failing broad regime condition")
+    # BROAD_ONLY cannot be proven to exceed P25 from this row alone: only the selected P40 is serialized.
+    # Rejection rows use the sideways detector regime; breakout families use historical breakout context.
     for field in ("source_file_paths", "source_git_blob_ids"):
         values = row[field]
         if not isinstance(values, list) or not values or any(not isinstance(v, str) or not v for v in values):
