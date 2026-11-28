@@ -2,8 +2,6 @@
 
 ## Result
 
-<badge>OKX sample OHLC + base-volume match</badge>
-
 A read-only sample verifier compared 7 deterministic samples per asset against the public OKX V5 history-candles endpoint. Samples cover exact-open/previous-close transitions, changed-open transitions, and each asset's largest adjacent opening jump.
 
 | Asset | OHLC matches | CSV volume matches OKX base volume | CSV volume matches OKX contract volume |
