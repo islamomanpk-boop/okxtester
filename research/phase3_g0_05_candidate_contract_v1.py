@@ -738,12 +738,39 @@ def serialize_source_disposition_ledgers(rejection_rows: list[dict],
         }
         return record
 
+    expected_source_candidate_keys = []
+    for row in rejection_rows + breakout_rows:
+        source_identity = str(row.get("source_event_id", "")).strip()
+        if not source_identity:
+            raise ValueError("source disposition row has no source_event_id for canonical reconciliation")
+        expected_source_candidate_keys.append((row["family"], source_identity))
+    for row in failed_breakout_rows:
+        source_breakout_identity = str(row.get("source_breakout_source_event_id", "")).strip()
+        source_breakout_candidate = breakout_candidate_ids.get(source_breakout_identity)
+        if source_breakout_candidate is None:
+            raise ValueError("failed-breakout row has no exact source breakout source-event row")
+        confirmation = _failed_breakout_confirmation_identity_timestamp({
+            "signal_available_at_ts_ms": row.get("signal_available_at_ts_ms"),
+            "confirmation_status": row.get("confirmation_status"),
+            "reason_code": row.get("reason_code"),
+            "event_observed_at_ts_ms": row.get("event_observed_at_ts_ms"),
+        })
+        expected_source_candidate_keys.append((
+            row["family"], f"{source_breakout_candidate}|{confirmation}|{rule_version}"))
+    if len(expected_source_candidate_keys) != len(set(expected_source_candidate_keys)):
+        raise ValueError("duplicate source-to-candidate input identity")
+
     canonical = (
         [serialize(row) for row in rejection_rows]
         + [serialize(row) for row in breakout_rows]
         + [serialize(row, failed=True) for row in failed_breakout_rows]
     )
     canonical.sort(key=lambda record: (record["family"], record["candidate_id"]))
+    observed_source_candidate_keys = [
+        (row["family"], row["source_event_id"]) for row in canonical
+    ]
+    if sorted(expected_source_candidate_keys) != sorted(observed_source_candidate_keys):
+        raise ValueError("source-to-candidate exact-once reconciliation mismatch")
     validate_canonical_candidate_ledger(canonical)
     return canonical
 
