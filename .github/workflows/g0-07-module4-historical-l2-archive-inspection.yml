@@ -1,0 +1,40 @@
+name: G0-07 Module-4 Historical L2 Archive Inspection
+on:
+  push:
+    branches: [price-action-v1]
+    paths:
+      - src/inspect_okx_module4_historical_l2_archive.py
+      - src/test_inspect_okx_module4_historical_l2_archive.py
+      - .github/workflows/g0-07-module4-historical-l2-archive-inspection.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: g0-07-module4-historical-l2-archive-inspection
+  cancel-in-progress: true
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out exact commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile inspector and tests
+        run: python -m py_compile src/inspect_okx_module4_historical_l2_archive.py src/test_inspect_okx_module4_historical_l2_archive.py
+      - name: Run focused unit tests
+        run: python -m unittest discover -s src -p 'test_inspect_okx_module4_historical_l2_archive.py' -v
+      - name: Inspect BTC module-4 archive in memory
+        run: python src/inspect_okx_module4_historical_l2_archive.py
+      - name: Upload compact inspection report
+        uses: actions/upload-artifact@v4
+        with:
+          name: g0-07-module4-historical-l2-archive-inspection-v1
+          path: reports/g0_07_module4_historical_l2_archive_inspection_v1.json
+          if-no-files-found: error
+          retention-days: 30
