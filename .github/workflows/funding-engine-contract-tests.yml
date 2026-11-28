@@ -26,6 +26,8 @@ on:
       - src/test_phase3_funding_mark_price_full_coverage_v1.py
       - src/audit_stop_gap_risk.py
       - src/test_stop_gap_risk_audit.py
+      - src/audit_okx_source_samples.py
+      - src/test_okx_source_samples.py
       - data/market_1m/**
       - research/inspect_okx_demo_readonly_api.py
       - .github/workflows/funding-engine-contract-tests.yml
@@ -66,6 +68,7 @@ jobs:
             src/phase3_funding_mark_price_full_coverage_v1.py \
             src/test_phase3_funding_mark_price_full_coverage_v1.py \
             src/audit_stop_gap_risk.py src/test_stop_gap_risk_audit.py \
+            src/audit_okx_source_samples.py src/test_okx_source_samples.py \
             research/inspect_okx_demo_readonly_api.py
       - name: Run historical stop-gap audit unit tests
         run: python -m unittest discover -s src -p 'test_stop_gap_risk_audit.py' -v
@@ -74,11 +77,18 @@ jobs:
           python src/audit_stop_gap_risk.py \
             --data-dir data/market_1m \
             --output reports/g0_07_stop_gap_risk_audit_v1.json
+      - name: Run OKX public candle source sample tests
+        run: python -m unittest discover -s src -p 'test_okx_source_samples.py' -v
+      - name: Compare sampled repository candles with public OKX history
+        run: |
+          python src/audit_okx_source_samples.py \
+            --data-dir data/market_1m \
+            --output reports/g0_07_okx_source_sample_verification_v1.json
       - name: Upload historical stop-gap audit report
         uses: actions/upload-artifact@v4
         with:
           name: g0-07-stop-gap-risk-audit-v1
-          path: reports/g0_07_stop_gap_risk_audit_v1.json
+          path: |\n            reports/g0_07_stop_gap_risk_audit_v1.json\n            reports/g0_07_okx_source_sample_verification_v1.json
           if-no-files-found: error
           retention-days: 30
       - name: Run full-window mark-price audit helper tests
