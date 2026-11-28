@@ -240,6 +240,17 @@ class G005ContractTests(unittest.TestCase):
         identities = [(row["family"], row["candidate_id"]) for row in first]
         self.assertEqual(identities, sorted(identities))
 
+    def test_source_to_canonical_reconciliation_rejects_duplicate_input_identity(self):
+        rejection = self._canonical_candidate_fixture(
+            "SUPPORT_REJECTION", "BTC|LOWER|rejection|duplicate", 1761287400000,
+            "LOWER", "LONG")
+        rejection["source_reconciliation_status"] = "EXACT_PHYSICAL_EVENT_COLLAPSE"
+        rejection["source_join_cardinality"] = "ONE_PHYSICAL_EVENT_TO_ONE_OR_TWO_COHORT_ROWS"
+        rejection_source = self._source_only_fixture_from_canonical(rejection)
+        with self.assertRaisesRegex(ValueError, "duplicate source-to-candidate input identity"):
+            serialize_source_disposition_ledgers(
+                [rejection_source, dict(rejection_source)], [], [])
+
     def _canonical_candidate_fixture(self, family, source_event_id, signal_available,
                                       boundary_side, side, source_breakout_candidate_id="NOT_APPLICABLE",
                                       source_breakout_signal_available=None):
