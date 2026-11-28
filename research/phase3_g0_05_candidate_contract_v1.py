@@ -492,6 +492,20 @@ def validate_canonical_candidate_ledger(records: list[dict]) -> dict:
     return validate_candidate_identity_links(records)
 
 
+def _failed_breakout_confirmation_identity_timestamp(row: dict) -> str:
+    """Use the completed confirmation time, or a censored observed time when no candle completed."""
+    available = row.get("signal_available_at_ts_ms")
+    if available not in (None, ""):
+        return str(int(available))
+    if (row.get("confirmation_status") == "CENSORED"
+            and row.get("exclusion_reason", row.get("reason_code")) == "INCOMPLETE_15M_CONFIRMATION"):
+        observed = row.get("event_observed_at_ts_ms")
+        if observed in (None, ""):
+            raise ValueError("incomplete confirmation identity lacks its observed timestamp")
+        return str(int(observed))
+    return "NO_CONFIRMATION"
+
+
 def validate_candidate_identity_links(records: list[dict]) -> dict:
     """Validate deterministic candidate IDs and failed-breakout source-candidate links."""
     if not records:
@@ -532,7 +546,7 @@ def validate_candidate_identity_links(records: list[dict]) -> dict:
             source_breakout_row = records_by_id.get(linked)
             if source_breakout_row is None or source_breakout_row.get("family") != "BREAKOUT_CONTINUATION":
                 raise ValueError("source_breakout_candidate_id does not resolve to a source breakout candidate row")
-            confirmation_ts = str(row.get("signal_available_at_ts_ms") or "NO_CONFIRMATION")
+            confirmation_ts = _failed_breakout_confirmation_identity_timestamp(row)
             expected_failed_identity = (
                 f"{linked}|{confirmation_ts}|{row['candidate_rule_version']}")
             if row["source_event_id"] != expected_failed_identity:
@@ -542,6 +556,27 @@ def validate_candidate_identity_links(records: list[dict]) -> dict:
                 raise ValueError("linked source breakout lacks a completed signal availability timestamp")
             if row.get("expiry_ts_ms") != source_signal_available + FAILURE_HORIZON_MS:
                 raise ValueError("failed-breakout expiry does not match linked source breakout 12-hour horizon")
+            inherited_fields = (
+                "asset", "instrument_id", "boundary_side", "regime_definition_version",
+                "source_pipeline_version", "historical_cohort_memberships", "causal_cohort_label",
+                "snapshot_id", "snapshot_available_at_ts_ms", "snapshot_valid_from_ts_ms",
+                "snapshot_valid_until_ts_ms", "frozen_upper_boundary", "frozen_lower_boundary",
+                "channel_width_pct", "threshold_policy_id", "threshold_population_id",
+                "threshold_value", "threshold_percentile", "threshold_calibration_start_ts_ms",
+                "threshold_calibration_end_ts_ms", "threshold_prior_observation_count",
+                "efficiency_value", "efficiency_limit", "overlap_value", "overlap_minimum",
+                "source_sha256_manifest_id", "repeated_signal_group_id", "overlap_cluster_id",
+                "overlap_cluster_size", "overlap_window_start_ts_ms", "overlap_window_end_ts_ms",
+            )
+            for field in inherited_fields:
+                if row.get(field) != source_breakout_row.get(field):
+                    raise ValueError(f"failed-breakout candidate does not inherit source breakout {field}")
+            opposite_side = {"LONG": "SHORT", "SHORT": "LONG"}.get(source_breakout_row.get("side"))
+            if row.get("side") != opposite_side:
+                raise ValueError("failed-breakout side must reverse the linked breakout side")
+            if (source_breakout_row.get("candidate_status") != "ELIGIBLE_FOR_FURTHER_VALIDATION"
+                    and row.get("candidate_status") == "ELIGIBLE_FOR_FURTHER_VALIDATION"):
+                raise ValueError("failed-breakout candidate cannot be eligible when its source breakout is not eligible")
         elif linked not in (None, "", "NOT_APPLICABLE"):
             raise ValueError("non-failed-breakout row must not carry a source breakout candidate link")
 
@@ -603,7 +638,12 @@ def serialize_source_disposition_ledgers(rejection_rows: list[dict],
             source_breakout_candidate = breakout_candidate_ids.get(source_breakout_identity)
             if source_breakout_candidate is None:
                 raise ValueError("failed-breakout row has no exact source breakout source-event row")
-            confirmation = str(row.get("signal_available_at_ts_ms") or "NO_CONFIRMATION")
+            confirmation = _failed_breakout_confirmation_identity_timestamp({
+                "signal_available_at_ts_ms": row.get("signal_available_at_ts_ms"),
+                "confirmation_status": row.get("confirmation_status"),
+                "reason_code": row.get("reason_code"),
+                "event_observed_at_ts_ms": row.get("event_observed_at_ts_ms"),
+            })
             source_identity = f"{source_breakout_candidate}|{confirmation}|{rule_version}"
         else:
             source_identity = str(row["source_event_id"])
