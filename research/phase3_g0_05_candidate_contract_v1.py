@@ -743,6 +743,7 @@ def serialize_source_disposition_ledgers(rejection_rows: list[dict],
         + [serialize(row) for row in breakout_rows]
         + [serialize(row, failed=True) for row in failed_breakout_rows]
     )
+    canonical.sort(key=lambda record: (record["family"], record["candidate_id"]))
     validate_canonical_candidate_ledger(canonical)
     return canonical
 
