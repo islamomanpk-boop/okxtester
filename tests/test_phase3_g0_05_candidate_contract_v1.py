@@ -665,6 +665,29 @@ class G005ContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "missing required fields"):
             validate_canonical_candidate_record(record)
 
+    def test_canonical_record_rejects_wrong_family_source_reconciliation_semantics(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["source_reconciliation_status"] = "EXACT_PHYSICAL_EVENT_COLLAPSE"
+        with self.assertRaisesRegex(ValueError, "does not match candidate family"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_breakout_with_multiple_raw_source_rows(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["source_event_row_ids"] = ["raw-crossing-1", "raw-crossing-2"]
+        with self.assertRaisesRegex(ValueError, "exactly one raw crossing"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_requires_broad_membership_for_rejection(self):
+        record = self._canonical_candidate_fixture(
+            "SUPPORT_REJECTION", "BTC|LOWER|1|2", 1761287400000, "LOWER", "LONG")
+        record["source_reconciliation_status"] = "EXACT_PHYSICAL_EVENT_COLLAPSE"
+        record["source_join_cardinality"] = "ONE_PHYSICAL_EVENT_TO_ONE_OR_TWO_COHORT_ROWS"
+        record["historical_cohort_memberships"] = []
+        with self.assertRaisesRegex(ValueError, "requires its BROAD_P40"):
+            validate_canonical_candidate_record(record)
+
     def test_canonical_ledger_rejects_failed_breakout_expiry_mismatch(self):
         breakout_identity = "BTC|UPPER|1761287400000|1761278400000"
         breakout = self._canonical_candidate_fixture(
