@@ -87,8 +87,10 @@ jobs:
       - name: Upload historical stop-gap audit report
         uses: actions/upload-artifact@v4
         with:
-          name: g0-07-stop-gap-risk-audit-v1
-          path: |\n            reports/g0_07_stop_gap_risk_audit_v1.json\n            reports/g0_07_okx_source_sample_verification_v1.json
+          name: g0-07-stop-gap-and-source-verification-v1
+          path: |
+            reports/g0_07_stop_gap_risk_audit_v1.json
+            reports/g0_07_okx_source_sample_verification_v1.json
           if-no-files-found: error
           retention-days: 30
       - name: Run full-window mark-price audit helper tests

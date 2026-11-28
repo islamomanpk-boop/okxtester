@@ -14,7 +14,7 @@ class OKXSourceSampleTests(unittest.TestCase):
         ]
         result = select_samples(rows, sample_per_class=1, seed=1)
         self.assertEqual(result["transition_counts"], {"exact": 1, "changed": 2})
-        classes = {x["classification"] for x in result["samples"]}
+        classes = {label for x in result["samples"] for label in x["classifications"]}
         self.assertIn("exact", classes)
         self.assertIn("changed", classes)
         self.assertIn("largest_absolute_adjacent_open_jump", classes)

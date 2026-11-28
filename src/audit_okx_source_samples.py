@@ -71,16 +71,17 @@ def select_samples(rows, sample_per_class=3, seed=20261128):
         max_jump = {**max_jump, "classification": "largest_absolute_adjacent_open_jump"}
         combined.append(max_jump)
 
-    deduplicated = []
-    seen_timestamps = set()
+    deduplicated = {}
     for item in combined:
         ts = item["candle"]["ts"]
-        if ts not in seen_timestamps:
-            deduplicated.append(item)
-            seen_timestamps.add(ts)
+        if ts not in deduplicated:
+            item["classifications"] = [item["classification"]]
+            deduplicated[ts] = item
+        elif item["classification"] not in deduplicated[ts]["classifications"]:
+            deduplicated[ts]["classifications"].append(item["classification"])
     return {
         "transition_counts": seen_counts,
-        "samples": deduplicated,
+        "samples": list(deduplicated.values()),
         "largest_adjacent_jump_bps": max_jump["jump_bps"] if max_jump else None,
     }
 
@@ -148,6 +149,7 @@ def audit_symbol(data_dir, symbol, sample_per_class, delay_seconds):
             comparison = compare_candle(candle, api_row)
             checks.append({
                 "classification": sample["classification"],
+                "classifications": sample["classifications"],
                 "timestamp_ms": candle["ts"],
                 "previous_timestamp_ms": sample["previous_timestamp_ms"],
                 "previous_close": sample["previous_close"],
@@ -158,6 +160,7 @@ def audit_symbol(data_dir, symbol, sample_per_class, delay_seconds):
             errors.append({"timestamp_ms": candle["ts"], "error": str(exc)})
             checks.append({
                 "classification": sample["classification"],
+                "classifications": sample["classifications"],
                 "timestamp_ms": candle["ts"],
                 "comparison": {"timestamp_found": False, "ohlc_match": False, "volume_match": False},
             })
