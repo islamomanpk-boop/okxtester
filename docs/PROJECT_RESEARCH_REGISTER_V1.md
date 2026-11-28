@@ -694,3 +694,24 @@ Workflow [46171636969](https://github.com/islamomanpk-boop/okxtester/actions/run
 A second successful one-minute-sampled run [46171705890](https://github.com/islamomanpk-boop/okxtester/actions/runs/46171705890) produced closely matching spread p50/p95 of 0.00908654/0.00912471 bps, with top-10 depth p50 434.44 bid and 466.44 ask contracts. This supports stability of the sampled BTC spread summary for this day, but not full-period execution assumptions.
 
 **Limits:** one instrument/day only; no sequence IDs; no historical effective contract-value metadata; visible depth is not guaranteed executable liquidity and does not prove queue position, hidden liquidity, latency, or market impact. Raw archive was deleted after each CI run; compact report artifacts only. The five-asset same-day extension is pending. G0-07 remains OPEN and Gate 0 remains CONDITIONAL HOLD.
+
+
+### 12.43 G0-07 five-asset historical L2 book reconstruction sample — 2026-11-28
+
+The five-asset module-5 historical order-book reconstruction for 2025-11-01 completed successfully in GitHub Actions [46172153289](https://github.com/islamomanpk-boop/okxtester/actions/runs/46172153289), commit `f55b18bba393d8ba0de06da15886140b3f61d0ed`. All three focused reconstruction tests passed. The workflow parsed its compact JSON report before upload; artifact ID `15274400627`, ZIP SHA-256 `67beabeee39f8e37b5ba4b23e4c8c886e9b33e3f801686fc516dd58168d5d1f0`. Raw archives were not retained.
+
+All five instruments had 96 snapshots. BTC, ETH, SOL and DOGE each contained 86,400 records (96 snapshots and 86,304 updates), and every snapshot had 5,000 bid and 5,000 ask levels. AVAX contained 86,397 records (96 snapshots and 86,301 updates); snapshot depth ranged from 2,155–2,558 bid levels and 4,391–4,722 ask levels. AVAX had three 2,000 ms timestamp intervals. No duplicate or backwards timestamps were observed for any asset. No archive contained seqId/prevSeqId, so update continuity cannot be certified and the AVAX timestamp gaps cannot be definitively classified.
+
+One-minute sampled spread summaries (bps):
+
+| Instrument | p50 | p95 |
+|---|---:|---:|
+| BTC-USDT-SWAP | 0.00908654 | 0.00912471 |
+| ETH-USDT-SWAP | 0.02583682 | 0.02602327 |
+| SOL-USDT-SWAP | 0.53753326 | 0.54049672 |
+| DOGE-USDT-SWAP | 0.53526027 | 0.53843048 |
+| AVAX-USDT-SWAP | 0.53860448 | 0.54985841 |
+
+No crossed or empty books were observed at sampled points. Top-10 depth is in contracts and cannot be compared across assets without effective historical contract-value metadata. The lower AVAX level counts are present in its archive snapshots, not introduced by artificial reconstruction truncation.
+
+**Disposition:** this is a one-day cross-asset sample, not full-period validation. The absent sequence IDs, AVAX timestamp irregularities, lower AVAX snapshot depth, lack of historical contract-value metadata, and uncalibrated market impact/latency/queue effects remain material limitations. Spread/depth observations are not executable fills or calibrated slippage assumptions. G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD. No strategy PnL, execution simulation, orders, fills, Gate 2+ or live trading was performed.
