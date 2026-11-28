@@ -761,7 +761,7 @@ class G005SourceAuditTests(unittest.TestCase):
         events, horizons = self.sample_horizons()
         events[0]["first_15m_return_inside_close_ts_ms"] = "43201001"
         horizons[-1]["first_15m_return_inside_close_ts_ms"] = "43201001"
-        with self.assertRaisesRegex(RuntimeError, "half-open 12-hour horizon"):
+        with self.assertRaisesRegex(RuntimeError, "outside the 12-hour descriptive horizon"):
             validate_module_b_horizons(events, horizons)
 
     def test_canonical_confirmation_excludes_exact_12h_endpoint(self):
