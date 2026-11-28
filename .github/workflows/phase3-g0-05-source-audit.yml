@@ -70,7 +70,7 @@ jobs:
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" \
             --output g004_artifact.zip
 
-          printf '%s  %s\\n' "$expected_sha256" "g004_artifact.zip" | sha256sum --check -
+          printf '%s  %s\n' "$expected_sha256" "g004_artifact.zip" | sha256sum --check -
           mkdir -p g004_artifact
           unzip -q g004_artifact.zip -d g004_artifact
           rm g004_artifact.zip
