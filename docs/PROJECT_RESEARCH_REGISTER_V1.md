@@ -726,3 +726,14 @@ The full stream contained 6,876,834 records over 86,399.975 seconds: 1,440 snaps
 This validates archive availability, JSONL structure and timestamp ordering for one BTC date only. It does not yet validate evolving-book reconstruction, spread/depth metrics, cross-asset consistency or execution cost. Module-4 cadence and format must be separately reconstructed/tested before combining its evidence with module-5 results.
 
 **Disposition:** G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD. No fills, PnL, execution simulation or live trading.
+
+
+### 12.45 G0-07 module-4 BTC historical L2 book reconstruction — 2026-11-28
+
+The module-4 BTC-USDT-SWAP 400-level historical book reconstruction for 2025-10-20 completed SUCCESS in GitHub Actions [46173859847](https://github.com/islamomanpk-boop/okxtester/actions/runs/46173859847), commit `0e81fd1bed535af58a2152995774e47ad2f9ff1e). Compilation and all five focused unit tests passed. Full reconstruction ran in memory; compact report artifact ID `15274908032`, ZIP SHA-256 `b58a53bccf1611dd10b01f275e50da232e24070446619d0dc9c364ecf10b3b75`. The report was downloaded and parsed successfully; raw archive was not retained.
+
+The stream contained 6,876,834 records over 86,399.975 seconds: 1,440 snapshots and 6,875,394 updates. Every snapshot contained exactly 400 bid and 400 ask levels. No duplicate or non-monotonic timestamps. Timestamp intervals were predominantly 10 ms (5,978,609), 20 ms (511,928), 30 ms (188,716) and 40 ms (88,902). No seqId/prevSeqId fields were present. Reconstruction semantics: snapshot replaces both sides; updates replace/insert price levels; zero size removes a price level.
+
+At 689 metric samples (one every 10,000 records), no crossed or empty books were observed. Spread (bps): min 0.00895848, p50 0.00902937, p95 0.00926145, max 6.09560315. Top-10 visible depth in contracts: bid p50 538.82 / p95 1,784.45; ask p50 493.27 / p95 1,636.69.
+
+**Limits:** one BTC instrument/day only; sampling misses transient states; absent sequence IDs mean timestamps cannot prove lossless update continuity; visible depth does not establish queue position, hidden liquidity, latency, market impact or fills; historical effective contract-value metadata remains unresolved. These are observed visible-book metrics, not calibrated slippage or executable-fill assumptions. The successful reconstruction closes the implementation test for this single sample only, not G0-07. G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD. No strategy PnL, execution simulation, orders or fills.
