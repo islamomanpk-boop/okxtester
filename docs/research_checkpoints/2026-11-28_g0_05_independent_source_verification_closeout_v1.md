@@ -88,3 +88,29 @@ The separate synthetic contract suite's latest known result remains 190/190 pass
 ## 6. Smallest safe next step
 
 Complete a read-only pre-generation gate review that reconciles the canonical field-mapping matrix with the later frozen field-value decisions, verifies the family-specific nullability and identity rules against the current 60-field validator, and records a final G0-05 authorization decision. Any real canonical candidate build must remain a separately approved action after that review; it must not be inferred from this successful source-only audit.
+
+
+## 7. Pre-generation contract review — 2026-11-28
+
+A static comparison of the canonical contract, serializer and field-mapping matrix found:
+- `CANONICAL_REQUIRED_FIELDS` contains exactly 60 fields.
+- The canonical serializer emits exactly 60 keys: no missing required keys and no extra keys.
+- The field-mapping matrix now names all 60 required fields explicitly, including overlap-cluster size/bounds and the three NOT_APPLICABLE invalidation-reference fields.
+
+The review also found a validator gap: the row validator accepted any globally allowed `source_reconciliation_status` / `source_join_cardinality` combination regardless of family. It now enforces the exact family mapping:
+- Rejection: `EXACT_PHYSICAL_EVENT_COLLAPSE` + `ONE_PHYSICAL_EVENT_TO_ONE_OR_TWO_COHORT_ROWS`; BROAD_P40 membership required; one or two source cohort IDs.
+- Breakout continuation: `EXACT_SOURCE_MATCH` + `ONE_RAW_CROSSING_TO_ONE_DISPOSITION`; exactly one raw source row ID.
+- Failed-breakout reversal: `EXACT_LINKED_SOURCE_BREAKOUT` + `ONE_FAILED_BREAKOUT_TO_ONE_SOURCE_BREAKOUT`; one or two source cohort IDs, with exact source-breakout link and inherited source metadata checked by the ledger validator.
+
+Implementation and synthetic evidence:
+- Contract change: commit `e1affcb1ed585546e181fb4ab7332f0c844f4d45`.
+- Three new fail-closed tests: commit `a2479ed6496f7e698c0f43d940573f7f77cc152f`.
+- Normal push-triggered synthetic workflow [46149074209](https://github.com/islamomanpk-boop/okxtester/actions/runs/46149074209) — SUCCESS; **193/193 tests passed**.
+
+### Pre-generation review disposition
+
+**Technical pre-generation review: PASS for the inspected contract/serializer/mapping checks.** The 60-field serializer mapping is exact, the field matrix covers all 60 fields, and family-specific source reconciliation semantics now fail closed under synthetic tests.
+
+**Canonical candidate build: HOLD — not authorized.** This review did not generate real candidate IDs, `source_breakout_candidate_id` values or canonical candidate rows. The independent source verifier has the explicit scope limitations in Section 4; in particular, it does not independently rebuild Module A's 24-hour cluster graph or independently repeat the full 15-component OHLC aggregation. Those remain covered by the primary source audit and its existing checks, not by the new independent verifier.
+
+**G0-05 remains OPEN; Gate 0 remains CONDITIONAL HOLD.** The next action requiring owner authorization is a separately scoped real canonical candidate/disposition build, followed by a real-row validator run and artifact review. This must not be interpreted as authorization for execution simulation, strategy PnL backtesting, Gate 2+, or live trading.
