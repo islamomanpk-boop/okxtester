@@ -358,14 +358,23 @@ def validate_canonical_candidate_record(row: dict) -> None:
             raise ValueError("null threshold value requires all threshold metadata null")
     else:
         _finite_number(row["threshold_value"], "threshold_value")
-        if row["threshold_percentile"] not in (25, 40):
+        if row["causal_cohort_label"] == "WARMUP":
+            raise ValueError("WARMUP candidates must not carry threshold metadata")
+        if type(row["threshold_percentile"]) is not int or row["threshold_percentile"] not in (25, 40):
             raise ValueError("threshold_percentile must be 25 or 40")
-        if not isinstance(row["threshold_calibration_start_ts_ms"], int) or not isinstance(row["threshold_calibration_end_ts_ms"], int):
+        if type(row["threshold_calibration_start_ts_ms"]) is not int or type(row["threshold_calibration_end_ts_ms"]) is not int:
             raise ValueError("threshold calibration bounds must be integer timestamps")
+        if row["threshold_calibration_start_ts_ms"] >= row["threshold_calibration_end_ts_ms"]:
+            raise ValueError("threshold calibration start must precede end")
         if row["threshold_calibration_end_ts_ms"] >= row["snapshot_available_at_ts_ms"]:
             raise ValueError("threshold calibration must end before snapshot")
-        if not isinstance(row["threshold_prior_observation_count"], int) or row["threshold_prior_observation_count"] < 180:
+        if type(row["threshold_prior_observation_count"]) is not int or row["threshold_prior_observation_count"] < 180:
             raise ValueError("threshold prior observation count must be at least 180")
+        expected_percentile = 25 if row["causal_cohort_label"] == "STRICT_P25" else 40
+        if row["threshold_percentile"] != expected_percentile:
+            raise ValueError("threshold percentile does not match causal cohort label")
+    if "STRICT_P25" in memberships and "BROAD_P40" not in memberships:
+        raise ValueError("strict historical cohort membership requires broad historical membership")
     for field in ("source_file_paths", "source_git_blob_ids"):
         values = row[field]
         if not isinstance(values, list) or not values or any(not isinstance(v, str) or not v for v in values):
