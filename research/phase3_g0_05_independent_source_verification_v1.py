@@ -40,9 +40,12 @@ def integer(row: dict[str, str], field: str, label: str) -> int:
         value = row[field].strip()
         if not value:
             raise ValueError("blank")
-        number = int(value)
-    except (KeyError, TypeError, ValueError):
-        stop(f"{label}: invalid integer field {field}")
+        numeric = float(value)
+        if not numeric.is_integer():
+            raise ValueError("not an exact integer")
+        number = int(numeric)
+    except (KeyError, TypeError, ValueError, OverflowError):
+        stop(f"{label}: invalid exact-integer field {field}")
     return number
 
 
