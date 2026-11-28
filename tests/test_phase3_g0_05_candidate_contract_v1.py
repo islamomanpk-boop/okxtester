@@ -556,9 +556,9 @@ class G005ContractTests(unittest.TestCase):
         self.assertEqual(failed_breakout_horizon_disposition(0, None, False),
                          "CENSORED_SOURCE_END_BEFORE_RESOLUTION")
 
-    def test_failed_breakout_confirmation_at_12h_boundary_is_valid(self):
-        self.assertEqual(failed_breakout_horizon_disposition(0, FAILURE_HORIZON_MS, True),
-                         "CONFIRMED_WITHIN_12H")
+    def test_failed_breakout_confirmation_at_12h_boundary_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "half-open 12-hour"):
+            failed_breakout_horizon_disposition(0, FAILURE_HORIZON_MS, True)
 
     def test_failed_breakout_confirmation_after_12h_fails(self):
         with self.assertRaisesRegex(ValueError, "12-hour"):
