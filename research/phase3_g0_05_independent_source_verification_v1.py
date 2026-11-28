@@ -389,10 +389,23 @@ def verify_failed_breakouts(root: Path, rows: list[dict[str, str]], breakout_row
                 if (row.get("signal_candle_close_ts_ms") or "").strip():
                     stop(f"incomplete 15m confirmation exposes completed candle: {key}")
         source_ok = source_breakout.get("disposition") == "ELIGIBLE_FOR_FURTHER_VALIDATION"
+        if row.get("causal_source_cohort") != source_breakout.get("causal_cohort"):
+            stop(f"failed-breakout causal cohort does not inherit source breakout: {key}")
+        expected_identity = f"{key}|{confirmation if confirmation is not None else 'NO_CONFIRMATION'}"
+        if row.get("source_event_id") != expected_identity:
+            stop(f"failed-breakout event identity does not encode confirmation observation: {key}")
         disposition = row.get("disposition", "")
         reason = row.get("reason_code", "")
         if not source_ok and (disposition != "REJECTED" or reason != "NO_VALID_SOURCE_BREAKOUT"):
             stop(f"failed-breakout inherits invalid source disposition incorrectly: {key}")
+        if source_ok and confirmation is None:
+            expected_disposition = "EXPIRED" if complete else "CENSORED"
+            if disposition != expected_disposition:
+                stop(f"failed-breakout no-confirmation lifecycle disposition mismatch: {key}")
+        if source_ok and confirmation is not None:
+            expected_disposition = "CENSORED" if status == "CENSORED" else "ELIGIBLE_FOR_FURTHER_VALIDATION"
+            if disposition != expected_disposition:
+                stop(f"failed-breakout confirmed lifecycle disposition mismatch: {key}")
         if disposition == "EXPIRED" and reason != "EXPIRED_NO_RETURN_INSIDE_WITHIN_12H":
             stop(f"expired failed-breakout reason mismatch: {key}")
         if disposition == "CENSORED" and reason not in (
@@ -405,7 +418,9 @@ def verify_failed_breakouts(root: Path, rows: list[dict[str, str]], breakout_row
     if endpoint_exclusions != 1:
         stop(f"expected one exact-12h endpoint exclusion, observed {endpoint_exclusions}")
     return {"physical_source_events": len(grouped), "source_cohort_rows": len(source),
+            "dispositions": dict(Counter(f"{item.get('disposition')}|{item.get('reason_code')}" for item in observed.values())),
             "exact_source_identity_and_linkage": True,
+            "causal_source_cohort_inheritance": True,
             "half_open_12h_lifecycle_checks": len(grouped),
             "exact_12h_endpoint_observations_excluded": endpoint_exclusions}
 
