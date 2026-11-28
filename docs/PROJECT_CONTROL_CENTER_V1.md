@@ -391,3 +391,17 @@ The public OKX V5 sample check passed: 35/35 sampled OHLC rows and 35/35 CSV vol
 Workflow [46157813117](https://github.com/islamomanpk-boop/okxtester/actions/runs/46157813117), artifact ID `15267999478`. See `docs/research_checkpoints/2026-11-28_g0_07_okx_source_sample_verification_v1.md`.
 
 **G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD.** Real stop-order liquidity, trigger reference, latency, slippage/market impact and contract rounding remain unresolved. G0-08 instrument metadata is still required before rounding work. No strategy PnL, execution simulation, orders, fills, Gate 2+ or live trading is authorized.
+
+
+### G0-08 public instrument metadata snapshot — 2026-11-28
+
+The new read-only public OKX V5 metadata audit passed for all five project USDT perpetuals in workflow [46159574942](https://github.com/islamomanpk-boop/okxtester/actions/runs/46159574942). Current tickSz / lotSz / minSz:
+- BTC: 0.1 USDT / 0.01 contracts / 0.01 contracts
+- ETH: 0.01 USDT / 0.01 contracts / 0.01 contracts
+- SOL: 0.01 USDT / 0.01 contracts / 0.01 contracts
+- DOGE: 0.00001 USDT / 0.01 contracts / 0.01 contracts
+- AVAX: 0.001 USDT / 0.1 contracts / 0.1 contracts
+
+All five current instruments are live linear USDT swaps with contract multiplier 1 and fee-group ID 4. Artifact 15269286504, ZIP SHA-256 2db7e1ef98469d0ca4a08702c92600d8dfca55e32b606eb8728a6bee3b6ca5f8. Full details: docs/research_checkpoints/2026-11-28_g0_08_public_instrument_metadata_snapshot_v1.md.
+
+**G0-08 remains OPEN:** the snapshot is current-only, not historical metadata coverage; actual account fee rates require the authenticated account fee endpoint and have not been fetched. Do not infer an account fee tier from groupId=4. G0-07 contract rounding remains blocked until historical effective metadata and fee assumptions are verified. Gate 0 remains CONDITIONAL HOLD.

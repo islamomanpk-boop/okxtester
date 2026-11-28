@@ -607,3 +607,30 @@ Official references:
 **Next safe G0-07 work:** explicitly decide whether the model is intended to represent last-price-triggered stops or mark/index-triggered stops. If mark/index is selected, obtain matching historical trigger-reference candles and validate the stop path against them before changing the engine. If last is retained, document it as a deliberate modeling scope rather than an implicit default. Separately define evidence-backed spread/depth/slippage stress assumptions; do not infer historical fills from current order-book snapshots.
 
 G0-07 remains OPEN pending stop-trigger policy, real execution-cost evidence/stress assumptions, and contract rounding after G0-08 instrument metadata. Gate 0 remains CONDITIONAL HOLD. No strategy PnL, execution simulation, orders, fills, Gate 2+ or live trading was performed or authorized.
+
+
+### 12.38 G0-08 current public instrument metadata snapshot — 2026-11-28
+
+Added a read-only public OKX V5 instrument metadata audit for BTC, ETH, SOL, DOGE and AVAX USDT perpetual swaps. The validator and snapshot workflow [46159574942](https://github.com/islamomanpk-boop/okxtester/actions/runs/46159574942) completed SUCCESS. All five records passed exact instrument identity, live state, linear contract type, USDT settlement, base-currency contract value, positive tick/lot/minimum sizes and minimum-size/lot-step consistency. No API errors occurred.
+
+Current snapshot (capture time 2026-11-28 15:23:07.736–15:23:09.254 UTC):
+
+| Instrument | ctVal | ctMult | tickSz (USDT) | lotSz (contracts) | minSz (contracts) | min base units | maxMktSz / maxStopSz (contracts) | groupId |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| BTC-USDT-SWAP | 0.01 BTC | 1 | 0.1 | 0.01 | 0.01 | 0.0001 BTC | 35,000 / 35,000 | 4 |
+| ETH-USDT-SWAP | 0.1 ETH | 1 | 0.01 | 0.01 | 0.01 | 0.001 ETH | 90,000 / 90,000 | 4 |
+| SOL-USDT-SWAP | 1 SOL | 1 | 0.01 | 0.01 | 0.01 | 0.01 SOL | 39,000 / 39,000 | 4 |
+| DOGE-USDT-SWAP | 1,000 DOGE | 1 | 0.00001 | 0.01 | 0.01 | 10 DOGE | 24,000 / 24,000 | 4 |
+| AVAX-USDT-SWAP | 1 AVAX | 1 | 0.001 | 0.1 | 0.1 | 0.1 AVAX | 27,000 / 27,000 | 4 |
+
+All five instruments were live, linear and USDT-settled; all returned an empty upcChg list at capture. Derivative lotSz and minSz are contract counts, not base-asset quantities. The previously verified CSV volume values represent base-currency volume, not exchange contract sz; they must not be used directly as contract order quantities.
+
+- Commit: 2030c5a0976d8a54d984dda928f65c2f0ac1ebce.
+- Artifact: g0-08-public-instrument-metadata-v1, ID 15269286504.
+- Artifact ZIP SHA-256: 2db7e1ef98469d0ca4a08702c92600d8dfca55e32b606eb8728a6bee3b6ca5f8.
+- Canonical raw metadata SHA-256: b435bb456abb3cc388462ff3cd28067ecf95a2cebd572602d11a67216dace9cf.
+- Report status: OKX_PUBLIC_INSTRUMENT_METADATA_SNAPSHOT_PASS_CURRENT_ONLY.
+
+**Limits:** this is a current public snapshot only. It does not establish historical tick size, lot size, minimum size or contract value throughout the 2025-10 to 2026-11 candle history. The public response's upcChg field reports upcoming changes, not a historical change log. Account-specific fee tier was not fetched: GET /api/v5/account/trade-fee is an authenticated account endpoint; groupId=4 is an instrument fee-group identifier, not proof of the user's VIP level or actual taker rate. No credentials were used or requested.
+
+**G0-08 remains OPEN** pending historical-effective instrument metadata and verified account-specific fee assumptions. Current metadata is a useful input for designing contract-rounding logic, but must not be retroactively applied across the full historical sample without effective-date evidence. G0-07 contract rounding remains blocked on that historical metadata/fee reconciliation. Gate 0 remains CONDITIONAL HOLD; no strategy PnL, execution simulation, orders, fills, Gate 2+ or live trading was performed or authorized.
