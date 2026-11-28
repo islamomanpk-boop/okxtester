@@ -311,6 +311,101 @@ class G005ContractTests(unittest.TestCase):
         self.assertEqual(result["candidate_rows"], 2)
         self.assertEqual(result["failed_breakout_source_links_validated"], 1)
 
+    def test_canonical_record_rejects_non_list_source_event_row_ids(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["source_event_row_ids"] = "source-row-1"
+        with self.assertRaisesRegex(ValueError, "source_event_row_ids must be a non-empty list"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_blank_source_event_row_id(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["source_event_row_ids"] = ["   "]
+        with self.assertRaisesRegex(ValueError, "non-empty list of non-empty strings"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_non_string_source_event_row_id(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["source_event_row_ids"] = ["source-row-1", 7]
+        with self.assertRaisesRegex(ValueError, "non-empty list of non-empty strings"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_duplicate_source_event_row_ids(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["source_event_row_ids"] = ["source-row-1", "source-row-1"]
+        with self.assertRaisesRegex(ValueError, "source_event_row_ids contain duplicates"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_non_list_historical_memberships(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["historical_cohort_memberships"] = "BROAD_P40"
+        with self.assertRaisesRegex(ValueError, "historical_cohort_memberships must be a list"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_invalid_historical_membership_entry(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["historical_cohort_memberships"] = ["BROAD_P40", 25]
+        with self.assertRaisesRegex(ValueError, "must contain non-empty strings"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_duplicate_historical_memberships(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["historical_cohort_memberships"] = ["BROAD_P40", "BROAD_P40"]
+        with self.assertRaisesRegex(ValueError, "historical_cohort_memberships contain duplicates"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_non_list_ambiguity_flags(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["ambiguity_flags"] = "NONE"
+        with self.assertRaisesRegex(ValueError, "ambiguity_flags must be a list"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_invalid_ambiguity_flag_entry(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["ambiguity_flags"] = ["NONE", 1]
+        with self.assertRaisesRegex(ValueError, "ambiguity_flags must contain non-empty strings"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_duplicate_ambiguity_flags(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["ambiguity_flags"] = ["CONFIRMATION_CANDLE_OPEN_OUTSIDE_CLOSE_INSIDE",
+                                     "CONFIRMATION_CANDLE_OPEN_OUTSIDE_CLOSE_INSIDE"]
+        with self.assertRaisesRegex(ValueError, "ambiguity_flags contain duplicates"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_boolean_overlap_cluster_size(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["overlap_cluster_size"] = True
+        with self.assertRaisesRegex(ValueError, "overlap_cluster_size must be a positive integer"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_boolean_first_eligible_timestamp(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["first_eligible_execution_bar_open_ts_ms"] = True
+        with self.assertRaisesRegex(ValueError, "eligible candidate requires NONE reason"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_boolean_failed_breakout_expiry(self):
+        source_id = "a" * 64
+        record = self._canonical_candidate_fixture(
+            "FAILED_BREAKOUT_REVERSAL", "failed-source", 1761291000000, "UPPER", "SHORT",
+            source_breakout_candidate_id=source_id,
+            source_breakout_signal_available=1761287400000)
+        record["expiry_ts_ms"] = True
+        with self.assertRaisesRegex(ValueError, "failed-breakout row requires its source 12-hour expiry"):
+            validate_canonical_candidate_record(record)
+
     def test_canonical_record_rejects_wrong_family_side(self):
         record = self._canonical_candidate_fixture(
             "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
