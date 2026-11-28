@@ -25,7 +25,7 @@ SAMPLE_DAY = "2025-11-01"
 SAMPLE_FAMILY = "BTC-USDT"
 SAMPLE_MODULE = "5"
 DEPTH_LIMIT = 5000
-METRIC_SAMPLE_EVERY_RECORDS = 10
+METRIC_SAMPLE_EVERY_RECORDS = 60
 
 
 def _levels_to_map(levels, side):
@@ -184,8 +184,6 @@ def reconstruct_jsonl_member(handle, expected_inst_id):
                 raise ValueError("Incremental update arrived before first snapshot")
             _apply_changes(bids, row.get("bids"), "bids")
             _apply_changes(asks, row.get("asks"), "asks")
-            _trim_depth(bids, "bids")
-            _trim_depth(asks, "asks")
             updates += 1
 
         actions[action] += 1
@@ -226,7 +224,7 @@ def reconstruct_jsonl_member(handle, expected_inst_id):
         "depth_unit": "contracts (linear SWAP order-book size)",
         "reconstruction_policy": (
             "snapshot replaces both sides; updates replace a price level; "
-            "zero quantity removes the level; retain best 5000 levels per side"
+            "zero quantity removes the level; periodic snapshots reset both sides; no additional depth truncation is applied"
         ),
     }
 
