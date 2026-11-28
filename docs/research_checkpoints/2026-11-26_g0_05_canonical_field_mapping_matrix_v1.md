@@ -240,3 +240,19 @@ This addendum reconciles older open wording in this V1 mapping matrix with the l
 6. **Independent source verification:** Step 22 passed in workflow [46148537294](https://github.com/islamomanpk-boop/okxtester/actions/runs/46148537294), commit `8744a1981237f3aabfe73bacf3cc8bdfa5bb295f`. See `docs/research_checkpoints/2026-11-28_g0_05_independent_source_verification_closeout_v1.md` for source identity, causal disposition, cluster, linkage, endpoint and scope results.
 
 **Current authorization boundary:** G0-05 remains OPEN. The 60-field contract and source-only disposition audit are pre-generation evidence only. Do not materialize real candidate IDs, canonical candidate rows, orders, fills or strategy results until the separate read-only pre-generation review is complete and the project owner explicitly authorizes the canonical build. Gate 0 remains CONDITIONAL HOLD.
+
+
+## 18. Explicit mapping for remaining grouped canonical fields — 2026-11-28
+
+The static 60-field comparison identified six required fields that were represented only implicitly or by grouped wording in earlier matrix sections. Their exact family mappings are now stated explicitly:
+
+| Canonical field | Rejection | Breakout continuation | Failed-breakout reversal |
+|---|---|---|---|
+| `overlap_cluster_size` | Physical-event size of the accepted Module A 24H interval-graph cluster after strict/broad cohort collapse. | Size of the independently reconstructed G0-05 12H per-asset raw-crossing interval-graph cluster. | Inherit the exact linked source breakout's cluster size; do not create a new cluster. |
+| `overlap_window_start_ts_ms` | Accepted Module A cluster start bound for the physical rejection event. | Start bound of the G0-05 raw-crossing cluster containing the source crossing. | Inherit the linked source breakout cluster start bound. |
+| `overlap_window_end_ts_ms` | Accepted Module A exclusive cluster end bound. | Exclusive end bound of the G0-05 raw-crossing cluster containing the source crossing. | Inherit the linked source breakout cluster exclusive end bound. |
+| `invalidation_reference_type` | `NOT_APPLICABLE`. | `NOT_APPLICABLE`. | `NOT_APPLICABLE`. |
+| `invalidation_reference_value` | `NOT_APPLICABLE`. | `NOT_APPLICABLE`. | `NOT_APPLICABLE`. |
+| `invalidation_reference_ts_ms` | `NOT_APPLICABLE`. | `NOT_APPLICABLE`. | `NOT_APPLICABLE`. |
+
+Overlap-cluster fields are dependence metadata only. They do not suppress, merge or delete candidates. The three invalidation-reference fields remain NOT_APPLICABLE because G0-05 represents point-event availability/disposition, not a stop, order or trade-invalidation lifecycle.
