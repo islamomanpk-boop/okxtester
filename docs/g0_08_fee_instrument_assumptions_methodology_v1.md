@@ -127,3 +127,20 @@ Additional official notices:
 - 2025-10-21 batch (effective 2025-10-24): https://www.okx.com/en-us/help/okx-to-adjust-tick-size-of-spots-margins-and-futures-20251021
 - 2025-12-22 batch (effective 2025-12-24): https://www.okx.com/en-us/help/okx-to-adjust-tick-size-of-spots-margins-and-futures-20251222
 - Parameter notification page: https://www.okx.com/en-gb/trade-market/parameter-changes
+
+
+## VPS public instrument API capture — 2026-11-28 18:50:46 UTC
+
+A read-only request from the project VPS successfully queried the five SWAP instruments through `https://openapi.okx.com/api/v5/public/instruments`. Both `openapi.okx.com` and `www.okx.com` returned HTTP 200 during the diagnostic test. No credentials were used. The response code was `0` for all five instruments; all were live and all returned an empty `upcChg` list.
+
+| Instrument | tickSz | lotSz | minSz | ctVal | ctMult | maxMktSz | maxStopSz | maxTriggerSz |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| BTC-USDT-SWAP | 0.1 | 0.01 | 0.01 | 0.01 BTC | 1 | 35,000 | 35,000 | 100,000,000 |
+| ETH-USDT-SWAP | 0.01 | 0.01 | 0.01 | 0.1 ETH | 1 | 90,000 | 90,000 | 100,000,000 |
+| SOL-USDT-SWAP | 0.01 | 0.01 | 0.01 | 1 SOL | 1 | 39,000 | 39,000 | 100,000,000 |
+| DOGE-USDT-SWAP | 0.00001 | 0.01 | 0.01 | 1,000 DOGE | 1 | 24,000 | 24,000 | 100,000,000 |
+| AVAX-USDT-SWAP | 0.001 | 0.1 | 0.1 | 1 AVAX | 1 | 27,000 | 27,000 | 100,000,000 |
+
+Full capture note: `docs/research_checkpoints/2026-11-28_g0_08_public_instrument_api_snapshot_v2.md`.
+
+**Interpretation:** this confirms a successful current-state capture, not historical parameter continuity. Empty `upcChg` means no upcoming changes were returned at capture; it is not evidence that no completed changes occurred. The raw response was not saved separately or hashed. Historical effective-dated values remain UNVERIFIED; do not apply this snapshot retroactively. G0-08 remains OPEN and Gate 0 remains CONDITIONAL HOLD.
