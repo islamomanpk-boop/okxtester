@@ -44,3 +44,19 @@ The BTC 2025-11-01 reconstruction workflow completed SUCCESS:
 The spread statistics are stable between 10-second and one-minute metric sampling for this one day. The top-10 depth medians vary modestly with sampling interval, as expected for a time-varying book. These are observed visible-book statistics, not fills or calibrated slippage assumptions.
 
 The next workflow extends the same snapshot/update reconstruction to all five project instruments on 2025-11-01. It downloads each archive sequentially in GitHub Actions, reconstructs in memory, and deletes each temporary archive. It does not store raw order-book archives in GitHub or on the VPS.
+
+
+## Verified BTC reconstruction result — 2026-11-28
+
+Workflow [46171636969](https://github.com/islamomanpk-boop/okxtester/actions/runs/46171636969) completed SUCCESS on commit 62fb7f9d3d451d749c4b95b7fada12e8ed6420be. The full BTC 2025-11-01 archive reconstructed in memory:
+- 86,400 records: 96 snapshots and 86,304 updates.
+- 96 snapshots were spaced at approximately 900,000 ms (15 minutes); 73 of 95 intervals were exactly 900,000 ms.
+- 86,351/86,399 record-to-record timestamp intervals were exactly 1,000 ms; 48 differed. No duplicate or backwards timestamps.
+- No crossed or empty books at 8,641 sampled points (one sample every 10 records).
+- Spread (bps): min 0.00905074, p50 0.00908663, p95 0.00912432, max 0.23629382.
+- Top-10 visible depth in contracts: bid p50 452.10 / p95 1,547.03; ask p50 483.43 / p95 1,671.72.
+- No sequence identifiers were present; continuity cannot be certified by sequence ID.
+
+A second successful run [46171705890](https://github.com/islamomanpk-boop/okxtester/actions/runs/46171705890) used one-minute metric sampling and did not artificially truncate depth maps. Its spread p50/p95 were 0.00908654/0.00912471 bps; top-10 depth p50 was 434.44 bid contracts and 466.44 ask contracts. Both runs reported zero crossed-book observations at sampled points. This is a useful sampling-policy robustness check for one BTC day, not a validation of all dates/assets.
+
+The five-asset extension for 2025-11-01 is running separately. No raw archive is committed or retained on the VPS. G0-07 remains OPEN pending cross-asset/date checks, event alignment and conservative execution-cost modelling.
