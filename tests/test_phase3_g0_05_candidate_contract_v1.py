@@ -751,6 +751,7 @@ class G005ContractTests(unittest.TestCase):
         failed["signal_candle_close_ts_ms"] = expiry
         failed["signal_available_at_ts_ms"] = expiry
         failed["event_observed_at_ts_ms"] = expiry
+        failed["first_eligible_execution_bar_open_ts_ms"] = expiry
         linked = failed["source_breakout_candidate_id"]
         failed["source_event_id"] = (
             f"{linked}|{expiry}|{failed['candidate_rule_version']}")
