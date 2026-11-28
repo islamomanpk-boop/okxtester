@@ -718,6 +718,87 @@ class G005ContractTests(unittest.TestCase):
         result = validate_canonical_candidate_ledger([breakout, failed])
         self.assertEqual(result["failed_breakout_source_links_validated"], 1)
 
+    def test_canonical_record_rejects_misaligned_15m_candle_timestamps(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["signal_candle_open_ts_ms"] += 1
+        record["signal_candle_close_ts_ms"] += 1
+        record["signal_available_at_ts_ms"] += 1
+        record["event_observed_at_ts_ms"] += 1
+        record["first_eligible_execution_bar_open_ts_ms"] += 1
+        with self.assertRaisesRegex(ValueError, "quarter-hour aligned"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_confirmed_event_observation_mismatch(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["event_observed_at_ts_ms"] -= 1
+        with self.assertRaisesRegex(ValueError, "observation must equal completed signal availability"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_eligible_signal_at_snapshot_expiry(self):
+        snapshot = 1761278400000
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2",
+            snapshot + 14400000, "UPPER", "LONG")
+        with self.assertRaisesRegex(ValueError, "inside snapshot validity"):
+            validate_canonical_candidate_record(record)
+
+    def test_failed_breakout_rejects_confirmation_at_exact_source_expiry(self):
+        breakout, failed, _ = self._canonical_linked_candidate_pair()
+        expiry = breakout["signal_available_at_ts_ms"] + FAILURE_HORIZON_MS
+        failed["signal_candle_open_ts_ms"] = expiry - FIFTEEN_MIN_MS
+        failed["signal_candle_close_ts_ms"] = expiry
+        failed["signal_available_at_ts_ms"] = expiry
+        failed["event_observed_at_ts_ms"] = expiry
+        linked = failed["source_breakout_candidate_id"]
+        failed["source_event_id"] = (
+            f"{linked}|{expiry}|{failed['candidate_rule_version']}")
+        failed["candidate_id"] = candidate_id(
+            failed["source_event_id"], failed["family"], failed["candidate_rule_version"])
+        with self.assertRaisesRegex(ValueError, "strictly inside its source 12-hour horizon"):
+            validate_canonical_candidate_ledger([breakout, failed])
+
+    def test_unconfirmed_failed_breakout_must_be_observed_at_expiry(self):
+        breakout, failed, _ = self._canonical_linked_candidate_pair()
+        expiry = breakout["signal_available_at_ts_ms"] + FAILURE_HORIZON_MS
+        failed["signal_candle_open_ts_ms"] = None
+        failed["signal_candle_close_ts_ms"] = None
+        failed["signal_available_at_ts_ms"] = None
+        failed["first_eligible_execution_bar_open_ts_ms"] = None
+        failed["confirmation_status"] = "NOT_CONFIRMED"
+        failed["candidate_status"] = "EXPIRED"
+        failed["exclusion_reason"] = "EXPIRED_NO_RETURN_INSIDE_WITHIN_12H"
+        failed["censoring_reason"] = None
+        failed["event_observed_at_ts_ms"] = expiry - 1
+        linked = failed["source_breakout_candidate_id"]
+        failed["source_event_id"] = (
+            f"{linked}|NO_CONFIRMATION|{failed['candidate_rule_version']}")
+        failed["candidate_id"] = candidate_id(
+            failed["source_event_id"], failed["family"], failed["candidate_rule_version"])
+        with self.assertRaisesRegex(ValueError, "observed at its 12-hour expiry"):
+            validate_canonical_candidate_ledger([breakout, failed])
+
+    def test_source_end_censored_failed_breakout_is_inside_source_horizon(self):
+        breakout, failed, _ = self._canonical_linked_candidate_pair()
+        source_signal = breakout["signal_available_at_ts_ms"]
+        failed["signal_candle_open_ts_ms"] = None
+        failed["signal_candle_close_ts_ms"] = None
+        failed["signal_available_at_ts_ms"] = None
+        failed["first_eligible_execution_bar_open_ts_ms"] = None
+        failed["confirmation_status"] = "CENSORED"
+        failed["candidate_status"] = "CENSORED"
+        failed["exclusion_reason"] = "SOURCE_END_BEFORE_RESOLUTION"
+        failed["censoring_reason"] = "SOURCE_END_BEFORE_RESOLUTION"
+        failed["event_observed_at_ts_ms"] = source_signal + 60000
+        linked = failed["source_breakout_candidate_id"]
+        failed["source_event_id"] = (
+            f"{linked}|NO_CONFIRMATION|{failed['candidate_rule_version']}")
+        failed["candidate_id"] = candidate_id(
+            failed["source_event_id"], failed["family"], failed["candidate_rule_version"])
+        result = validate_canonical_candidate_ledger([breakout, failed])
+        self.assertEqual(result["failed_breakout_source_links_validated"], 1)
+
     def test_candidate_identity_validator_rejects_wrong_candidate_hash(self):
         rows = self._synthetic_candidate_identity_rows()
         rows[0]["candidate_id"] = "0" * 64
