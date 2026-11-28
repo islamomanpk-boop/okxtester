@@ -11,7 +11,7 @@ class HistoricalL2ArchiveTests(unittest.TestCase):
     def test_inspects_tar_gz_member_prefix(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "sample.tar.gz"
-            data = b"ts,bids,asks\n1000,[[1,2]],[[3,4]]\n"
+            data = b'ts,bids,asks\n1000,"[[1,2]]","[[3,4]]"\n'
             with tarfile.open(path, "w:gz") as archive:
                 info = tarfile.TarInfo("sample.csv")
                 info.size = len(data)
