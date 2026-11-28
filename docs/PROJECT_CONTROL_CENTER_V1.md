@@ -298,3 +298,12 @@ The full-window public mark-price audit is saved in `docs/research_checkpoints/2
 
 
 The full 5,940-row event-time 4H mark-price candidate snapshot is now versioned at `data/funding_mark_price_proxy_candidate_v1/` (CSV SHA-256 `22e2894a8c467777f9ee90d5824deaf243a8b3d6e44ebff7f7d33b3e88c4cc82`, commit `adaf25d7a27c1e01def1a14a011c99be99186c67`). Its manifest explicitly says exact settlement mark is unverified, proxy policy is not accepted, and engine mode is unchanged.
+
+
+### G0-05 independent source verification — 2026-11-28
+
+Phase 3 G0-05 Step 22 is complete. The independent source verifier passed in GitHub Actions run [46148537294](https://github.com/islamomanpk-boop/okxtester/actions/runs/46148537294), commit `8744a1981237f3aabfe73bacf3cc8bdfa5bb295f`, artifact `15264717673`. It independently reconciles 1,154 rejection physical identities, 2,861 raw breakout crossings and 932 linked failed-breakout identities; recomputes causal dispositions; rebuilds 1,037 breakout 12-hour overlap clusters; and checks the failed-breakout half-open 12-hour lifecycle, including one exact-endpoint exclusion. Full counts and limitations are in research register Section 12.27 and `docs/research_checkpoints/2026-11-28_g0_05_independent_source_verification_closeout_v1.md`.
+
+This does **not** close G0-05 or Gate 0. The source-only disposition ledgers are not canonical candidate records. Real candidate IDs and linked failed-breakout source candidate IDs remain unmaterialized; the 60-field validator has synthetic-only record coverage. G0-05 remains OPEN / CRITICAL and Gate 0 remains CONDITIONAL HOLD. Other funding/settlement-mark, fee/instrument, sizing/rounding/gap-risk and execution-engine acceptance items remain open. No Gate 2+ work, Phase 3 strategy PnL backtest, or live-trading conclusion is authorized.
+
+**Next safe task:** read-only pre-generation gate review, reconciling the older canonical field-mapping matrix with the later frozen field-value decisions and checking family-specific nullability and identity rules. Any real canonical candidate build requires a separate explicit authorization after that review.
