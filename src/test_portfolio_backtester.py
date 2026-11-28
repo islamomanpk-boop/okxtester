@@ -109,6 +109,36 @@ class PortfolioBacktesterTests(unittest.TestCase):
         self.assertEqual(trade["entry_time"], BASE_TS + 60_000)
         self.assertAlmostEqual(trade["exit_price"], 101.0)
 
+    def test_long_stop_gap_fills_beyond_stop_with_adverse_slippage(self):
+        bars = {
+            "BTC": make_bars([
+                (100, 100.2, 99.8, 100),
+                (100, 100.2, 99.8, 100),
+                (97, 98, 96, 97),
+            ])
+        }
+        result = run_portfolio_backtest(
+            bars, [candidate(stop=99)], {"BTC": []}, config(slippage=2)
+        )
+        trade = result["trades"][0]
+        self.assertEqual(trade["exit_reason"], "stop_gap")
+        self.assertLess(trade["exit_price"], 97)
+
+    def test_short_stop_gap_fills_beyond_stop_with_adverse_slippage(self):
+        bars = {
+            "BTC": make_bars([
+                (100, 100.2, 99.8, 100),
+                (100, 100.2, 99.8, 100),
+                (103, 104, 102, 103),
+            ])
+        }
+        result = run_portfolio_backtest(
+            bars, [candidate(side=-1, stop=101)], {"BTC": []}, config(slippage=2)
+        )
+        trade = result["trades"][0]
+        self.assertEqual(trade["exit_reason"], "stop_gap")
+        self.assertGreater(trade["exit_price"], 103)
+
     def test_stop_wins_when_stop_and_target_hit_same_minute(self):
         bars = {
             "BTC": make_bars([

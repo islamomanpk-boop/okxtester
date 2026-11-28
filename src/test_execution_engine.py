@@ -177,6 +177,17 @@ class ExecutionEngineTests(unittest.TestCase):
         self.assertEqual(result["exit_reason"], "stop_gap")
         self.assertLess(result["exit_price"], 97)
 
+    def test_gap_through_short_stop(self):
+        bars = [
+            bar(60000, 100, 100.5, 99.5, 100),
+            bar(120000, 103, 104, 102, 103),
+        ]
+        result = simulate_trade(
+            bars, 0, -1, 101, 98, 1000, config()
+        )
+        self.assertEqual(result["exit_reason"], "stop_gap")
+        self.assertGreater(result["exit_price"], 103)
+
     def test_funding_long_pays_positive_rate(self):
         bars = [
             bar(60000, 100, 100.5, 99.5, 100),
