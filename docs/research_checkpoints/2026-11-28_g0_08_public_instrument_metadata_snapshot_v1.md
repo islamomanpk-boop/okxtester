@@ -51,3 +51,19 @@ No strategy PnL, trade simulation, execution simulation, orders, fills, Gate 2+ 
 
 - https://www.okx.com/docs-v5/en/#public-data-rest-api-get-instruments
 - https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-fee-rates
+
+
+## Local account-specific fee probe — 2026-11-28
+
+A local-only authenticated fee probe was added in commit a5ac62831cfba902b2af5dae3b35c13b46a4d333:
+- Script: src/inspect_okx_account_fee_rates_readonly.py
+- Offline tests: src/test_okx_account_fee_rates_readonly.py
+- Successful CI validation: https://github.com/islamomanpk-boop/okxtester/actions/runs/46159858988
+- Artifact ID: 15269490178
+- Artifact ZIP SHA-256: c789262b49b71841d91afb41fe541155128d93f14c4aa40f96af4f12fbc6a911
+
+The workflow compiled the probe, passed its 10 offline tests, and repeated the current public metadata snapshot. It did not call the authenticated fee endpoint and did not receive credentials. The probe is intended to be run locally with a dedicated API key having Read permission only and no Trade/Withdraw permissions. It calls only the public server-time and authenticated trade-fee GET endpoints; it does not place or modify orders and does not print or save credentials. The account-specific output is written locally and is not uploaded to GitHub.
+
+Termux instructions: docs/g0_08_fee_instrument_assumptions_methodology_v1.md.
+
+The account fee rates remain unknown until the owner runs the local probe or supplies a fee statement/export. G0-08 remains OPEN; no fee tier is inferred from instrument groupId 4.

@@ -634,3 +634,20 @@ All five instruments were live, linear and USDT-settled; all returned an empty u
 **Limits:** this is a current public snapshot only. It does not establish historical tick size, lot size, minimum size or contract value throughout the 2025-10 to 2026-11 candle history. The public response's upcChg field reports upcoming changes, not a historical change log. Account-specific fee tier was not fetched: GET /api/v5/account/trade-fee is an authenticated account endpoint; groupId=4 is an instrument fee-group identifier, not proof of the user's VIP level or actual taker rate. No credentials were used or requested.
 
 **G0-08 remains OPEN** pending historical-effective instrument metadata and verified account-specific fee assumptions. Current metadata is a useful input for designing contract-rounding logic, but must not be retroactively applied across the full historical sample without effective-date evidence. G0-07 contract rounding remains blocked on that historical metadata/fee reconciliation. Gate 0 remains CONDITIONAL HOLD; no strategy PnL, execution simulation, orders, fills, Gate 2+ or live trading was performed or authorized.
+
+
+### 12.39 G0-08 local read-only account fee-rate probe — 2026-11-28
+
+Added a local-only authenticated fee-rate probe in commit a5ac62831cfba902b2af5dae3b35c13b46a4d333:
+- Script: src/inspect_okx_account_fee_rates_readonly.py
+- Offline tests: src/test_okx_account_fee_rates_readonly.py
+- The script calls only GET /api/v5/public/time and GET /api/v5/account/trade-fee for the five project SWAP instrument families.
+- It requires environment variables set locally and a dedicated API key with Read permission only. It does not call any trading, order, position or withdrawal endpoint; it does not print or persist API credentials.
+- It matches feeGroup groupId 4, records account fee level and raw maker/taker rates, and converts negative commission rates to nonnegative cost rates. Positive rebates are not credited as negative costs.
+- The account-specific JSON report is written locally and is not uploaded by CI.
+
+Workflow [46159858988](https://github.com/islamomanpk-boop/okxtester/actions/runs/46159858988) completed SUCCESS. Compilation, public metadata validation, all 10 offline fee-probe tests and the current public metadata fetch/upload passed. Artifact ID 15269490178; ZIP SHA-256 c789262b49b71841d91afb41fe541155128d93f14c4aa40f96af4f12fbc6a911. CI did not run the authenticated fee probe and did not receive credentials.
+
+The Termux instructions are in docs/g0_08_fee_instrument_assumptions_methodology_v1.md. The user must create/use a dedicated read-only key locally; never paste the API key, secret or passphrase into chat or commit them. The local report contains account-specific fee data and should only be shared at the user's discretion.
+
+**G0-08 remains OPEN** until actual account fee rates are obtained or an explicitly approved conservative fee assumption is documented, and historical effective instrument metadata is reconstructed for the full 2025-10 to 2026-11 data interval. The current public snapshot does not prove historical tick/lot/contract-value settings. G0-07 rounding remains blocked on this reconciliation. Gate 0 remains CONDITIONAL HOLD; no strategy PnL, execution simulation, orders, fills, Gate 2+ or live trading was performed or authorized.

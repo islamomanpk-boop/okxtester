@@ -68,3 +68,25 @@ The current public snapshot completes only item 1. It does not close G0-08 or au
 
 - Public instrument metadata: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-instruments
 - Authenticated account fee rates: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-fee-rates
+
+
+## Local account fee-rate capture
+
+The current account's actual maker/taker rates are available through the authenticated OKX endpoint GET /api/v5/account/trade-fee. The local-only probe is src/inspect_okx_account_fee_rates_readonly.py. It requests each SWAP family using instType=SWAP and instFamily=<ASSET>-USDT, then matches the response feeGroup entry to the current public instrument groupId (currently 4 for all five).
+
+Use a dedicated API key with Read permission only. Do not enable Trade or Withdraw permission. The script never calls order/trade/withdrawal endpoints, never prints credentials, and writes the fee report locally. The report contains account-specific fee level/rates and should not be committed or uploaded unless the owner explicitly chooses to share it.
+
+Termux example (run from the repository root; these read prompts do not echo the values in the terminal):
+
+```bash
+read -r -s -p "OKX API key (Read only): " OKX_API_KEY; echo
+read -r -s -p "OKX API secret: " OKX_API_SECRET; echo
+read -r -s -p "OKX API passphrase: " OKX_API_PASSPHRASE; echo
+export OKX_API_KEY OKX_API_SECRET OKX_API_PASSPHRASE
+python src/inspect_okx_account_fee_rates_readonly.py --output reports/g0_08_account_fee_rates_local_v1.json
+unset OKX_API_KEY OKX_API_SECRET OKX_API_PASSPHRASE
+```
+
+The script uses OKX server time for request signing. It fails closed if any asset's fee row or groupId mapping is missing. Negative raw rates are commissions and are converted to positive cost rates; positive raw rates are rebates and are not credited as negative costs. The offline tests are included in the G0-08 CI workflow; the authenticated probe itself is deliberately not run in GitHub Actions.
+
+If the owner does not want to use an API key, an account fee-rate statement/export can be reviewed instead. Never send API secrets in chat.

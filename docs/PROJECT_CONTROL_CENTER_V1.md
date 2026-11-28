@@ -405,3 +405,10 @@ The new read-only public OKX V5 metadata audit passed for all five project USDT 
 All five current instruments are live linear USDT swaps with contract multiplier 1 and fee-group ID 4. Artifact 15269286504, ZIP SHA-256 2db7e1ef98469d0ca4a08702c92600d8dfca55e32b606eb8728a6bee3b6ca5f8. Full details: docs/research_checkpoints/2026-11-28_g0_08_public_instrument_metadata_snapshot_v1.md.
 
 **G0-08 remains OPEN:** the snapshot is current-only, not historical metadata coverage; actual account fee rates require the authenticated account fee endpoint and have not been fetched. Do not infer an account fee tier from groupId=4. G0-07 contract rounding remains blocked until historical effective metadata and fee assumptions are verified. Gate 0 remains CONDITIONAL HOLD.
+
+
+### G0-08 account-fee capture tooling — 2026-11-28
+
+A local-only read-only fee probe is now available at src/inspect_okx_account_fee_rates_readonly.py. It queries only the public server time and authenticated account trade-fee endpoint for BTC, ETH, SOL, DOGE and AVAX USDT swaps. It never places orders and never writes credentials. The offline tests and public metadata workflow passed in [run 46159858988](https://github.com/islamomanpk-boop/okxtester/actions/runs/46159858988); artifact 15269490178.
+
+**Next:** if the owner wants account-specific fees used, run the probe locally with a dedicated API key that has Read permission only and no Trade/Withdraw permission. Never share API secrets in chat. The resulting fee report remains local unless the owner chooses to share it. Historical effective tick/lot/contract-value metadata also remains unresolved, so G0-08 and G0-07 contract rounding remain OPEN. Gate 0 remains CONDITIONAL HOLD.
