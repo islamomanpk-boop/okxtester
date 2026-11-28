@@ -129,6 +129,7 @@ def verify_rejection_identity(root: Path, artifact: Path, rows: list[dict[str, s
     if set(observed) != set(physical):
         stop(f"rejection physical-key mismatch source={len(physical)} output={len(observed)}")
     for key, ids in physical.items():
+        row = observed[key]
         expected_ids = ";".join(sorted(ids))
         if observed[key].get("source_event_row_ids") != expected_ids:
             stop(f"rejection source-row membership mismatch: {key}")
