@@ -215,6 +215,31 @@ class G005ContractTests(unittest.TestCase):
         self.assertEqual(failed_record["source_breakout_candidate_id"], source_breakout_id)
         self.assertEqual(failed_record["source_event_id"], failed_identity)
 
+    def test_canonical_serializer_is_input_order_independent(self):
+        rejection_a = self._canonical_candidate_fixture(
+            "SUPPORT_REJECTION", "BTC|LOWER|rejection|A", 1761287400000, "LOWER", "LONG")
+        rejection_a["source_reconciliation_status"] = "EXACT_PHYSICAL_EVENT_COLLAPSE"
+        rejection_a["source_join_cardinality"] = "ONE_PHYSICAL_EVENT_TO_ONE_OR_TWO_COHORT_ROWS"
+        rejection_b = self._canonical_candidate_fixture(
+            "SUPPORT_REJECTION", "BTC|LOWER|rejection|B", 1761287400000, "LOWER", "LONG")
+        rejection_b["source_reconciliation_status"] = "EXACT_PHYSICAL_EVENT_COLLAPSE"
+        rejection_b["source_join_cardinality"] = "ONE_PHYSICAL_EVENT_TO_ONE_OR_TWO_COHORT_ROWS"
+        breakout = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1761287400000|1761278400000",
+            1761287400000, "UPPER", "LONG")
+
+        rejection_source_a = self._source_only_fixture_from_canonical(rejection_a)
+        rejection_source_b = self._source_only_fixture_from_canonical(rejection_b)
+        breakout_source = self._source_only_fixture_from_canonical(breakout)
+        first = serialize_source_disposition_ledgers(
+            [rejection_source_a, rejection_source_b], [breakout_source], [])
+        shuffled = serialize_source_disposition_ledgers(
+            [rejection_source_b, rejection_source_a], [breakout_source], [])
+
+        self.assertEqual(deterministic_json(first), deterministic_json(shuffled))
+        identities = [(row["family"], row["candidate_id"]) for row in first]
+        self.assertEqual(identities, sorted(identities))
+
     def _canonical_candidate_fixture(self, family, source_event_id, signal_available,
                                       boundary_side, side, source_breakout_candidate_id="NOT_APPLICABLE",
                                       source_breakout_signal_available=None):
