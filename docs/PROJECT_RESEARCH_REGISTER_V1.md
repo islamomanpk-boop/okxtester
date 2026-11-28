@@ -527,3 +527,12 @@ Accepted scope: frozen source provenance and causal dispositions; three-family s
 Final evidence remains workflow [46150045661](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150045661), artifact ID `15265023491`, ZIP SHA-256 `0b9464cbeda0a513cea915aae78a1c43aab2b5563448a0e19b247c02b4081935`.
 
 **Gate 0 remains CONDITIONAL HOLD — not passed.** G0-03 real-input funding/settlement-mark acceptance, G0-07 standalone sizing/rounding/gap risk, G0-08 fee/instrument assumptions and G0-09 exact settlement-mark/execution-engine readiness remain separate blockers. Gate 2+, strategy PnL backtests, orders, fills, execution simulation and live trading remain unauthorized.
+
+
+### 12.32 G0-03 funding contract integration progress — 2026-11-28
+
+Added standalone/portfolio funding arithmetic parity tests and a read-only local real-input integration harness that exercises the production funding loader and contract validator. It verifies the actual five CSV hashes against the archived manifest, exact scheduled settlement rows, cross-asset timestamp equality, and entry-exclusive/exit-inclusive trade-window boundaries without running trades or calculating PnL.
+
+Funding/execution workflow [46150715018](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150715018) passed **90/90 tests**. New files: `src/test_funding_engine_parity.py`, `src/audit_funding_contract_integration.py`, `src/test_funding_contract_integration.py`. The local integration command and output contract are in `docs/research_checkpoints/2026-11-28_g0_03_funding_contract_integration_v1.md`.
+
+**G0-03 remains PARTIALLY CLOSED / ACCEPTANCE OPEN** until the new harness is run against the user's local Termux CSVs and the resulting JSON is reconciled. The actual files are not in GitHub; synthetic CI does not replace that run. The current production loader uses the explicitly labelled `candle_close_proxy`; exact settlement mark-price fidelity remains a separate blocker. No strategy PnL or real-input trade simulation was performed.
