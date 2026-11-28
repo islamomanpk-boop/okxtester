@@ -22,6 +22,7 @@ from research.phase3_g0_05_source_manifest_audit_v1 import (
     validate_disposition_ledger, grouped_disposition_counts, historical_membership_label,
     assign_interval_graph_clusters, observed_window_bars, consistent_physical_cluster,
     make_repeated_signal_group_id, aggregate_completed_15m_bar, file_manifest_entry, git_blob_sha1,
+    failed_breakout_confirmation_timing,
     confirmation_ambiguity_flag, canonical_snapshot_provenance,
     resolve_lagged_feature_reference, canonical_cohort_label,
 )
@@ -102,10 +103,15 @@ class G005ContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "not returned inside"):
             failed_breakout_confirmation("UPPER", 101.0, 100.0, 900_000, 0, True)
 
-    def test_failed_breakout_at_12h_boundary_accepted(self):
+    def test_failed_breakout_just_before_12h_endpoint_is_accepted(self):
         result = failed_breakout_confirmation("UPPER", 99.0, 100.0,
-                                               FAILURE_HORIZON_MS, 0, True)
+                                               FAILURE_HORIZON_MS - 1, 0, True)
         self.assertEqual(result["side"], "SHORT")
+
+    def test_failed_breakout_exact_12h_endpoint_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "half-open 12-hour"):
+            failed_breakout_confirmation("UPPER", 99.0, 100.0,
+                                          FAILURE_HORIZON_MS, 0, True)
 
     def test_failed_breakout_after_12h_rejected(self):
         with self.assertRaisesRegex(ValueError, "12-hour"):
@@ -735,12 +741,19 @@ class G005SourceAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "confirmation timestamp mismatch"):
             validate_module_b_horizons(events, horizons)
 
-    def test_module_b_horizons_allow_exact_12h_confirmation(self):
+    def test_module_b_horizons_accept_confirmation_just_before_12h_endpoint(self):
+        events, horizons = self.sample_horizons()
+        events[0]["first_15m_return_inside_close_ts_ms"] = "43200999"
+        horizons[-1]["first_15m_return_inside_close_ts_ms"] = "43200999"
+        result = validate_module_b_horizons(events, horizons)
+        self.assertEqual(result["twelve_hour_confirmations"], 1)
+
+    def test_module_b_horizons_reject_exact_12h_endpoint(self):
         events, horizons = self.sample_horizons()
         events[0]["first_15m_return_inside_close_ts_ms"] = "43201000"
         horizons[-1]["first_15m_return_inside_close_ts_ms"] = "43201000"
-        result = validate_module_b_horizons(events, horizons)
-        self.assertEqual(result["twelve_hour_confirmations"], 1)
+        with self.assertRaisesRegex(RuntimeError, "half-open 12-hour"):
+            validate_module_b_horizons(events, horizons)
 
     def test_module_b_horizons_reject_confirmation_after_12h(self):
         events, horizons = self.sample_horizons()
@@ -748,6 +761,24 @@ class G005SourceAuditTests(unittest.TestCase):
         horizons[-1]["first_15m_return_inside_close_ts_ms"] = "43201001"
         with self.assertRaisesRegex(RuntimeError, "outside 12-hour horizon"):
             validate_module_b_horizons(events, horizons)
+
+    def test_incomplete_failed_breakout_confirmation_keeps_observation_but_no_candle(self):
+        timing = failed_breakout_confirmation_timing(
+            1000, 901000, None, True, 720)
+        self.assertEqual(timing["confirmation_status"], "CENSORED")
+        self.assertEqual(timing["event_observed_at_ts_ms"], 901000)
+        self.assertEqual(timing["confirmation_open"], "")
+        self.assertEqual(timing["signal_candle_close_ts_ms"], "")
+        self.assertEqual(timing["signal_available_at_ts_ms"], "")
+
+    def test_completed_failed_breakout_confirmation_exposes_completed_candle(self):
+        timing = failed_breakout_confirmation_timing(
+            1000, 901000, {"close": 99.0}, True, 720)
+        self.assertEqual(timing["confirmation_status"], "CONFIRMED")
+        self.assertEqual(timing["confirmation_open"], 1000)
+        self.assertEqual(timing["signal_candle_close_ts_ms"], 901000)
+        self.assertEqual(timing["signal_available_at_ts_ms"], 901000)
+        self.assertEqual(timing["event_observed_at_ts_ms"], 901000)
 
     def test_only_eligible_failed_breakout_exposes_first_eligible_minute(self):
         self.assertEqual(first_eligible_minute_or_blank(
