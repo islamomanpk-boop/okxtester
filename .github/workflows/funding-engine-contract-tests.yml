@@ -10,6 +10,8 @@ on:
       - src/test_funding_coverage.py
       - src/test_funding_loader.py
       - src/test_funding_engine_parity.py
+      - src/audit_funding_contract_integration.py
+      - src/test_funding_contract_integration.py
       - src/test_execution_engine.py
       - src/test_portfolio_backtester.py
       - src/test_experiment_portfolio.py
@@ -86,6 +88,9 @@ jobs:
 
       - name: Run funding manifest loader tests
         run: python -m unittest discover -s src -p 'test_funding_loader.py' -v
+
+      - name: Run read-only funding contract integration tests
+        run: python -m unittest discover -s src -p 'test_funding_contract_integration.py' -v
 
       - name: Run standalone/portfolio funding arithmetic parity tests
         run: python -m unittest discover -s src -p 'test_funding_engine_parity.py' -v
