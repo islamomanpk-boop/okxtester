@@ -25,7 +25,7 @@ class HistoricalL2BookReconstructionTests(unittest.TestCase):
         result = reconstruct_jsonl_member(self.stream(rows), "BTC-USDT-SWAP")
         self.assertEqual(result["record_count"], 2)
         self.assertEqual(result["action_counts"], {"snapshot": 1, "update": 1})
-        self.assertEqual(result["crossed_book_observations"], 0)
+        self.assertEqual(result["crossed_book_observations_sampled"], 0)
         self.assertLess(result["spread_bps"]["min"], result["spread_bps"]["max"])
         self.assertEqual(result["spread_bps"]["max"], 200.0)
 
@@ -43,7 +43,7 @@ class HistoricalL2BookReconstructionTests(unittest.TestCase):
         result = reconstruct_jsonl_member(self.stream(rows), "BTC-USDT-SWAP")
         self.assertEqual(result["action_counts"]["snapshot"], 2)
         self.assertEqual(result["snapshot_intervals_ms"], {"1000": 1})
-        self.assertEqual(result["crossed_book_observations"], 0)
+        self.assertEqual(result["crossed_book_observations_sampled"], 0)
 
     def test_update_before_snapshot_rejected(self):
         row = {

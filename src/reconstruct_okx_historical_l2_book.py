@@ -127,11 +127,13 @@ def reconstruct_jsonl_member(handle, expected_inst_id):
     def capture_metrics(row_number):
         nonlocal metric_sample_rows, last_metric_row
         nonlocal crossed_books_sampled, empty_books_sampled
-        if rows == 1 or rows % METRIC_SAMPLE_EVERY_RECORDS == 0:
-            capture_metrics(rows)
+        record_count = sum(actions.values())
+        if record_count == 1 or record_count % METRIC_SAMPLE_EVERY_RECORDS == 0:
+            capture_metrics(record_count)
 
-    if rows != last_metric_row:
-        capture_metrics(rows)
+    record_count = sum(actions.values())
+    if record_count != last_metric_row:
+        capture_metrics(record_count)
 
     if snapshots == 0 or not actions:
         raise ValueError("Archive contains no usable snapshot/update records")
