@@ -302,7 +302,7 @@ class G005ContractTests(unittest.TestCase):
             "BREAKOUT_CONTINUATION", breakout_identity, 1761287400000, "UPPER", "LONG")
         confirmation = 1761291000000
         failed_identity = (
-            f"{breakout["candidate_id"]}|{confirmation}|G0_05_CANDIDATE_RULE_V1")
+            f"{breakout['candidate_id']}|{confirmation}|G0_05_CANDIDATE_RULE_V1")
         failed = self._canonical_candidate_fixture(
             "FAILED_BREAKOUT_REVERSAL", failed_identity, confirmation, "UPPER", "SHORT",
             source_breakout_candidate_id=breakout["candidate_id"],
@@ -712,7 +712,7 @@ class G005ContractTests(unittest.TestCase):
         failed["event_observed_at_ts_ms"] = confirmation
         linked = failed["source_breakout_candidate_id"]
         failed["source_event_id"] = (
-            f"{linked}|{confirmation}|{failed["candidate_rule_version"]}")
+            f"{linked}|{confirmation}|{failed['candidate_rule_version']}")
         failed["candidate_id"] = candidate_id(
             failed["source_event_id"], failed["family"], failed["candidate_rule_version"])
         result = validate_canonical_candidate_ledger([breakout, failed])
