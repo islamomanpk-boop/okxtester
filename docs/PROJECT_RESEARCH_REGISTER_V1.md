@@ -651,3 +651,24 @@ Workflow [46159858988](https://github.com/islamomanpk-boop/okxtester/actions/run
 The Termux instructions are in docs/g0_08_fee_instrument_assumptions_methodology_v1.md. The user must create/use a dedicated read-only key locally; never paste the API key, secret or passphrase into chat or commit them. The local report contains account-specific fee data and should only be shared at the user's discretion.
 
 **G0-08 remains OPEN** until actual account fee rates are obtained or an explicitly approved conservative fee assumption is documented, and historical effective instrument metadata is reconstructed for the full 2025-10 to 2026-11 data interval. The current public snapshot does not prove historical tick/lot/contract-value settings. G0-07 rounding remains blocked on this reconciliation. Gate 0 remains CONDITIONAL HOLD; no strategy PnL, execution simulation, orders, fills, Gate 2+ or live trading was performed or authorized.
+
+
+### 12.40 G0-08 historical parameter-change evidence review — 2026-11-28
+
+The current-only metadata snapshot cannot be treated as a historical effective-dated record. Additional official OKX documentation confirms:
+- On 2025-12-23, OKX announced automatic adjustment of tick size and minimum trade amount beginning 2026-01-15. Except in special cases, individual routine adjustment notices would not be published; advance notice is provided through GET /api/v5/public/instruments or the WebSocket Instruments channel.
+- On 2026-04-24, OKX announced a parameter-adjustment notification page consolidating upcoming position-tier, discount-rate, tick-size and minimum-order-size changes. Routine changes would no longer be individually announced.
+- The public instruments response field upcChg is explicitly an upcoming-change list. An empty list at the 2026-11-28 snapshot means no pending changes at that capture; it does not prove no historical changes.
+- The instruments WebSocket channel publishes a parameter change when the task is created and again when it becomes effective. No archived channel-event history for the project instruments was found in the repository.
+
+A dated pre-sample example exists: OKX changed the AVAX/USDT perpetual tick size from 0.01 to 0.001 effective 2023-08-24. The current AVAX-USDT-SWAP tickSz is 0.001, consistent with that post-change value; this event predates the project dataset start in 2025-10. The targeted official notices reviewed for 2025 and early 2026 did not identify BTC, ETH, SOL, DOGE or AVAX changes in their listed affected pairs, but this is not a complete history because routine adjustments became automatic from 2026-01-15 and individual notices stopped.
+
+Official references:
+- Automatic adjustments effective 2026-01-15: https://www.okx.com/en-us/help/okx-to-enable-automatic-adjustment-of-several-trading-parameters
+- Parameter notification page, 2026-04-24: https://www.okx.com/en-gb/help/okx-launches-parameter-adjustment-notification-page
+- AVAX perpetual tick change, 2023-08-17 notice: https://www.okx.com/en-us/help/okx-to-adjust-tick-size-and-trading-amount-precision-2023-08-17
+- API instruments and upcoming changes: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-instruments
+
+**Result:** historical tickSz, minSz and lotSz effective dates from 2025-10 through 2026-11 remain UNVERIFIED. The parameter notification page offers a status filter, but whether completed records can be exported/recovered for these instruments has not yet been established. The next research step is to inspect that page's completed/status history for the five instrument IDs or obtain archived instruments-channel events. Do not apply the current snapshot retroactively.
+
+G0-08 remains OPEN; G0-07 contract rounding remains blocked pending effective-dated instrument metadata and fee assumptions. Gate 0 remains CONDITIONAL HOLD.

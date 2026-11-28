@@ -90,3 +90,24 @@ unset OKX_API_KEY OKX_API_SECRET OKX_API_PASSPHRASE
 The script uses OKX server time for request signing. It fails closed if any asset's fee row or groupId mapping is missing. Negative raw rates are commissions and are converted to positive cost rates; positive raw rates are rebates and are not credited as negative costs. The offline tests are included in the G0-08 CI workflow; the authenticated probe itself is deliberately not run in GitHub Actions.
 
 If the owner does not want to use an API key, an account fee-rate statement/export can be reviewed instead. Never send API secrets in chat.
+
+
+## Exchange parameter-change history — important 2026 policy
+
+OKX announced on 2025-12-23 that automatic tick-size and minimum-trade-amount adjustments would begin on 2026-01-15. Except in special cases, routine changes would no longer be individually announced; advance notice would be available through the public instruments endpoint or the Instruments WebSocket channel.
+
+On 2026-04-24, OKX announced a parameter-adjustment notification page for upcoming position-tier, discount-rate, tick-size and minimum-order-size changes. Routine changes would no longer be individually announced. The page offers business-line, instrument and status filters.
+
+The public instruments field upcChg is explicitly an upcoming-change list. It contains the parameter name, new value and effective time for pending changes. For SWAP/FUTURES, a minSz change is accompanied by a synchronous lotSz change. An empty upcChg list in the current snapshot is not a historical no-change guarantee.
+
+The Instruments WebSocket channel pushes a parameter-change event when the task is created and another when the change becomes effective. If archived event logs exist, they can provide effective-dated metadata. No such archive is currently recorded in the repository.
+
+A pre-sample historical example was found: the OKX 2023-08-17 notice states that AVAX/USDT perpetual tick size changed from 0.01 to 0.001 effective 2023-08-24. This predates the project candle dataset beginning in 2025-10 and matches the current AVAX-USDT-SWAP tick size of 0.001. The targeted 2025/early-2026 individual notices reviewed did not list BTC, ETH, SOL, DOGE or AVAX; however, routine adjustments became automatic from 2026-01-15, so absence from individual notices is not complete proof.
+
+Official references:
+- https://www.okx.com/en-us/help/okx-to-enable-automatic-adjustment-of-several-trading-parameters
+- https://www.okx.com/en-gb/help/okx-launches-parameter-adjustment-notification-page
+- https://www.okx.com/en-us/help/okx-to-adjust-tick-size-and-trading-amount-precision-2023-08-17
+- https://www.okx.com/docs-v5/en/#public-data-rest-api-get-instruments
+
+Until completed parameter history can be recovered from the notification page or archived WebSocket events, historical tickSz/minSz/lotSz effective dates for 2025-10 to 2026-11 remain unverified. Do not apply the current snapshot retroactively.

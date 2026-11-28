@@ -67,3 +67,20 @@ The workflow compiled the probe, passed its 10 offline tests, and repeated the c
 Termux instructions: docs/g0_08_fee_instrument_assumptions_methodology_v1.md.
 
 The account fee rates remain unknown until the owner runs the local probe or supplies a fee statement/export. G0-08 remains OPEN; no fee tier is inferred from instrument groupId 4.
+
+
+## Historical parameter-change policy review
+
+OKX announced that automatic tick-size and minimum-trade-amount adjustments would begin on 2026-01-15. Routine changes would no longer be individually announced except special cases; advance notices are available through the public instruments endpoint and Instruments WebSocket channel. On 2026-04-24, OKX announced a parameter-adjustment notification page for upcoming tick-size, minimum-order-size, position-tier and discount-rate changes.
+
+The current public instruments response field upcChg is an upcoming-change list. Its empty value at capture proves only that no change was pending then; it does not prove there were no prior changes. The Instruments WebSocket channel pushes both task creation and effective-time events. No archived channel-event history for the five project instruments was found in the repository.
+
+One dated pre-sample example was identified: AVAX/USDT perpetual tick size changed from 0.01 to 0.001 effective 2023-08-24, matching the current AVAX tick size. This predates the project data window beginning 2025-10. The targeted individual 2025/early-2026 notices reviewed did not list the five target instruments, but routine adjustments became automatic from 2026-01-15, so those notices are not a complete historical record.
+
+The parameter notification page has an instrument and status filter, but completed-history retrieval/export for these five instruments has not yet been established. Historical tickSz, minSz and lotSz effective dates for 2025-10 to 2026-11 remain UNVERIFIED. Do not apply current values retroactively.
+
+Official references:
+- https://www.okx.com/en-us/help/okx-to-enable-automatic-adjustment-of-several-trading-parameters
+- https://www.okx.com/en-gb/help/okx-launches-parameter-adjustment-notification-page
+- https://www.okx.com/en-us/help/okx-to-adjust-tick-size-and-trading-amount-precision-2023-08-17
+- https://www.okx.com/docs-v5/en/#public-data-rest-api-get-instruments

@@ -412,3 +412,10 @@ All five current instruments are live linear USDT swaps with contract multiplier
 A local-only read-only fee probe is now available at src/inspect_okx_account_fee_rates_readonly.py. It queries only the public server time and authenticated account trade-fee endpoint for BTC, ETH, SOL, DOGE and AVAX USDT swaps. It never places orders and never writes credentials. The offline tests and public metadata workflow passed in [run 46159858988](https://github.com/islamomanpk-boop/okxtester/actions/runs/46159858988); artifact 15269490178.
 
 **Next:** if the owner wants account-specific fees used, run the probe locally with a dedicated API key that has Read permission only and no Trade/Withdraw permission. Never share API secrets in chat. The resulting fee report remains local unless the owner chooses to share it. Historical effective tick/lot/contract-value metadata also remains unresolved, so G0-08 and G0-07 contract rounding remain OPEN. Gate 0 remains CONDITIONAL HOLD.
+
+
+### G0-08 historical parameter-change evidence review — 2026-11-28
+
+A new exchange rule changes the evidence requirement: OKX announced automatic tick-size and minimum-trade-amount adjustments beginning 2026-01-15, with routine changes no longer individually announced. Advance notices are available through the public instruments endpoint / Instruments WebSocket channel; the current API field upcChg lists upcoming changes only. The 2026-04-24 parameter notification page consolidates upcoming changes and offers filters, but completed-history retrieval for our five contracts is not yet verified.
+
+One pre-sample notice confirms AVAX/USDT perpetual tick size changed from 0.01 to 0.001 effective 2023-08-24, matching the current AVAX tick. No full historical effective-dated parameter archive was found in the repository. G0-08 therefore remains OPEN; do not apply current tick/lot/minimum settings to the 2025-10 to 2026-11 data until completed parameter history or archived Instruments-channel events are obtained.
