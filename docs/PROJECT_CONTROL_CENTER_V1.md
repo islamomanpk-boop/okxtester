@@ -314,3 +314,16 @@ This does **not** close G0-05 or Gate 0. The source-only disposition ledgers are
 The pre-generation static review confirms the 60-field canonical serializer has exactly 60 required keys, all 60 are explicitly covered in the field-mapping matrix, and family-specific source reconciliation/cardinality semantics now fail closed. New synthetic checks passed: [workflow 46149074209](https://github.com/islamomanpk-boop/okxtester/actions/runs/46149074209), **193/193**. The validator now requires rejection physical-collapse semantics and BROAD_P40 membership, one raw crossing row for breakout, and exact one-source-breakout linkage for failed breakout.
 
 This is a **pre-generation contract review PASS only**. It is not a G0-05 or Gate 0 pass. No real candidate IDs, canonical candidate rows, orders, fills, execution simulation or PnL were generated. G0-05 remains OPEN / CRITICAL; Gate 0 remains CONDITIONAL HOLD. The next real canonical candidate/disposition build requires separate explicit project-owner authorization, and even that would not authorize Gate 2+ execution comparison or strategy backtesting. See research register Section 12.28 and `docs/research_checkpoints/2026-11-28_g0_05_independent_source_verification_closeout_v1.md`.
+
+
+### G0-05 real canonical candidate ledger — 2026-11-28
+
+<badge color="success">Real build and validation passed</badge>
+
+Owner-authorized workflow [46149804561](https://github.com/islamomanpk-boop/okxtester/actions/runs/46149804561) generated 4,947 canonical G0-05 records, exactly 60 required fields each. The full row and ledger validators passed; deterministic IDs and unique family/source identities passed; all 932 failed-breakout source-candidate links resolved. Counts: support rejection 558, resistance rejection 596, breakout continuation 2,861, failed-breakout reversal 932. Aggregate dispositions: 2,856 eligible, 1,884 rejected, 207 expired, 0 censored.
+
+Evidence artifact ID `15265550848`, name `phase3-g0-05-canonical-candidate-ledger-46149804561`, ZIP SHA-256 `e66ea4b16811d158a9b86dfb90113be13cc5fccfc89f1c42b5330fba294456da`. Canonical JSONL SHA-256 `202c44f456af021b9ec8cc642e82c349f4858baadb04bcdb2342973cb752db14`; CSV SHA-256 `eca9f326bc44a74ba9631bc6b5d4a6c7b5691fea6b59c7031976f7fd7f5ff1a5`.
+
+The initial real-data attempt stopped on the `NONE` historical-membership sentinel; the source mapper was corrected to emit an empty list for no historical memberships. The successful workflow then reran source audit, independent verification and canonical validation. Full checkpoint: `docs/research_checkpoints/2026-11-28_g0_05_canonical_candidate_ledger_build_v1.md`.
+
+**Next:** read-only post-build evidence review before formally closing G0-05. Gate 0 remains CONDITIONAL HOLD with separate funding/settlement-mark, fee/instrument, sizing/rounding/gap-risk and execution-engine blockers. No orders, fills, execution simulation, PnL, strategy selection, Gate 2+ or live trading is authorized.
