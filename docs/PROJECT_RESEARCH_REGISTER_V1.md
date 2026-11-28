@@ -1,8 +1,8 @@
 # OKX Price Action V1 — Repository Reconciliation and Research Register V1
 
-**Review date:** 2026-11-25  
+**Review date:** 2026-11-28  
 **Canonical repository/ref:** `islamomanpk-boop/okxtester@price-action-v1`  
-**Canonical tree commit reviewed:** `42ab2ed543eb59a755f8f9fe2605ad720ac36574`  
+**Canonical tree commit reviewed:** `3587dc08bdd3ad932dc0cd61f74c8c76054210f6`  
 **Supporting repository/ref:** `islamomanpk-boop/okxtester_private@main`  
 **Supporting tree commit reviewed:** `cbeeae0fb61fcaa702a594543e6e440318520dce`  
 **Status:** Initial full tracked-tree reconciliation; no files deleted, moved, or overwritten.
