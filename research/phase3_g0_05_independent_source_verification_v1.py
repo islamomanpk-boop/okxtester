@@ -171,6 +171,7 @@ def verify_rejection_identity(root: Path, artifact: Path, rows: list[dict[str, s
         if expected_status != "ELIGIBLE_FOR_FURTHER_VALIDATION" and (row.get("first_eligible_1m_open_ts_ms") or "").strip():
             stop(f"non-eligible rejection exposes first eligible minute: {key}")
     return {"physical_events": len(physical), "source_memberships": sum(map(len, physical.values())),
+            "causal_dispositions": dict(Counter(f"{item.get('causal_cohort')}|{item.get('disposition')}|{item.get('reason_code')}" for item in observed.values())),
             "exact_source_identity_and_membership": True}
 
 
@@ -306,6 +307,7 @@ def verify_breakout_identity(root: Path, artifact: Path, rows: list[dict[str, st
         if (row.get("first_eligible_1m_open_ts_ms") or "") != expected_minute:
             stop(f"breakout first-eligible minute mismatch: {key}")
     return ({"raw_crossings": len(expected), "exact_source_identity_reconciliation": True,
+             "causal_dispositions": dict(Counter(f"{item.get('causal_cohort')}|{item.get('disposition')}|{item.get('reason_code')}" for item in observed.values())),
              "independently_rebuilt_interval_clusters": len(set(v[0] for v in cluster_by_key.values())),
              "cluster_counts_by_asset": dict(summary)}, observed)
 
@@ -437,7 +439,7 @@ def main() -> None:
         "rejection": rejection,
         "breakout": breakout,
         "failed_breakout": failed,
-        "scope": "independent source identity, cohort membership, breakout overlap components, source linkage, and half-open failed-breakout lifecycle; not final G0-05 gate approval",
+        "scope": "independent source identity, causal cohort/disposition recomputation, breakout overlap components, source linkage, and half-open failed-breakout lifecycle; not final G0-05 gate approval",
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
