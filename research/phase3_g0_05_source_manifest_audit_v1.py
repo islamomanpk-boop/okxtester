@@ -493,8 +493,8 @@ def validate_module_b_horizons(events: list[dict[str, str]],
         if event_confirmation:
             signal_ms = ms(event["signal_time_ms"], "Module B signal")
             confirmation_ms = ms(event_confirmation, "Module B 12H confirmation")
-            if confirmation_ms <= signal_ms or confirmation_ms > signal_ms + 43200000:
-                fail(f"Module B event {event_id} confirmation outside 12-hour horizon")
+            if confirmation_ms <= signal_ms or confirmation_ms >= signal_ms + 43200000:
+                fail(f"Module B event {event_id} confirmation outside half-open 12-hour horizon")
             confirmations += 1
 
     return {
@@ -531,6 +531,44 @@ def aggregate_completed_15m_bar(minute_bars: dict[int, tuple], confirmation_clos
         "low": min(float(bar[2]) for bar in bars),
         "close": float(bars[-1][3]),
         "component_minute_count": 15,
+    }
+
+
+def failed_breakout_confirmation_timing(signal_ms: int, confirmation_ms: int | None,
+                                           confirmation_bar: dict | None,
+                                           complete_12h: bool,
+                                           observed_window: int) -> dict:
+    """Keep an observed return-inside time separate from a completed 15m candle."""
+    if confirmation_ms is not None and confirmation_bar is not None:
+        return {
+            "confirmation_status": "CONFIRMED",
+            "confirmation_open": int(confirmation_ms) - 900000,
+            "signal_candle_close_ts_ms": int(confirmation_ms),
+            "signal_available_at_ts_ms": int(confirmation_ms),
+            "event_observed_at_ts_ms": int(confirmation_ms),
+        }
+    if confirmation_ms is not None:
+        return {
+            "confirmation_status": "CENSORED",
+            "confirmation_open": "",
+            "signal_candle_close_ts_ms": "",
+            "signal_available_at_ts_ms": "",
+            "event_observed_at_ts_ms": int(confirmation_ms),
+        }
+    if complete_12h:
+        return {
+            "confirmation_status": "NOT_CONFIRMED",
+            "confirmation_open": "",
+            "signal_candle_close_ts_ms": "",
+            "signal_available_at_ts_ms": "",
+            "event_observed_at_ts_ms": int(signal_ms) + 43200000,
+        }
+    return {
+        "confirmation_status": "CENSORED",
+        "confirmation_open": "",
+        "signal_candle_close_ts_ms": "",
+        "signal_available_at_ts_ms": "",
+        "event_observed_at_ts_ms": int(signal_ms) + int(observed_window) * 60000,
     }
 
 
@@ -1287,8 +1325,8 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             fail(f"Module B invalid observed 12H bars: {key}")
         confirmation_bar=None
         if confirmation is not None:
-            if confirmation<=signal or confirmation>signal+43200000:
-                fail(f"Module B failure confirmation outside 12h horizon: {key}")
+            if confirmation<=signal or confirmation>=signal+43200000:
+                fail(f"Module B failure confirmation outside half-open 12h horizon: {key}")
             confirmation_bar=aggregate_completed_15m_bar(minute_bars[asset],confirmation)
         if not source_ok:
             status,reason="REJECTED","NO_VALID_SOURCE_BREAKOUT"
@@ -1306,27 +1344,16 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
         source_event_key=f"{asset}|{direction}|{signal}|{snapshot}"
         cluster=breakout_cluster_map[source_event_key]
         source_event_id=f"{source_event_key}|{confirmation if confirmation is not None else 'NO_CONFIRMATION'}"
+        timing=failed_breakout_confirmation_timing(
+            signal, confirmation, confirmation_bar, next(iter(complete)), observed_window)
+        confirmation_status=timing["confirmation_status"]
+        confirmation_open=timing["confirmation_open"]
+        event_observed_at=timing["event_observed_at_ts_ms"]
         if confirmation is not None and confirmation_bar is not None:
             source_boundary=float(raw["upper"] if direction=="UPPER" else raw["lower"])
             ambiguity=confirmation_ambiguity_flag(direction,source_boundary,confirmation_bar)
-            confirmation_status="CONFIRMED"
-            confirmation_open=confirmation-900000
-            event_observed_at=confirmation
-        elif confirmation is None and next(iter(complete)):
-            ambiguity="NONE"
-            confirmation_status="NOT_CONFIRMED"
-            confirmation_open=""
-            event_observed_at=signal+43200000
-        elif confirmation is None:
-            ambiguity="NONE"
-            confirmation_status="CENSORED"
-            confirmation_open=""
-            event_observed_at=signal+observed_window*60000
         else:
             ambiguity="NONE"
-            confirmation_status="CENSORED"
-            confirmation_open=confirmation-900000
-            event_observed_at=confirmation
         failed_rows.append({**snapshot_fields,
             "reference_feature_snapshot_ts_ms":reference_feature_snapshot,
             "reference_feature_match_status":reference_feature_match_status,
@@ -1340,8 +1367,8 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
             "family_direction":"SHORT" if direction=="UPPER" else "LONG",
             "side":"SHORT" if direction=="UPPER" else "LONG","signal_time_ms":signal,
             "signal_candle_open_ts_ms":confirmation_open,
-            "signal_candle_close_ts_ms":confirmation or "",
-            "signal_available_at_ts_ms":confirmation or "",
+            "signal_candle_close_ts_ms":timing["signal_candle_close_ts_ms"],
+            "signal_available_at_ts_ms":timing["signal_available_at_ts_ms"],
             "confirmation_ts_ms":confirmation or "",
             "confirmation_rule_id":"RETURN_INSIDE_15M_CLOSE_V1",
             "confirmation_bar_interval_ms":900000,"confirmation_status":confirmation_status,
