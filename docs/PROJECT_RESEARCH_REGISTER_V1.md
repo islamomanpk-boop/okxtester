@@ -737,3 +737,21 @@ The stream contained 6,876,834 records over 86,399.975 seconds: 1,440 snapshots 
 At 689 metric samples (one every 10,000 records), no crossed or empty books were observed. Spread (bps): min 0.00895848, p50 0.00902937, p95 0.00926145, max 6.09560315. Top-10 visible depth in contracts: bid p50 538.82 / p95 1,784.45; ask p50 493.27 / p95 1,636.69.
 
 **Limits:** one BTC instrument/day only; sampling misses transient states; absent sequence IDs mean timestamps cannot prove lossless update continuity; visible depth does not establish queue position, hidden liquidity, latency, market impact or fills; historical effective contract-value metadata remains unresolved. These are observed visible-book metrics, not calibrated slippage or executable-fill assumptions. The successful reconstruction closes the implementation test for this single sample only, not G0-07. G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD. No strategy PnL, execution simulation, orders or fills.
+
+
+### 12.46 G0-08 targeted historical instrument-parameter notice review — 2026-11-28
+
+A targeted follow-up confirmed the official parameter notification page URL: https://www.okx.com/en-gb/trade-market/parameter-changes. OKX's 2026-04-24 announcement says it supports business-line, instrument and status filters and consolidates position tiers, discount rate, tick size and minimum order size. The announcement does not establish completed-record retention or export availability.
+
+The official 2025-10-21 notice for the 2025-10-24 adjustment batch and the 2025-12-22 notice for the 2025-12-24 batch were reviewed. Their listed perpetual instruments do not include BTC, ETH, SOL, DOGE or AVAX. This is negative evidence for those two batches only, not a complete history. Routine tick-size/minimum-size adjustments became automatic from 2026-01-15 and are generally no longer individually announced.
+
+The API's current `upcChg` is upcoming-only and documents `tickSz`, `minSz` (with synchronous `lotSz` change for SWAP/FUTURES) and `maxMktSz`. It does not establish historical `ctVal`, `ctMult`, `maxStopSz` or `maxTriggerSz` changes. Instruments WebSocket updates could provide effective-dated events if archived, but no such archive is recorded in the repository.
+
+**Disposition / next evidence step:** historical tickSz/minSz/lotSz from 2025-10 onward remain UNVERIFIED; historical contract value/multiplier and maximum stop/trigger-size history also remain UNVERIFIED. The notification page's completed history must be inspected for the five project SWAP IDs, or authoritative archived channel events/OKX support records obtained. Do not infer no change from an empty current `upcChg` list or missing post-2026-01-15 announcements. Do not apply the current snapshot retroactively. G0-08 remains OPEN; G0-07 contract-rounding integration remains blocked; Gate 0 remains CONDITIONAL HOLD.
+
+Official sources:
+- 2025-10-21 adjustment notice: https://www.okx.com/en-us/help/okx-to-adjust-tick-size-of-spots-margins-and-futures-20251021
+- 2025-12-22 adjustment notice: https://www.okx.com/en-us/help/okx-to-adjust-tick-size-of-spots-margins-and-futures-20251222
+- 2025-12-23 automatic-adjustment announcement: https://www.okx.com/en-gb/help/okx-to-enable-automatic-adjustment-of-several-trading-parameters
+- 2026-04-24 parameter notification announcement: https://www.okx.com/en-gb/help/okx-launches-parameter-adjustment-notification-page
+- API instrument fields and `upcChg`: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-instruments
