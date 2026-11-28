@@ -420,6 +420,81 @@ class G005ContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "must end before snapshot"):
             validate_canonical_candidate_record(record)
 
+    def test_canonical_record_rejects_nonincreasing_calibration_interval(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["threshold_calibration_start_ts_ms"] = record["threshold_calibration_end_ts_ms"]
+        with self.assertRaisesRegex(ValueError, "calibration start must precede end"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_boolean_calibration_timestamp(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["threshold_calibration_start_ts_ms"] = True
+        with self.assertRaisesRegex(ValueError, "calibration bounds must be integer timestamps"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_boolean_prior_observation_count(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["threshold_prior_observation_count"] = True
+        with self.assertRaisesRegex(ValueError, "prior observation count must be at least 180"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_strict_label_with_p40_threshold(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["threshold_percentile"] = 40
+        with self.assertRaisesRegex(ValueError, "threshold percentile does not match"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_broad_only_label_with_p25_threshold(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["causal_cohort_label"] = "BROAD_ONLY"
+        record["threshold_percentile"] = 25
+        with self.assertRaisesRegex(ValueError, "threshold percentile does not match"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_requires_p40_for_not_eligible_threshold(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["causal_cohort_label"] = "NOT_ELIGIBLE"
+        record["threshold_percentile"] = 25
+        with self.assertRaisesRegex(ValueError, "threshold percentile does not match"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_rejects_threshold_metadata_for_warmup(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["causal_cohort_label"] = "WARMUP"
+        with self.assertRaisesRegex(ValueError, "WARMUP candidates must not carry threshold metadata"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_requires_broad_membership_for_strict_historical_membership(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["historical_cohort_memberships"] = ["STRICT_P25"]
+        with self.assertRaisesRegex(ValueError, "strict historical cohort membership requires broad"):
+            validate_canonical_candidate_record(record)
+
+    def test_canonical_record_preserves_not_applicable_with_p40_provenance(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["causal_cohort_label"] = "NOT_APPLICABLE"
+        record["threshold_percentile"] = 40
+        validate_canonical_candidate_record(record)
+
+    def test_canonical_record_preserves_not_applicable_without_threshold(self):
+        record = self._canonical_candidate_fixture(
+            "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
+        record["causal_cohort_label"] = "NOT_APPLICABLE"
+        for field in ("threshold_value", "threshold_percentile",
+                      "threshold_calibration_start_ts_ms", "threshold_calibration_end_ts_ms",
+                      "threshold_prior_observation_count"):
+            record[field] = None
+        validate_canonical_candidate_record(record)
+
     def test_canonical_record_rejects_missing_required_lineage(self):
         record = self._canonical_candidate_fixture(
             "BREAKOUT_CONTINUATION", "BTC|UPPER|1|2", 1761287400000, "UPPER", "LONG")
