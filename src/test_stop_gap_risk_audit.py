@@ -2,7 +2,7 @@ import unittest
 from audit_stop_gap_risk import analyze_bars
 
 def bar(ts, o, h, low, close):
-    return {"ts": ts, "open": o, "high": h, "low": low, "close": close}
+    return {"ts": ts, "open": o, "high": h, "low": low, "close": close, "vol": 1.0}
 
 class StopGapRiskAuditTests(unittest.TestCase):
     def test_long_gap_loss_multiple_and_overshoot(self):
@@ -49,6 +49,26 @@ class StopGapRiskAuditTests(unittest.TestCase):
         self.assertAlmostEqual(jumps["long_adverse_open_jump"]["max"], 20.0)
         self.assertAlmostEqual(jumps["short_adverse_open_jump"]["max"], 10.0)
         self.assertEqual(result["first_utc"], "1970-01-01T00:01:00+00:00")
+
+    def test_zero_volume_rows_are_bridged_to_next_traded_open(self):
+        rows = [
+            bar(60000, 100, 100.2, 99.8, 100),
+            {**bar(120000, 100, 100, 100, 100), "vol": 0.0},
+            bar(180000, 99.5, 99.7, 99.4, 99.6),
+        ]
+        result = analyze_bars(rows, [0.25])
+        self.assertEqual(result["zero_volume_rows"], 1)
+        self.assertEqual(result["positive_volume_rows"], 2)
+        self.assertEqual(result["active_trade_transitions"], 1)
+        self.assertEqual(result["active_trade_open_jump_distributions_bps"]["elapsed_minutes_between_active_bars"]["max"], 2.0)
+        item = next(x for x in result["scenarios"] if x["side"] == "LONG")
+        self.assertEqual(item["gap_events"], 1)
+        self.assertEqual(item["eligible_active_trade_transitions"], 1)
+
+    def test_negative_volume_is_rejected(self):
+        rows = [bar(60000, 100, 100.2, 99.8, 100), {**bar(120000, 100, 100.2, 99.8, 100), "vol": -1.0}]
+        with self.assertRaisesRegex(ValueError, "volume"):
+            analyze_bars(rows, [1.0])
 
 if __name__ == "__main__":
     unittest.main()

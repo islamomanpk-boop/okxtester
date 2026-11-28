@@ -39,11 +39,17 @@ def analyze_bars(rows, stop_distances):
         raise ValueError("Stop distances must be finite percentages in (0, 100)")
     buckets = {(d, side): _empty_bucket() for d in distances for side in ("LONG", "SHORT")}
     eligible = skipped = row_count = 0
+    zero_volume_rows = positive_volume_rows = active_transitions = 0
     first_ts = last_ts = None
     previous = None
+    last_active = None
+    active_elapsed_minutes = []
     open_jump_abs_bps = []
     long_adverse_open_jump_bps = []
     short_adverse_open_jump_bps = []
+    active_open_jump_abs_bps = []
+    active_long_adverse_open_jump_bps = []
+    active_short_adverse_open_jump_bps = []
     for row in rows:
         row_count += 1
         try:
@@ -51,10 +57,17 @@ def analyze_bars(rows, stop_distances):
             if not math.isfinite(ts_value) or not ts_value.is_integer(): raise ValueError
             ts = int(ts_value)
             prices = {name: float(row[name]) for name in ("open", "high", "low", "close")}
+            volume = float(row.get("vol", 1.0))
         except (KeyError, TypeError, ValueError, OverflowError) as exc:
             raise ValueError(f"Invalid timestamp/OHLC at row {row_count}") from exc
         if ts <= 0 or not all(math.isfinite(v) and v > 0 for v in prices.values()):
             raise ValueError(f"Non-positive or non-finite timestamp/OHLC at row {row_count}")
+        if not math.isfinite(volume) or volume < 0:
+            raise ValueError(f"Invalid or negative volume at row {row_count}")
+        if volume == 0:
+            zero_volume_rows += 1
+        else:
+            positive_volume_rows += 1
         if prices["high"] < max(prices["open"], prices["close"], prices["low"]):
             raise ValueError(f"Inconsistent high at row {row_count}")
         if prices["low"] > min(prices["open"], prices["close"], prices["high"]):
@@ -70,6 +83,19 @@ def analyze_bars(rows, stop_distances):
                 open_jump_abs_bps.append(abs(signed_jump_bps))
                 long_adverse_open_jump_bps.append(max(0.0, -signed_jump_bps))
                 short_adverse_open_jump_bps.append(max(0.0, signed_jump_bps))
+            else:
+                skipped += 1
+                last_active = None
+        if volume > 0:
+            if last_active is not None:
+                active_transitions += 1
+                elapsed = (ts - last_active["ts"]) / INTERVAL_MS
+                active_elapsed_minutes.append(elapsed)
+                reference, next_open = last_active["close"], prices["open"]
+                signed_jump_bps = (next_open / reference - 1.0) * 10_000.0
+                active_open_jump_abs_bps.append(abs(signed_jump_bps))
+                active_long_adverse_open_jump_bps.append(max(0.0, -signed_jump_bps))
+                active_short_adverse_open_jump_bps.append(max(0.0, signed_jump_bps))
                 for distance_pct in distances:
                     distance = distance_pct / 100.0
                     long_stop = reference * (1.0 - distance)
@@ -84,8 +110,7 @@ def analyze_bars(rows, stop_distances):
                         bucket["loss_multiples"].append((next_open - reference) / (reference * distance))
                         bucket["overshoot_bps"].append((next_open - short_stop) / short_stop * 10_000.0)
                         bucket["adverse_move_bps"].append((next_open - reference) / reference * 10_000.0)
-            else:
-                skipped += 1
+            last_active = {"ts": ts, "close": prices["close"]}
         previous = {"ts": ts, "close": prices["close"]}
         last_ts = ts
     if row_count < 2: raise ValueError("At least two candles are required")
@@ -97,15 +122,24 @@ def analyze_bars(rows, stop_distances):
     ):
         jump_distributions[name] = {f"p{p}": _percentile(values, p) for p in PERCENTILES}
         jump_distributions[name]["max"] = max(values) if values else None
+    active_jump_distributions = {}
+    for name, values in (
+        ("absolute_open_jump", active_open_jump_abs_bps),
+        ("long_adverse_open_jump", active_long_adverse_open_jump_bps),
+        ("short_adverse_open_jump", active_short_adverse_open_jump_bps),
+        ("elapsed_minutes_between_active_bars", active_elapsed_minutes),
+    ):
+        active_jump_distributions[name] = {f"p{p}": _percentile(values, p) for p in PERCENTILES}
+        active_jump_distributions[name]["max"] = max(values) if values else None
     results = []
     for distance_pct in distances:
         for side in ("LONG", "SHORT"):
             summary = _summarize_bucket(buckets[(distance_pct, side)])
             summary.update({
                 "stop_distance_pct": distance_pct, "side": side,
-                "eligible_minute_transitions": eligible,
+                "eligible_active_trade_transitions": active_transitions,
                 "skipped_nonconsecutive_transitions": skipped,
-                "gap_rate_pct": summary["gap_events"] / eligible * 100.0 if eligible else None,
+                "gap_rate_pct": summary["gap_events"] / active_transitions * 100.0 if active_transitions else None,
             })
             results.append(summary)
     return {
@@ -113,7 +147,12 @@ def analyze_bars(rows, stop_distances):
         "first_utc": datetime.fromtimestamp(first_ts / 1000.0, timezone.utc).isoformat(),
         "last_utc": datetime.fromtimestamp(last_ts / 1000.0, timezone.utc).isoformat(),
         "open_jump_distributions_bps": jump_distributions,
+        "active_trade_open_jump_distributions_bps": active_jump_distributions,
         "eligible_minute_transitions": eligible,
+        "active_trade_transitions": active_transitions,
+        "zero_volume_rows": zero_volume_rows,
+        "positive_volume_rows": positive_volume_rows,
+        "zero_volume_row_pct": zero_volume_rows / row_count * 100.0,
         "skipped_nonconsecutive_transitions": skipped, "scenarios": results,
     }
 
@@ -126,7 +165,7 @@ def _sha256(path):
 def audit_csv(path, symbol, stop_distances):
     with path.open("r", newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
-        required = {"ts", "open", "high", "low", "close"}
+        required = {"ts", "open", "high", "low", "close", "vol"}
         if reader.fieldnames is None or not required.issubset(reader.fieldnames):
             missing = sorted(required - set(reader.fieldnames or []))
             raise ValueError(f"{symbol}: missing required CSV columns: {missing}")
@@ -153,9 +192,10 @@ def main(argv=None):
     report = {
         "audit_id": "G0-07_STOP_GAP_RISK_HISTORICAL_1M_V1",
         "status": "HISTORICAL_OPEN_THROUGH_STOP_AUDIT_COMPLETE",
-        "method": "For each contiguous 1m pair, prior candle close is a hypothetical reference entry; next candle open is tested against stops at the configured percentage distance.",
+        "method": "Stop-gap scenarios compare each positive-volume candle open with the close of the previous positive-volume candle. Zero-volume rows are treated as no-trade intervals; nonconsecutive timestamp breaks reset the active comparison. Adjacent one-minute opening-jump diagnostics are also reported separately.",
         "scope": [
-            "Historical OHLC open-through-stop frequency and severity only",
+            "Historical OHLC open-through-stop frequency and severity using positive-volume candles only",
+            "Zero-volume rows are excluded from active-trade event denominators and counted separately",
             "No strategy signals, trade selection, order simulation, or strategy PnL",
             "No measured order-book liquidity, queue position, or execution slippage",
             "No contract multiplier, lot/tick rounding, or account fee-tier assumptions",
@@ -173,8 +213,9 @@ def main(argv=None):
         "interpretation": {
             "gap_loss_multiple": "Adverse prior-close-to-next-open price move divided by the hypothetical stop distance; values are at least 1 for counted events.",
             "stop_overshoot_bps": "Distance from the stop level to the next open, in basis points of the stop level.",
-            "gap_rate_pct": "Counted open-through-stop transitions divided by contiguous one-minute transitions.",
-            "open_jump_distributions_bps": "Absolute and direction-specific adverse next-open movement relative to the previous close across every contiguous transition, including zero values for the non-adverse direction.",
+            "gap_rate_pct": "Counted open-through-stop transitions divided by transitions between positive-volume candles; elapsed minutes are reported separately.",
+            "open_jump_distributions_bps": "Absolute and direction-specific next-open movement across every contiguous candle transition, including zero-volume rows.",
+            "active_trade_open_jump_distributions_bps": "Opening movement from the prior positive-volume candle close to the next positive-volume candle open; zero-volume rows are bridged and elapsed minutes are recorded.",
             "synthetic_stress_scenarios": "Hypothetical extra gap beyond the stop, expressed as a percentage of reference entry; price loss multiple equals (stop distance + extra gap) / stop distance and excludes fees, slippage, and market impact.",
             "limitations": "This is a candle-open gap proxy, not a guaranteed fill-price distribution. It excludes intraminute execution slippage and order-book impact. Stop distances are sensitivity scenarios, not strategy parameters.",
         },
@@ -185,9 +226,10 @@ def main(argv=None):
     print(f"Assets: {len(assets)}")
     for asset in assets:
         jumps = asset["open_jump_distributions_bps"]
-        print(f"{asset['symbol']}: rows={asset['row_count']:,}, eligible={asset['eligible_minute_transitions']:,}, nonconsecutive_skipped={asset['skipped_nonconsecutive_transitions']:,}, period={asset['first_utc']}..{asset['last_utc']}, sha256={asset['source_sha256']}")
-        print(f"  open-jump abs bps: p50={jumps['absolute_open_jump']['p50']:.4f}, p99={jumps['absolute_open_jump']['p99']:.4f}, max={jumps['absolute_open_jump']['max']:.4f}")
-        print(f"  adverse max bps: long={jumps['long_adverse_open_jump']['max']:.4f}, short={jumps['short_adverse_open_jump']['max']:.4f}")
+        active_jumps = asset["active_trade_open_jump_distributions_bps"]
+        print(f"{asset['symbol']}: rows={asset['row_count']:,}, minute_transitions={asset['eligible_minute_transitions']:,}, active_transitions={asset['active_trade_transitions']:,}, zero_volume_rows={asset['zero_volume_rows']:,} ({asset['zero_volume_row_pct']:.2f}%), nonconsecutive_skipped={asset['skipped_nonconsecutive_transitions']:,}, period={asset['first_utc']}..{asset['last_utc']}, sha256={asset['source_sha256']}")
+        print(f"  all-bar open-jump abs bps: p50={jumps['absolute_open_jump']['p50']:.4f}, p99={jumps['absolute_open_jump']['p99']:.4f}, max={jumps['absolute_open_jump']['max']:.4f}")
+        print(f"  active open-jump abs bps: p50={active_jumps['absolute_open_jump']['p50']}, p99={active_jumps['absolute_open_jump']['p99']}, max={active_jumps['absolute_open_jump']['max']}")
         for item in asset["scenarios"]:
             p95 = item["gap_loss_multiple"]["p95"]
             print(f"  {item['side']:5s} stop={item['stop_distance_pct']:g}% gaps={item['gap_events']:,} rate={item['gap_rate_pct'] if item['gap_rate_pct'] is not None else 'n/a'} p95_gap_loss={'n/a' if p95 is None else f'{p95:.4f}R'}")
