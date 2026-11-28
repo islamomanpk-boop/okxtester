@@ -1,0 +1,43 @@
+name: G0-08 OKX Public Instrument Metadata Audit
+on:
+  push:
+    branches: [price-action-v1]
+    paths:
+      - src/audit_okx_instrument_metadata.py
+      - src/test_okx_instrument_metadata.py
+      - .github/workflows/g0-08-instrument-metadata-audit.yml
+permissions:
+  contents: read
+concurrency:
+  group: g0-08-instrument-metadata-audit
+  cancel-in-progress: false
+jobs:
+  public-instrument-audit:
+    name: Validate and snapshot public OKX instrument metadata
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out price-action-v1
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile audit and tests
+        run: |
+          python -m py_compile src/audit_okx_instrument_metadata.py src/test_okx_instrument_metadata.py
+      - name: Run offline validation tests
+        run: python -m unittest discover -s src -p 'test_okx_instrument_metadata.py' -v
+      - name: Fetch current public instrument metadata
+        run: |
+          python src/audit_okx_instrument_metadata.py \
+            --output reports/g0_08_public_instrument_metadata_v1.json
+      - name: Upload public instrument metadata report
+        uses: actions/upload-artifact@v4
+        with:
+          name: g0-08-public-instrument-metadata-v1
+          path: reports/g0_08_public_instrument_metadata_v1.json
+          if-no-files-found: error
+          retention-days: 30
