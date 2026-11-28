@@ -47,6 +47,12 @@ G004_OUTPUTS = (
     "raw_crossing_summary.csv",
     "unique_raw_crossing_events_with_six_variants.csv",
 )
+# Independently pinned repository blobs; metadata cannot silently redefine accepted source outputs.
+MODULE_A_METADATA_BLOB = "5a425a1e32f0abab874c892585d3213f2a7a9cea"
+MODULE_A_EVENTS_BLOB = "34df10455b47294cc5d017e3e17fa4c59d3da7c8"
+MODULE_B_METADATA_BLOB = "72930564f85fc356faa54115c6f76ffc7c533a58"
+MODULE_B_EVENTS_BLOB = "da00c6682719864eaee3a491330d57f4d6fd2b39"
+MODULE_B_HORIZONS_BLOB = "068e2b90b9824f7c68818c0eb913608db6b8a568"
 
 
 def fail(message: str) -> None:
@@ -873,13 +879,21 @@ def validate_disposition_ledger(rows: list[dict[str, str]],
 
 def audit_module_b(root: Path, g004_raw_keys: set) -> dict:
     base = root / "reports/phase3_breakout_lifecycle_v1_1"
-    metadata = json.loads((base / "run_metadata_v1_1.json").read_text(encoding="utf-8"))
+    metadata_path = base / "run_metadata_v1_1.json"
+    if git_blob_sha1(metadata_path.read_bytes()) != MODULE_B_METADATA_BLOB:
+        fail("Module B run-metadata source blob mismatch")
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     event_path = base / "breakout_lifecycle_events_v1_1.csv"
     horizon_path = base / "breakout_lifecycle_horizons_v1_1.csv"
-    for path, key in ((event_path, "breakout_lifecycle_events_v1_1.csv"),
-                      (horizon_path, "breakout_lifecycle_horizons_v1_1.csv")):
+    expected_blobs = {
+        event_path: ("breakout_lifecycle_events_v1_1.csv", MODULE_B_EVENTS_BLOB),
+        horizon_path: ("breakout_lifecycle_horizons_v1_1.csv", MODULE_B_HORIZONS_BLOB),
+    }
+    for path, (key, expected_blob) in expected_blobs.items():
         if not path.is_file():
             fail(f"missing Module B source {path}")
+        if git_blob_sha1(path.read_bytes()) != expected_blob:
+            fail(f"Module B independently pinned source blob mismatch: {key}")
         if sha256_bytes(path.read_bytes()) != metadata["output_sha256"][key]:
             fail(f"Module B output hash mismatch: {key}")
     ef, events = read_csv(event_path)
@@ -1031,7 +1045,10 @@ def row_disposition_dry_run(root: Path, artifact: Path, out: Path,
         d["event_ids"].append(eid) if "event_ids" in d else d.update({"event_ids":[eid]})
     # Reuse accepted Module A 24H interval-graph clusters, then recount at physical-event grain.
     module_a_base = root / "reports/phase3_rejection_lifecycle_v1_1"
-    module_a_meta = json.loads((module_a_base / "run_metadata_v1.json").read_text(encoding="utf-8"))
+    module_a_metadata_path = module_a_base / "run_metadata_v1.json"
+    if git_blob_sha1(module_a_metadata_path.read_bytes()) != MODULE_A_METADATA_BLOB:
+        fail("Module A run-metadata source blob mismatch")
+    module_a_meta = json.loads(module_a_metadata_path.read_text(encoding="utf-8"))
     module_a_event_path = module_a_base / "rejection_lifecycle_events_v1.csv"
     if module_a_meta.get("status") != "ACCEPTED_DESCRIPTIVE_MODULE_A":
         fail("Module A rejection lifecycle is not in its accepted descriptive state")
