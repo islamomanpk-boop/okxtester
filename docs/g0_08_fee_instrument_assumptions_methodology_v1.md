@@ -111,3 +111,19 @@ Official references:
 - https://www.okx.com/docs-v5/en/#public-data-rest-api-get-instruments
 
 Until completed parameter history can be recovered from the notification page or archived WebSocket events, historical tickSz/minSz/lotSz effective dates for 2025-10 to 2026-11 remain unverified. Do not apply the current snapshot retroactively.
+
+
+### Additional targeted notice review — 2026-11-28
+
+The 2025-10-21 OKX notice schedules a 2025-10-24 tick-size adjustment batch; its listed perpetual instruments do not include BTC, ETH, SOL, DOGE or AVAX. The 2025-12-22 notice schedules a 2025-12-24 batch; its listed perpetual instruments also do not include these five project instruments. These are only two dated notice batches, not an exhaustive change history.
+
+The official parameter page is https://www.okx.com/en-gb/trade-market/parameter-changes. The 2026-04-24 announcement confirms filters for business line, instrument and status, but does not state the retention period for completed records or whether a complete export is available.
+
+The current API's `upcChg` only reports upcoming changes. The documented parameter set is `tickSz`, `minSz` (with `lotSz` synchronously changed for SWAP/FUTURES), and `maxMktSz`. It does not provide a historical ledger for `ctVal`, `ctMult`, `maxStopSz`, or `maxTriggerSz`. The Instruments WebSocket channel can push metadata updates, but no archived event history for the five instruments is presently recorded in this repository.
+
+**Next evidence requirement:** inspect the notification page's completed records for BTC-USDT-SWAP, ETH-USDT-SWAP, SOL-USDT-SWAP, DOGE-USDT-SWAP and AVAX-USDT-SWAP over 2025-10 through 2026-11. Record every before/after value and exact effective timestamp. Separately obtain authoritative evidence for any contract-value/multiplier or maximum stop/trigger-size changes; do not assume the parameter page covers them. If the page does not expose completed history, request an effective-dated change export from OKX support or locate archived Instruments WebSocket captures. Until then, historical metadata remains unverified and current values must not be applied retroactively.
+
+Additional official notices:
+- 2025-10-21 batch (effective 2025-10-24): https://www.okx.com/en-us/help/okx-to-adjust-tick-size-of-spots-margins-and-futures-20251021
+- 2025-12-22 batch (effective 2025-12-24): https://www.okx.com/en-us/help/okx-to-adjust-tick-size-of-spots-margins-and-futures-20251222
+- Parameter notification page: https://www.okx.com/en-gb/trade-market/parameter-changes
