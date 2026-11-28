@@ -234,3 +234,12 @@ Even with G0-04 accepted and G0-05 technically complete, Gate 0 remains conditio
 - G0-09: exact settlement-mark fidelity and remaining execution-engine readiness.
 
 No Gate 2 execution-resolution comparison, Phase 3 strategy PnL backtest, strategy selection or live-trading conclusion is authorized. Preserve the agreed phase sequence and do not skip the remaining Gate 0 requirements.
+
+
+## G0-05 formal technical acceptance — 2026-11-28
+
+The prior READY FOR FORMAL CLOSEOUT status in the 2026-11-28 snapshot is superseded by the dated technical acceptance decision `docs/research_checkpoints/2026-11-28_g0_05_acceptance_decision_v1.md`.
+
+**G0-05: ACCEPTED — TECHNICAL CLOSEOUT COMPLETE.** The owner-authorized real canonical build and independent post-build evidence review passed in workflow [46150045661](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150045661), artifact ID `15265023491`. All 4,947 canonical records, exact 60-field schema, deterministic identities, full ledger validation, exact source reconciliation and 932 failed-breakout links/inheritance passed.
+
+**Gate 0 remains CONDITIONAL HOLD — not passed.** G0-03, G0-07, G0-08 and G0-09 retain their separate acceptance requirements. Gate 2–7 sequencing remains unchanged; no Gate 2 execution comparison or Phase 3 strategy PnL backtest is authorized.
