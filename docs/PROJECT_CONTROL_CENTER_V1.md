@@ -349,3 +349,10 @@ G0-05 is **ACCEPTED — TECHNICAL CLOSEOUT COMPLETE** under `docs/research_check
 The accepted scope includes 4,947 real canonical records with exactly 60 fields each, deterministic candidate IDs, full row/ledger validation, exact source reconciliation, and 932/932 failed-breakout source links and inherited fields. Final evidence: workflow [46150045661](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150045661), artifact ID `15265023491`.
 
 **Gate 0 remains CONDITIONAL HOLD — not passed.** G0-03, G0-07, G0-08 and G0-09 remain separate blockers. Gate 2+, execution-resolution comparison, orders, fills, execution simulation, strategy PnL backtests and live trading remain unauthorized. Phase 3 remains active; continue through the remaining Gate 0 requirements before any Gate 2 work or phase handoff.
+
+
+### G0-03 funding integration — 2026-11-28
+
+Funding/execution CI [46150715018](https://github.com/islamomanpk-boop/okxtester/actions/runs/46150715018) passed **90/90 tests**, including new standalone/portfolio funding arithmetic parity tests and read-only real-input contract integration harness tests. The new harness exercises the production loader/validator against the actual five local funding CSVs, checking hashes, schedules, common timestamps and settlement boundary rules without simulating trades or calculating PnL.
+
+**G0-03 remains PARTIALLY CLOSED / ACCEPTANCE OPEN** until the harness is run in the user's Termux environment against the local CSVs and its JSON report is reconciled. The local files are not committed. Run instructions: `docs/research_checkpoints/2026-11-28_g0_03_funding_contract_integration_v1.md`. Current funding loader mode remains explicitly `candle_close_proxy`; exact settlement mark-price fidelity and other Gate 0 blockers remain open.
