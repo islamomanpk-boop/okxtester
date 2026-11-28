@@ -81,3 +81,14 @@ One-minute metric sampling produced these spread summaries (bps):
 No crossed or empty books were observed at sampled metric points. Top-10 depth is reported in contracts and is not directly comparable across assets without historical effective contract-value metadata. The AVAX archive itself provides materially fewer bid levels than the other four assets; this is an archive-depth limitation, not evidence of a reconstruction defect.
 
 **Limits and disposition:** one date (2025-11-01) only; no sequence-ID continuity proof; AVAX has three 2,000 ms timestamp intervals and fewer snapshot levels; sampled visible depth does not establish fills, queue position, hidden liquidity, latency or market impact. These spread summaries are not calibrated slippage assumptions. G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD. No strategy PnL, execution simulation, orders or fills were run.
+
+
+## Module-4 BTC archive inspection — 2025-10-20
+
+Workflow [46173396236](https://github.com/islamomanpk-boop/okxtester/actions/runs/46173396236) completed SUCCESS on commit `170ed819b8ddbcf0f1c72b4d7154309323d59116`. Four focused unit tests passed. The module-4 archive was streamed and validated on a GitHub-hosted runner; only a compact JSON report was retained (artifact ID `15274204016`, ZIP SHA-256 `154bcaa0bb2e8e0c604a0a15dd87b7ee835a9ce4ea7406583f9de9370871612d`). Downloaded archive bytes: 491,283,675; uncompressed JSONL member: 3,320,895,476 bytes. Archive SHA-256: `8f730ffe83ec71eb819a29881259a36b68c701e4a65b1cc9287e914ca50ee6f6`. Raw archive was not retained.
+
+The BTC-USDT-SWAP 400-level stream contained 6,876,834 records over 86,399.975 seconds: 1,440 snapshots and 6,875,394 updates. Every snapshot contained exactly 400 bid and 400 ask levels. There were no duplicate or backwards timestamps. The adjacent timestamp distribution was predominantly 10 ms (5,978,609 intervals), followed by 20 ms (511,928), 30 ms (188,716), and 40 ms (88,902); other intervals also occurred. No seqId/prevSeqId fields were present. Thus this is a high-frequency archive stream, but timestamps alone do not prove lossless continuity.
+
+This was a format/stream integrity inspection, not a full evolving-book reconstruction or spread/depth/slippage analysis. The 400-level archive has a materially different cadence and record volume from the module-5 5,000-level daily archive. Before comparing modules, implement and test reconstruction semantics against the module-4 format and establish how snapshots and incremental updates are represented. One BTC date only; no cross-asset/date generalization.
+
+**Disposition:** module-4 availability and stream structure validated for this sample date. Reconstruction, event alignment and execution-cost calibration remain open. G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD.
