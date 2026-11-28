@@ -672,3 +672,14 @@ Official references:
 **Result:** historical tickSz, minSz and lotSz effective dates from 2025-10 through 2026-11 remain UNVERIFIED. The parameter notification page offers a status filter, but whether completed records can be exported/recovered for these instruments has not yet been established. The next research step is to inspect that page's completed/status history for the five instrument IDs or obtain archived instruments-channel events. Do not apply the current snapshot retroactively.
 
 G0-08 remains OPEN; G0-07 contract rounding remains blocked pending effective-dated instrument metadata and fee assumptions. Gate 0 remains CONDITIONAL HOLD.
+
+
+### 12.41 G0-07 historical L2 order-book availability and sample stream validation — 2026-11-28
+
+A new public OKX data source was identified: GET /api/v5/public/market-data-history. Official documentation identifies module 4 (400-level order book), module 5 (5,000-level order book from 2025-11-01), and warns that backfill availability varies by instrument and date. The public historical-data page advertises L2 history from March 2023.
+
+A read-only availability probe checked five instrument families (BTC, ETH, SOL, DOGE, AVAX) at seven sample date/module combinations spanning 2025-10-20 to 2026-11-19. All 35/35 archive slots returned metadata. Sample combined archive sizes ranged from 284.76 MB to 1,749.41 MB per day across five assets, so a full-period bulk download is not appropriate for the 24 GB VPS. Availability artifact ID 15273647547; workflow [46170780016](https://github.com/islamomanpk-boop/okxtester/actions/runs/46170780016).
+
+A representative BTC-USDT-SWAP module-5 archive for 2025-11-01 was downloaded to a GitHub Actions runner, fully parsed, and deleted after inspection. It contained 86,400 JSONL records (96 snapshots, 86,304 updates), with 5,000 bid and 5,000 ask levels in the initial snapshot. 86,351/86,399 adjacent timestamp deltas were exactly 1,000 ms; no duplicate or backwards timestamps were observed. The records did not contain seqId/prevSeqId, so timestamp ordering is not a proof of lossless sequence continuity. Workflow [46171069740](https://github.com/islamomanpk-boop/okxtester/actions/runs/46171069740); report artifact ID 15272739253; archive SHA-256 940c807fec7e39cf10fba718afe36ac2fb2ecfeb887e1645d4b7c07c6cf4e102.
+
+**Disposition:** historical L2 data is available for targeted execution-cost research, but only sample-date availability and one BTC day have been validated. Do not bulk-download to the VPS or treat the sample as all-period/all-asset evidence. Next: reconstruct the evolving book from snapshots and updates, test resynchronization and non-1,000-ms intervals, then validate additional assets/dates and align depth/spread to stop events. L2 depth cannot establish queue position, hidden liquidity, latency or guaranteed fills. G0-07 remains OPEN; Gate 0 remains CONDITIONAL HOLD.
