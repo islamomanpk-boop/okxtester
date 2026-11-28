@@ -230,7 +230,13 @@ def main(argv=None):
         overall = "UNVERIFIED_API_UNAVAILABLE_OR_INCOMPLETE"
     elif all(status == "OKX_SAMPLE_OHLC_AND_BASE_VOLUME_MATCH" for status in statuses):
         overall = "OKX_SAMPLE_OHLC_AND_BASE_VOLUME_MATCH_NOT_FULL_PROVENANCE"
-    elif all(status.startswith("OKX_SAMPLE_OHLC") for status in statuses):
+    elif all(
+        status in (
+            "OKX_SAMPLE_OHLC_AND_BASE_VOLUME_MATCH",
+            "OKX_SAMPLE_OHLC_MATCH_VOLUME_UNIT_UNRESOLVED",
+        )
+        for status in statuses
+    ):
         overall = "OKX_SAMPLE_OHLC_MATCH_VOLUME_UNIT_UNRESOLVED"
     else:
         overall = "OKX_SAMPLE_OHLC_MISMATCH"
