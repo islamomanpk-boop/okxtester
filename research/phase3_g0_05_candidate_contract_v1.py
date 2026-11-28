@@ -568,6 +568,23 @@ def validate_candidate_identity_links(records: list[dict]) -> dict:
                 raise ValueError("linked source breakout lacks a completed signal availability timestamp")
             if row.get("expiry_ts_ms") != source_signal_available + FAILURE_HORIZON_MS:
                 raise ValueError("failed-breakout expiry does not match linked source breakout 12-hour horizon")
+            expiry = source_signal_available + FAILURE_HORIZON_MS
+            confirmation_status = row.get("confirmation_status")
+            observed_at = row.get("event_observed_at_ts_ms")
+            if confirmation_status == "CONFIRMED":
+                confirmation_at = row.get("signal_available_at_ts_ms")
+                if (type(confirmation_at) is not int
+                        or not source_signal_available < confirmation_at < expiry
+                        or observed_at != confirmation_at):
+                    raise ValueError("failed-breakout confirmation must be observed strictly inside its source 12-hour horizon")
+            elif confirmation_status == "NOT_CONFIRMED":
+                if observed_at != expiry:
+                    raise ValueError("unconfirmed failed-breakout must be observed at its 12-hour expiry")
+            elif confirmation_status == "CENSORED":
+                if not source_signal_available < observed_at < expiry:
+                    raise ValueError("censored failed-breakout observation must fall strictly inside its source 12-hour horizon")
+            else:
+                raise ValueError("failed-breakout requires confirmed, not-confirmed or censored confirmation status")
             inherited_fields = (
                 "asset", "instrument_id", "boundary_side", "regime_definition_version",
                 "source_pipeline_version", "historical_cohort_memberships", "causal_cohort_label",
