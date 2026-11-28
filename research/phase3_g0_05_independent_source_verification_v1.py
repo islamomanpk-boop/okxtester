@@ -105,6 +105,16 @@ def verify_rejection_identity(root: Path, rows: list[dict[str, str]]) -> dict:
 
 def verify_breakout_identity(root: Path, artifact: Path, rows: list[dict[str, str]]) -> tuple[dict, dict]:
     raw = read_rows(artifact / "unique_raw_crossing_events_with_six_variants.csv")
+    module_b = read_rows(root / "reports/phase3_breakout_lifecycle_v1_1/breakout_lifecycle_events_v1_1.csv")
+    observed_by_key = {}
+    for event in module_b:
+        key = "|".join((event["asset"], event["direction"],
+                        str(integer(event, "signal_time_ms", "Module B event")),
+                        str(_iso_ms(event["snapshot"]))))
+        observed = integer(event, "observed_bars_12h", "Module B event")
+        if key in observed_by_key and observed_by_key[key] != observed:
+            stop(f"Module B cohort rows disagree on observed window: {key}")
+        observed_by_key[key] = observed
     expected = {}
     for row in raw:
         key = "|".join((row["asset"], row["direction"],
@@ -128,7 +138,10 @@ def verify_breakout_identity(root: Path, artifact: Path, rows: list[dict[str, st
     for key, source in expected.items():
         asset = source["asset"]
         start = integer(source, "signal_time_ms", "G0-04 raw")
-        grouped[asset].append((start, start + HORIZON_MS, key))
+        observed_bars = observed_by_key.get(key, 720)
+        if not 0 < observed_bars <= 720:
+            stop(f"invalid observed 12-hour window: {key}")
+        grouped[asset].append((start, start + observed_bars * MINUTE_MS, key))
     cluster_by_key = {}
     summary = Counter()
     for asset, intervals in grouped.items():
