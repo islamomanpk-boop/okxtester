@@ -59,9 +59,41 @@ def disposition_rows(audit_dir: Path) -> dict[str, list[dict[str, str]]]:
     return result
 
 
-def verify_rejection_identity(root: Path, rows: list[dict[str, str]]) -> dict:
+
+def load_thresholds(artifact: Path) -> dict[tuple[str, int], dict[str, str]]:
+    rows = read_rows(artifact / "causal_thresholds_by_context.csv")
+    result = {}
+    for row in rows:
+        if row.get("policy") != "EXPANDING_PRIOR" or row.get("population") != "UNIQUE_4H_FEATURE_ROWS":
+            continue
+        key = (row["asset"], integer(row, "snapshot_ms", "threshold"))
+        if key in result:
+            stop(f"duplicate primary causal threshold: {key}")
+        p25, p40 = float(row["p25"]), float(row["p40"])
+        if p25 > p40:
+            stop(f"causal P25 exceeds P40: {key}")
+        result[key] = row
+    return result
+
+
+def causal_label(asset: str, snapshot: int, width: float, efficiency: float,
+                 overlap: float, thresholds: dict) -> str:
+    threshold = thresholds.get((asset, snapshot))
+    if threshold is None:
+        return "CAUSAL_THRESHOLD_WARMUP"
+    strict = width <= float(threshold["p25"]) and efficiency <= 0.30 and overlap >= 0.70
+    broad = width <= float(threshold["p40"]) and efficiency <= 0.30 and overlap >= 0.70
+    if strict:
+        return "CAUSAL_STRICT"
+    if broad:
+        return "CAUSAL_BROAD_ONLY"
+    return "CAUSAL_REGIME_NOT_ELIGIBLE"
+
+
+def verify_rejection_identity(root: Path, artifact: Path, rows: list[dict[str, str]]) -> dict:
     source = read_rows(root / "reports/sideways_boundary_events_historical_v1/boundary_tests_historical_v1.csv")
     physical: dict[str, list[str]] = defaultdict(list)
+    source_rows_by_key: dict[str, list[dict[str, str]]] = defaultdict(list)
     for row in source:
         if not (row.get("first_strong_rejection_ts_ms") or "").strip():
             continue
@@ -80,8 +112,11 @@ def verify_rejection_identity(root: Path, rows: list[dict[str, str]]) -> dict:
             str(integer(row, "test_start_ts_ms", "rejection source")),
         ))
         physical[key].append(event_id)
+        source_rows_by_key[key].append(row)
     if len(physical) != EXPECTED["rejection"]:
         stop(f"reconstructed physical rejection identities={len(physical)}")
+    thresholds = load_thresholds(artifact)
+    feature_by_asset = {asset: read_rows(root / "reports/sideways_detector_original_v1" / f"{asset}_features_original_v1.csv") for asset in ASSETS}
     observed = {}
     for row in rows:
         key = row.get("source_event_id", "")
@@ -98,14 +133,44 @@ def verify_rejection_identity(root: Path, rows: list[dict[str, str]]) -> dict:
         reason = observed[key].get("reason_code")
         if status == "ELIGIBLE_FOR_FURTHER_VALIDATION" and reason != "NONE":
             stop(f"eligible rejection has non-NONE reason: {key}")
-        if status == "EXPIRED" and reason != "SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION":
-            stop(f"expired rejection has wrong reason: {key}")
+        members = source_rows_by_key[key]
+        broad = next((member for member in members if member["definition"].lower() == "broad"), None)
+        if broad is None:
+            stop(f"rejection physical event lacks broad source membership: {key}")
+        asset = broad["asset"]
+        index = integer(broad, "snapshot_index", "rejection source")
+        if index >= len(feature_by_asset[asset]):
+            stop(f"rejection feature index out of range: {key}")
+        feature = feature_by_asset[asset][index]
+        snapshot = integer(broad, "snapshot_available_at_ts_ms", "rejection source")
+        if integer(feature, "available_at_ts_ms", "detector feature") != snapshot:
+            stop(f"rejection feature snapshot mismatch: {key}")
+        next_snapshot = integer(broad, "snapshot_next_available_at_ts_ms", "rejection source")
+        confirmation = integer(broad, "first_strong_rejection_ts_ms", "rejection source") + 900_000
+        label = causal_label(asset, snapshot, float(feature["channel_width_pct"]),
+                             float(feature["directional_efficiency"]), float(feature["mean_overlap"]), thresholds)
+        if confirmation >= next_snapshot:
+            expected_status, expected_reason, expected_cohort = "EXPIRED", "SNAPSHOT_EXPIRED_BEFORE_CONFIRMATION", "NOT_EVALUATED"
+        elif label == "CAUSAL_THRESHOLD_WARMUP":
+            expected_status, expected_reason, expected_cohort = "REJECTED", label, "WARMUP"
+        elif label == "CAUSAL_REGIME_NOT_ELIGIBLE":
+            expected_status, expected_reason, expected_cohort = "REJECTED", label, "NOT_ELIGIBLE"
+        else:
+            expected_status, expected_reason = "ELIGIBLE_FOR_FURTHER_VALIDATION", "NONE"
+            expected_cohort = label
+        if status not in (expected_status, "CENSORED" if expected_status == "ELIGIBLE_FOR_FURTHER_VALIDATION" else expected_status):
+            stop(f"independently recomputed rejection disposition mismatch: {key}")
+        if reason != expected_reason or row.get("causal_cohort") != expected_cohort:
+            stop(f"independently recomputed rejection causal label/reason mismatch: {key}")
+        if expected_status != "ELIGIBLE_FOR_FURTHER_VALIDATION" and (row.get("first_eligible_1m_open_ts_ms") or "").strip():
+            stop(f"non-eligible rejection exposes first eligible minute: {key}")
     return {"physical_events": len(physical), "source_memberships": sum(map(len, physical.values())),
             "exact_source_identity_and_membership": True}
 
 
 def verify_breakout_identity(root: Path, artifact: Path, rows: list[dict[str, str]]) -> tuple[dict, dict]:
     raw = read_rows(artifact / "unique_raw_crossing_events_with_six_variants.csv")
+    thresholds = load_thresholds(artifact)
     module_b = read_rows(root / "reports/phase3_breakout_lifecycle_v1_1/breakout_lifecycle_events_v1_1.csv")
     observed_by_key = {}
     for event in module_b:
@@ -205,12 +270,30 @@ def verify_breakout_identity(root: Path, artifact: Path, rows: list[dict[str, st
             stop(f"independent breakout interval-cluster mismatch: {key}")
         status = row.get("disposition", "")
         reason = row.get("reason_code", "")
-        if status == "ELIGIBLE_FOR_FURTHER_VALIDATION" and reason != "NONE":
-            stop(f"eligible breakout has non-NONE reason: {key}")
-        if status == "REJECTED" and reason not in (
-            "CAUSAL_THRESHOLD_WARMUP", "CAUSAL_REGIME_NOT_ELIGIBLE"
-        ):
-            stop(f"rejected breakout has unexpected reason: {key}")
+        source = expected[key]
+        asset = source["asset"]
+        snapshot = integer(source, "context_snapshot_ms", "G0-04 raw")
+        label = causal_label(asset, snapshot, float(source["channel_width_pct"]),
+                             float(source["efficiency"]), float(source["overlap"]), thresholds)
+        tag = "EXPANDING_PRIOR__UNIQUE_4H_FEATURE_ROWS"
+        threshold = thresholds.get((asset, snapshot))
+        strict_expected = False if threshold is None else (
+            float(source["channel_width_pct"]) <= float(threshold["p25"])
+            and float(source["efficiency"]) <= 0.30 and float(source["overlap"]) >= 0.70)
+        broad_expected = False if threshold is None else (
+            float(source["channel_width_pct"]) <= float(threshold["p40"])
+            and float(source["efficiency"]) <= 0.30 and float(source["overlap"]) >= 0.70)
+        if (source[tag + "__strict"].lower() == "true") != strict_expected:
+            stop(f"independent P25 eligibility recomputation mismatch: {key}")
+        if (source[tag + "__broad"].lower() == "true") != broad_expected:
+            stop(f"independent P40 eligibility recomputation mismatch: {key}")
+        expected_status = "ELIGIBLE_FOR_FURTHER_VALIDATION" if label in ("CAUSAL_STRICT", "CAUSAL_BROAD_ONLY") else "REJECTED"
+        expected_reason = "NONE" if expected_status == "ELIGIBLE_FOR_FURTHER_VALIDATION" else label
+        if status != expected_status or reason != expected_reason or row.get("causal_cohort") != label:
+            stop(f"independent breakout disposition recomputation mismatch: {key}")
+        expected_minute = str(integer(source, "signal_time_ms", "G0-04 raw")) if expected_status == "ELIGIBLE_FOR_FURTHER_VALIDATION" else ""
+        if (row.get("first_eligible_1m_open_ts_ms") or "") != expected_minute:
+            stop(f"breakout first-eligible minute mismatch: {key}")
     return ({"raw_crossings": len(expected), "exact_source_identity_reconciliation": True,
              "independently_rebuilt_interval_clusters": len(set(v[0] for v in cluster_by_key.values())),
              "cluster_counts_by_asset": dict(summary)}, observed)
@@ -334,7 +417,7 @@ def main() -> None:
     args = parser.parse_args()
 
     ledgers = disposition_rows(args.audit_dir)
-    rejection = verify_rejection_identity(args.repo_root, ledgers["rejection"])
+    rejection = verify_rejection_identity(args.repo_root, args.artifact_dir, ledgers["rejection"])
     breakout, breakout_map = verify_breakout_identity(args.repo_root, args.artifact_dir, ledgers["breakout"])
     failed = verify_failed_breakouts(args.repo_root, ledgers["failed_breakout"], breakout_map)
     report = {
