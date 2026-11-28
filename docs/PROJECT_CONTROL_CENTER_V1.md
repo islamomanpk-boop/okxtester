@@ -307,3 +307,10 @@ Phase 3 G0-05 Step 22 is complete. The independent source verifier passed in Git
 This does **not** close G0-05 or Gate 0. The source-only disposition ledgers are not canonical candidate records. Real candidate IDs and linked failed-breakout source candidate IDs remain unmaterialized; the 60-field validator has synthetic-only record coverage. G0-05 remains OPEN / CRITICAL and Gate 0 remains CONDITIONAL HOLD. Other funding/settlement-mark, fee/instrument, sizing/rounding/gap-risk and execution-engine acceptance items remain open. No Gate 2+ work, Phase 3 strategy PnL backtest, or live-trading conclusion is authorized.
 
 **Next safe task:** read-only pre-generation gate review, reconciling the older canonical field-mapping matrix with the later frozen field-value decisions and checking family-specific nullability and identity rules. Any real canonical candidate build requires a separate explicit authorization after that review.
+
+
+### G0-05 pre-generation contract review — 2026-11-28
+
+The pre-generation static review confirms the 60-field canonical serializer has exactly 60 required keys, all 60 are explicitly covered in the field-mapping matrix, and family-specific source reconciliation/cardinality semantics now fail closed. New synthetic checks passed: [workflow 46149074209](https://github.com/islamomanpk-boop/okxtester/actions/runs/46149074209), **193/193**. The validator now requires rejection physical-collapse semantics and BROAD_P40 membership, one raw crossing row for breakout, and exact one-source-breakout linkage for failed breakout.
+
+This is a **pre-generation contract review PASS only**. It is not a G0-05 or Gate 0 pass. No real candidate IDs, canonical candidate rows, orders, fills, execution simulation or PnL were generated. G0-05 remains OPEN / CRITICAL; Gate 0 remains CONDITIONAL HOLD. The next real canonical candidate/disposition build requires separate explicit project-owner authorization, and even that would not authorize Gate 2+ execution comparison or strategy backtesting. See research register Section 12.28 and `docs/research_checkpoints/2026-11-28_g0_05_independent_source_verification_closeout_v1.md`.
