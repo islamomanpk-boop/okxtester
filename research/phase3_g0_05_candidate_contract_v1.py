@@ -487,6 +487,32 @@ def validate_canonical_candidate_record(row: dict) -> None:
         raise ValueError("invalid source_reconciliation_status")
     if row["source_join_cardinality"] not in SOURCE_JOIN_CARDINALITIES:
         raise ValueError("invalid source_join_cardinality")
+    expected_source_semantics = {
+        "SUPPORT_REJECTION": (
+            "EXACT_PHYSICAL_EVENT_COLLAPSE",
+            "ONE_PHYSICAL_EVENT_TO_ONE_OR_TWO_COHORT_ROWS",
+        ),
+        "RESISTANCE_REJECTION": (
+            "EXACT_PHYSICAL_EVENT_COLLAPSE",
+            "ONE_PHYSICAL_EVENT_TO_ONE_OR_TWO_COHORT_ROWS",
+        ),
+        "BREAKOUT_CONTINUATION": (
+            "EXACT_SOURCE_MATCH",
+            "ONE_RAW_CROSSING_TO_ONE_DISPOSITION",
+        ),
+        "FAILED_BREAKOUT_REVERSAL": (
+            "EXACT_LINKED_SOURCE_BREAKOUT",
+            "ONE_FAILED_BREAKOUT_TO_ONE_SOURCE_BREAKOUT",
+        ),
+    }
+    if (row["source_reconciliation_status"], row["source_join_cardinality"]) != expected_source_semantics[family]:
+        raise ValueError("source reconciliation status/cardinality does not match candidate family")
+    if family in {"SUPPORT_REJECTION", "RESISTANCE_REJECTION"} and "BROAD_P40" not in memberships:
+        raise ValueError("rejection physical event requires its BROAD_P40 source membership")
+    if family == "BREAKOUT_CONTINUATION" and len(source_row_ids) != 1:
+        raise ValueError("breakout continuation must reconcile to exactly one raw crossing source row")
+    if family in {"SUPPORT_REJECTION", "RESISTANCE_REJECTION", "FAILED_BREAKOUT_REVERSAL"} and len(source_row_ids) not in (1, 2):
+        raise ValueError("collapsed physical event must retain one or two source cohort row IDs")
 
 
 def validate_canonical_candidate_ledger(records: list[dict]) -> dict:
