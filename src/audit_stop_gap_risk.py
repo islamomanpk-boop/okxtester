@@ -40,7 +40,7 @@ def analyze_bars(rows, stop_distances):
     buckets = {(d, side): _empty_bucket() for d in distances for side in ("LONG", "SHORT")}
     eligible = skipped = row_count = 0
     zero_volume_rows = positive_volume_rows = active_transitions = 0
-    identical_adjacent_opens = identical_active_opens = 0
+    exact_close_to_next_open_count = exact_active_close_to_next_open_count = 0
     first_ts = last_ts = None
     previous = None
     last_active = None
@@ -83,7 +83,7 @@ def analyze_bars(rows, stop_distances):
                 signed_jump_bps = (next_open / reference - 1.0) * 10_000.0
                 open_jump_abs_bps.append(abs(signed_jump_bps))
                 if next_open == reference:
-                    identical_adjacent_opens += 1
+                    exact_close_to_next_open_count += 1
                 long_adverse_open_jump_bps.append(max(0.0, -signed_jump_bps))
                 short_adverse_open_jump_bps.append(max(0.0, signed_jump_bps))
             else:
@@ -98,7 +98,7 @@ def analyze_bars(rows, stop_distances):
                 signed_jump_bps = (next_open / reference - 1.0) * 10_000.0
                 active_open_jump_abs_bps.append(abs(signed_jump_bps))
                 if next_open == reference:
-                    identical_active_opens += 1
+                    exact_active_close_to_next_open_count += 1
                 active_long_adverse_open_jump_bps.append(max(0.0, -signed_jump_bps))
                 active_short_adverse_open_jump_bps.append(max(0.0, signed_jump_bps))
                 for distance_pct in distances:
@@ -161,10 +161,10 @@ def analyze_bars(rows, stop_distances):
         "active_trade_open_jump_distributions_bps": active_jump_distributions,
         "eligible_minute_transitions": eligible,
         "active_trade_transitions": active_transitions,
-        "identical_adjacent_open_count": identical_adjacent_opens,
-        "identical_adjacent_open_pct": identical_adjacent_opens / eligible * 100.0 if eligible else None,
-        "identical_active_open_count": identical_active_opens,
-        "identical_active_open_pct": identical_active_opens / active_transitions * 100.0 if active_transitions else None,
+        "exact_close_to_next_open_count": exact_close_to_next_open_count,
+        "exact_close_to_next_open_pct": exact_close_to_next_open_count / eligible * 100.0 if eligible else None,
+        "exact_active_close_to_next_open_count": exact_active_close_to_next_open_count,
+        "exact_active_close_to_next_open_pct": exact_active_close_to_next_open_count / active_transitions * 100.0 if active_transitions else None,
         "zero_volume_rows": zero_volume_rows,
         "positive_volume_rows": positive_volume_rows,
         "zero_volume_row_pct": zero_volume_rows / row_count * 100.0,
@@ -208,14 +208,14 @@ def main(argv=None):
         "audit_id": "G0-07_STOP_GAP_RISK_HISTORICAL_1M_V1",
         "status": "HISTORICAL_OPEN_THROUGH_STOP_AUDIT_COMPLETE",
         "source_provenance_review": {
-            "status": "UNVERIFIED_PRELIMINARY_ONLY",
+            "status": "UNVERIFIED_FULL_FILE_PROVENANCE",
             "dataset_introduction_commit": "966a23843d8bad6bc79e3ea48c56edcace9e3a5d",
-            "exact_adjacent_open_match_pct_range": [
-                min(asset["identical_adjacent_open_pct"] for asset in assets),
-                max(asset["identical_adjacent_open_pct"] for asset in assets),
+            "exact_previous_close_next_open_match_pct_range": [
+                min(asset["exact_close_to_next_open_pct"] for asset in assets),
+                max(asset["exact_close_to_next_open_pct"] for asset in assets),
             ],
-            "note": "The repository commit that introduced the five CSVs added only those data files; no upstream provider manifest or 1m acquisition/normalization procedure was documented in the reviewed repository paths. The high exact-open-match rate is a source-continuity warning, not proof of synthetic data.",
-            "required_before_acceptance": "Verify the original OHLCV provider/export, candle boundary convention, and any forward-fill or stitching transformations.",
+            "note": "The repository commit that introduced the five CSVs added only those data files; no upstream provider manifest or 1m acquisition/normalization procedure was documented in the reviewed repository paths. The exact previous-close/next-open match rate is a candle-continuity statistic; a separate 35/35 OKX sample match confirms the sampled pattern is native-source-consistent, not evidence by itself of synthetic stitching. Full-file provenance remains unverified.",
+            "required_before_acceptance": "Obtain the original full-file provider/export and normalization manifest or complete row-by-row source comparison, and document candle boundaries and transformations.",
         },
         "method": "Stop-gap scenarios compare each positive-volume candle open with the close of the previous positive-volume candle. Zero-volume rows are treated as no-trade intervals; nonconsecutive timestamp breaks reset the active comparison. Adjacent one-minute opening-jump diagnostics are also reported separately.",
         "scope": [
@@ -252,7 +252,7 @@ def main(argv=None):
     for asset in assets:
         jumps = asset["open_jump_distributions_bps"]
         active_jumps = asset["active_trade_open_jump_distributions_bps"]
-        print(f"{asset['symbol']}: rows={asset['row_count']:,}, minute_transitions={asset['eligible_minute_transitions']:,}, active_transitions={asset['active_trade_transitions']:,}, zero_volume_rows={asset['zero_volume_rows']:,} ({asset['zero_volume_row_pct']:.2f}%), exact_open_matches={asset['identical_adjacent_open_count']:,} ({asset['identical_adjacent_open_pct']:.2f}%), nonconsecutive_skipped={asset['skipped_nonconsecutive_transitions']:,}, period={asset['first_utc']}..{asset['last_utc']}, sha256={asset['source_sha256']}")
+        print(f"{asset['symbol']}: rows={asset['row_count']:,}, minute_transitions={asset['eligible_minute_transitions']:,}, active_transitions={asset['active_trade_transitions']:,}, zero_volume_rows={asset['zero_volume_rows']:,} ({asset['zero_volume_row_pct']:.2f}%), exact_prev_close_next_open={asset['exact_close_to_next_open_count']:,} ({asset['exact_close_to_next_open_pct']:.2f}%), nonconsecutive_skipped={asset['skipped_nonconsecutive_transitions']:,}, period={asset['first_utc']}..{asset['last_utc']}, sha256={asset['source_sha256']}")
         print(f"  all-bar open-jump abs bps: p50={jumps['absolute_open_jump']['p50']:.4f}, p99={jumps['absolute_open_jump']['p99']:.4f}, max={jumps['absolute_open_jump']['max']:.4f}")
         print(f"  active open-jump abs bps: p50={active_jumps['absolute_open_jump']['p50']}, p99={active_jumps['absolute_open_jump']['p99']}, max={active_jumps['absolute_open_jump']['max']}")
         for item in asset["scenarios"]:

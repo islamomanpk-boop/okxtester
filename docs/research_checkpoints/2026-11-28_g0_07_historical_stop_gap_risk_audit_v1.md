@@ -20,7 +20,7 @@ The workflow passed compilation, all 12 stop-gap audit unit tests, the five-asse
 
 Five committed one-minute OHLCV files were analyzed. Each has roughly 569,125 rows, with no nonconsecutive timestamp transitions in the covered period. Coverage runs from 2025-10-20 08:50 UTC through 2026-11-19 14:14–14:16 UTC, depending on asset.
 
-| Asset | Active transitions | Zero-volume rows | Exact open = previous close |
+| Asset | Active transitions | Zero-volume rows | Next open = previous close |
 |---|---:|---:|---:|
 | BTC | 569,124 | 0 | 54.90% |
 | ETH | 569,124 | 0 | 53.95% |
@@ -66,15 +66,15 @@ Examples:
 
 These are synthetic assumptions, not observed events, executable fills, or a maximum-loss bound. Fees, slippage and market impact are excluded from this simple multiplier.
 
-## Critical source-provenance warning
+## Full-file source-provenance limitation
 
 The five CSVs were introduced by repository commit `966a23843d8bad6bc79e3ea48c56edcace9e3a5d`, which added the five data files but no upstream provider manifest or 1m acquisition/normalization procedure. The reviewed repository code's `src/prepare_data.py` consumes these 1m files and resamples higher timeframes; it does not document how the original 1m files were acquired or stitched.
 
-More than half of every asset's consecutive candle opens exactly equal the preceding close (53.86%–58.47%), despite positive volume on almost all rows. This is a source-continuity warning, not proof that the data are synthetic. Until the original provider/export, candle boundary convention and any forward-fill/stitching transformations are verified, the very small observed gap counts must not be treated as representative market-tail evidence or used to accept G0-07.
+The 53.86%–58.47% statistic is the percentage of transitions where the next candle's open exactly equals the preceding candle's close; it does not compare adjacent opens. The independent OKX sample check matched 35/35 OHLC candles, including both exact-match and changed-open cases, so this continuity pattern is consistent with sampled native OKX candles and is not evidence by itself of synthetic stitching. The original full-file acquisition/normalization manifest is still absent, however, and 35 samples do not certify every row. Until full-file provenance is documented or independently certified, the observed gap counts remain preliminary and cannot accept G0-07.
 
 ## Remaining G0-07 work
 
-1. Verify the original OHLCV provider/export and the process used to create the five CSVs. Compare selected exact-match and gap-event timestamps with source candles if the provider can be identified.
+1. Obtain the original full-file provider/export and normalization manifest, or complete row-by-row source verification. The 35-row sample is positive source evidence but not full-file certification.
 2. Keep candle-open gap statistics separate from actual stop-order execution risk. The audit does not measure order-book depth, spread, queue position, mark/index-trigger behavior, latency, or real stop-market slippage/market impact.
 3. Complete contract lot/tick/minimum-quantity rounding only after G0-08 instrument metadata and fee assumptions are verified.
 4. Reassess empirical gap-risk conclusions after source provenance is established; retain explicit synthetic stress cases.
@@ -86,7 +86,7 @@ This audit performed no strategy signal selection, trade simulation, strategy Pn
 
 ## Follow-up source verification — 2026-11-28
 
-The later public-API sample verification supersedes the earlier source-warning disposition as follows: 35/35 sampled OHLC candles across BTC, ETH, SOL, DOGE and AVAX matched OKX V5 history-candles exactly, and 35/35 CSV volume values matched OKX volCcy (base-currency volume). The exact-open/previous-close pattern is therefore consistent with the sampled native OKX candles; it is not evidence by itself of synthetic stitching.
+The later public-API sample verification supersedes the earlier source-warning disposition as follows: 35/35 sampled OHLC candles across BTC, ETH, SOL, DOGE and AVAX matched OKX V5 history-candles exactly, and 35/35 CSV volume values matched OKX volCcy (base-currency volume). The exact previous-close/next-open continuity pattern is therefore consistent with the sampled native OKX candles; it is not evidence by itself of synthetic stitching.
 
 The CSV volume unit is base currency, not contract count. It matched OKX contract vol only for SOL and AVAX in these samples; it did not match contract vol for BTC, ETH or DOGE. Do not use the CSV vol column as exchange contract quantity or for contract-lot rounding.
 

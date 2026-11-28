@@ -75,16 +75,16 @@ class StopGapRiskAuditTests(unittest.TestCase):
         item = next(x for x in result["scenarios"] if x["side"] == "LONG")
         self.assertIn("Small event sample", item["quantile_sample_note"])
 
-    def test_exact_open_close_match_rate_is_reported(self):
+    def test_exact_previous_close_to_next_open_match_rate_is_reported(self):
         result = analyze_bars([
             bar(60000, 100, 100.2, 99.8, 100),
             bar(120000, 100, 100.2, 99.8, 100),
             bar(180000, 100.1, 100.2, 100, 100.15),
         ], [1.0])
-        self.assertEqual(result["identical_adjacent_open_count"], 1)
-        self.assertAlmostEqual(result["identical_adjacent_open_pct"], 50.0)
-        self.assertEqual(result["identical_active_open_count"], 1)
-        self.assertAlmostEqual(result["identical_active_open_pct"], 50.0)
+        self.assertEqual(result["exact_close_to_next_open_count"], 1)
+        self.assertAlmostEqual(result["exact_close_to_next_open_pct"], 50.0)
+        self.assertEqual(result["exact_active_close_to_next_open_count"], 1)
+        self.assertAlmostEqual(result["exact_active_close_to_next_open_pct"], 50.0)
 
 if __name__ == "__main__":
     unittest.main()

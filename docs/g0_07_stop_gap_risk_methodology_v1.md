@@ -33,14 +33,14 @@ A separate synthetic table adds hypothetical gaps beyond the stop (default: 0.05
 This is evidence input only. G0-07 remains OPEN until the results and upstream OHLCV provenance are reviewed, stress assumptions are documented, and exchange contract rounding requirements are resolved after G0-08 metadata is verified. The output is not a maximum-loss guarantee.
 
 
-## Additional source-continuity diagnostic
+## Close-to-next-open continuity diagnostic
 
-The audit also reports the percentage of adjacent minute opens that exactly equal the preceding candle close, both across all bars and across positive-volume bars. A high exact-match rate is not proof of synthetic data, but it is a reason to verify the OHLCV provider and any candle stitching/forward-fill process before treating small measured opening gaps as representative of executable market gaps.
+The audit reports the percentage of consecutive one-minute transitions where the next candle's open exactly equals the previous candle's close, both across all bars and across positive-volume bars. This is a candle-boundary continuity statistic, not a comparison of adjacent opens. The independent 35/35 OKX sample check found both exact-match and changed-open samples consistent with native OKX candles. This statistic is not, by itself, a source warning or evidence of synthetic stitching. Full-file provenance remains unverified because the original acquisition/normalization manifest is absent.
 
 
 ## OKX source sample follow-up — 2026-11-28
 
-A separate read-only sample verifier compared 7 deterministic samples per asset (exact-open transitions, changed-open transitions, and the largest adjacent opening jump) against the public OKX V5 history-candles endpoint.
+A separate read-only sample verifier compared 7 deterministic samples per asset (exact previous-close/next-open transitions, changed-open transitions, and the largest adjacent opening jump) against the public OKX V5 history-candles endpoint.
 
 - 35/35 sampled OHLC candles matched exactly.
 - 35/35 CSV volume values matched OKX volCcy (base-currency volume).
